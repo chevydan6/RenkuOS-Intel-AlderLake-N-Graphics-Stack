@@ -33,9 +33,9 @@ a driver or call accelerant initialization. New C++ tests use GNU C++17; native
 GCC 13.3.0 was verified. Kernel flags disable exceptions, RTTI, red zone and
 vectorization. Original C common sources remain C.
 
-The expanded kernel-driver target is awaiting a successful native run after
-correcting missing system/x86 private-header include paths. Previously verified
-native runs compiled GART and the complete accelerant; see the dated results.
+The expanded kernel-driver target passed in bundle `renku-015`, together with
+GART, the complete accelerant and all native tests. Earlier failed header-path
+and test-fixture attempts are retained in the dated results.
 
 The component Makefile follows relevant Jam target source lists. It is not a
 full official Jam image-build validation or proof of ABI compatibility with a
@@ -49,7 +49,7 @@ Build logs and binaries remain under ignored directories. Use one compile job
 on the 4 GiB target; request the authoritative shared build lock first.
 
 The source worktree is pinned RenkuOS main plus separately attributed patches.
-Patches 1–7 passed in RenkuOS hrev60072+518 with the matching development package;
+Patches 1–8 passed in RenkuOS hrev60072+518 with the matching development package;
 later patches must pass a new native run before inheriting that result. Haiku
 beta6 remains a separate compatibility check. Never install a kernel add-on
 merely because it links against beta6 or the RenkuOS SDK.

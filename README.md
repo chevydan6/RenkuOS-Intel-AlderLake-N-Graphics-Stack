@@ -15,9 +15,9 @@ The initialization/cache-mapping and GMS-decoding patches also compile and pass
 the native RenkuOS checks. Patch 7 disables the Alder Lake legacy ring lifecycle
 and unsupported engine/overlay hooks; 22 native RAM-fixture checks pass, with
 an original-code control that reproduces the three lifecycle failures.
-Patch 8 withholds the i965 clock-gating fallback on Alder Lake. Its native
-regression test and the expanded Intel kernel-driver build are queued behind
-the shared power-test window.
+Patch 8 withholds the i965 clock-gating fallback on Alder Lake. All eight patches
+now pass native compilation and software tests, including the complete Intel
+kernel driver and five clock-gating checks with an original-source control.
 None is ready for physical installation:
 stolen-memory ownership, modern initialization and execution remain unresolved.
 

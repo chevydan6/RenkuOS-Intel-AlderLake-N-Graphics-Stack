@@ -30,8 +30,8 @@ int
 main()
 {
 	pci_info pci = {};
-	intel_shared_info shared = {};
-	intel_info info = {};
+	intel_shared_info shared = {.device_type = INTEL_MODEL_ALDM};
+	intel_info info = {.device_type = INTEL_MODEL_ALDM};
 	info.pci = &pci;
 	info.shared_info = &shared;
 	info.registers = reinterpret_cast<addr_t>(sRegisters);

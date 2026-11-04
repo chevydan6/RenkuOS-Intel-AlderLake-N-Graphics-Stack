@@ -77,5 +77,5 @@ mapping ownership. It is not a substitute for preserving arbitrary boot
 scanout/PTE ranges or for correcting partial-bind cleanup. Avoid creating an
 unnecessary second aperture allocator before these existing paths are assessed.
 
-Patches 1–7 passed native compilation and software tests in RenkuOS after the
+Patches 1–8 passed native compilation and software tests in RenkuOS after the
 shared power-test window cleared. None has been loaded on the physical Intel GPU.
