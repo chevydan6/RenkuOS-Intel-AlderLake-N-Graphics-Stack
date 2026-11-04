@@ -1,0 +1,4 @@
+.local/
+logs/
+build/
+__pycache__/
