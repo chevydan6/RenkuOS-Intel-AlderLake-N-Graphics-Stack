@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Validate actual GART table coverage; no hardware accesses or driver execution."""
 import pathlib
 import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
-source = (root / 'src/add-ons/kernel/busses/agp_gart/intel_gart.cpp').read_text()
+source = (root if root.is_file() else root / 'src/add-ons/kernel/busses/agp_gart/intel_gart.cpp').read_text()
 table = source.split('} kSupportedDevices[] = {', 1)[1].split('\n};', 1)[0]
 rows = re.findall(r'\{(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(\w+),\s*"([^"]+)"\}', table)
 pairs = {(int(b, 16), int(d, 16)): model for b, d, model, _ in rows}

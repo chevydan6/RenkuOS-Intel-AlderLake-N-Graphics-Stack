@@ -1,18 +1,23 @@
-From d0d8313ce6d6eb77f5e86c12ac5a3a77c2e1c91b Mon Sep 17 00:00:00 2001
+From fdf3c43861510b4185d7c942f8fb6f8ce7b312c8 Mon Sep 17 00:00:00 2001
 From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
 Date: Wed, 4 Nov 2026 21:29:42 +0900
 Subject: [PATCH 1/2] intel_gart: recognize the N100 461c/46d1 bridge and
  display pair
 
+(cherry picked from commit d0d8313ce6d6eb77f5e86c12ac5a3a77c2e1c91b)
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Assisted-by: OpenAI Codex
+Ported-from: private Haiku GPU branch d0d8313
+Ported-from-license: MIT
 ---
  src/add-ons/kernel/busses/agp_gart/intel_gart.cpp | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
-index 1b5a589..579914b 100644
+index 9d213a53..2ce7d461 100644
 --- a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
 +++ b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
-@@ -256,6 +256,7 @@ const struct supported_device {
+@@ -257,6 +257,7 @@ const struct supported_device {
  	{0x9a26, 0x9a68, INTEL_MODEL_TGLM, "TigerLake-LP GT1"},
  
  	{0x4621, 0x46a6, INTEL_MODEL_ALDM, "Alder Lake-P GT2"},

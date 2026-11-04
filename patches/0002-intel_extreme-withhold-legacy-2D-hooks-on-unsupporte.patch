@@ -1,15 +1,20 @@
-From 3f2bb3d753e771747000b8f8a514ed8c34d1896c Mon Sep 17 00:00:00 2001
+From 8215a0372b51cebf68394115aa265e8440a677f2 Mon Sep 17 00:00:00 2001
 From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
 Date: Wed, 4 Nov 2026 21:29:43 +0900
 Subject: [PATCH 2/2] intel_extreme: withhold legacy 2D hooks on unsupported
  engine families
 
+(cherry picked from commit 3f2bb3d753e771747000b8f8a514ed8c34d1896c)
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Assisted-by: OpenAI Codex
+Ported-from: private Haiku GPU branch 3f2bb3d
+Ported-from-license: MIT
 ---
  src/add-ons/accelerants/intel_extreme/hooks.cpp | 13 +++++++++++--
  1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/src/add-ons/accelerants/intel_extreme/hooks.cpp b/src/add-ons/accelerants/intel_extreme/hooks.cpp
-index ddbcfde..c74e520 100644
+index ddbcfde3..c74e5202 100644
 --- a/src/add-ons/accelerants/intel_extreme/hooks.cpp
 +++ b/src/add-ons/accelerants/intel_extreme/hooks.cpp
 @@ -106,10 +106,19 @@ get_accelerant_hook(uint32 feature, void* data)

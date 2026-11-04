@@ -93,3 +93,13 @@ Primary references (source snapshots are pinned above):
 Detailed PRM register/command auditing remains required before programming a
 Gen12 engine. Neither API optimization guides nor device-ID tables suffice to
 validate GPU commands.
+
+## RenkuOS follow-up
+
+See [migration assessment](RENKUOS_MIGRATION.md) for verified divergence and
+existing render-node work. The public [Intel PRM index](https://www.intel.com/content/www/us/en/docs/graphics-for-linux/developer-reference/1-0/hardware-specs.html)
+provides Tiger Lake Xe-LP volumes for memory views/cache, command streams, copy
+and display engines. The index inspected does not provide an Alder Lake-N
+specific set. Treat Tiger Lake as a starting reference and validate ADL-N
+display-version-13 differences against primary platform data and Linux; never
+assume its register sequences are identical.

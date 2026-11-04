@@ -1,4 +1,5 @@
-# Native Haiku x86_64 build from a pinned, isolated source bundle.
+# SPDX-License-Identifier: MIT
+# Native RenkuOS/Haiku x86_64 component build from an isolated source bundle.
 CXX := g++
 CC := gcc
 SOURCE := source
@@ -57,7 +58,15 @@ $(OUT)/hooks-test: tests/hooks-test.cpp
 		-Wno-missing-field-initializers \
 		-I$(ACCEL) $< -o $@ -lbe
 
-test: all
+$(OUT)/control-hooks.o: controls/hooks.cpp
+	mkdir -p $(OUT)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(ACCEL) -c $< -o $@
+
+$(OUT)/intel_extreme.control.accelerant: $(filter-out $(OUT)/accel/hooks.o,$(ACCEL_OBJECTS)) $(COMMON_OBJECTS) $(OUT)/control-hooks.o
+	$(CXX) -shared -Wl,--no-undefined -o $@ $^ -lbe
+
+test: all $(OUT)/intel_extreme.control.accelerant
 	python3 tests/source-audit.py source
 	$(OUT)/hooks-test ./$(OUT)/intel_extreme.accelerant
+	python3 tools/regression-control.py
 	python3 tools/validate-artifacts.py $(OUT)

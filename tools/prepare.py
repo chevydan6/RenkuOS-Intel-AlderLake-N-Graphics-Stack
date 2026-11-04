@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Export a pinned source subset and apply reviewed patches in a new build bundle."""
 import argparse
 import hashlib
@@ -9,7 +10,7 @@ import subprocess
 import tarfile
 import tempfile
 
-BASE = '4f1074d5e14f59e0f5e5c4938c8a50d1290fa59c'
+BASE = '4799bb5a188c4bb6bbef967287640cc21a061a0d'
 PATHS = [
     'License.md', 'headers/private/graphics',
     'src/add-ons/kernel/busses/agp_gart',
@@ -17,7 +18,7 @@ PATHS = [
 ]
 PROJECT = pathlib.Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--source', type=pathlib.Path, help='existing Haiku Git source; only pinned objects are exported')
+parser.add_argument('--source', type=pathlib.Path, help='existing RenkuOS Git source; only pinned objects are exported')
 parser.add_argument('--output', required=True, type=pathlib.Path, help='new bundle directory')
 parser.add_argument('--unpatched', action='store_true', help='control build for regression testing')
 args = parser.parse_args()
@@ -30,7 +31,7 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
     repo = args.source.resolve() if args.source else temp / 'haiku'
     if args.source is None:
         subprocess.run(['git', 'init', '-q', str(repo)], check=True)
-        subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin', 'https://github.com/haiku/haiku.git'], check=True)
+        subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin', 'https://github.com/RenkuOS/Source.git'], check=True)
         subprocess.run(['git', '-C', str(repo), 'config', 'remote.origin.promisor', 'true'], check=True)
         subprocess.run(['git', '-C', str(repo), 'config', 'remote.origin.partialclonefilter', 'blob:none'], check=True)
         subprocess.run(['git', '-C', str(repo), 'fetch', '--depth=1', '--filter=blob:none', 'origin', BASE], check=True)
@@ -43,6 +44,9 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
     source.mkdir()
     with tarfile.open(archive) as tar:
         tar.extractall(source, filter='data')
+    (out / 'controls').mkdir()
+    shutil.copy2(source / 'src/add-ons/accelerants/intel_extreme/hooks.cpp', out / 'controls')
+    shutil.copy2(source / 'src/add-ons/kernel/busses/agp_gart/intel_gart.cpp', out / 'controls')
     # A temporary repository makes patch application relative to this source,
     # independent of the caller's working directory or enclosing repositories.
     subprocess.run(['git', 'init', '-q', str(source)], check=True)
@@ -54,9 +58,11 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
 shutil.copytree(PROJECT / 'tests', out / 'tests', ignore=shutil.ignore_patterns('__pycache__'))
 (out / 'tools').mkdir()
 shutil.copy2(PROJECT / 'tools/validate-artifacts.py', out / 'tools')
+shutil.copy2(PROJECT / 'tools/regression-control.py', out / 'tools')
+shutil.copy2(PROJECT / 'tools/run-native.py', out / 'tools')
 shutil.copy2(PROJECT / 'tools/Makefile.haiku', out / 'Makefile')
 manifest = {
-    'haiku_commit': BASE,
+    'renkuos_commit': BASE,
     'patched': not args.unpatched,
     'patch_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in patches},
     'payload_sha256': {str(p.relative_to(out)): hashlib.sha256(p.read_bytes()).hexdigest()

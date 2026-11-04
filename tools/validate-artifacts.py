@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """Reject unexpected kernel dependencies and wrong ELF/symbol outputs."""
 import hashlib
 import pathlib
