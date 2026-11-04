@@ -1,0 +1,39 @@
+From 3f2bb3d753e771747000b8f8a514ed8c34d1896c Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 21:29:43 +0900
+Subject: [PATCH 2/2] intel_extreme: withhold legacy 2D hooks on unsupported
+ engine families
+
+---
+ src/add-ons/accelerants/intel_extreme/hooks.cpp | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/hooks.cpp b/src/add-ons/accelerants/intel_extreme/hooks.cpp
+index ddbcfde..c74e520 100644
+--- a/src/add-ons/accelerants/intel_extreme/hooks.cpp
++++ b/src/add-ons/accelerants/intel_extreme/hooks.cpp
+@@ -106,10 +106,19 @@ get_accelerant_hook(uint32 feature, void* data)
+ 
+ 		/* 2D acceleration */
+ 		case B_SCREEN_TO_SCREEN_BLIT:
+-			return (void*)intel_screen_to_screen_blit;
+ 		case B_FILL_RECTANGLE:
+-			return (void*)intel_fill_rectangle;
+ 		case B_INVERT_RECTANGLE:
++			// These families have no working legacy command submission or
++			// engine synchronization (see intel_wait_engine_idle()).
++			if (gInfo->shared_info->device_type.InFamily(INTEL_FAMILY_LAKE)
++				|| gInfo->shared_info->device_type.InFamily(INTEL_FAMILY_SOC0)) {
++				return NULL;
++			}
++
++			if (feature == B_SCREEN_TO_SCREEN_BLIT)
++				return (void*)intel_screen_to_screen_blit;
++			if (feature == B_FILL_RECTANGLE)
++				return (void*)intel_fill_rectangle;
+ 			return (void*)intel_invert_rectangle;
+ 		case B_FILL_SPAN:
+ 			return NULL;//(void*)intel_fill_span;
+-- 
+2.43.0
+
