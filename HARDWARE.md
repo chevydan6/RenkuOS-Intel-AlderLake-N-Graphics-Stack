@@ -42,3 +42,21 @@ NanoKVM has an existing management path through USB networking. Wi-Fi records
 verify SSH/video/keyboard, but power-cycle/BIOS recovery is not verified. GPU
 reset or display loss can also remove NanoKVM video. Require a verified recovery
 procedure and explicit authorization before changing host graphics or boot.
+
+## Read-only PCI configuration, 2026-11-05 JST
+
+Under the authoritative host-config lock, authenticated read-only `setpci`
+queries confirmed bridge `8086:461c` and display `8086:46d1` both report GGC
+`0xfec1`. Intel's documented fields decode to **60 MiB DSM** (GMS `0xfe`) and
+**8 MiB GGTT** (GGMS `3`). The bridge and GPU mirror agree on this laptop.
+
+BAR0 low/high: `bf000004` / `00000000`; register base `0xbf000000`.
+BAR2 low/high: `d000000c` / `00000000`; aperture base `0xd0000000`.
+With the documented 8 MiB table offset, the GGTT window begins at `0xbf800000`.
+That final address is calculated, not a RenkuOS mapping validation. These
+commands contained no PCI writes, and Fedora continued using i915.
+
+Authentication was supplied through an ephemeral, mode-0600 FIFO in a private
+directory and removed after the command. No credential is in this repository,
+command scripts or collected test logs. Evidence is retained under the private
+`logs/renku-vm-005/pci-config-20261105.txt`.

@@ -1,11 +1,16 @@
 # Known issues
 
 - No physical Haiku Intel attachment/display/commands have been tested.
-- Patches 1–4 compile and pass software tests in the RenkuOS nightly guest.
-  Patches 5–6 still need native compilation; no physical driver execution exists.
+- Patches 1–7 compile and pass software tests in the RenkuOS nightly guest.
+  No physical driver execution exists.
 - N100 461c:46d1 GART pair is missing upstream; the local patch is not hardware validation.
 - Legacy 2D hooks are advertised despite unsupported LAKE/SOC0 engines; local
-  safeguard suppresses hooks only. Existing ring setup and other MMIO remain.
+  safeguard suppresses hooks. Patch 7 also skips Alder Lake legacy ring setup
+  and teardown, reports zero engines and withholds engine/overlay hooks.
+- Kernel initialization still allocates obsolete ring/overlay resources and
+  rejects its incorrectly passed status-page output pointer. Patch 8 withholds
+  the i965 clock-gating fallback on Alder Lake; its native test is pending. Modern display,
+  interrupt and fence programming remain unvalidated; patch 7 does not fix them.
 - Legacy ring-space timeout can continue writing; synchronization token support
   is incomplete. No Gen12 submission should use that path without redesign.
 - Patch 3 corrects the GGTT offset; patch 4 implements bounded 64-bit PTE stores
@@ -19,7 +24,7 @@
   recovery, Iris backend or ANV backend has been implemented in this project.
 - The target's active GPU cannot be reassigned without explicit authorization
   and verified recovery. IOMMU isolation is necessary but insufficient.
-- Native build uses beta6 installed kernel headers; whole-image build and
+- Native RenkuOS builds use the matching hrev60072+518 SDK; whole-image build and
   hardware ABI validation remain outstanding.
 - Haiku upstream rejects AI-assisted contributions. Private development is
   authorized; RenkuOS is now the primary target after source/policy inspection.

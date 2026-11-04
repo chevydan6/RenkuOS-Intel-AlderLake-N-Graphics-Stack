@@ -11,8 +11,14 @@ not the physical Intel GPU.
 The first four patches correct discovery, unsupported capability exposure,
 GGTT BAR layout and Alder Lake PTE width/bounds. They compile in RenkuOS with
 matching kernel headers; 185 native hook checks and 42 GGTT checks pass.
-Two subsequent patches address initialization/cache mapping and GMS decoding;
-their native build is pending. None is ready for physical installation:
+The initialization/cache-mapping and GMS-decoding patches also compile and pass
+the native RenkuOS checks. Patch 7 disables the Alder Lake legacy ring lifecycle
+and unsupported engine/overlay hooks; 22 native RAM-fixture checks pass, with
+an original-code control that reproduces the three lifecycle failures.
+Patch 8 withholds the i965 clock-gating fallback on Alder Lake. Its native
+regression test and the expanded Intel kernel-driver build are queued behind
+the shared power-test window.
+None is ready for physical installation:
 stolen-memory ownership, modern initialization and execution remain unresolved.
 
 See [RenkuOS migration assessment](RENKUOS_MIGRATION.md), [initial technical report](DRIVER_RESEARCH.md), [hardware](HARDWARE.md),

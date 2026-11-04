@@ -5,10 +5,15 @@ import subprocess
 import sys
 
 checks = [
+    (['build/gating-control'], ['FAIL Alder Lake gating unsupported',
+                              'FAIL Alder Lake gating registers preserved']),
     ([sys.executable, 'tests/source-audit.py', 'controls/intel_gart.cpp'],
      ['FAIL verified N100 pair', 'FAIL N100 pair unique']),
     (['build/hooks-test', './build/intel_extreme.control.accelerant'],
      ['FAIL drawing capability'] * 21),
+    (['build/lifecycle-test', './build/intel_extreme.lifecycle-control.accelerant'],
+     ['FAIL Alder Lake engine count', 'FAIL Alder Lake ring state',
+      'FAIL Alder Lake register writes']),
 ]
 for command, expected in checks:
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -18,4 +23,4 @@ for command, expected in checks:
         print(result.stdout)
         raise SystemExit('control did not reproduce exactly the expected regression')
     print(f'PASS unpatched control: {len(failures)} expected failures: {command[0]}')
-print('PASS both regressions reproduced before the patches')
+print('PASS all controls reproduce the expected regressions')

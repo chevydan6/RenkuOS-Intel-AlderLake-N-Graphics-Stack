@@ -31,7 +31,7 @@ info = {
     'source_manifest_sha256': hashlib.sha256((bundle / 'manifest.json').read_bytes()).hexdigest(),
     'source_commit': manifest['renkuos_commit'],
     'patched': manifest['patched'],
-    'runtime_validation': 'user-space hook lookup only; kernel module not loaded',
+    'runtime_validation': 'user-space hooks, GGTT helpers and simulated-register lifecycle; kernel module not loaded',
     'gpu_execution': False,
 }
 identity = pathlib.Path('/boot/system/data/renkuos/build')
@@ -42,7 +42,7 @@ with (record / 'build-test.log').open('w') as log:
 info['elapsed_seconds'] = round(time.monotonic() - start, 3)
 info['exit_status'] = result.returncode
 info['artifacts'] = {}
-for name in ['intel_gart', 'intel_extreme.accelerant', 'hooks-test', 'gtt-range-test', 'gtt-pte-test', 'gtt-stolen-test']:
+for name in ['intel_gart', 'intel_extreme.driver', 'intel_extreme.accelerant', 'hooks-test', 'gtt-range-test', 'gtt-pte-test', 'gtt-stolen-test', 'lifecycle-test', 'gating-test']:
     p = bundle / 'build' / name
     if p.is_file():
         info['artifacts'][name] = {'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}

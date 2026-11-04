@@ -25,13 +25,17 @@ GitHub Actions runs source/control/manifest checks and the GGTT arithmetic tests
 with address/undefined-behavior sanitizers; its green result is not native
 driver compilation or GPU validation.
 
-This builds the Intel GART kernel add-on and complete Intel accelerant, runs
+This builds the Intel GART add-on, Intel kernel driver and complete accelerant, runs
 source table checks and real linked-accelerant hook tests, reproduces the
 original failures using an unpatched linked control, then validates ELF
 architecture, entry points and kernel dependency `_KERNEL_`. It does not install
 a driver or call accelerant initialization. New C++ tests use GNU C++17; native
 GCC 13.3.0 was verified. Kernel flags disable exceptions, RTTI, red zone and
 vectorization. Original C common sources remain C.
+
+The expanded kernel-driver target is awaiting a successful native run after
+correcting missing system/x86 private-header include paths. Previously verified
+native runs compiled GART and the complete accelerant; see the dated results.
 
 The component Makefile follows relevant Jam target source lists. It is not a
 full official Jam image-build validation or proof of ABI compatibility with a
@@ -42,7 +46,7 @@ Build logs and binaries remain under ignored directories. Use one compile job
 on the 4 GiB target; request the authoritative shared build lock first.
 
 The source worktree is pinned RenkuOS main plus separately attributed patches.
-Patches 1–4 passed in RenkuOS hrev60072+518 with the matching development package;
+Patches 1–7 passed in RenkuOS hrev60072+518 with the matching development package;
 later patches must pass a new native run before inheriting that result. Haiku
 beta6 remains a separate compatibility check. Never install a kernel add-on
 merely because it links against beta6 or the RenkuOS SDK.
@@ -58,7 +62,7 @@ provisioning are coordinated with Astra High #1.
 The shell runner needs Bash, Make, GCC/binutils, sha256sum and tar; Python is
 not required inside RenkuOS. It records the kernel/compiler/development package,
 verifies every payload hash, builds and runs the native tests and original hook
-control. Copy its `validation/` directory back, then run on the workstation:
+and lifecycle controls. Copy its `validation/` directory back, then run on the workstation:
 
 ```sh
 python3 tools/finalize-native.py build/native-fresh /path/to/validation

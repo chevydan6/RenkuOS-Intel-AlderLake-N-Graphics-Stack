@@ -29,7 +29,7 @@ record = {
     'devel_package': (validation / 'devel-package.txt').read_text().strip(),
     'exit_status': status,
     'gpu_execution': False,
-    'runtime_validation': 'native user-space hook lookup and GGTT helper; no module load',
+    'runtime_validation': 'native hooks, GGTT helpers and simulated-register lifecycle; no module load',
     'artifacts': {},
 }
 if status == 0:

@@ -14,6 +14,9 @@ BASE = '4799bb5a188c4bb6bbef967287640cc21a061a0d'
 PATHS = [
     'License.md', 'headers/private/graphics',
     'src/add-ons/kernel/busses/agp_gart',
+    'src/add-ons/kernel/drivers/graphics/intel_extreme',
+    'src/add-ons/kernel/drivers/graphics/common',
+    'src/system/kernel/util/kernel_cpp.cpp',
     'src/add-ons/accelerants/intel_extreme', 'src/add-ons/accelerants/common',
 ]
 PROJECT = pathlib.Path(__file__).resolve().parents[1]
@@ -46,6 +49,8 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
         tar.extractall(source, filter='data')
     (out / 'controls').mkdir()
     shutil.copy2(source / 'src/add-ons/accelerants/intel_extreme/hooks.cpp', out / 'controls')
+    shutil.copy2(source / 'src/add-ons/accelerants/intel_extreme/engine.cpp', out / 'controls')
+    shutil.copy2(source / 'src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp', out / 'controls')
     shutil.copy2(source / 'src/add-ons/kernel/busses/agp_gart/intel_gart.cpp', out / 'controls')
     # A temporary repository makes patch application relative to this source,
     # independent of the caller's working directory or enclosing repositories.

@@ -1,0 +1,32 @@
+From b5fa42670f16aa290f9ed538e35f14e6fda4cf82 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 04:04:10 +0900
+Subject: [PATCH] intel_extreme: preserve Alder Lake clock-gating state
+
+Do not apply the legacy i965 fallback to Alder Lake. Return unsupported before any writes until generation-specific gating exists. Other groups retain the inherited behavior. This is a safeguard, not GPU power management support.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp
+index 33eb8843..1564d8db 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp
+@@ -26,6 +26,11 @@ status_t
+ intel_en_gating(intel_info &info)
+ {
+ 	CALLED();
++	// The fallback below programs i965 registers, not Alder Lake clock gating.
++	// Preserve firmware state until generation-specific support is available.
++	if (info.device_type.InGroup(INTEL_GROUP_ALD))
++		return B_NOT_SUPPORTED;
++
+ 	// Fix some problems on certain chips (taken from X driver)
+ 	// TODO: clean this up
+ 	if (info.pci->device_id == 0x2a02 || info.pci->device_id == 0x2a12) {
+-- 
+2.43.0
+

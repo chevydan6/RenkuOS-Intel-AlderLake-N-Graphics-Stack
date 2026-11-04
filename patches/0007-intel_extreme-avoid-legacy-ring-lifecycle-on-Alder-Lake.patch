@@ -1,0 +1,94 @@
+From 022f676808b934c4bf7bce2d99db5fecc8716fb1 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 03:45:34 +0900
+Subject: [PATCH] intel_extreme: avoid legacy ring lifecycle on Alder Lake
+
+Do not set up or tear down the legacy ring on Alder Lake. Report zero
+supported accelerant engines and withhold engine synchronization and
+overlay hooks until a real submission backend exists. Display hooks and
+other generations retain their behavior.
+
+Tests exercise actual ring lifecycle functions using simulated register
+RAM, including an original-engine control and a supported older device.
+Kernel clock-gating and firmware/display ownership remain separate work.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ .../accelerants/intel_extreme/engine.cpp      | 11 +++++++++
+ .../accelerants/intel_extreme/hooks.cpp       | 23 +++++++++++++++++++
+ 2 files changed, 34 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/engine.cpp b/src/add-ons/accelerants/intel_extreme/engine.cpp
+index 39a6240a..400a7c1b 100644
+--- a/src/add-ons/accelerants/intel_extreme/engine.cpp
++++ b/src/add-ons/accelerants/intel_extreme/engine.cpp
+@@ -157,6 +157,9 @@ QueueCommands::Write(uint32 data)
+ void
+ uninit_ring_buffer(ring_buffer &ringBuffer)
+ {
++	if (gInfo->shared_info->device_type.InGroup(INTEL_GROUP_ALD))
++		return;
++
+ 	uninit_lock(&ringBuffer.lock);
+ 	write32(ringBuffer.register_base + RING_BUFFER_CONTROL, 0);
+ }
+@@ -165,6 +168,11 @@ uninit_ring_buffer(ring_buffer &ringBuffer)
+ void
+ setup_ring_buffer(ring_buffer &ringBuffer, const char* name)
+ {
++	// Alder Lake requires logical contexts and a modern submission backend.
++	// Do not program or enable the legacy ring for a display-only accelerant.
++	if (gInfo->shared_info->device_type.InGroup(INTEL_GROUP_ALD))
++		return;
++
+ 	TRACE("Setup ring buffer %s, offset %lx, size %lx\n", name,
+ 		ringBuffer.offset, ringBuffer.size);
+ 
+@@ -194,6 +202,9 @@ uint32
+ intel_accelerant_engine_count(void)
+ {
+ 	CALLED();
++	if (gInfo->shared_info->device_type.InGroup(INTEL_GROUP_ALD))
++		return 0;
++
+ 	return 1;
+ }
+ 
+diff --git a/src/add-ons/accelerants/intel_extreme/hooks.cpp b/src/add-ons/accelerants/intel_extreme/hooks.cpp
+index c74e5202..a5367efa 100644
+--- a/src/add-ons/accelerants/intel_extreme/hooks.cpp
++++ b/src/add-ons/accelerants/intel_extreme/hooks.cpp
+@@ -14,6 +14,29 @@
+ extern "C" void*
+ get_accelerant_hook(uint32 feature, void* data)
+ {
++	// These hooks reach the legacy ring or claim completion without a working
++	// Alder Lake submission backend. Keep initialization/display hooks usable.
++	if (gInfo != NULL && gInfo->shared_info != NULL
++		&& gInfo->shared_info->device_type.InGroup(INTEL_GROUP_ALD)) {
++		switch (feature) {
++			case B_ACQUIRE_ENGINE:
++			case B_RELEASE_ENGINE:
++			case B_WAIT_ENGINE_IDLE:
++			case B_GET_SYNC_TOKEN:
++			case B_SYNC_TO_TOKEN:
++			case B_OVERLAY_COUNT:
++			case B_OVERLAY_SUPPORTED_SPACES:
++			case B_OVERLAY_SUPPORTED_FEATURES:
++			case B_ALLOCATE_OVERLAY_BUFFER:
++			case B_RELEASE_OVERLAY_BUFFER:
++			case B_GET_OVERLAY_CONSTRAINTS:
++			case B_ALLOCATE_OVERLAY:
++			case B_RELEASE_OVERLAY:
++			case B_CONFIGURE_OVERLAY:
++				return NULL;
++		}
++	}
++
+ 	switch (feature) {
+ 		/* general */
+ 		case B_INIT_ACCELERANT:
+-- 
+2.43.0
+

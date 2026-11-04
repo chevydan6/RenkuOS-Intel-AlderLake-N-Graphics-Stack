@@ -1,8 +1,9 @@
 # Validation and recovery
 
-Current safe tests inspect source tables and query a fully linked accelerant
-with synthetic shared state. The test never calls B_INIT_ACCELERANT, drawing,
-MMIO, modesetting or submission. Native GART linking does not load that module.
+Current tests inspect source tables and query a fully linked accelerant
+with synthetic shared state. The hook test never calls B_INIT_ACCELERANT,
+drawing, MMIO, modesetting or submission. Native kernel linking does not load
+the modules.
 These tests cover discovery data and capability exposure, not GPU execution.
 The GGTT helper has 14 C++ checks for valid offsets, addresses above 4 GiB,
 BAR bounds, zero/oversized tables, null output and end-address overflow.
@@ -12,6 +13,19 @@ unchanged outputs on rejection and guards around actual 64-bit stores in RAM.
 The GMS decoder checks all 65,536 register values against an explicit datasheet
 table, plus null-output handling. These do not execute GPU commands or establish
 ownership of firmware-reserved physical memory.
+
+The lifecycle harness runs real accelerant ring setup and teardown against a
+64 KiB ordinary RAM register fixture. Its 22 checks cover unavailable Alder Lake
+hooks, zero engine count, unchanged ring/register state and a positive Haswell
+control. The original engine code must reproduce exactly three failures. Its
+wrapper is linked only into a test accelerant; ELF validation rejects that
+export in production artifacts. No physical GPU registers are mapped.
+
+The gating harness compiles the real kernel power function with test-local
+logging and RAM registers. Five checks cover the Alder Lake unsupported return,
+unchanged registers and Sandy Bridge positive controls. The original source must
+produce exactly two failures. This does not measure power consumption or validate
+GPU sleep/resume. Kernel modules themselves are built but never loaded by tests.
 
 Before any install, use an isolated test image and preserve a powered-off,
 flattened known-good base. Never copy a running qcow2 with an ordinary file copy
