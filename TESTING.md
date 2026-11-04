@@ -7,6 +7,11 @@ These tests cover discovery data and capability exposure, not GPU execution.
 The GGTT helper has 14 C++ checks for valid offsets, addresses above 4 GiB,
 BAR bounds, zero/oversized tables, null output and end-address overflow.
 Run on Linux with address/undefined-behavior sanitizers and in the native guest.
+The Alder Lake PTE helper adds 28 checks for address width, alignment, bounds,
+unchanged outputs on rejection and guards around actual 64-bit stores in RAM.
+The GMS decoder checks all 65,536 register values against an explicit datasheet
+table, plus null-output handling. These do not execute GPU commands or establish
+ownership of firmware-reserved physical memory.
 
 Before any install, use an isolated test image and preserve a powered-off,
 flattened known-good base. Never copy a running qcow2 with an ordinary file copy

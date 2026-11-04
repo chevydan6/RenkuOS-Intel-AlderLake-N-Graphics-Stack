@@ -17,11 +17,11 @@ guest, with development headers/library matching the running kernel. Under the
 shared Fedora build lock, run:
 
 ```sh
-python3 tools/run-native.py .
+bash tools/run-native.sh
 ```
 
 Run `python3 tools/check-source.py build/native-fresh` on the host first.
-GitHub Actions runs source/control/manifest checks and the GGTT arithmetic test
+GitHub Actions runs source/control/manifest checks and the GGTT arithmetic tests
 with address/undefined-behavior sanitizers; its green result is not native
 driver compilation or GPU validation.
 
@@ -41,11 +41,11 @@ commands, warnings, exit status, binary hashes and test results together.
 Build logs and binaries remain under ignored directories. Use one compile job
 on the 4 GiB target; request the authoritative shared build lock first.
 
-The source worktree is pinned RenkuOS main plus three separately attributed
-patches. Haiku beta6 can be used for compilation compatibility checks because
-the inspected interfaces match, but record it as Haiku-hosted validation until
-the same tests run in RenkuOS. Never install the resulting kernel add-on merely
-because it links against beta6.
+The source worktree is pinned RenkuOS main plus separately attributed patches.
+Patches 1–4 passed in RenkuOS hrev60072+518 with the matching development package;
+later patches must pass a new native run before inheriting that result. Haiku
+beta6 remains a separate compatibility check. Never install a kernel add-on
+merely because it links against beta6 or the RenkuOS SDK.
 
 For full Fedora image builds, inspect RenkuOS `.github/workflows/pr-gate.yml`
 and pin the resolved `ghcr.io/renkuos/cross-compiler:x86_64-master` digest before
@@ -55,8 +55,24 @@ then its configure invocation and `jam -q -j1 @nightly-anyboot`. This full image
 workflow is not yet executed by this GPU project; shared toolchain and VM
 provisioning are coordinated with Astra High #1.
 
-The native runner verifies the source manifest, captures build/test output and
-records kernel, compiler, RenkuOS build marker, elapsed build time, artifact
-hashes and exit status in a new `validation/` directory. `--previous` compares
-test status with a prior result; build time is not GPU performance. Repeated
-validation uses a fresh bundle so failed-run evidence is never overwritten.
+The shell runner needs Bash, Make, GCC/binutils, sha256sum and tar; Python is
+not required inside RenkuOS. It records the kernel/compiler/development package,
+verifies every payload hash, builds and runs the native tests and original hook
+control. Copy its `validation/` directory back, then run on the workstation:
+
+```sh
+python3 tools/finalize-native.py build/native-fresh /path/to/validation
+```
+
+The finalizer verifies source/control/manifest checks and extracted ELF artifacts,
+then records binary hashes and the native exit status. A standalone guest run is
+incomplete until host finalization passes. The older Python native runner remains
+available for guests containing Python; its `--previous` compares prior test
+status. Repeated validation uses fresh bundles and preserves failed-run evidence.
+
+`tools/renku-vm-test.py` runs on Fedora within the authoritative host-config,
+haiku-vm and build locks. It flattens a stopped disk into a new private directory,
+boots an emulated guest, runs the component workflow, collects logs and shuts down
+the guest. It never installs GPU modules or passes through PCI devices. Its SSH
+configuration and verified host key remain private. Logs distinguish clean guest
+shutdown from forced cleanup; never reuse a disk marked for discard.

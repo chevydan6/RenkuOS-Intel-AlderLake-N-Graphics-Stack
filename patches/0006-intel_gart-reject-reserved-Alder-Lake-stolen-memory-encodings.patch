@@ -1,0 +1,93 @@
+From 755210f58246ae2513421a8770066dd012978b69 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 03:36:05 +0900
+Subject: [PATCH] intel_gart: reject reserved Alder Lake stolen-memory
+ encodings
+
+Decode documented GMS sizes without the legacy one-MiB fallback. Keep the
+entire stolen region mapped, including its last page. Reject reserved or
+zero-sized configurations in the current native display path.
+
+Reference: Intel 12th Generation Core Processor Datasheet Volume 2,
+ID 767626, MGGC0_0_2_0_PCI offset 50, GMS bits 15:8. This is new C++
+implementing the documented field, not an imported driver implementation.
+Exhaustive tests cover all 65536 GGC words and a null output pointer.
+The physical N100 GGC value and firmware subregion ownership remain unverified.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ .../kernel/busses/agp_gart/intel_gart.cpp     | 14 +++++++++++
+ .../kernel/busses/agp_gart/intel_gtt.h        | 24 +++++++++++++++++++
+ 2 files changed, 38 insertions(+)
+
+diff --git a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+index 87db12f4..18f5e6e8 100644
+--- a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
++++ b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+@@ -341,6 +341,16 @@ static size_t
+ determine_gtt_stolen(intel_info &info)
+ {
+ 	uint16 memoryConfig = gtt_memory_config(info);
++	if (info.type->InGroup(INTEL_GROUP_ALD)) {
++		uint64_t stolenSize;
++		if (!intel_alderlake_stolen_size(memoryConfig, &stolenSize)
++			|| stolenSize == 0) {
++			return SIZE_MAX;
++		}
++		// Preserve the entire firmware mapping, including its last page.
++		return stolenSize;
++	}
++
+ 	size_t memorySize = 1 << 20; // 1 MB
+ 
+ 	if (info.type->InGroup(INTEL_GROUP_83x)) {
+@@ -788,6 +798,10 @@ intel_map(intel_info &info)
+ 
+ 	size_t gttSize = determine_gtt_size(info);
+ 	size_t stolenSize = determine_gtt_stolen(info);
++	if (info.type->InGroup(INTEL_GROUP_ALD) && stolenSize == SIZE_MAX) {
++		ERROR("unsupported Alder Lake stolen-memory configuration\n");
++		return B_BAD_VALUE;
++	}
+ 
+ 	// TODO: Review the pre-Gen8 layouts.
+ 	if (info.type->Generation() >= 8) {
+diff --git a/src/add-ons/kernel/busses/agp_gart/intel_gtt.h b/src/add-ons/kernel/busses/agp_gart/intel_gtt.h
+index 7776a966..4812347b 100644
+--- a/src/add-ons/kernel/busses/agp_gart/intel_gtt.h
++++ b/src/add-ons/kernel/busses/agp_gart/intel_gtt.h
+@@ -33,6 +33,30 @@ intel_gen8_gtt_base(uint64_t mmioBase, uint64_t mmioSize, uint64_t tableSize,
+ }
+ 
+ 
++// GMS encodings from the Alder Lake PCI graphics-control register definition.
++// Reserved encodings must not turn into an assumed one-MiB stolen region.
++static inline bool
++intel_alderlake_stolen_size(uint16_t memoryConfig, uint64_t* stolenSize)
++{
++	if (stolenSize == NULL)
++		return false;
++
++	uint8_t gms = memoryConfig >> 8;
++	uint64_t mib;
++	if (gms <= 0x10)
++		mib = (uint64_t)gms * 32;
++	else if (gms == 0x20 || gms == 0x30 || gms == 0x40)
++		mib = (uint64_t)gms * 32;
++	else if (gms >= 0xf0 && gms <= 0xfe)
++		mib = (uint64_t)(gms - 0xf0 + 1) * 4;
++	else
++		return false;
++
++	*stolenSize = mib << 20;
++	return true;
++}
++
++
+ // This initial system-memory path uses the 39-bit DMA limit of ADL-P/N.
+ // Other platforms must not silently truncate addresses to fit this limit.
+ static inline bool
+-- 
+2.43.0
+

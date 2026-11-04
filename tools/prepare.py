@@ -60,6 +60,7 @@ shutil.copytree(PROJECT / 'tests', out / 'tests', ignore=shutil.ignore_patterns(
 shutil.copy2(PROJECT / 'tools/validate-artifacts.py', out / 'tools')
 shutil.copy2(PROJECT / 'tools/regression-control.py', out / 'tools')
 shutil.copy2(PROJECT / 'tools/run-native.py', out / 'tools')
+shutil.copy2(PROJECT / 'tools/run-native.sh', out / 'tools')
 shutil.copy2(PROJECT / 'tools/Makefile.haiku', out / 'Makefile')
 manifest = {
     'renkuos_commit': BASE,
@@ -69,4 +70,6 @@ manifest = {
                        for p in sorted(out.rglob('*')) if p.is_file()},
 }
 (out / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+(out / 'manifest.sha256').write_text(''.join(
+    f'{digest}  {name}\n' for name, digest in manifest['payload_sha256'].items()))
 print(out)

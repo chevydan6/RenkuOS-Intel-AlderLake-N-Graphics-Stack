@@ -1,18 +1,19 @@
 # Known issues
 
 - No physical Haiku Intel attachment/display/commands have been tested.
-- No RenkuOS guest runtime test has been performed by this GPU project yet;
-  the RenkuOS component build used the preserved Haiku beta6 guest.
+- Patches 1–4 compile and pass software tests in the RenkuOS nightly guest.
+  Patches 5–6 still need native compilation; no physical driver execution exists.
 - N100 461c:46d1 GART pair is missing upstream; the local patch is not hardware validation.
 - Legacy 2D hooks are advertised despite unsupported LAKE/SOC0 engines; local
   safeguard suppresses hooks only. Existing ring setup and other MMIO remain.
 - Legacy ring-space timeout can continue writing; synchronization token support
   is incomplete. No Gen12 submission should use that path without redesign.
-- Inherited GGTT mapping uses a 2 MiB BAR offset; patch 3 selects 8 MiB for
-  Gen8+ and checks its range. Native compilation of patch 3 is pending.
-- `set_gtt_entry()` still uses `write32` and legacy address packing, incompatible
-  with Gen8+ 64-bit PTEs. Entry counting/indexing, allocation limits, invalidation
-  and teardown need a separate coordinated fix. The offset patch is insufficient.
+- Patch 3 corrects the GGTT offset; patch 4 implements bounded 64-bit PTE stores
+  for Alder Lake. Other generations retain the inherited entry-writing path.
+- GART's already-backed-memory region is not an exclusion list. Firmware stolen
+  subregion ownership, partial-bind/unbind cleanup and DMA teardown remain open.
+- Cache/TLB and GuC/context coherency must be established for actual execution;
+  a CPU cache flush does not prove GPU completion or context invalidation.
 - Current local app_server drawing does not consume legacy 2D hooks.
 - No per-process GPU VM, modern validated command submission, complete hang
   recovery, Iris backend or ANV backend has been implemented in this project.

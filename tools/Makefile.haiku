@@ -10,6 +10,8 @@ ACCEL := $(SOURCE)/src/add-ons/accelerants/intel_extreme
 COMMON := $(SOURCE)/src/add-ons/accelerants/common
 GART := $(SOURCE)/src/add-ons/kernel/busses/agp_gart
 GTT_TEST := $(if $(wildcard $(GART)/intel_gtt.h),$(OUT)/gtt-range-test)
+PTE_TEST := $(if $(wildcard $(GART)/intel_gtt.h),$(OUT)/gtt-pte-test)
+STOLEN_TEST := $(if $(wildcard $(GART)/intel_gtt.h),$(OUT)/gtt-stolen-test)
 CPPFLAGS := -I$(GRAPHICS) -I$(GRAPHICS)/intel_extreme -I$(GRAPHICS)/common \
 	-I$(PRIVATE)/shared
 CXXFLAGS := -std=gnu++17 -O2 -g -Wall -fPIC -fno-exceptions -fno-rtti
@@ -25,7 +27,7 @@ ACCEL_OBJECTS := $(addprefix $(OUT)/accel/,$(addsuffix .o,$(ACCEL_CPP)))
 COMMON_OBJECTS := $(addprefix $(OUT)/common/,$(addsuffix .o,$(COMMON_CPP) $(COMMON_C)))
 
 .PHONY: all test check-platform
-all: check-platform $(OUT)/intel_gart $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test $(GTT_TEST)
+all: check-platform $(OUT)/intel_gart $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test $(GTT_TEST) $(PTE_TEST) $(STOLEN_TEST)
 
 check-platform:
 	@test "$$(uname -s)" = Haiku && test "$$(uname -m)" = x86_64
@@ -68,11 +70,21 @@ $(OUT)/gtt-range-test: tests/gtt-range-test.cpp $(GART)/intel_gtt.h
 	mkdir -p $(OUT)
 	$(CXX) $(CXXFLAGS) -Wextra -Werror -I$(GART) $< -o $@
 
+$(OUT)/gtt-pte-test: tests/gtt-pte-test.cpp $(GART)/intel_gtt.h
+	mkdir -p $(OUT)
+	$(CXX) $(CXXFLAGS) -Wextra -Werror -I$(GART) $< -o $@
+
+$(OUT)/gtt-stolen-test: tests/gtt-stolen-test.cpp $(GART)/intel_gtt.h
+	mkdir -p $(OUT)
+	$(CXX) $(CXXFLAGS) -Wextra -Werror -I$(GART) $< -o $@
+
 $(OUT)/intel_extreme.control.accelerant: $(filter-out $(OUT)/accel/hooks.o,$(ACCEL_OBJECTS)) $(COMMON_OBJECTS) $(OUT)/control-hooks.o
 	$(CXX) -shared -Wl,--no-undefined -o $@ $^ -lbe
 
 test: all $(OUT)/intel_extreme.control.accelerant
 	$(if $(GTT_TEST),$(GTT_TEST),@echo 'GGTT helper absent in unpatched control')
+	$(if $(PTE_TEST),$(PTE_TEST),@echo 'GGTT PTE helper absent in unpatched control')
+	$(if $(STOLEN_TEST),$(STOLEN_TEST),@echo 'GGC helper absent in unpatched control')
 	python3 tests/source-audit.py source
 	$(OUT)/hooks-test ./$(OUT)/intel_extreme.accelerant
 	python3 tools/regression-control.py

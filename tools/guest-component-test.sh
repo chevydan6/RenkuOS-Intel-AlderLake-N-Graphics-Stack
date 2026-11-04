@@ -14,10 +14,10 @@ output=$5
 [[ "$run_name" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]] || exit 2
 mkdir -p "$output"
 ssh_options=(-F "$ssh_config" -o BatchMode=yes -o ConnectTimeout=10)
-ssh "${ssh_options[@]}" "$guest" 'command -v timeout; command -v python3; command -v make'
+ssh "${ssh_options[@]}" "$guest" 'command -v timeout && command -v make && command -v g++ && command -v sha256sum'
 scp "${ssh_options[@]}" "$archive" "$guest:/boot/home/renkuos-gpu-$run_name.tar.gz"
 set +e
-ssh "${ssh_options[@]}" "$guest" "set -e; mkdir -p /boot/home/renkuos-gpu-tests; cd /boot/home/renkuos-gpu-tests; test ! -e '$run_name'; tar -xzf '/boot/home/renkuos-gpu-$run_name.tar.gz'; cd '$run_name'; timeout --signal=TERM --kill-after=5s 240s python3 tools/run-native.py ." > "$output/native-run.log" 2>&1
+ssh "${ssh_options[@]}" "$guest" "set -e; mkdir -p /boot/home/renkuos-gpu-tests; cd /boot/home/renkuos-gpu-tests; test ! -e '$run_name'; tar -xzf '/boot/home/renkuos-gpu-$run_name.tar.gz'; cd '$run_name'; timeout --signal=TERM --kill-after=5s 240s bash tools/run-native.sh" > "$output/native-run.log" 2>&1
 result=$?
 # The guest's own timeout ends build descendants before the host lock deadline.
 scp -r "${ssh_options[@]}" "$guest:/boot/home/renkuos-gpu-tests/$run_name/validation" "$output/"
