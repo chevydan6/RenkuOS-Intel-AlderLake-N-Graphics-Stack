@@ -63,6 +63,7 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
         subprocess.run(['git', '-C', str(source), 'apply', str(patch)], check=True)
     shutil.rmtree(source / '.git')
 shutil.copytree(PROJECT / 'tests', out / 'tests', ignore=shutil.ignore_patterns('__pycache__'))
+shutil.copytree(PROJECT / 'experimental', out / 'experimental')
 for original, name in [
         (source / 'src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp', 'current'),
         (out / 'controls/agp_gart.cpp', 'original')]:

@@ -26,6 +26,10 @@ partial bind/unbind failures. Their 46 range and 154 lifecycle sanitizer checks
 pass; native generic-manager validation awaits the physical-test restoration
 handoff. See the [GART continuation report](results/2026-11-05-gart-lifecycle.md).
 
+An isolated [Gen12 copy-packet experiment](BLIT_RESEARCH.md) passes 60,070
+host sanitizer checks. It has no submission path and is excluded from the
+driver components; no hardware copy has been executed.
+
 See [RenkuOS migration assessment](RENKUOS_MIGRATION.md), [initial technical report](DRIVER_RESEARCH.md), [hardware](HARDWARE.md),
 [architecture](ARCHITECTURE.md), [build](BUILD.md), [testing](TESTING.md),
 [performance](PERFORMANCE.md), [known issues](KNOWN_ISSUES.md), and
