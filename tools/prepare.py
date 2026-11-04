@@ -12,7 +12,7 @@ import tempfile
 
 BASE = '4799bb5a188c4bb6bbef967287640cc21a061a0d'
 PATHS = [
-    'License.md', 'headers/private/graphics',
+    'License.md', 'headers/private/graphics', 'build/config_headers',
     'src/add-ons/kernel/busses/agp_gart',
     'src/add-ons/kernel/drivers/graphics/intel_extreme',
     'src/add-ons/kernel/drivers/graphics/common',

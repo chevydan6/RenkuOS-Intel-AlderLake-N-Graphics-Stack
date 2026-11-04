@@ -21,6 +21,7 @@ CFLAGS := -O2 -g -Wall -fPIC
 KERNELFLAGS := -D_KERNEL_MODE=1 -I$(PRIVATE) -I$(PRIVATE)/kernel -I$(PRIVATE)/drivers \
 	-I$(PRIVATE)/system -I$(PRIVATE)/kernel/arch/x86 \
 	-I$(PRIVATE)/system/arch/x86_64 \
+	-I$(SOURCE)/build/config_headers \
 	-ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing \
 	-fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer
 ACCEL_CPP := accelerant cursor dpms engine hooks memory mode overlay pll \

@@ -41,6 +41,9 @@ The component Makefile follows relevant Jam target source lists. It is not a
 full official Jam image-build validation or proof of ABI compatibility with a
 different kernel. Record source commit, compiler/kernel version, patch hashes,
 commands, warnings, exit status, binary hashes and test results together.
+The bundle includes the pinned `build/config_headers` for private kernel headers
+absent from the SDK. These source defaults do not prove that a separately built
+kernel used identical configuration/layouts; verify that before any module load.
 
 Build logs and binaries remain under ignored directories. Use one compile job
 on the 4 GiB target; request the authoritative shared build lock first.

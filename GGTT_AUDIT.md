@@ -42,6 +42,12 @@ New helpers implement documented encodings; no Linux driver source was imported.
 - Generic GART unbinding uses the original allocation length after adapting a
   range across stolen memory. Audit partial failures and cleanup before relying
   on it for arbitrary client mappings. Do not free DMA-visible memory early.
+- `BindMemory()` sets `BIND_APERTURE` only after every page succeeds. On an
+  intermediate failure, `allocate_memory()` calls `DeleteMemory()`, whose
+  unbind rejects the unset flag before `_Free()` releases pages. Earlier
+  successful PTEs can therefore survive allocation cleanup. Add fault-injected
+  rollback tests and an ownership-preserving failure path before enabling DMA;
+  returning a page-store error alone is insufficient.
 - Continue modern GT/display initialization, power, interrupt, command validation
   and reset work before physical patched-driver installation.
 
@@ -63,6 +69,13 @@ obsolete resource belongs in the Alder Lake path before repairing allocation.
 Accelerant `disable_fences()` uses the inherited Gen6 fence programming for all
 generations above six. Display and interrupt paths also remain active. The
 legacy-ring guard therefore does not make physical initialization safe by itself.
+
+The existing `B_APERTURE_NON_RESERVED` allocation flag starts placement after
+the already-backed prefix; `B_APERTURE_NEED_PHYSICAL` does likewise. Reuse this
+facility for future kernel-owned scratch buffers after verifying firmware
+mapping ownership. It is not a substitute for preserving arbitrary boot
+scanout/PTE ranges or for correcting partial-bind cleanup. Avoid creating an
+unnecessary second aperture allocator before these existing paths are assessed.
 
 Patches 1–7 passed native compilation and software tests in RenkuOS after the
 shared power-test window cleared. None has been loaded on the physical Intel GPU.
