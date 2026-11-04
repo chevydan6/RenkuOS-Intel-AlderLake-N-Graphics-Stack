@@ -1,0 +1,2 @@
+# Patch context carries leading diff markers and signature separators.
+*.patch -whitespace
