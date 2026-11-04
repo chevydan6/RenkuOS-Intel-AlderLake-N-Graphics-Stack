@@ -11,7 +11,7 @@ uname -a >validation/kernel.txt
 g++ --version >validation/compiler.txt
 ls /boot/system/packages/haiku_devel*.hpkg >validation/devel-package.txt
 sha256sum -c manifest.sha256 >validation/manifest-check.log
-make -j1 all build/intel_extreme.control.accelerant build/intel_extreme.lifecycle-control.accelerant build/gating-control build/gart-range-control
+make -j1 all build/intel_extreme.control.accelerant build/intel_extreme.lifecycle-control.accelerant build/gating-control build/gart-range-control build/gart-lifecycle-control
 build/gtt-range-test
 build/gtt-pte-test
 build/gtt-stolen-test
@@ -19,6 +19,26 @@ build/hooks-test ./build/intel_extreme.accelerant
 build/lifecycle-test ./build/intel_extreme.lifecycle.accelerant
 build/gating-test
 build/gart-range-test
+build/gart-lifecycle-test
+set +e
+build/gart-lifecycle-control >validation/control-gart-lifecycle.log 2>&1
+control_status=$?
+set -e
+test "$control_status" -eq 1
+awk '/^FAIL / { count++; failures[$0]++ }
+END {
+    exit !(count == 39 &&
+        failures["FAIL no free with owned PTEs installed"] == 14 &&
+        failures["FAIL completed cleanup removes every owned PTE"] == 8 &&
+        failures["FAIL cleanup preserves owned backing on failure"] == 6 &&
+        failures["FAIL cleanup preserves allocation metadata"] == 6 &&
+        failures["FAIL failed borrowed bind clears installed prefix"] == 1 &&
+        failures["FAIL failed borrowed bind removes new metadata after cleanup"] == 1 &&
+        failures["FAIL public reserved rebind rejected"] == 1 &&
+        failures["FAIL rejected public rebind preserves output handle"] == 1 &&
+        failures["FAIL rejected public rebind preserves existing mapping"] == 1)
+}' validation/control-gart-lifecycle.log
+echo 'PASS original GART lifecycle control: exactly 39 expected failures'
 set +e
 build/gart-range-control >validation/control-gart-range.log 2>&1
 control_status=$?
@@ -63,4 +83,4 @@ awk '/^FAIL / {
 echo 'PASS original ring control: exactly 3 expected failures'
 tar -czf validation/artifacts.tar.gz build/intel_gart build/agp_gart build/intel_extreme.driver build/intel_extreme.accelerant \
     build/hooks-test build/gtt-range-test build/gtt-pte-test build/gtt-stolen-test \
-    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test
+    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test build/gart-lifecycle-test

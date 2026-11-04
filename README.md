@@ -21,6 +21,11 @@ kernel driver and five clock-gating checks with an original-source control.
 None is ready for physical installation:
 stolen-memory ownership, modern initialization and execution remain unresolved.
 
+Patches 9/10 address neighboring-PTE corruption and premature freeing after
+partial bind/unbind failures. Their 46 range and 154 lifecycle sanitizer checks
+pass; native generic-manager validation awaits the physical-test restoration
+handoff. See the [GART continuation report](results/2026-11-05-gart-lifecycle.md).
+
 See [RenkuOS migration assessment](RENKUOS_MIGRATION.md), [initial technical report](DRIVER_RESEARCH.md), [hardware](HARDWARE.md),
 [architecture](ARCHITECTURE.md), [build](BUILD.md), [testing](TESTING.md),
 [performance](PERFORMANCE.md), [known issues](KNOWN_ISSUES.md), and

@@ -43,12 +43,17 @@ New helpers implement documented encodings; no Linux driver source was imported.
   already-backed memory. The real method bodies pass 46 host sanitizer checks;
   original code reproduces six neighboring-range failures. Native manager build
   is pending the physical-test outage. This does not fix partial-bind cleanup.
-- `BindMemory()` sets `BIND_APERTURE` only after every page succeeds. On an
-  intermediate failure, `allocate_memory()` calls `DeleteMemory()`, whose
-  unbind rejects the unset flag before `_Free()` releases pages. Earlier
-  successful PTEs can therefore survive allocation cleanup. Add fault-injected
-  rollback tests and an ownership-preserving failure path before enabling DMA;
-  returning a page-store error alone is insufficient.
+- Patch 10 records each successfully bound page, unbinds the tail first and
+  preserves owned backing/metadata on cleanup failure. Aperture and module
+  teardown now return failure instead of destroying retained allocations.
+  Its 154 host sanitizer checks pass; original code reproduces 39 failures.
+  Native manager compilation remains pending the physical-test outage.
+- These lifecycle checks simulate metadata, backing ownership, locking and bus
+  callbacks. They do not validate actual page allocation, kernel concurrency or
+  GPU completion. Borrowed buffers still need a real pinning contract, and
+  engines must be quiescent before unmapping; a successful TLB callback alone
+  does not establish either condition. Repeated cleanup failures intentionally
+  retain resources until recovery rather than permit reuse of live backing.
 - Continue modern GT/display initialization, power, interrupt, command validation
   and reset work before physical patched-driver installation.
 
@@ -80,3 +85,11 @@ unnecessary second aperture allocator before these existing paths are assessed.
 
 Patches 1–8 passed native compilation and software tests in RenkuOS after the
 shared power-test window cleared. None has been loaded on the physical Intel GPU.
+
+Linux v7.0's [stolen-memory implementation](https://github.com/torvalds/linux/blob/v7.0/drivers/gpu/drm/i915/gem/i915_gem_stolen.c)
+also excludes a protected top-of-DSM range and avoids the first stolen page on
+Gen8+. Gen11+ reads the reserved descriptor as 64 bits. This reinforces the need
+to measure this laptop's reserved range instead of treating all 60 MiB as usable.
+The [WOPCM implementation](https://github.com/torvalds/linux/blob/v7.0/drivers/gpu/drm/i915/gt/intel_wopcm.c)
+separately accounts for firmware and hardware-context partitions. These are
+technical references; no Linux implementation was imported or executed here.

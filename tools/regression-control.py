@@ -3,6 +3,7 @@
 """Require the unpatched controls to expose exactly the original regressions."""
 import subprocess
 import sys
+from collections import Counter
 
 checks = [
     (['build/gart-range-control'],
@@ -27,3 +28,21 @@ for command, expected in checks:
         raise SystemExit('control did not reproduce exactly the expected regression')
     print(f'PASS unpatched control: {len(failures)} expected failures: {command[0]}')
 print('PASS all controls reproduce the expected regressions')
+
+run = subprocess.run(['build/gart-lifecycle-control'], stdout=subprocess.PIPE,
+                     stderr=subprocess.STDOUT, text=True)
+expected = Counter({
+    'FAIL no free with owned PTEs installed': 14,
+    'FAIL completed cleanup removes every owned PTE': 8,
+    'FAIL cleanup preserves owned backing on failure': 6,
+    'FAIL cleanup preserves allocation metadata': 6,
+    'FAIL failed borrowed bind clears installed prefix': 1,
+    'FAIL failed borrowed bind removes new metadata after cleanup': 1,
+    'FAIL public reserved rebind rejected': 1,
+    'FAIL rejected public rebind preserves output handle': 1,
+    'FAIL rejected public rebind preserves existing mapping': 1,
+})
+actual = Counter(line for line in run.stdout.splitlines() if line.startswith('FAIL '))
+if run.returncode != 1 or actual != expected:
+    raise SystemExit('GART lifecycle control failed:\n' + run.stdout)
+print('PASS GART lifecycle original control: 39 expected failures')

@@ -68,6 +68,10 @@ for original, name in [
         (out / 'controls/agp_gart.cpp', 'original')]:
     subprocess.run(['python3', str(PROJECT / 'tools/extract-gart-methods.py'),
                     str(original), str(out / f'tests/generated/gart-{name}.inc')], check=True)
+    flags = ['--lifecycle'] + (['--teardown'] if name == 'current' else [])
+    subprocess.run(['python3', str(PROJECT / 'tools/extract-gart-methods.py'), *flags,
+                    str(original), str(out / f'tests/generated/gart-lifecycle-{name}.inc')],
+                   check=True)
 (out / 'tools').mkdir()
 shutil.copy2(PROJECT / 'tools/validate-artifacts.py', out / 'tools')
 shutil.copy2(PROJECT / 'tools/regression-control.py', out / 'tools')

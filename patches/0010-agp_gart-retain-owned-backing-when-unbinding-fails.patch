@@ -1,0 +1,279 @@
+From 34739ca7b0678712ccacc35e92289082493f0098 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 04:56:40 +0900
+Subject: [PATCH] agp_gart: retain owned backing when unbinding fails
+
+Track the installed prefix after every page and remove its tail first during cleanup. Preserve backing and metadata on unbind errors, flush successful partial clears, and permit bounded retry. Refuse aperture destruction and module teardown when allocation cleanup fails.
+
+Reject rebinds without disturbing existing mappings and clean up newly created borrowed-buffer metadata on bind failure. Borrowed buffer pinning and GPU quiescence remain caller/backend responsibilities; this does not establish either guarantee.
+
+154 sanitizer checks of production methods and teardown/API flow pass with mock callbacks. Original code reproduces 39 failures. Full native compilation remains pending the physical-test restoration handoff.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ .../kernel/bus_managers/agp_gart/agp_gart.cpp | 104 ++++++++++++++----
+ 1 file changed, 84 insertions(+), 20 deletions(-)
+
+diff --git a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+index 78e8e140..e8bb0c2f 100644
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -71,6 +71,7 @@ struct aperture_memory {
+ 	aperture_memory *hash_link;
+ 	addr_t		base;
+ 	size_t		size;
++	size_t		bound_size;
+ 	uint32		flags;
+ #if !defined(GART_TEST)
+ 	union {
+@@ -121,7 +122,8 @@ public:
+ 
+ 	status_t InitCheck() const { return fLock.sem >= B_OK ? B_OK : fLock.sem; }
+ 
+-	void DeleteMemory(aperture_memory *memory);
++	status_t DeleteMemory(aperture_memory *memory);
++	status_t DeleteAllMemory();
+ 	aperture_memory *CreateMemory(size_t size, size_t alignment, uint32 flags);
+ 
+ 	status_t AllocateMemory(aperture_memory *memory, uint32 flags);
+@@ -430,9 +432,7 @@ Aperture::Aperture(agp_gart_bus_module_info *module, void *aperture)
+ 
+ Aperture::~Aperture()
+ {
+-	while (fFirstMemory != NULL) {
+-		DeleteMemory(fFirstMemory);
+-	}
++	ASSERT(fFirstMemory == NULL);
+ 
+ 	fModule->delete_aperture(fPrivateAperture);
+ 	put_module(fModule->info.name);
+@@ -450,16 +450,33 @@ Aperture::GetInfo(aperture_info *info)
+ }
+ 
+ 
+-void
++status_t
+ Aperture::DeleteMemory(aperture_memory *memory)
+ {
+ 	TRACE("delete memory %p\n", memory);
+ 
+-	UnbindMemory(memory);
++	if ((memory->flags & BIND_APERTURE) != 0 || memory->bound_size != 0) {
++		status_t status = UnbindMemory(memory);
++		if (status < B_OK)
++			return status;
++	}
+ 	_Free(memory);
+ 	_Remove(memory);
+ 	fHashTable.Remove(memory);
+ 	delete memory;
++	return B_OK;
++}
++
++
++status_t
++Aperture::DeleteAllMemory()
++{
++	while (fFirstMemory != NULL) {
++		status_t status = DeleteMemory(fFirstMemory);
++		if (status < B_OK)
++			return status;
++	}
++	return B_OK;
+ }
+ 
+ 
+@@ -482,6 +499,7 @@ Aperture::CreateMemory(size_t size, size_t alignment, uint32 flags)
+ 		", flags %" B_PRIx32 "\n", memory, memory->base, memory->size, flags);
+ 
+ 	memory->flags = flags;
++	memory->bound_size = 0;
+ #if !defined(GART_TEST)
+ 	memory->pages = NULL;
+ #else
+@@ -612,6 +630,7 @@ Aperture::UnbindMemory(aperture_memory *memory)
+ 	addr_t base = memory->base;
+ 	size_t size = memory->size;
+ 	if (_AdaptToReserved(base, size) && size == 0) {
++		memory->bound_size = 0;
+ 		memory->flags &= ~BIND_APERTURE;
+ 		return B_OK;
+ 	}
+@@ -619,14 +638,28 @@ Aperture::UnbindMemory(aperture_memory *memory)
+ 	addr_t start = base - Base();
+ 	TRACE("unbind %ld bytes at %lx\n", size, start);
+ 
+-	for (addr_t offset = 0; offset < size; offset += B_PAGE_SIZE) {
+-		status_t status = fModule->unbind_page(fPrivateAperture, start + offset);
+-		if (status < B_OK)
++	if (memory->bound_size > size
++		|| (memory->bound_size & (B_PAGE_SIZE - 1)) != 0) {
++		return B_BAD_VALUE;
++	}
++
++	// Remove the tail first so any failure leaves an accurately tracked prefix.
++	bool changed = false;
++	while (memory->bound_size != 0) {
++		status_t status = fModule->unbind_page(fPrivateAperture,
++			start + memory->bound_size - B_PAGE_SIZE);
++		if (status < B_OK) {
++			if (changed)
++				fModule->flush_tlbs(fPrivateAperture);
+ 			return status;
++		}
++		memory->bound_size -= B_PAGE_SIZE;
++		changed = true;
+ 	}
+ 
+ 	memory->flags &= ~BIND_APERTURE;
+-	fModule->flush_tlbs(fPrivateAperture);
++	if (changed)
++		fModule->flush_tlbs(fPrivateAperture);
+ 	return B_OK;
+ }
+ 
+@@ -634,6 +667,9 @@ Aperture::UnbindMemory(aperture_memory *memory)
+ status_t
+ Aperture::BindMemory(aperture_memory *memory, addr_t address, size_t size)
+ {
++	if ((memory->flags & BIND_APERTURE) != 0 || memory->bound_size != 0)
++		return B_BAD_VALUE;
++
+ 	bool physical = false;
+ 
+ 	if ((memory->flags & ALLOCATED_APERTURE) != 0) {
+@@ -641,6 +677,8 @@ Aperture::BindMemory(aperture_memory *memory, addr_t address, size_t size)
+ 		size = memory->size;
+ 		physical = true;
+ 	}
++	if (size > memory->size || (size & (B_PAGE_SIZE - 1)) != 0)
++		return B_BAD_VALUE;
+ 
+ 	// We don't need to bind reserved memory
+ 	addr_t base = memory->base;
+@@ -690,6 +728,8 @@ Aperture::BindMemory(aperture_memory *memory, addr_t address, size_t size)
+ 			ERROR("Aperture::BindMemory(): bind_page() failed\n");
+ 			return status;
+ 		}
++		memory->bound_size += B_PAGE_SIZE;
++		memory->flags |= BIND_APERTURE;
+ 	}
+ 
+ 	memory->flags |= BIND_APERTURE;
+@@ -1008,6 +1048,12 @@ unmap_aperture(aperture_id id)
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
+ 
++	{
++		Autolock memoryLocker(aperture->Lock());
++		status_t status = aperture->DeleteAllMemory();
++		if (status < B_OK)
++			return status;
++	}
+ 	sApertureHashTable.Remove(aperture);
+ 	delete aperture;
+ 	return B_OK;
+@@ -1049,7 +1095,11 @@ allocate_memory(aperture_id id, size_t size, size_t alignment, uint32 flags,
+ 	if (status == B_OK)
+ 		status = aperture->BindMemory(memory, 0, 0);
+ 	if (status < B_OK) {
+-		aperture->DeleteMemory(memory);
++		status_t cleanup = aperture->DeleteMemory(memory);
++		if (cleanup < B_OK) {
++			ERROR("allocate_memory(): retaining backing after cleanup failure\n");
++			return cleanup;
++		}
+ 		return status;
+ 	}
+ 
+@@ -1061,7 +1111,9 @@ allocate_memory(aperture_id id, size_t size, size_t alignment, uint32 flags,
+ 		physical_entry entry;
+ 		status = get_memory_map((void *)memory->base, B_PAGE_SIZE, &entry, 1);
+ 		if (status < B_OK) {
+-			aperture->DeleteMemory(memory);
++			status_t cleanup = aperture->DeleteMemory(memory);
++			if (cleanup < B_OK)
++				return cleanup;
+ 			return status;
+ 		}
+ 
+@@ -1086,8 +1138,7 @@ free_memory(aperture_id id, addr_t base)
+ 	if (memory == NULL)
+ 		return B_BAD_VALUE;
+ 
+-	aperture->DeleteMemory(memory);
+-	return B_OK;
++	return aperture->DeleteMemory(memory);
+ }
+ 
+ 
+@@ -1141,8 +1192,10 @@ bind_aperture(aperture_id id, area_id area, addr_t base, size_t size,
+ 	if (reservedBase != 0) {
+ 		// use reserved aperture to bind the pages
+ 		memory = aperture->GetMemory(reservedBase);
+-		if (memory == NULL)
++		if (memory == NULL || (memory->flags & BIND_APERTURE) != 0
++			|| memory->bound_size != 0) {
+ 			return B_BAD_VALUE;
++		}
+ 	} else {
+ 		// create new memory object
+ 		memory = aperture->CreateMemory(size, alignment,
+@@ -1155,8 +1208,13 @@ bind_aperture(aperture_id id, area_id area, addr_t base, size_t size,
+ 
+ 	status_t status = aperture->BindMemory(memory, base, size);
+ 	if (status < B_OK) {
+-		if (reservedBase != 0)
+-			aperture->DeleteMemory(memory);
++		status_t cleanup = B_OK;
++		if (reservedBase == 0)
++			cleanup = aperture->DeleteMemory(memory);
++		else if ((memory->flags & BIND_APERTURE) != 0)
++			cleanup = aperture->UnbindMemory(memory);
++		if (cleanup < B_OK)
++			return cleanup;
+ 
+ 		return status;
+ 	}
+@@ -1223,7 +1281,7 @@ agp_init(void)
+ }
+ 
+ 
+-void
++status_t
+ agp_uninit(void)
+ {
+ 	TRACE("bus manager uninit\n");
+@@ -1231,11 +1289,18 @@ agp_uninit(void)
+ 	ApertureHashTable::Iterator iterator = sApertureHashTable.GetIterator();
+ 	while (iterator.HasNext()) {
+ 		Aperture *aperture = iterator.Next();
++		{
++			Autolock memoryLocker(aperture->Lock());
++			status_t status = aperture->DeleteAllMemory();
++			if (status < B_OK)
++				return status;
++		}
+ 		sApertureHashTable.Remove(aperture);
+ 		delete aperture;
+ 	}
+ 
+ 	put_module(B_PCI_MODULE_NAME);
++	return B_OK;
+ }
+ 
+ 
+@@ -1246,8 +1311,7 @@ agp_std_ops(int32 op, ...)
+ 		case B_MODULE_INIT:
+ 			return agp_init();
+ 		case B_MODULE_UNINIT:
+-			agp_uninit();
+-			return B_OK;
++			return agp_uninit();
+ 	}
+ 
+ 	return B_BAD_VALUE;
+-- 
+2.43.0
+

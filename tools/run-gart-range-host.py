@@ -26,6 +26,8 @@ for name in ('current', 'original'):
         'FAIL unbind adjusted page count',
         'FAIL unbind preserves reserved and adjacent mappings'] * 3
     expected_status = 0 if name == 'current' else 1
-    if run.returncode != expected_status or failures != expected:
+    remainder = [line for line in run.stdout.splitlines() if not line.startswith('FAIL ')]
+    summary = f'46 GART range checks, {len(expected)} failures; production methods, mock callbacks'
+    if run.returncode != expected_status or failures != expected or remainder != [summary]:
         raise SystemExit(f'{name} failed validation:\n{run.stdout}')
     print(f'PASS GART {name}: status {run.returncode}, {len(failures)} expected failures')

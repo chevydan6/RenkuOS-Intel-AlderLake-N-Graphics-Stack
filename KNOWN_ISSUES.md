@@ -16,7 +16,9 @@
 - Patch 3 corrects the GGTT offset; patch 4 implements bounded 64-bit PTE stores
   for Alder Lake. Other generations retain the inherited entry-writing path.
 - GART's already-backed-memory region is not an exclusion list. Firmware stolen
-  subregion ownership, partial-bind/unbind cleanup and DMA teardown remain open.
+  subregion ownership and DMA teardown remain open. Patches 9/10 fix unbind range
+  and owned-backing cleanup in host fault-injected tests; native validation is
+  pending. Borrowed-buffer pinning and concurrent aperture lifetime remain open.
 - Cache/TLB and GuC/context coherency must be established for actual execution;
   a CPU cache flush does not prove GPU completion or context invalidation.
 - Current local app_server drawing does not consume legacy 2D hooks.

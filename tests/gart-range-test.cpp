@@ -18,6 +18,7 @@ struct aperture_memory {
 	addr_t base;
 	size_t size;
 	uint32 flags;
+	size_t bound_size;
 };
 
 struct aperture_info {
@@ -107,10 +108,11 @@ main()
 		Backend state = backend();
 		Aperture aperture = {{0x100000, item[0] * B_PAGE_SIZE}, &module, &state};
 		aperture_memory memory = {aperture.Base() + item[1] * B_PAGE_SIZE,
-			item[2] * B_PAGE_SIZE, BIND_APERTURE};
+			item[2] * B_PAGE_SIZE, BIND_APERTURE, 0};
 		unsigned start = item[1] < item[0] ? item[0] : item[1];
 		unsigned end = item[1] + item[2];
 		unsigned pages = end > start ? end - start : 0;
+		memory.bound_size = pages * B_PAGE_SIZE;
 		check(aperture.UnbindMemory(&memory) == B_OK, "unbind succeeds");
 		check(state.calls == pages, "unbind adjusted page count");
 		bool correct = true;
@@ -122,11 +124,12 @@ main()
 	}
 	Backend state = backend();
 	Aperture aperture = {{0x100000, 3 * B_PAGE_SIZE}, &module, &state};
-	aperture_memory memory = {aperture.Base() + 3 * B_PAGE_SIZE, B_PAGE_SIZE, 0};
+	aperture_memory memory = {aperture.Base() + 3 * B_PAGE_SIZE, B_PAGE_SIZE, 0, 0};
 	check(aperture.UnbindMemory(&memory) == B_BAD_VALUE, "unbound allocation rejected");
 	check(state.calls == 0 && state.flushes == 0, "unbound allocation untouched");
 	state.failAt = 3;
 	memory.flags = BIND_APERTURE;
+	memory.bound_size = B_PAGE_SIZE;
 	check(aperture.UnbindMemory(&memory) == B_ERROR, "backend failure propagated");
 	check((memory.flags & BIND_APERTURE) != 0, "failed unbind keeps bound flag");
 	check(state.calls == 1 && state.mapped[3], "failed first page untouched");

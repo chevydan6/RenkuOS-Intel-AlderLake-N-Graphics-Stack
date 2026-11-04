@@ -37,6 +37,15 @@ the full manager's native compilation, real locking, DMA and lifetime behavior
 are separate validations. The inherited `gart_tester` uses obsolete API fields
 and is not treated as working coverage.
 
+The GART lifecycle fixture adds 154 checks of actual bind, unbind, deletion,
+allocation-chain cleanup and public bind/unmap flow. It injects page-bind and
+page-unbind failures, checks retained ownership, successful retries, invalid
+length/state rejection, rebind rejection and safe aperture removal. Original
+code reproduces exactly 39 failures. Page allocation/free, registry primitives,
+destruction notifications and locks are mocked; this is not a concurrency test
+or a GPU-quiescence guarantee. Borrowed-buffer cleanup tests retain the caller's
+simulated backing throughout and therefore do not prove kernel pinning.
+
 Before any install, use an isolated test image and preserve a powered-off,
 flattened known-good base. Never copy a running qcow2 with an ordinary file copy
 or use a mutable shared disk as an overlay backing file. A snapshot requires a

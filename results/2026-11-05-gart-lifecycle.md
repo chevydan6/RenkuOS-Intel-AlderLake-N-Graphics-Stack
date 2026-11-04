@@ -32,3 +32,30 @@ track progress, retain owned pages and aperture metadata when cleanup fails,
 propagate errors, and avoid indefinite teardown loops. External buffer lifetime
 and pinning require separate treatment; retaining metadata alone cannot pin a
 caller's backing pages. Fault-injected tests will distinguish these cases.
+
+## Owned-backing lifecycle
+
+Patch 10 tracks the installed prefix after every successful page bind. Unbinding
+proceeds from its tail, updating the prefix only after each successful removal.
+Any completed partial clear is flushed even when a later callback fails.
+Deletion retains owned backing and metadata on failure; aperture unmap and
+module teardown propagate cleanup failure, allowing a bounded retry without
+destroying the aperture or looping indefinitely. Rebind and invalid size/state
+requests leave existing mappings intact. New borrowed-buffer metadata is cleaned
+up on failed binding when the backend permits rollback.
+
+The fixture now executes verbatim production methods and public bind/unmap flow.
+All **154** positive host checks pass under ASan/UBSan. The original code produces
+**39** expected failures across **103** control checks; additional new-teardown
+checks apply only to the patched code. Metadata allocation, page ownership/free,
+registry primitives, destruction notifications and locks are simulated. This
+does not validate real kernel locking, page allocation or GPU quiescence.
+The caller keeps borrowed-buffer backing alive in these tests; kernel pinning
+and rollback-failure lifetime contracts still need design before external GPU
+buffers can be enabled. Allocation failure before binding and concurrent
+aperture-reference lifetime also remain separate audit work.
+
+Bundle `renku-017` contains ten patches and **176** verified payload hashes.
+Both host suites and original-code gates pass. Native generic-manager compilation
+is prepared but not run while the power agent's OUTAGE_RESERVED remains active.
+The previously verified native eight-patch results remain distinct.

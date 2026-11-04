@@ -30,3 +30,5 @@ jobs:
           git diff --check
       - name: Verify GART unbind range and original-code control
         run: python3 tools/run-gart-range-host.py build/ci
+      - name: Verify GART lifetime with backend fault injection
+        run: python3 tools/run-gart-lifecycle-host.py build/ci

@@ -34,7 +34,7 @@ COMMON_OBJECTS := $(addprefix $(OUT)/common/,$(addsuffix .o,$(COMMON_CPP) $(COMM
 DRIVER_OBJECTS := $(addprefix $(OUT)/driver/,$(addsuffix .o,bios driver device intel_extreme power kernel_cpp))
 
 .PHONY: all test check-platform
-all: check-platform $(OUT)/intel_gart $(OUT)/agp_gart $(OUT)/intel_extreme.driver $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test $(GTT_TEST) $(PTE_TEST) $(STOLEN_TEST) $(OUT)/lifecycle-test $(OUT)/intel_extreme.lifecycle.accelerant $(OUT)/gating-test $(OUT)/gart-range-test
+all: check-platform $(OUT)/intel_gart $(OUT)/agp_gart $(OUT)/intel_extreme.driver $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test $(GTT_TEST) $(PTE_TEST) $(STOLEN_TEST) $(OUT)/lifecycle-test $(OUT)/intel_extreme.lifecycle.accelerant $(OUT)/gating-test $(OUT)/gart-range-test $(OUT)/gart-lifecycle-test
 
 check-platform:
 	@test "$$(uname -s)" = Haiku && test "$$(uname -m)" = x86_64
@@ -155,7 +155,16 @@ $(OUT)/gart-range-control: tests/gart-range-test.cpp tests/generated/gart-origin
 	$(CXX) $(CXXFLAGS) -Wextra -Werror \
 		-DGART_METHODS='"generated/gart-original.inc"' $< -o $@
 
-test: all $(OUT)/intel_extreme.control.accelerant $(OUT)/intel_extreme.lifecycle-control.accelerant $(OUT)/gating-control $(OUT)/gart-range-control
+$(OUT)/gart-lifecycle-test: tests/gart-lifecycle-test.cpp tests/generated/gart-lifecycle-current.inc
+	mkdir -p $(OUT)
+	$(CXX) $(CXXFLAGS) -Wextra -Werror $< -o $@
+
+$(OUT)/gart-lifecycle-control: tests/gart-lifecycle-test.cpp tests/generated/gart-lifecycle-original.inc
+	mkdir -p $(OUT)
+	$(CXX) $(CXXFLAGS) -Wextra -Werror -DGART_DELETE_RESULT=void -DGART_HAS_DELETE_ALL=0 \
+		-DGART_LIFECYCLE_METHODS='"generated/gart-lifecycle-original.inc"' $< -o $@
+
+test: all $(OUT)/intel_extreme.control.accelerant $(OUT)/intel_extreme.lifecycle-control.accelerant $(OUT)/gating-control $(OUT)/gart-range-control $(OUT)/gart-lifecycle-control
 	$(if $(GTT_TEST),$(GTT_TEST),@echo 'GGTT helper absent in unpatched control')
 	$(if $(PTE_TEST),$(PTE_TEST),@echo 'GGTT PTE helper absent in unpatched control')
 	$(if $(STOLEN_TEST),$(STOLEN_TEST),@echo 'GGC helper absent in unpatched control')
@@ -164,5 +173,6 @@ test: all $(OUT)/intel_extreme.control.accelerant $(OUT)/intel_extreme.lifecycle
 	$(OUT)/lifecycle-test ./$(OUT)/intel_extreme.lifecycle.accelerant
 	$(OUT)/gating-test
 	$(OUT)/gart-range-test
+	$(OUT)/gart-lifecycle-test
 	python3 tools/regression-control.py
 	python3 tools/validate-artifacts.py $(OUT)
