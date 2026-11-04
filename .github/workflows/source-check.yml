@@ -28,3 +28,5 @@ jobs:
         run: |
           python3 -m py_compile tools/*.py tests/*.py
           git diff --check
+      - name: Verify GART unbind range and original-code control
+        run: python3 tools/run-gart-range-host.py build/ci

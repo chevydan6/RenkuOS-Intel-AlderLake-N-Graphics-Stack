@@ -1,0 +1,29 @@
+From 102f063cb236acab396d3bc46d4d86021d6ae010 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 04:41:29 +0900
+Subject: [PATCH] agp_gart: unbind only the adjusted allocation range
+
+After excluding already-backed memory, use the remaining size as well as the adjusted base. The original size can clear PTEs belonging to the next allocation. Forty-six tests of the actual methods with mock callbacks pass under ASan/UBSan; the original code reproduces six failures. Full native manager compilation remains a separate check.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+index cf6a2ac9..78e8e140 100644
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -619,7 +619,7 @@ Aperture::UnbindMemory(aperture_memory *memory)
+ 	addr_t start = base - Base();
+ 	TRACE("unbind %ld bytes at %lx\n", size, start);
+ 
+-	for (addr_t offset = 0; offset < memory->size; offset += B_PAGE_SIZE) {
++	for (addr_t offset = 0; offset < size; offset += B_PAGE_SIZE) {
+ 		status_t status = fModule->unbind_page(fPrivateAperture, start + offset);
+ 		if (status < B_OK)
+ 			return status;
+-- 
+2.43.0
+

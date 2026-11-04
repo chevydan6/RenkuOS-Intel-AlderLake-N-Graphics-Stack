@@ -14,6 +14,7 @@ BASE = '4799bb5a188c4bb6bbef967287640cc21a061a0d'
 PATHS = [
     'License.md', 'headers/private/graphics', 'build/config_headers',
     'src/add-ons/kernel/busses/agp_gart',
+    'src/add-ons/kernel/bus_managers/agp_gart',
     'src/add-ons/kernel/drivers/graphics/intel_extreme',
     'src/add-ons/kernel/drivers/graphics/common',
     'src/system/kernel/util/kernel_cpp.cpp',
@@ -52,6 +53,7 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
     shutil.copy2(source / 'src/add-ons/accelerants/intel_extreme/engine.cpp', out / 'controls')
     shutil.copy2(source / 'src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp', out / 'controls')
     shutil.copy2(source / 'src/add-ons/kernel/busses/agp_gart/intel_gart.cpp', out / 'controls')
+    shutil.copy2(source / 'src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp', out / 'controls')
     # A temporary repository makes patch application relative to this source,
     # independent of the caller's working directory or enclosing repositories.
     subprocess.run(['git', 'init', '-q', str(source)], check=True)
@@ -61,6 +63,11 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
         subprocess.run(['git', '-C', str(source), 'apply', str(patch)], check=True)
     shutil.rmtree(source / '.git')
 shutil.copytree(PROJECT / 'tests', out / 'tests', ignore=shutil.ignore_patterns('__pycache__'))
+for original, name in [
+        (source / 'src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp', 'current'),
+        (out / 'controls/agp_gart.cpp', 'original')]:
+    subprocess.run(['python3', str(PROJECT / 'tools/extract-gart-methods.py'),
+                    str(original), str(out / f'tests/generated/gart-{name}.inc')], check=True)
 (out / 'tools').mkdir()
 shutil.copy2(PROJECT / 'tools/validate-artifacts.py', out / 'tools')
 shutil.copy2(PROJECT / 'tools/regression-control.py', out / 'tools')

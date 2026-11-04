@@ -9,6 +9,7 @@ GRAPHICS := $(SOURCE)/headers/private/graphics
 ACCEL := $(SOURCE)/src/add-ons/accelerants/intel_extreme
 COMMON := $(SOURCE)/src/add-ons/accelerants/common
 GART := $(SOURCE)/src/add-ons/kernel/busses/agp_gart
+GART_MANAGER := $(SOURCE)/src/add-ons/kernel/bus_managers/agp_gart
 DRIVER := $(SOURCE)/src/add-ons/kernel/drivers/graphics/intel_extreme
 DRIVER_COMMON := $(SOURCE)/src/add-ons/kernel/drivers/graphics/common
 GTT_TEST := $(if $(wildcard $(GART)/intel_gtt.h),$(OUT)/gtt-range-test)
@@ -33,7 +34,7 @@ COMMON_OBJECTS := $(addprefix $(OUT)/common/,$(addsuffix .o,$(COMMON_CPP) $(COMM
 DRIVER_OBJECTS := $(addprefix $(OUT)/driver/,$(addsuffix .o,bios driver device intel_extreme power kernel_cpp))
 
 .PHONY: all test check-platform
-all: check-platform $(OUT)/intel_gart $(OUT)/intel_extreme.driver $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test $(GTT_TEST) $(PTE_TEST) $(STOLEN_TEST) $(OUT)/lifecycle-test $(OUT)/intel_extreme.lifecycle.accelerant $(OUT)/gating-test
+all: check-platform $(OUT)/intel_gart $(OUT)/agp_gart $(OUT)/intel_extreme.driver $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test $(GTT_TEST) $(PTE_TEST) $(STOLEN_TEST) $(OUT)/lifecycle-test $(OUT)/intel_extreme.lifecycle.accelerant $(OUT)/gating-test $(OUT)/gart-range-test
 
 check-platform:
 	@test "$$(uname -s)" = Haiku && test "$$(uname -m)" = x86_64
@@ -45,6 +46,15 @@ $(OUT)/intel_gart.o: $(GART)/intel_gart.cpp $(wildcard $(GART)/intel_gtt.h)
 $(OUT)/intel_gart: $(OUT)/intel_gart.o Makefile
 	$(CXX) -shared -nostdlib -Wl,--no-undefined -Wl,-soname,intel \
 		-Wl,-z,max-page-size=0x1000 -o $@ $< \
+		-L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
+
+$(OUT)/agp_gart.o: $(GART_MANAGER)/agp_gart.cpp
+	mkdir -p $(OUT)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(KERNELFLAGS) -c $< -o $@
+
+$(OUT)/agp_gart: $(OUT)/agp_gart.o $(OUT)/driver/kernel_cpp.o
+	$(CXX) -shared -nostdlib -Wl,--no-undefined -Wl,-soname,agp_gart \
+		-Wl,-z,max-page-size=0x1000 -o $@ $^ \
 		-L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
 
 $(OUT)/driver/%.o: $(DRIVER)/%.cpp
@@ -136,7 +146,16 @@ $(OUT)/gating-control: tests/gating-test.cpp controls/power.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(KERNELFLAGS) -I$(DRIVER) \
 		-DGATING_SOURCE='"../controls/power.cpp"' $< -o $@
 
-test: all $(OUT)/intel_extreme.control.accelerant $(OUT)/intel_extreme.lifecycle-control.accelerant $(OUT)/gating-control
+$(OUT)/gart-range-test: tests/gart-range-test.cpp tests/generated/gart-current.inc
+	mkdir -p $(OUT)
+	$(CXX) $(CXXFLAGS) -Wextra -Werror $< -o $@
+
+$(OUT)/gart-range-control: tests/gart-range-test.cpp tests/generated/gart-original.inc
+	mkdir -p $(OUT)
+	$(CXX) $(CXXFLAGS) -Wextra -Werror \
+		-DGART_METHODS='"generated/gart-original.inc"' $< -o $@
+
+test: all $(OUT)/intel_extreme.control.accelerant $(OUT)/intel_extreme.lifecycle-control.accelerant $(OUT)/gating-control $(OUT)/gart-range-control
 	$(if $(GTT_TEST),$(GTT_TEST),@echo 'GGTT helper absent in unpatched control')
 	$(if $(PTE_TEST),$(PTE_TEST),@echo 'GGTT PTE helper absent in unpatched control')
 	$(if $(STOLEN_TEST),$(STOLEN_TEST),@echo 'GGC helper absent in unpatched control')
@@ -144,5 +163,6 @@ test: all $(OUT)/intel_extreme.control.accelerant $(OUT)/intel_extreme.lifecycle
 	$(OUT)/hooks-test ./$(OUT)/intel_extreme.accelerant
 	$(OUT)/lifecycle-test ./$(OUT)/intel_extreme.lifecycle.accelerant
 	$(OUT)/gating-test
+	$(OUT)/gart-range-test
 	python3 tools/regression-control.py
 	python3 tools/validate-artifacts.py $(OUT)

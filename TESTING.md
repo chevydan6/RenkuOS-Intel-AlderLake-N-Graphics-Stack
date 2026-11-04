@@ -27,6 +27,16 @@ unchanged registers and Sandy Bridge positive controls. The original source must
 produce exactly two failures. This does not measure power consumption or validate
 GPU sleep/resume. Kernel modules themselves are built but never loaded by tests.
 
+The GART range harness compiles verbatim `_AdaptToReserved()` and
+`UnbindMemory()` bodies extracted from the pinned/patched manager, with mock
+metadata and bus callbacks. Extraction retains attribution and source SHA-256.
+Its 46 cases/checks cover boundary crossing, neighboring mappings, entirely
+reserved allocations, normal allocations and first-page backend failure.
+The original code must produce exactly six failures. This tests those algorithms;
+the full manager's native compilation, real locking, DMA and lifetime behavior
+are separate validations. The inherited `gart_tester` uses obsolete API fields
+and is not treated as working coverage.
+
 Before any install, use an isolated test image and preserve a powered-off,
 flattened known-good base. Never copy a running qcow2 with an ordinary file copy
 or use a mutable shared disk as an overlay backing file. A snapshot requires a

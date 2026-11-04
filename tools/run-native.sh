@@ -11,13 +11,25 @@ uname -a >validation/kernel.txt
 g++ --version >validation/compiler.txt
 ls /boot/system/packages/haiku_devel*.hpkg >validation/devel-package.txt
 sha256sum -c manifest.sha256 >validation/manifest-check.log
-make -j1 all build/intel_extreme.control.accelerant build/intel_extreme.lifecycle-control.accelerant build/gating-control
+make -j1 all build/intel_extreme.control.accelerant build/intel_extreme.lifecycle-control.accelerant build/gating-control build/gart-range-control
 build/gtt-range-test
 build/gtt-pte-test
 build/gtt-stolen-test
 build/hooks-test ./build/intel_extreme.accelerant
 build/lifecycle-test ./build/intel_extreme.lifecycle.accelerant
 build/gating-test
+build/gart-range-test
+set +e
+build/gart-range-control >validation/control-gart-range.log 2>&1
+control_status=$?
+set -e
+test "$control_status" -eq 1
+awk '/^FAIL / {
+    count++;
+    if ($0 == "FAIL unbind adjusted page count") pages++;
+    if ($0 == "FAIL unbind preserves reserved and adjacent mappings") guards++;
+} END { exit !(count == 6 && pages == 3 && guards == 3) }' validation/control-gart-range.log
+echo 'PASS original GART range control: exactly 6 expected failures'
 set +e
 build/gating-control >validation/control-gating.log 2>&1
 control_status=$?
@@ -49,6 +61,6 @@ awk '/^FAIL / {
     if ($0 == "FAIL Alder Lake register writes") writes++;
 } END { exit !(count == 3 && engines == 1 && rings == 1 && writes == 1) }' validation/control-lifecycle.log
 echo 'PASS original ring control: exactly 3 expected failures'
-tar -czf validation/artifacts.tar.gz build/intel_gart build/intel_extreme.driver build/intel_extreme.accelerant \
+tar -czf validation/artifacts.tar.gz build/intel_gart build/agp_gart build/intel_extreme.driver build/intel_extreme.accelerant \
     build/hooks-test build/gtt-range-test build/gtt-pte-test build/gtt-stolen-test \
-    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test
+    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test

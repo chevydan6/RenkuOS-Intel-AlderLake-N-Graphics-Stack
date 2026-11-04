@@ -5,6 +5,9 @@ import subprocess
 import sys
 
 checks = [
+    (['build/gart-range-control'],
+     ['FAIL unbind adjusted page count',
+      'FAIL unbind preserves reserved and adjacent mappings'] * 3),
     (['build/gating-control'], ['FAIL Alder Lake gating unsupported',
                               'FAIL Alder Lake gating registers preserved']),
     ([sys.executable, 'tests/source-audit.py', 'controls/intel_gart.cpp'],

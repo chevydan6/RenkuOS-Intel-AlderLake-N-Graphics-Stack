@@ -39,9 +39,10 @@ New helpers implement documented encodings; no Linux driver source was imported.
 - The legacy non-Alder-Lake PGTBL_CTL path uses a `uint32*` with byte constants;
   its offset arithmetic needs a separately scoped regression fix. Alder Lake
   bypasses that path in patch 5.
-- Generic GART unbinding uses the original allocation length after adapting a
-  range across stolen memory. Audit partial failures and cleanup before relying
-  on it for arbitrary client mappings. Do not free DMA-visible memory early.
+- Patch 9 fixes generic GART unbinding to use the adjusted length after excluding
+  already-backed memory. The real method bodies pass 46 host sanitizer checks;
+  original code reproduces six neighboring-range failures. Native manager build
+  is pending the physical-test outage. This does not fix partial-bind cleanup.
 - `BindMemory()` sets `BIND_APERTURE` only after every page succeeds. On an
   intermediate failure, `allocate_memory()` calls `DeleteMemory()`, whose
   unbind rejects the unset flag before `_Free()` releases pages. Earlier
