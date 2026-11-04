@@ -54,6 +54,11 @@ New helpers implement documented encodings; no Linux driver source was imported.
   engines must be quiescent before unmapping; a successful TLB callback alone
   does not establish either condition. Repeated cleanup failures intentionally
   retain resources until recovery rather than permit reuse of live backing.
+- At the pinned kernel, `module.cpp::uninit_module()` responds to a failed
+  uninitialization by setting `MODULE_ERROR`, keeping the module loaded and
+  retaining a reference. Subsequent module acquisition fails. The retry checks
+  here cover allocation/aperture cleanup while the manager remains usable;
+  they do not promise automatic recovery from a failed module unload.
 - Continue modern GT/display initialization, power, interrupt, command validation
   and reset work before physical patched-driver installation.
 

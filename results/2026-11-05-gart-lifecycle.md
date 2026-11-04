@@ -59,3 +59,8 @@ Bundle `renku-017` contains ten patches and **176** verified payload hashes.
 Both host suites and original-code gates pass. Native generic-manager compilation
 is prepared but not run while the power agent's OUTAGE_RESERVED remains active.
 The previously verified native eight-patch results remain distinct.
+
+Kernel-loader review confirms failed module uninitialization retains the module
+image/reference in `MODULE_ERROR` and rejects new acquisition. Thus the tested
+retry behavior is allocation/aperture retry before such unload failure, not
+automatic module recovery. No kernel-loader change was made.
