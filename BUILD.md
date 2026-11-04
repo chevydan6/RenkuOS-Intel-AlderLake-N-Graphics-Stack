@@ -83,3 +83,15 @@ boots an emulated guest, runs the component workflow, collects logs and shuts do
 the guest. It never installs GPU modules or passes through PCI devices. Its SSH
 configuration and verified host key remain private. Logs distinguish clean guest
 shutdown from forced cleanup; never reuse a disk marked for discard.
+
+Host-only GART fault checks for a newly prepared bundle:
+
+```sh
+python3 tools/run-gart-range-host.py build/native-fresh
+python3 tools/run-gart-lifecycle-host.py build/native-fresh
+python3 tools/run-gart-allocation-host.py build/native-fresh
+```
+
+Each preserves current/original binaries and logs in a new subdirectory, and
+rejects unexpected failures or sanitizer output. Actual method bodies are
+extracted with original attribution; kernel/VM/backend services are mocked.

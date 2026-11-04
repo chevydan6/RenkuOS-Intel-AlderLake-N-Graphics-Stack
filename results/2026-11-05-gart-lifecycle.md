@@ -64,3 +64,25 @@ Kernel-loader review confirms failed module uninitialization retains the module
 image/reference in `MODULE_ERROR` and rejects new acquisition. Thus the tested
 retry behavior is allocation/aperture retry before such unload failure, not
 automatic module recovery. No kernel-loader change was made.
+
+## Allocation-failure follow-up
+
+Source commit `21755757` (patch 11) releases the temporary pointer table when
+the constrained physical-page run fails. The ownership flag has not yet been
+set at this point, so ordinary `_Free()` previously skipped the leaked table.
+The two-line fix also clears the stale pointer.
+
+Extracted, unchanged production `AllocateMemory()` and `_Free()` bodies pass
+**67 host sanitizer checks**, including contiguous/non-contiguous API requests,
+table allocation failure, page allocation failure and successful cleanup.
+The original code reproduces exactly three failures across 66 checks. The
+fixture mocks VM/page allocation and tracks table ownership. Its test allocator
+reclaims the detected original leak after recording failures so sanitizers can
+still detect unrelated faults. This is not a native kernel allocator test.
+
+Bundle `renku-019` contains eleven patches and **182** verified payload hashes.
+Range/lifecycle checks still pass with the new extraction workflow. CI and the
+native pipeline include the allocation test and original-source control. The
+offline copy experiment is included as source but excluded from native driver
+components. Native patches 9–11 await the explicit physical-test restoration
+handoff; no host, VM or NanoKVM job was started during that reservation.

@@ -6,6 +6,9 @@ import sys
 from collections import Counter
 
 checks = [
+    (['build/gart-allocation-control'],
+     ['FAIL failure clears page pointer',
+      'FAIL failure releases pointer table', 'FAIL cleanup releases pointer table']),
     (['build/gart-range-control'],
      ['FAIL unbind adjusted page count',
       'FAIL unbind preserves reserved and adjacent mappings'] * 3),
@@ -27,7 +30,6 @@ for command, expected in checks:
         print(result.stdout)
         raise SystemExit('control did not reproduce exactly the expected regression')
     print(f'PASS unpatched control: {len(failures)} expected failures: {command[0]}')
-print('PASS all controls reproduce the expected regressions')
 
 run = subprocess.run(['build/gart-lifecycle-control'], stdout=subprocess.PIPE,
                      stderr=subprocess.STDOUT, text=True)
@@ -46,3 +48,4 @@ actual = Counter(line for line in run.stdout.splitlines() if line.startswith('FA
 if run.returncode != 1 or actual != expected:
     raise SystemExit('GART lifecycle control failed:\n' + run.stdout)
 print('PASS GART lifecycle original control: 39 expected failures')
+print('PASS all controls reproduce the expected regressions')

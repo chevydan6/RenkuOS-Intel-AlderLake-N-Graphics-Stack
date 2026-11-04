@@ -1,0 +1,29 @@
+From 217557574398d9c3da1557a9a63faaa5812b0af9 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 05:13:09 +0900
+Subject: [PATCH] agp_gart: release page table when backing allocation fails
+
+On x86_64 the non-contiguous API first allocates a pointer table and then requests a constrained page run. Release the table when that request fails, before ALLOCATED_APERTURE is set. Otherwise normal cleanup skips it.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+index e8bb0c2f..96134f6b 100644
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -584,6 +584,8 @@ Aperture::AllocateMemory(aperture_memory *memory, uint32 flags)
+ 		if (page == NULL) {
+ 			ERROR("Aperture::AllocateMemory(): vm_page_allocate_page_run() "
+ 				"failed (without B_APERTURE_NEED_PHYSICAL)\n");
++			free(memory->pages);
++			memory->pages = NULL;
+ 			return B_NO_MEMORY;
+ 		}
+ 
+-- 
+2.43.0
+

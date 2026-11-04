@@ -42,7 +42,7 @@ with (record / 'build-test.log').open('w') as log:
 info['elapsed_seconds'] = round(time.monotonic() - start, 3)
 info['exit_status'] = result.returncode
 info['artifacts'] = {}
-for name in ['intel_gart', 'agp_gart', 'intel_extreme.driver', 'intel_extreme.accelerant', 'hooks-test', 'gtt-range-test', 'gtt-pte-test', 'gtt-stolen-test', 'lifecycle-test', 'gating-test', 'gart-range-test', 'gart-lifecycle-test']:
+for name in ['intel_gart', 'agp_gart', 'intel_extreme.driver', 'intel_extreme.accelerant', 'hooks-test', 'gtt-range-test', 'gtt-pte-test', 'gtt-stolen-test', 'lifecycle-test', 'gating-test', 'gart-range-test', 'gart-lifecycle-test', 'gart-allocation-test']:
     p = bundle / 'build' / name
     if p.is_file():
         info['artifacts'][name] = {'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}

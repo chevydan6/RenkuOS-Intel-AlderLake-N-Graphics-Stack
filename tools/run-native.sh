@@ -12,6 +12,21 @@ g++ --version >validation/compiler.txt
 ls /boot/system/packages/haiku_devel*.hpkg >validation/devel-package.txt
 sha256sum -c manifest.sha256 >validation/manifest-check.log
 make -j1 all build/intel_extreme.control.accelerant build/intel_extreme.lifecycle-control.accelerant build/gating-control build/gart-range-control build/gart-lifecycle-control
+make -j1 build/gart-allocation-control
+build/gart-allocation-test
+set +e
+build/gart-allocation-control >validation/control-gart-allocation.log 2>&1
+control_status=$?
+set -e
+test "$control_status" -eq 1
+cat >validation/expected-gart-allocation.log <<'EXPECTED'
+FAIL failure clears page pointer
+FAIL failure releases pointer table
+FAIL cleanup releases pointer table
+66 GART allocation checks, 3 failures; mock VM allocation
+EXPECTED
+cmp validation/expected-gart-allocation.log validation/control-gart-allocation.log
+echo 'PASS original GART allocation control: exactly 3 expected failures'
 build/gtt-range-test
 build/gtt-pte-test
 build/gtt-stolen-test
@@ -83,4 +98,4 @@ awk '/^FAIL / {
 echo 'PASS original ring control: exactly 3 expected failures'
 tar -czf validation/artifacts.tar.gz build/intel_gart build/agp_gart build/intel_extreme.driver build/intel_extreme.accelerant \
     build/hooks-test build/gtt-range-test build/gtt-pte-test build/gtt-stolen-test \
-    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test build/gart-lifecycle-test
+    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test build/gart-lifecycle-test build/gart-allocation-test

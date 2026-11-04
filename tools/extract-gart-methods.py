@@ -11,7 +11,7 @@ import pathlib
 import re
 
 
-def extract(source, output, lifecycle=False, teardown=False):
+def extract(source, output, lifecycle=False, teardown=False, allocation=False):
     data = source.read_text()
     notice = re.match(r'/\*.*?\*/', data, re.S)
     if notice is None:
@@ -23,8 +23,11 @@ def extract(source, output, lifecycle=False, teardown=False):
         raise SystemExit('expected exactly one BIND_APERTURE definition')
     parts.extend(flag)
     names = ['_AdaptToReserved', 'UnbindMemory']
+    if allocation:
+        names = ['_AdaptToReserved', 'AllocateMemory', '_Free']
     if lifecycle:
         names += ['BindMemory', 'DeleteMemory', '_Remove']
+    if lifecycle or allocation:
         flags = re.findall(r'^#define ALLOCATED_APERTURE\s+[^\n]+$', data, re.M)
         if len(flags) != 1:
             raise SystemExit('expected exactly one ALLOCATED_APERTURE definition')
@@ -59,5 +62,8 @@ if __name__ == '__main__':
     parser.add_argument('output', type=pathlib.Path)
     parser.add_argument('--lifecycle', action='store_true')
     parser.add_argument('--teardown', action='store_true')
+    parser.add_argument('--allocation', action='store_true')
     args = parser.parse_args()
-    extract(args.source, args.output, args.lifecycle, args.teardown)
+    if args.allocation and (args.lifecycle or args.teardown):
+        parser.error('--allocation is a separate fixture')
+    extract(args.source, args.output, args.lifecycle, args.teardown, args.allocation)

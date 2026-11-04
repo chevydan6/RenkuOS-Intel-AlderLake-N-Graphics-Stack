@@ -61,6 +61,11 @@ New helpers implement documented encodings; no Linux driver source was imported.
   they do not promise automatic recovery from a failed module unload.
 - Continue modern GT/display initialization, power, interrupt, command validation
   and reset work before physical patched-driver installation.
+- Patch 11 frees and clears the temporary page-pointer table if the x86_64
+  constrained backing-page allocation fails before `ALLOCATED_APERTURE` is set.
+  The actual allocation/free methods pass 67 host fault-injection checks;
+  the original code reproduces three cleanup failures. VM allocation is mocked,
+  so this does not establish the actual kernel allocator's behavior.
 
 ## Kernel and accelerant follow-up
 

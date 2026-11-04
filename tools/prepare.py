@@ -73,6 +73,10 @@ for original, name in [
     subprocess.run(['python3', str(PROJECT / 'tools/extract-gart-methods.py'), *flags,
                     str(original), str(out / f'tests/generated/gart-lifecycle-{name}.inc')],
                    check=True)
+    subprocess.run(['python3', str(PROJECT / 'tools/extract-gart-methods.py'),
+                    '--allocation', str(original),
+                    str(out / f'tests/generated/gart-allocation-{name}.inc')],
+                   check=True)
 (out / 'tools').mkdir()
 shutil.copy2(PROJECT / 'tools/validate-artifacts.py', out / 'tools')
 shutil.copy2(PROJECT / 'tools/regression-control.py', out / 'tools')
