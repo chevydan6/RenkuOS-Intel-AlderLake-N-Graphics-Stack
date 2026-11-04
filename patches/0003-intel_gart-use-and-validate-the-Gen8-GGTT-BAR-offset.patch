@@ -1,0 +1,106 @@
+From e36eb38ca59c6cfe3ba6c73156f67ef892d8bb30 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 21:52:35 +0900
+Subject: [PATCH] intel_gart: use and validate the Gen8+ GGTT BAR offset
+
+Gen8+ places the GGTT at 8 MiB, not the older 2 MiB offset. Reject empty, oversized, out-of-BAR and overflowing ranges before mapping the table. Keep older layouts unchanged.
+
+Hardware layout reference: Linux v7.0 intel_ggtt.c, gen6_gttmmadr_size and gen6_gttadr_offset (MIT). New range-checking helper; no Linux kernel code imported. Hardware execution remains untested.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ .../kernel/busses/agp_gart/intel_gart.cpp     | 19 +++++++---
+ .../kernel/busses/agp_gart/intel_gtt.h        | 36 +++++++++++++++++++
+ 2 files changed, 50 insertions(+), 5 deletions(-)
+ create mode 100644 src/add-ons/kernel/busses/agp_gart/intel_gtt.h
+
+diff --git a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+index 2ce7d461..4d95537d 100644
+--- a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
++++ b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+@@ -23,6 +23,8 @@
+ 
+ #include <new>
+ 
++#include "intel_gtt.h"
++
+ 
+ #define TRACE_INTEL
+ #ifdef TRACE_INTEL
+@@ -762,8 +764,18 @@ intel_map(intel_info &info)
+ 	if (get_memory_map(scratchAddress, B_PAGE_SIZE, &entry, 1) != B_OK)
+ 		return B_ERROR;
+ 
+-	// TODO: Review these
+-	if (info.type->InFamily(INTEL_FAMILY_8xx)) {
++	size_t gttSize = determine_gtt_size(info);
++	size_t stolenSize = determine_gtt_stolen(info);
++
++	// TODO: Review the pre-Gen8 layouts.
++	if (info.type->Generation() >= 8) {
++		uint64_t gttBase;
++		if (!intel_gen8_gtt_base(addr, barSize, gttSize, &gttBase)) {
++			ERROR("invalid Gen8+ GTT range in MMIO BAR\n");
++			return B_BAD_VALUE;
++		}
++		info.gtt_physical_base = gttBase;
++	} else if (info.type->InFamily(INTEL_FAMILY_8xx)) {
+ 		info.gtt_physical_base = read32(info.registers
+ 			+ INTEL_PAGE_TABLE_CONTROL) & ~PAGE_TABLE_ENABLED;
+ 		if (info.gtt_physical_base == 0) {
+@@ -780,9 +792,6 @@ intel_map(intel_info &info)
+ 		info.gtt_physical_base = addr + (2UL << 20);
+ 	}
+ 
+-	size_t gttSize = determine_gtt_size(info);
+-	size_t stolenSize = determine_gtt_stolen(info);
+-
+ 	info.gtt_entries = gttSize / 4096;
+ 	info.gtt_stolen_entries = stolenSize / 4096;
+ 
+diff --git a/src/add-ons/kernel/busses/agp_gart/intel_gtt.h b/src/add-ons/kernel/busses/agp_gart/intel_gtt.h
+new file mode 100644
+index 00000000..5504a3b7
+--- /dev/null
++++ b/src/add-ons/kernel/busses/agp_gart/intel_gtt.h
+@@ -0,0 +1,36 @@
++/*
++ * Copyright 2026, The RenkuOS authors.
++ * Distributed under the terms of the MIT License.
++ * SPDX-License-Identifier: MIT
++ */
++#ifndef INTEL_GTT_H
++#define INTEL_GTT_H
++
++
++#include <stddef.h>
++#include <stdint.h>
++
++
++// Gen8+ places the GGTT at 8 MiB in the 16 MiB GTTMMADR BAR.
++// Keep range validation independent of PCI and MMIO so malformed resource
++// descriptions can be tested without accessing hardware.
++static inline bool
++intel_gen8_gtt_base(uint64_t mmioBase, uint64_t mmioSize, uint64_t tableSize,
++	uint64_t* tableBase)
++{
++	const uint64_t offset = 8ULL << 20;
++	if (tableBase == NULL || tableSize == 0 || tableSize > offset
++		|| mmioSize < offset || tableSize > mmioSize - offset) {
++		return false;
++	}
++
++	// Check the entire physical range, including its last byte.
++	if (mmioBase > UINT64_MAX - (offset + tableSize - 1))
++		return false;
++
++	*tableBase = mmioBase + offset;
++	return true;
++}
++
++
++#endif // INTEL_GTT_H
+-- 
+2.43.0
+

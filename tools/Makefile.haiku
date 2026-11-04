@@ -8,6 +8,8 @@ PRIVATE := /boot/system/develop/headers/private
 GRAPHICS := $(SOURCE)/headers/private/graphics
 ACCEL := $(SOURCE)/src/add-ons/accelerants/intel_extreme
 COMMON := $(SOURCE)/src/add-ons/accelerants/common
+GART := $(SOURCE)/src/add-ons/kernel/busses/agp_gart
+GTT_TEST := $(if $(wildcard $(GART)/intel_gtt.h),$(OUT)/gtt-range-test)
 CPPFLAGS := -I$(GRAPHICS) -I$(GRAPHICS)/intel_extreme -I$(GRAPHICS)/common \
 	-I$(PRIVATE)/shared
 CXXFLAGS := -std=gnu++17 -O2 -g -Wall -fPIC -fno-exceptions -fno-rtti
@@ -23,12 +25,12 @@ ACCEL_OBJECTS := $(addprefix $(OUT)/accel/,$(addsuffix .o,$(ACCEL_CPP)))
 COMMON_OBJECTS := $(addprefix $(OUT)/common/,$(addsuffix .o,$(COMMON_CPP) $(COMMON_C)))
 
 .PHONY: all test check-platform
-all: check-platform $(OUT)/intel_gart $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test
+all: check-platform $(OUT)/intel_gart $(OUT)/intel_extreme.accelerant $(OUT)/hooks-test $(GTT_TEST)
 
 check-platform:
 	@test "$$(uname -s)" = Haiku && test "$$(uname -m)" = x86_64
 
-$(OUT)/intel_gart.o: $(SOURCE)/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+$(OUT)/intel_gart.o: $(GART)/intel_gart.cpp $(wildcard $(GART)/intel_gtt.h)
 	mkdir -p $(OUT)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(KERNELFLAGS) -c $< -o $@
 
@@ -62,10 +64,15 @@ $(OUT)/control-hooks.o: controls/hooks.cpp
 	mkdir -p $(OUT)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(ACCEL) -c $< -o $@
 
+$(OUT)/gtt-range-test: tests/gtt-range-test.cpp $(GART)/intel_gtt.h
+	mkdir -p $(OUT)
+	$(CXX) $(CXXFLAGS) -Wextra -Werror -I$(GART) $< -o $@
+
 $(OUT)/intel_extreme.control.accelerant: $(filter-out $(OUT)/accel/hooks.o,$(ACCEL_OBJECTS)) $(COMMON_OBJECTS) $(OUT)/control-hooks.o
 	$(CXX) -shared -Wl,--no-undefined -o $@ $^ -lbe
 
 test: all $(OUT)/intel_extreme.control.accelerant
+	$(if $(GTT_TEST),$(GTT_TEST),@echo 'GGTT helper absent in unpatched control')
 	python3 tests/source-audit.py source
 	$(OUT)/hooks-test ./$(OUT)/intel_extreme.accelerant
 	python3 tools/regression-control.py

@@ -1,7 +1,7 @@
 # Reproducible component build
 
 Use Python 3.12+ and Git on the workstation. Source fetches are pinned; no full
-OS or Mesa build is needed for the initial two patches.
+OS or Mesa build is needed for the initial component patches.
 
 ```sh
 python3 tools/prepare.py --output build/native-fresh
@@ -21,8 +21,9 @@ python3 tools/run-native.py .
 ```
 
 Run `python3 tools/check-source.py build/native-fresh` on the host first.
-GitHub Actions runs these source/control/manifest checks only; its green result
-is not native compilation or GPU validation.
+GitHub Actions runs source/control/manifest checks and the GGTT arithmetic test
+with address/undefined-behavior sanitizers; its green result is not native
+driver compilation or GPU validation.
 
 This builds the Intel GART kernel add-on and complete Intel accelerant, runs
 source table checks and real linked-accelerant hook tests, reproduces the
@@ -40,7 +41,7 @@ commands, warnings, exit status, binary hashes and test results together.
 Build logs and binaries remain under ignored directories. Use one compile job
 on the 4 GiB target; request the authoritative shared build lock first.
 
-The source worktree is pinned RenkuOS main plus two separately attributed
+The source worktree is pinned RenkuOS main plus three separately attributed
 patches. Haiku beta6 can be used for compilation compatibility checks because
 the inspected interfaces match, but record it as Haiku-hosted validation until
 the same tests run in RenkuOS. Never install the resulting kernel add-on merely

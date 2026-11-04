@@ -4,6 +4,9 @@ Current safe tests inspect source tables and query a fully linked accelerant
 with synthetic shared state. The test never calls B_INIT_ACCELERANT, drawing,
 MMIO, modesetting or submission. Native GART linking does not load that module.
 These tests cover discovery data and capability exposure, not GPU execution.
+The GGTT helper has 14 C++ checks for valid offsets, addresses above 4 GiB,
+BAR bounds, zero/oversized tables, null output and end-address overflow.
+Run on Linux with address/undefined-behavior sanitizers and in the native guest.
 
 Before any install, use an isolated test image and preserve a powered-off,
 flattened known-good base. Never copy a running qcow2 with an ordinary file copy
@@ -15,7 +18,10 @@ For physical testing, obtain a window and explicit authorization for GPU/boot
 changes. Verify out-of-band control and cold-boot recovery, retaining Fedora's
 working boot entry and a separate Haiku/RenkuOS test medium. Capture PCI IDs,
 firmware version, connector/EDID, source/binary hashes, boot log and syslog. Test
-stock behavior first, then the GART ID patch alone, then the hook safeguard.
+stock behavior first. Do not install the GART ID patch alone: the GGTT audit
+found an incorrect offset and incompatible page-table writes in the inherited
+Gen8+ path. Complete page-table width, allocation bounds, stolen-memory ownership
+and initialization review before proposing any physical patched-driver trial.
 Record graphics device node, aperture sizes, native eDP 1920x1080, HDMI modes,
 refresh rate, cursor, repeated mode transitions and recovery to the baseline.
 Do not load an experimental module over an active instance.
