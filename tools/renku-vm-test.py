@@ -20,6 +20,7 @@ parser.add_argument('--ssh-config', required=True, type=pathlib.Path)
 parser.add_argument('--output', required=True, type=pathlib.Path)
 parser.add_argument('--run-name', required=True)
 parser.add_argument('--port', type=int, default=10024)
+parser.add_argument('--readiness-attempts', type=int, choices=range(1, 41), default=20)
 args = parser.parse_args()
 out = args.output.resolve()
 # Leave space for logs, the coordinator and guest build growth. Measure a
@@ -55,11 +56,14 @@ with (out / 'qemu.log').open('w') as log:
     vm = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
     try:
         ready = False
-        for attempt in range(20):
+        for attempt in range(args.readiness_attempts):
             if vm.poll() is not None:
                 raise RuntimeError('private VM exited before SSH readiness')
             probe = subprocess.run(ssh + ['uname -a'], capture_output=True,
                                    text=True, timeout=15)
+            with (out / 'ssh-readiness.log').open('a') as readiness:
+                readiness.write(f'attempt={attempt + 1} exit={probe.returncode}\n')
+                readiness.write(probe.stdout + probe.stderr)
             if probe.returncode == 0:
                 (out / 'guest-identity.txt').write_text(probe.stdout)
                 ready = True

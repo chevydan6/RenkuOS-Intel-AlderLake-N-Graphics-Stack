@@ -33,6 +33,12 @@ preserving cursor allocation. Its [280 checks](results/2026-11-05-kernel-resourc
 now pass in native RenkuOS and both sanitized/optimized host builds. All twelve
 patches compile together; no hardware driver execution has been demonstrated.
 
+The Linux inventory now identifies a 2 MiB protected range at the top of stolen
+memory. A [native inventory diagnostic](diagnostics/README.md) also compiles and
+passes its QEMU checks in RenkuOS. It reads PCI identity and display metadata;
+boot GGTT mappings and physical framebuffer ownership remain unverified. See
+the [diagnostic results](results/2026-11-05-boot-inventory.md).
+
 An isolated [Gen12 copy-packet experiment](BLIT_RESEARCH.md) passes 60,070
 host sanitizer checks. It has no submission path and is excluded from the
 driver components; no hardware copy has been executed.
