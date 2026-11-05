@@ -12,7 +12,21 @@ g++ --version >validation/compiler.txt
 ls /boot/system/packages/haiku_devel*.hpkg >validation/devel-package.txt
 sha256sum -c manifest.sha256 >validation/manifest-check.log
 make -j1 all build/intel_extreme.control.accelerant build/intel_extreme.lifecycle-control.accelerant build/gating-control build/gart-range-control build/gart-lifecycle-control
-make -j1 build/gart-allocation-control
+make -j1 build/gart-allocation-control build/kernel-resources-control
+build/kernel-resources-test
+set +e
+build/kernel-resources-control >validation/control-kernel-resources.log 2>&1
+control_status=$?
+set -e
+test "$control_status" -eq 1
+awk '/^FAIL / { count++; failures[$0]++ }
+END { exit !(count == 56 &&
+    failures["FAIL Alder Lake requests only cursor storage"] == 20 &&
+    failures["FAIL Alder Lake ring remains empty"] == 16 &&
+    failures["FAIL Alder Lake overlay remains absent"] == 16 &&
+    failures["FAIL Alder Lake cursor remains independent"] == 4) }
+' validation/control-kernel-resources.log
+echo 'PASS original kernel resource control: exactly 56 expected failures'
 build/gart-allocation-test
 set +e
 build/gart-allocation-control >validation/control-gart-allocation.log 2>&1
@@ -98,4 +112,4 @@ awk '/^FAIL / {
 echo 'PASS original ring control: exactly 3 expected failures'
 tar -czf validation/artifacts.tar.gz build/intel_gart build/agp_gart build/intel_extreme.driver build/intel_extreme.accelerant \
     build/hooks-test build/gtt-range-test build/gtt-pte-test build/gtt-stolen-test \
-    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test build/gart-lifecycle-test build/gart-allocation-test
+    build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test build/gart-lifecycle-test build/gart-allocation-test build/kernel-resources-test

@@ -28,6 +28,10 @@ the complete generic GART manager. Its 267 mock-backed checks pass natively and
 under host sanitizers; original controls reproduce 48 failures. See the
 [GART continuation report](results/2026-11-05-gart-lifecycle.md).
 
+Patch 12 skips unused Alder Lake kernel ring/overlay/status allocations while
+preserving cursor allocation. Its [280 host checks](results/2026-11-05-kernel-resources.md)
+pass; native validation is pending the next shared build window.
+
 An isolated [Gen12 copy-packet experiment](BLIT_RESEARCH.md) passes 60,070
 host sanitizer checks. It has no submission path and is excluded from the
 driver components; no hardware copy has been executed.

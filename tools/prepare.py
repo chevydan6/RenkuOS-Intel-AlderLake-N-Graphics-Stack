@@ -52,6 +52,7 @@ with tempfile.TemporaryDirectory(prefix='haiku-gpu-source-') as temp:
     shutil.copy2(source / 'src/add-ons/accelerants/intel_extreme/hooks.cpp', out / 'controls')
     shutil.copy2(source / 'src/add-ons/accelerants/intel_extreme/engine.cpp', out / 'controls')
     shutil.copy2(source / 'src/add-ons/kernel/drivers/graphics/intel_extreme/power.cpp', out / 'controls')
+    shutil.copy2(source / 'src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp', out / 'controls')
     shutil.copy2(source / 'src/add-ons/kernel/busses/agp_gart/intel_gart.cpp', out / 'controls')
     shutil.copy2(source / 'src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp', out / 'controls')
     # A temporary repository makes patch application relative to this source,
@@ -76,6 +77,12 @@ for original, name in [
     subprocess.run(['python3', str(PROJECT / 'tools/extract-gart-methods.py'),
                     '--allocation', str(original),
                     str(out / f'tests/generated/gart-allocation-{name}.inc')],
+                   check=True)
+for original, name in [
+        (source / 'src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp', 'current'),
+        (out / 'controls/intel_extreme.cpp', 'original')]:
+    subprocess.run(['python3', str(PROJECT / 'tools/extract-kernel-resources.py'),
+                    str(original), str(out / f'tests/generated/kernel-resources-{name}.inc')],
                    check=True)
 (out / 'tools').mkdir()
 shutil.copy2(PROJECT / 'tools/validate-artifacts.py', out / 'tools')

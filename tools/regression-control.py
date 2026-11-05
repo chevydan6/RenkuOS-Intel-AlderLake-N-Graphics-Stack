@@ -48,4 +48,16 @@ actual = Counter(line for line in run.stdout.splitlines() if line.startswith('FA
 if run.returncode != 1 or actual != expected:
     raise SystemExit('GART lifecycle control failed:\n' + run.stdout)
 print('PASS GART lifecycle original control: 39 expected failures')
+run = subprocess.run(['build/kernel-resources-control'], stdout=subprocess.PIPE,
+                     stderr=subprocess.STDOUT, text=True)
+expected = Counter({
+    'FAIL Alder Lake requests only cursor storage': 20,
+    'FAIL Alder Lake ring remains empty': 16,
+    'FAIL Alder Lake overlay remains absent': 16,
+    'FAIL Alder Lake cursor remains independent': 4,
+})
+actual = Counter(line for line in run.stdout.splitlines() if line.startswith('FAIL '))
+if run.returncode != 1 or actual != expected:
+    raise SystemExit('Kernel resource control failed:\n' + run.stdout)
+print('PASS kernel resource original control: 56 expected failures')
 print('PASS all controls reproduce the expected regressions')

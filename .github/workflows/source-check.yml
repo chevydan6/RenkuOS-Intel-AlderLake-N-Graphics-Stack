@@ -34,6 +34,8 @@ jobs:
         run: python3 tools/run-gart-lifecycle-host.py build/ci
       - name: Verify GART allocation failure cleanup
         run: python3 tools/run-gart-allocation-host.py build/ci
+      - name: Verify kernel legacy resource suppression on Alder Lake
+        run: python3 tools/run-kernel-resources-host.py build/ci
       - name: Validate experimental linear copy packets without hardware
         run: |
           g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=address,undefined tests/linear-copy-test.cpp -o build/linear-copy-test

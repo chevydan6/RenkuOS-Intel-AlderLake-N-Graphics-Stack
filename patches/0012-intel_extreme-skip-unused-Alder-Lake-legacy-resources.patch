@@ -1,0 +1,104 @@
+From 4a14304569ad5fb35952deea52968fb70abd8106 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 10:33:45 +0900
+Subject: [PATCH] intel_extreme: skip unused legacy resources on Alder Lake
+
+The Alder Lake accelerant withholds legacy ring and overlay operations. Keep the corresponding kernel ring, overlay and status resources empty, while preserving independent cursor allocation and existing behavior on other device groups. This does not implement modern engine or display initialization.
+
+Assisted-by: OpenAI Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ .../graphics/intel_extreme/intel_extreme.cpp  | 67 +++++++++++--------
+ 1 file changed, 38 insertions(+), 29 deletions(-)
+
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+index 8deaa33c..0488e0e7 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+@@ -734,12 +734,16 @@ intel_extreme_init(intel_info &info)
+ 	// the graphics memory), but this could bring us problems with
+ 	// write combining...
+ 
+-	ring_buffer &primary = info.shared_info->primary_ring_buffer;
+-	if (intel_allocate_memory(info, 16 * B_PAGE_SIZE, 0, 0,
+-			(addr_t*)&primary.base) == B_OK) {
+-		primary.register_base = INTEL_PRIMARY_RING_BUFFER;
+-		primary.size = 16 * B_PAGE_SIZE;
+-		primary.offset = (addr_t)primary.base - info.aperture_base;
++	// Alder Lake has no legacy engine backend. Leave its ring empty rather
++	// than reserve aperture memory that the accelerant cannot use.
++	if (!info.device_type.InGroup(INTEL_GROUP_ALD)) {
++		ring_buffer &primary = info.shared_info->primary_ring_buffer;
++		if (intel_allocate_memory(info, 16 * B_PAGE_SIZE, 0, 0,
++				(addr_t*)&primary.base) == B_OK) {
++			primary.register_base = INTEL_PRIMARY_RING_BUFFER;
++			primary.size = 16 * B_PAGE_SIZE;
++			primary.offset = (addr_t)primary.base - info.aperture_base;
++		}
+ 	}
+ 
+ 	// Enable clock gating
+@@ -833,32 +837,37 @@ intel_extreme_init(intel_info &info)
+ 
+ 	// setup overlay registers
+ 
+-	status_t status = intel_allocate_memory(info, B_PAGE_SIZE, 0,
+-		intel_uses_physical_overlay(*info.shared_info)
+-				? B_APERTURE_NEED_PHYSICAL : 0,
+-		(addr_t*)&info.overlay_registers,
+-		&info.shared_info->physical_overlay_registers);
+-	if (status == B_OK) {
+-		info.shared_info->overlay_offset = (addr_t)info.overlay_registers
+-			- info.aperture_base;
+-		TRACE("Overlay registers mapped at 0x%" B_PRIx32 " = %p - %"
+-			B_PRIxADDR " (%" B_PRIxPHYSADDR ")\n",
+-			info.shared_info->overlay_offset, info.overlay_registers,
+-			info.aperture_base, info.shared_info->physical_overlay_registers);
+-		init_overlay_registers(info.overlay_registers);
+-	} else {
+-		ERROR("error: could not allocate overlay memory! %s\n",
+-			strerror(status));
+-	}
++	// Legacy overlay/status storage also has no consumer on Alder Lake.
++	if (!info.device_type.InGroup(INTEL_GROUP_ALD)) {
++		status_t status = intel_allocate_memory(info, B_PAGE_SIZE, 0,
++			intel_uses_physical_overlay(*info.shared_info)
++					? B_APERTURE_NEED_PHYSICAL : 0,
++			(addr_t*)&info.overlay_registers,
++			&info.shared_info->physical_overlay_registers);
++		if (status == B_OK) {
++			info.shared_info->overlay_offset = (addr_t)info.overlay_registers
++				- info.aperture_base;
++			TRACE("Overlay registers mapped at 0x%" B_PRIx32 " = %p - %"
++				B_PRIxADDR " (%" B_PRIxPHYSADDR ")\n",
++				info.shared_info->overlay_offset, info.overlay_registers,
++				info.aperture_base, info.shared_info->physical_overlay_registers);
++			init_overlay_registers(info.overlay_registers);
++		} else {
++			ERROR("error: could not allocate overlay memory! %s\n",
++				strerror(status));
++		}
+ 
+-	// Allocate hardware status page and the cursor memory
+-	TRACE("Allocating hardware status page");
++		// Allocate hardware status page
++		TRACE("Allocating hardware status page");
+ 
+-	if (intel_allocate_memory(info, B_PAGE_SIZE, 0, B_APERTURE_NEED_PHYSICAL,
+-			(addr_t*)info.shared_info->status_page,
+-			&info.shared_info->physical_status_page) == B_OK) {
+-		// TODO: set status page
++		if (intel_allocate_memory(info, B_PAGE_SIZE, 0, B_APERTURE_NEED_PHYSICAL,
++				(addr_t*)info.shared_info->status_page,
++				&info.shared_info->physical_status_page) == B_OK) {
++			// TODO: set status page
++		}
+ 	}
++
++	// Allocate cursor memory independently of legacy engine support.
+ 	if (hardwareCursor) {
+ 		intel_allocate_memory(info, B_PAGE_SIZE, 0, B_APERTURE_NEED_PHYSICAL,
+ 			(addr_t*)&info.shared_info->cursor_memory,
+-- 
+2.43.0
+
