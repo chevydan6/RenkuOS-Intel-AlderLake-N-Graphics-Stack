@@ -3,9 +3,9 @@
 This directory contains preparation code for a private RenkuOS installation.
 After the isolated rehearsals, an 8 GiB RenkuOS partition and a separate GRUB
 entry were installed on the laptop. Fedora booted successfully afterward with
-its existing saved default. The first one-time bare-metal RenkuOS boot has not
-been validated: the user reported a firmware message involving NanoKVM, and
-the laptop was not reachable over SSH while its screen status was being checked.
+its existing saved default. After a firmware message involving NanoKVM, the
+user reported booting RenkuOS. The boot source and installed system have not
+yet been independently confirmed, and SSH has not been found on the network.
 
 The physical Wi-Fi baseline is the verified hrev60072+518 image. The MT7921
 driver SHA-256 is
