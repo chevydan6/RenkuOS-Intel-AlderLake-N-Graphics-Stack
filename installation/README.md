@@ -1,0 +1,65 @@
+# RenkuOS SSH, MCP and dual-boot preparation
+
+This directory contains the preparation code for a private RenkuOS installation.
+No laptop partition, EFI file, firmware boot order or GRUB configuration was
+changed during the validation described here.
+
+The physical Wi-Fi baseline is the verified hrev60072+518 image. The MT7921
+driver SHA-256 is
+`4404c0ff2f52ec651d9a8d1212d9864df8343ae5fd209899d19400340c725f6d`.
+`UserBootscript` starts SSH and, after a delay, invokes the same bounded explicit
+Wi-Fi join helper used during the physical test. The private credentials and
+helper are inherited from the baseline image; they are not included in Git.
+The physical run received five router ping replies while packet capture was in
+promiscuous mode. This establishes short local-network operation, not a proven
+driver fix, unattended boot reliability, Internet access or long-term stability.
+
+`renku-mcp.cpp` is a small MCP stdio server using the MIT-licensed `json11`
+library, pinned to upstream commit `2df9473fb3605980db55ecddf34392a2e832ad35`.
+It currently exposes one read-only `system_info` tool. It does not expose a
+general command tool; ordinary SSH is available separately. The tested RenkuOS
+`user` account reports UID 0. MCP is started by SSH on demand, rather than
+listening independently on a network port.
+
+Build natively with the installed RenkuOS C++11 compiler:
+
+```sh
+g++ -std=c++11 -O2 -Wall -Wextra -Werror renku-mcp.cpp json11/json11.cpp -o renku-mcp
+```
+
+The server expects newline-delimited JSON-RPC on stdin and writes only protocol
+messages to stdout. A client can launch it with SSH as a subprocess using the
+installed path `/boot/home/config/non-packaged/bin/renku-mcp`. Configure the
+client with the actual RenkuOS address and a verified SSH host key after install.
+
+## Validation
+
+- The server passed initialization, discovery, `system_info`, ping, malformed
+  request, invalid argument, unknown method and clean shutdown tests on Linux
+  and natively in a disposable RenkuOS VM over SSH.
+- The official MCP Python SDK 2.3.0 connected to the native server over SSH,
+  listed its tool and called `system_info` successfully.
+- A private image containing the server, Wi-Fi files and delayed startup passed
+  stage and cold-boot VM tests. The Wi-Fi driver and MCP binary hashes matched.
+- A separate virtual GPT disk was formatted with an 8 GiB BFS target. RenkuOS
+  Installer copied the image to it; the installed binary, authorized key,
+  startup and Wi-Fi configuration were present afterward. With the source USB
+  image detached, the installed target booted and passed SSH and official MCP
+  SDK tests. It used approximately 2.4 GiB after first-boot processing.
+- A disposable virtual EFI partition with a GRUB menu entry chainloaded the
+  separate RenkuOS EFI loader; target-only boot, SSH and MCP passed again.
+  `renkuos-grub.cfg` is a syntax-checked draft for the observed laptop ESP UUID,
+  not an installed or hardware-validated entry.
+
+The target-only boot used a newly generated SSH host key. Installer excludes
+the source image's standard host keys; actual installation must establish and
+verify the new host key before trusting a network connection. One attempt to
+overwrite an existing virtual EFI file with `pyfatfs` failed; the successful
+GRUB test used a newly created disposable FAT image. It does not establish that
+the laptop's existing EFI partition can safely be edited by that library.
+
+Private raw images, VM disks, SSH keys, Wi-Fi settings and logs are excluded
+from this repository. GPT/partition backups and a complete verified data backup
+must be prepared before any actual laptop filesystem or partition change.
+Physical Wi-Fi, SSH/MCP access, GRUB boot and Fedora recovery must be verified
+after installation before claiming the laptop installation is complete.

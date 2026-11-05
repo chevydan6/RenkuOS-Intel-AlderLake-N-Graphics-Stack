@@ -1,0 +1,11 @@
+#!/bin/sh
+# Start SSH and the same explicit Wi-Fi join used by the physical test.
+umask 077
+/bin/sshd
+(
+    sleep 10
+    if [ -e /dev/net/mediatekwifi/0 ]; then
+        timeout -k 3s 70s /bin/sh /boot/home/power-preflight/join-wifi.sh \
+            >> /boot/home/config/settings/renku-wifi-startup.log 2>&1
+    fi
+) &
