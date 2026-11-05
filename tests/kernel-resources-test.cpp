@@ -72,7 +72,10 @@ intel_allocate_memory(intel_info&, size_t size, size_t, unsigned flags,
 		return B_BAD_VALUE;
 	if (int(call) == sFailAt)
 		return B_NO_MEMORY;
-	*address = reinterpret_cast<addr_t>(sBacking[call]);
+	// Production passes pointer fields through addr_t*. Use object copying in
+	// this mock so optimized userspace builds do not violate aliasing rules.
+	addr_t value = reinterpret_cast<addr_t>(sBacking[call]);
+	memcpy(address, &value, sizeof(value));
 	if (physical != NULL)
 		*physical = 0x100000 + call * sizeof(sBacking[0]);
 	return B_OK;

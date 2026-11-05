@@ -1,14 +1,14 @@
 # Known issues
 
 - No physical Haiku Intel attachment/display/commands have been tested.
-- Patches 1–11 compile and pass software tests in the RenkuOS nightly guest.
+- Patches 1–12 compile and pass software tests in the RenkuOS nightly guest.
   No physical driver execution exists.
 - N100 461c:46d1 GART pair is missing upstream; the local patch is not hardware validation.
 - Legacy 2D hooks are advertised despite unsupported LAKE/SOC0 engines; local
   safeguard suppresses hooks. Patch 7 also skips Alder Lake legacy ring setup
   and teardown, reports zero engines and withholds engine/overlay hooks.
-- Kernel initialization still allocates obsolete ring/overlay resources and
-  rejects its incorrectly passed status-page output pointer. Patch 8 withholds
+- Patch 12 skips obsolete Alder Lake ring/overlay/status allocations. Other
+  groups retain the incorrectly passed status-page output pointer. Patch 8 withholds
   the i965 clock-gating fallback on Alder Lake; its five native checks pass. Modern display,
   interrupt and fence programming remain unvalidated; patch 7 does not fix them.
 - Legacy ring-space timeout can continue writing; synchronization token support

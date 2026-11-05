@@ -102,3 +102,11 @@ The x86_64 component recipe also needs the SDK's
 the first complete generic GART-manager build. Native bundle renku-020 verifies
 the corrected search path with the matching RenkuOS SDK; no substitute header
 or ABI shim is used.
+
+The VM runner measures the flattened qcow2 footprint before copying and requires
+that amount plus a 2 GiB free-space reserve. Old disposable GPU disks may be
+reclaimed under the shared VM locks after verifying process exit and retaining
+source disks, build logs and results. A full Fedora filesystem interrupted the
+gpu-native-015 copy before boot; the incomplete disk was discarded and normal
+coordinator operation restored. Never remove another agent's test data to make
+space.

@@ -73,8 +73,8 @@ New helpers implement documented encodings; no Linux driver source was imported.
 At the pinned source, `intel_extreme_init()` allocates the 64 KiB primary
 ring and overlay page even when patch 7 leaves the accelerant engines disabled.
 Patch 12 skips those unused Alder Lake allocations and its legacy status-page
-request, preserving cursor allocation separately. Its 280 host fixture checks
-pass; native validation is pending. See the kernel-resource result report.
+request, preserving cursor allocation separately. Its 280 fixture checks pass
+natively and in sanitized/optimized host builds. See the kernel-resource report.
 `intel_en_gating()` falls through to the i965 writes at `0x6204` and `0x7408`
 for Alder Lake in the original source. Patch 8 withholds that fallback;
 generation-specific gating is still unimplemented. The power agent owns CPU and

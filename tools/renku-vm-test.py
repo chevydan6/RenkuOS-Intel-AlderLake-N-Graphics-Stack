@@ -8,6 +8,7 @@ No PCI passthrough. Source disk, host graphics and existing guests are unchanged
 import argparse
 import json
 import pathlib
+import shutil
 import socket
 import subprocess
 import time
@@ -21,6 +22,17 @@ parser.add_argument('--run-name', required=True)
 parser.add_argument('--port', type=int, default=10024)
 args = parser.parse_args()
 out = args.output.resolve()
+# Leave space for logs, the coordinator and guest build growth. Measure a
+# flattened destination before creating anything; source image locking applies.
+measure = json.loads(subprocess.check_output(
+    ['qemu-img', 'measure', '-f', 'qcow2', '-O', 'qcow2', '--output=json',
+     str(args.disk.resolve())], text=True, timeout=60))
+required = int(measure['required']) + 2 * 1024 * 1024 * 1024
+storage_parent = out.parent
+while not storage_parent.exists():
+    storage_parent = storage_parent.parent
+if shutil.disk_usage(storage_parent).free < required:
+    raise SystemExit(f'insufficient free space: need {required} bytes including 2 GiB reserve')
 out.mkdir(parents=True, exist_ok=False)
 disk = out / 'session.qcow2'
 # qemu-img's source locking deliberately rejects a disk opened by another VM.

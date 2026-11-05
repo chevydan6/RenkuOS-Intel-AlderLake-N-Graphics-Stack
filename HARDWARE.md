@@ -60,3 +60,32 @@ Authentication was supplied through an ephemeral, mode-0600 FIFO in a private
 directory and removed after the command. No credential is in this repository,
 command scripts or collected test logs. Evidence is retained under the private
 `logs/renku-vm-005/pci-config-20261105.txt`.
+
+## Stolen-memory bases, 2026-11-05 01:42 UTC
+
+Under exclusive host-config/haiku-vm/build locks, a fixed read-only collector
+verified the same bridge/GPU IDs and i915 ownership. Bridge offsets B0/B4 read
+`7c800001` / `7c000001`; GPU C0/C4 read `7c800001` / `00000000`.
+The bases decode to:
+
+| Region | Inclusive physical range | Size |
+| --- | --- | --- |
+| Graphics data stolen memory | `0x7c800000–0x803fffff` | 60 MiB |
+| GTT stolen memory | `0x7c000000–0x7c7fffff` | 8 MiB |
+
+The GPU mirror agrees with the bridge, and Linux `/proc/iomem` independently
+reports the entire data-stolen range. Together the ranges match the previously
+observed RMRR extent. This agreement does not establish passthrough support.
+Intel documents the bridge
+[BDSM](https://edc.intel.com/content/www/us/en/design/publications/12th-generation-core-processor-datasheet-volume-2-of-2/base-data-of-stolen-memory-bdsm-0-0-0-pci-offset-b0/)
+and [BGSM](https://edc.intel.com/content/www/us/en/design/publications/12th-generation-core-processor-datasheet-volume-2-of-2/base-of-gtt-stolen-memory-bgsm-0-0-0-pci-offset-b4/)
+fields; Linux's
+[Gen11+ BSM definitions](https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/include/drm/intel/i915_drm.h)
+identify the GPU's two-dword base register.
+
+No protected-range MMIO descriptor or boot scanout PTE was read. A stolen
+physical base does not prove that the corresponding GGTT prefix is identity
+mapped, firmware-free or safe for allocation. The collector performs no PCI
+writes, raw MMIO mappings, debugfs mounts or driver/configuration changes.
+Evidence is private in `logs/stolen-inventory-20261105`; the credential channel
+was an ephemeral FIFO and was removed after use.
