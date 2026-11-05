@@ -87,10 +87,11 @@ client with the actual RenkuOS address and a verified SSH host key after install
 - The rehearsed RenkuOS BFS image was written to the new partition and its full
   8 GiB SHA-256 read-back matched the source. A subsequent user-assisted
   physical boot reached that internal partition; SSH and MCP passed. Wi-Fi
-  reached the router and five workstation pings passed after initial ARP
+  reached the router and twenty workstation pings passed after initial ARP
   failure. Unattended startup, the exact boot-menu path, long-term Wi-Fi
   stability and GPU acceleration remain unverified. The user reported an
   inoperative touchpad; RenkuOS initialized its ELAN driver and input watcher.
+  See `TOUCHPAD.md` for the firmware interrupt-resource finding.
 
 The target-only boot used a newly generated SSH host key. Installer excludes
 the source image's standard host keys; actual installation must establish and
