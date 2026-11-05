@@ -25,7 +25,16 @@ The gating harness compiles the real kernel power function with test-local
 logging and RAM registers. Five checks cover the Alder Lake unsupported return,
 unchanged registers and Sandy Bridge positive controls. The original source must
 produce exactly two failures. This does not measure power consumption or validate
-GPU sleep/resume. Kernel modules themselves are built but never loaded by tests.
+GPU sleep/resume. Intel and GART kernel modules are built but never loaded by
+these component tests.
+
+The separate `diagnostics/` workflow does load a private read-only boot-metadata
+driver in a disposable std-VGA VM after checking exact emulated PCI IDs. It
+tests the real ioctl, bounds, invalid pointers, repeated opens and effective-UID
+checks, including an inherited descriptor after dropping privileges. It removes
+its guest files and shuts down the clone. It performs no GPU/MMIO access and
+does not load any experimental Intel component. See the
+[boot snapshot validation](results/2026-11-05-boot-snapshot.md).
 
 The GART range harness compiles verbatim `_AdaptToReserved()` and
 `UnbindMemory()` bodies extracted from the pinned/patched manager, with mock

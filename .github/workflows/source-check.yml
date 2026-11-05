@@ -28,6 +28,10 @@ jobs:
         run: |
           python3 -m py_compile tools/*.py tests/*.py
           git diff --check
+      - name: Validate immutable boot framebuffer descriptor bounds
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=address,undefined -Idiagnostics diagnostics/tests/boot-framebuffer-info-test.cpp -o build/boot-framebuffer-info-test
+          build/boot-framebuffer-info-test
       - name: Verify GART unbind range and original-code control
         run: python3 tools/run-gart-range-host.py build/ci
       - name: Verify GART lifetime with backend fault injection

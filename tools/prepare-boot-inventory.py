@@ -31,16 +31,22 @@ with tempfile.TemporaryDirectory(prefix='gpu-inventory-') as temp:
                     '-o', str(archive), BASE, 'License.md',
                     'headers/private/drivers/poke.h',
                     'headers/private/graphics/vesa/vesa_info.h',
-                    'headers/private/graphics/common'], check=True)
+                    'headers/private/graphics/common',
+                    'build/config_headers'], check=True)
     with tarfile.open(archive) as tar:
         tar.extractall(out / 'source', filter='data')
-shutil.copy2(PROJECT / 'diagnostics/boot-graphics-inventory.cpp', out)
+for name in ('boot-graphics-inventory.cpp', 'boot_graphics.cpp',
+             'BootGraphicsDriver.h', 'BootFrameBufferInfo.h'):
+    shutil.copy2(PROJECT / 'diagnostics' / name, out)
+(out / 'tests').mkdir()
+for name in ('boot-framebuffer-info-test.cpp', 'boot-graphics-driver-test.cpp'):
+    shutil.copy2(PROJECT / 'diagnostics/tests' / name, out / 'tests')
 (out / 'tools').mkdir()
 shutil.copy2(PROJECT / 'diagnostics/run-native.sh', out / 'tools')
 manifest = {
     'renkuos_commit': BASE,
     'kind': 'native-boot-graphics-inventory',
-    'driver_installation': False,
+    'driver_installation': 'private diagnostic in disposable QEMU guest only',
     'gpu_execution': False,
     'payload_sha256': {str(p.relative_to(out)): hashlib.sha256(p.read_bytes()).hexdigest()
                        for p in sorted(out.rglob('*')) if p.is_file()},

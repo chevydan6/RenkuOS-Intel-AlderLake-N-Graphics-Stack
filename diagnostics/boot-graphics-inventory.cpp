@@ -14,6 +14,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include "BootGraphicsDriver.h"
+
 
 class File {
 public:
@@ -93,6 +95,29 @@ InventoryPCI(int fd)
 
 
 static int
+InventoryBootInfo()
+{
+	File device(BOOT_GRAPHICS_DEVICE_PATH);
+	if (device.Get() < 0) {
+		fprintf(stderr, "boot diagnostic open failed: %s\n", strerror(errno));
+		return 1;
+	}
+	BootFrameBufferInfo info = {};
+	if (ioctl(device.Get(), BOOT_GRAPHICS_GET_BOOT_INFO, &info, sizeof(info)) < 0)
+		return 1;
+	if (info.version != 1 || info.size != sizeof(info) || info.reserved != 0
+		|| info.flags != kBootFrameBufferSnapshot)
+		return 1;
+	printf("boot_physical_base=%016" PRIx64 "\nboot_visible_bytes=%" PRIu64
+		"\nboot_width=%" PRIu32 "\nboot_height=%" PRIu32 "\nboot_depth=%" PRIu32
+		"\nboot_bytes_per_row=%" PRIu32 "\n", info.physicalBase,
+		info.visibleBytes, info.width, info.height, info.depth, info.bytesPerRow);
+	puts("current_scanout_verified=false\nggtt_translation_verified=false");
+	return 0;
+}
+
+
+static int
 InventoryFrameBuffer(const char* path)
 {
 	// Only use the already active firmware graphics device on a running desktop.
@@ -139,11 +164,13 @@ int
 main(int argc, char** argv)
 {
 	bool pci = argc == 2 && strcmp(argv[1], "--pci") == 0;
+	bool boot = argc == 2 && strcmp(argv[1], "--boot-info") == 0;
 	bool frame = argc == 3 && strcmp(argv[1], "--framebuffer") == 0
 		&& (strcmp(argv[2], "/dev/graphics/vesa") == 0
 			|| strcmp(argv[2], "/dev/graphics/framebuffer") == 0);
-	if (!pci && !frame) {
+	if (!pci && !frame && !boot) {
 		fputs("usage: boot-graphics-inventory --pci\n"
+			"       boot-graphics-inventory --boot-info\n"
 			"       boot-graphics-inventory --framebuffer "
 			"/dev/graphics/{vesa,framebuffer}\n", stderr);
 		return 2;
@@ -153,6 +180,8 @@ main(int argc, char** argv)
 		return 1;
 	}
 	puts("schema=renku-boot-graphics-v1\ngpu_commands_submitted=false");
+	if (boot)
+		return InventoryBootInfo();
 	if (frame)
 		return InventoryFrameBuffer(argv[2]);
 	// poke temporarily raises this thread's IOPL; close restores it on x86.

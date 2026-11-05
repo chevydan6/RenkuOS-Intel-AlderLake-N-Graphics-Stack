@@ -38,6 +38,10 @@ memory. A [native inventory diagnostic](diagnostics/README.md) also compiles and
 passes its QEMU checks in RenkuOS. It reads PCI identity and display metadata;
 boot GGTT mappings and physical framebuffer ownership remain unverified. See
 the [diagnostic results](results/2026-11-05-boot-inventory.md).
+Its separate read-only boot-metadata driver now passes
+[82 native kernel-interface checks](results/2026-11-05-boot-snapshot.md) in a
+disposable VM, plus 34 descriptor checks. It reports firmware boot data without
+mapping GPU registers. This is diagnostic kernel execution, not Intel execution.
 
 An isolated [Gen12 copy-packet experiment](BLIT_RESEARCH.md) passes 60,070
 host sanitizer checks. It has no submission path and is excluded from the

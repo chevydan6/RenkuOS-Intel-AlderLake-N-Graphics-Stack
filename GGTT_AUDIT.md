@@ -35,9 +35,12 @@ New helpers implement documented encodings; no Linux driver source was imported.
   not prove that the first GMS bytes of GGTT are safe for client allocation.
   The Linux protected-stolen descriptor now identifies 2 MiB at
   `0x80200000–0x803fffff`; see HARDWARE.md. Boot GGTT mappings remain unknown.
-  The native diagnostic reports only PCI/display metadata: the existing `poke`
+  The existing `poke`
   physical-address query can panic if a framebuffer clone is invalidated by a
-  concurrent mode change. A safe mapping-lifetime query is still needed.
+  concurrent mode change. The separate read-only boot diagnostic now reports
+  the immutable firmware boot descriptor and passes native kernel-interface
+  tests in QEMU. It does not establish live mapping lifetime, current scanout
+  or any Intel hardware state; a synchronized live query remains separate work.
 - Linux selects GGTT cache/invalidation behavior according to mapping type and
   GuC use. An uncached Gen12 PTE store and a CPU `wbinvd` do not establish a
   complete submission/context invalidation protocol. GuC is not initialized here.
