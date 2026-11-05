@@ -50,6 +50,16 @@ client with the actual RenkuOS address and a verified SSH host key after install
   separate RenkuOS EFI loader; target-only boot, SSH and MCP passed again.
   `renkuos-grub.cfg` is a syntax-checked draft for the observed laptop ESP UUID,
   not an installed or hardware-validated entry.
+- GPT headers copied from the laptop were applied to a sparse regular file.
+  `gpt-rehearsal.py` shrank its third GPT entry by 8 GiB and added an aligned
+  BFS entry, verifying the original partition starts, UUIDs and types. This
+  tested GPT metadata only: the file contained no Btrfs filesystem and no
+  Btrfs shrink was performed. GNU Parted's noninteractive script mode refused
+  the shrink warning; blindly relying on its exit status is unsafe.
+- `capture-fedora-boot-backup.sh` captured the existing GPT metadata, EFI and
+  `/boot` contents, GRUB configuration and fstab. Their SHA-256 checks passed
+  after copying to the workstation. This is a boot recovery artifact, not a
+  complete backup of the laptop's personal data or running Fedora filesystem.
 
 The target-only boot used a newly generated SSH host key. Installer excludes
 the source image's standard host keys; actual installation must establish and
