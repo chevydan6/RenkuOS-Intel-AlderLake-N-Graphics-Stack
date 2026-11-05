@@ -38,10 +38,24 @@ stolen-memory access, guest host-bridge matching, or display recovery. Passing
 through only the GPU would still leave an emulated host bridge, which matters
 to Haiku's current paired GART lookup. No VFIO rebind was attempted.
 
-NanoKVM has an existing management path through USB networking. Wi-Fi records
-verify SSH/video/keyboard, but power-cycle/BIOS recovery is not verified. GPU
-reset or display loss can also remove NanoKVM video. Require a verified recovery
-procedure and explicit authorization before changing host graphics or boot.
+NanoKVM has an existing management path through USB networking. Attended
+external-media boot and return to Fedora have now been exercised; see the
+[physical diagnostic report](results/2026-11-05-physical-boot.md). Native RenkuOS
+can lose HDMI and USB management access, so unattended recovery remains unproven.
+Require coordinated recovery before changing host graphics or boot.
+
+## Native RenkuOS observation, 2026-11-05
+
+The read-only diagnostic confirmed bridge `8086:461c`, GPU `8086:46d1`, GGC
+`0xfec1` and the previously observed BAR/stolen-memory configuration. The
+firmware boot descriptor reports base `0xd0000000`, 1920×1080, depth 32,
+stride 7680 and 8,294,400 visible bytes. Existing `framebuffer.accelerant`
+reports matching dimensions/stride. Three repeated snapshots agreed.
+
+The boot base equals BAR2's aperture base. This does not identify the physical
+pages behind its GGTT translations or establish ownership of stolen memory.
+The user reported the built-in RenkuOS desktop, with HDMI unavailable. No
+experimental Intel/GART component was installed and no GPU commands were sent.
 
 ## Read-only PCI configuration, 2026-11-05 JST
 

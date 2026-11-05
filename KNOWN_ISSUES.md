@@ -1,8 +1,12 @@
 # Known issues
 
-- No physical Haiku Intel attachment/display/commands have been tested.
+- Native RenkuOS boot/framebuffer metadata has been collected on the physical
+  N100 using the existing framebuffer driver. Intel attachment, patched display
+  initialization and GPU commands remain untested. HDMI/NanoKVM video was
+  unavailable during this physical run.
 - Patches 1–12 compile and pass software tests in the RenkuOS nightly guest.
-  No physical driver execution exists.
+  No physical execution of the Intel/GART patch series exists. The separate
+  read-only boot diagnostic ran successfully on hardware.
 - N100 461c:46d1 GART pair is missing upstream; the local patch is not hardware validation.
 - Legacy 2D hooks are advertised despite unsupported LAKE/SOC0 engines; local
   safeguard suppresses hooks. Patch 7 also skips Alder Lake legacy ring setup

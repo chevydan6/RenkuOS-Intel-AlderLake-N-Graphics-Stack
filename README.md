@@ -43,6 +43,12 @@ Its separate read-only boot-metadata driver now passes
 disposable VM, plus 34 descriptor checks. It reports firmware boot data without
 mapping GPU registers. This is diagnostic kernel execution, not Intel execution.
 
+The [first physical joint diagnostic](results/2026-11-05-physical-boot.md)
+identified the N100 GPU in native RenkuOS and reported the existing 1920×1080
+framebuffer. Three metadata snapshots agreed, and the read-only diagnostic
+binary hashes matched the VM-tested artifacts. The built-in screen worked;
+HDMI/NanoKVM video was unavailable. The Intel/GART patch series remains uninstalled.
+
 An isolated [Gen12 copy-packet experiment](BLIT_RESEARCH.md) passes 60,070
 host sanitizer checks. It has no submission path and is excluded from the
 driver components; no hardware copy has been executed.
