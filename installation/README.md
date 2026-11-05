@@ -4,8 +4,10 @@ This directory contains preparation code for a private RenkuOS installation.
 After the isolated rehearsals, an 8 GiB RenkuOS partition and a separate GRUB
 entry were installed on the laptop. Fedora booted successfully afterward with
 its existing saved default. After a firmware message involving NanoKVM, the
-user reported booting RenkuOS. The boot source and installed system have not
-yet been independently confirmed, and SSH has not been found on the network.
+user booted RenkuOS. SSH confirmed `/boot` is the internal 8 GiB BFS partition,
+and the official MCP SDK successfully called the native server on the laptop.
+Wi-Fi initially obtained an address and reached the router, but inbound ARP
+failed until the laptop sent traffic; the underlying cause is not established.
 
 The physical Wi-Fi baseline is the verified hrev60072+518 image. The MT7921
 driver SHA-256 is
@@ -83,8 +85,12 @@ client with the actual RenkuOS address and a verified SSH host key after install
   passed SHA-256 checks separately. The active swapfile was omitted and requires
   recreation during a restore. The snapshots were taken at different times.
 - The rehearsed RenkuOS BFS image was written to the new partition and its full
-  8 GiB SHA-256 read-back matched the source. The physical Wi-Fi, SSH, MCP and
-  GRUB-to-RenkuOS path remain unverified.
+  8 GiB SHA-256 read-back matched the source. A subsequent user-assisted
+  physical boot reached that internal partition; SSH and MCP passed. Wi-Fi
+  reached the router and five workstation pings passed after initial ARP
+  failure. Unattended startup, the exact boot-menu path, long-term Wi-Fi
+  stability and GPU acceleration remain unverified. The user reported an
+  inoperative touchpad; RenkuOS initialized its ELAN driver and input watcher.
 
 The target-only boot used a newly generated SSH host key. Installer excludes
 the source image's standard host keys; actual installation must establish and
