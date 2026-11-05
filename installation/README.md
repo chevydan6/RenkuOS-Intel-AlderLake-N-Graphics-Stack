@@ -56,6 +56,12 @@ client with the actual RenkuOS address and a verified SSH host key after install
   tested GPT metadata only: the file contained no Btrfs filesystem and no
   Btrfs shrink was performed. GNU Parted's noninteractive script mode refused
   the shrink warning; blindly relying on its exit status is unsafe.
+- Separately, `btrfs-rehearsal.sh` created a disposable 12 GiB sparse file on
+  Fedora, mounted it through a verified loop device, wrote 128 MiB of test data,
+  shrank the Btrfs filesystem by 8 GiB, verified the content hash, unmounted it
+  and passed `btrfs check --readonly`. The loop device and scratch image were
+  removed. This exercises the command on scratch data, not the laptop's live
+  filesystem or its particular allocation/fragmentation.
 - `capture-fedora-boot-backup.sh` captured the existing GPT metadata, EFI and
   `/boot` contents, GRUB configuration and fstab. Their SHA-256 checks passed
   after copying to the workstation. This is a boot recovery artifact, not a
