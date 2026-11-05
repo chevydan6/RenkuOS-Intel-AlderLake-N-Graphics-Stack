@@ -84,6 +84,12 @@ the guest. It never installs GPU modules or passes through PCI devices. Its SSH
 configuration and verified host key remain private. Logs distinguish clean guest
 shutdown from forced cleanup; never reuse a disk marked for discard.
 
+Host-only DDI pipe-selection regression check for a newly prepared bundle:
+
+```sh
+python3 tests/ddi-pipe-host.py build/native-fresh/source/src/add-ons/accelerants/intel_extreme/Ports.cpp
+```
+
 Host-only GART fault checks for a newly prepared bundle:
 
 ```sh

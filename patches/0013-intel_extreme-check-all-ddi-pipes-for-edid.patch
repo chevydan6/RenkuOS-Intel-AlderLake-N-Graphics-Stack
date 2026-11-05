@@ -1,0 +1,29 @@
+From 89b4a50303c017fbc26754717e6b9aabd94f1f9e Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 21:23:13 +0900
+Subject: [PATCH] intel_extreme: check all DDI pipes before accepting EDID
+
+---
+ src/add-ons/accelerants/intel_extreme/Ports.cpp | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index eb6de752..43365307 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2453,10 +2453,9 @@ DigitalDisplayInterface::IsConnected()
+ 			}
+ 			pipeState = read32(pipeReg);
+ 			if ((pipeState & PIPE_DDI_FUNC_CTL_ENABLE) == 0) {
+-				TRACE("%s: Connected but port down\n", __func__);
+-				return false;
++				TRACE("%s: Connected, unused pipe available\n", __func__);
++				return true;
+ 			}
+-			return true;
+ 		}
+ 		TRACE("%s: No pipe available, ignoring connected screen\n", __func__);
+ 	}
+-- 
+2.43.0
+
