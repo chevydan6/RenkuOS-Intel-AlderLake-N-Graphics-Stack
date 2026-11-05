@@ -50,6 +50,10 @@ client with the actual RenkuOS address and a verified SSH host key after install
   separate RenkuOS EFI loader; target-only boot, SSH and MCP passed again.
   `renkuos-grub.cfg` is a syntax-checked draft for the observed laptop ESP UUID,
   not an installed or hardware-validated entry.
+- The installed 8 GiB BFS filesystem was copied to the fourth partition of a
+  separate sparse virtual disk at the planned laptop offset. The relocated
+  system booted, mounted that partition, and passed SSH and official MCP SDK
+  checks. This does not validate physical firmware or Wi-Fi behavior.
 - GPT headers copied from the laptop were applied to a sparse regular file.
   `gpt-rehearsal.py` shrank its third GPT entry by 8 GiB and added an aligned
   BFS entry, verifying the original partition starts, UUIDs and types. This
@@ -62,6 +66,9 @@ client with the actual RenkuOS address and a verified SSH host key after install
   and passed `btrfs check --readonly`. The loop device and scratch image were
   removed. This exercises the command on scratch data, not the laptop's live
   filesystem or its particular allocation/fragmentation.
+- On the laptop, the Btrfs minimum device size was 53.67 GiB while the planned
+  8 GiB shrink would leave about 47.65 GiB. Data relocation may be required;
+  neither the shrink nor relocation has been attempted on the laptop.
 - `capture-fedora-boot-backup.sh` captured the existing GPT metadata, EFI and
   `/boot` contents, GRUB configuration and fstab. Their SHA-256 checks passed
   after copying to the workstation. This is a boot recovery artifact, not a
