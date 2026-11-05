@@ -30,6 +30,11 @@ def digest(path):
 
 if OUT.exists():
     raise SystemExit('use a fresh preparation directory')
+for name, expected in (
+    ('astra-wifi-joint-boot.sh', '16073dcbcc2dc4b9d8de7176688f59cac063e06eb257d4409cfb856ef48fde28'),
+    ('astra-wifi-capture-packet-path.sh', 'f9393abe739668bbcff582db013fbfb8d826fc7b21b3b178700996e1878f5ff5')):
+    if digest(pathlib.Path('/tmp') / name) != expected:
+        raise SystemExit('Wi-Fi handoff hash mismatch: ' + name)
 if digest(SOURCE) != BASE_HASH:
     raise SystemExit('baseline image changed')
 if shutil.disk_usage(OUT.parent).free < SOURCE.stat().st_size + 2 * 1024**3:
@@ -43,7 +48,7 @@ ssh = ['ssh', '-F', str(BUILD / 'renku-gpu-ssh.conf'), '-o', 'ConnectTimeout=3',
        '-o', 'ServerAliveInterval=5', '-o', 'ServerAliveCountMax=2', 'gpu-renku-guest']
 scp = ['scp', '-F', str(BUILD / 'renku-gpu-ssh.conf')]
 transactions = []
-for phase in ('prepare', 'cold-capture'):
+for phase in ('prepare', 'cold-capture', 'cold-repeat'):
     phase_dir = OUT / phase
     phase_dir.mkdir()
     qmp = phase_dir / 'qmp.sock'
@@ -80,6 +85,8 @@ for phase in ('prepare', 'cold-capture'):
                 else:
                     raise RuntimeError('guest SSH unavailable')
                 for source, destination in (
+                    (pathlib.Path('/tmp/astra-wifi-joint-boot.sh'), '/boot/home/joint-boot-wifi.sh'),
+                    (pathlib.Path('/tmp/astra-wifi-capture-packet-path.sh'), '/boot/home/wifi-capture.sh'),
                     (BUILD / 'boot-snapshot-kit-001.tar.gz', '/boot/home/gpu-boot-kit.tar.gz'),
                     (BUILD / 'collect-and-stop.sh', '/boot/home/gpu-collect-and-stop.sh'),
                     (BUILD / 'prepare-guest.sh', '/boot/home/gpu-prepare-guest.sh')):
@@ -131,6 +138,10 @@ with tarfile.open(OUT / 'GPU-VM.TGZ') as tar:
         raise RuntimeError('guest collection failed or wrong PCI control')
     if 'target_present=false' not in read('pci.txt'):
         raise RuntimeError('unexpected target identity')
+    if read('wifi-hook-status.txt').strip() != '0':
+        raise RuntimeError('Wi-Fi hook failed')
+    if 'Physical MT7921 absent' not in read('wifi/no-radio.txt'):
+        raise RuntimeError('missing expected VM no-radio control')
     if any(line.endswith('=true') for line in read('automount.txt').splitlines()):
         raise RuntimeError('automount enabled')
     for kind in ('boot-info', 'display'):

@@ -41,6 +41,11 @@ done
 ./boot-graphics-inventory --boot-info
 cp /boot/home/gpu-collect-and-stop.sh collect-and-stop.sh
 chmod 0755 collect-and-stop.sh
+test -r /boot/home/power-preflight/join-wifi.sh
+test -r /boot/home/power-preflight/wifi.private
+sh -n /boot/home/joint-boot-wifi.sh
+sh -n /boot/home/wifi-capture.sh
+command -v timeout >/dev/null
 startup=/boot/home/config/settings/boot/UserBootscript
 if [ -e "$startup" ]; then cp "$startup" "$startup.pre-gpu"; fi
 cat >"$startup" <<'STARTUP'

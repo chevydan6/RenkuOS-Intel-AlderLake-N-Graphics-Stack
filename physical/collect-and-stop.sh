@@ -5,6 +5,10 @@
 set -u
 base=/boot/home/gpu-boot-diagnostic
 output=/boot/home/gpu-boot-results
+if [ -e "$output" ]; then
+    previous=$(mktemp -d /boot/home/gpu-prior-results.XXXXXX) || exit 1
+    mv "$output" "$previous/results" || exit 1
+fi
 mkdir -p "$output"
 exec >"$output/startup.log" 2>&1
 sleep 10
@@ -51,6 +55,8 @@ collect() {
 collect
 result=$?
 echo "$result" >"$output/collection-status.txt"
+timeout -k 5s 140s sh /boot/home/joint-boot-wifi.sh "$output/wifi"
+echo "$?" >"$output/wifi-hook-status.txt"
 tail -n 1600 /var/log/syslog >"$output/syslog-tail.txt" 2>&1
 sync
 # Never guess which disk is the external test medium.
