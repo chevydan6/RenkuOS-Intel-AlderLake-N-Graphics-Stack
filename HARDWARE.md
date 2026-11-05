@@ -83,9 +83,42 @@ fields; Linux's
 [Gen11+ BSM definitions](https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/include/drm/intel/i915_drm.h)
 identify the GPU's two-dword base register.
 
-No protected-range MMIO descriptor or boot scanout PTE was read. A stolen
+This PCI-only collection did not read a protected-range MMIO descriptor or
+boot scanout PTE. A stolen
 physical base does not prove that the corresponding GGTT prefix is identity
 mapped, firmware-free or safe for allocation. The collector performs no PCI
 writes, raw MMIO mappings, debugfs mounts or driver/configuration changes.
 Evidence is private in `logs/stolen-inventory-20261105`; the credential channel
 was an ephemeral FIFO and was removed after use.
+
+## Protected stolen memory, 2026-11-05 01:55 UTC
+
+Two fixed reads through Fedora's installed `igt-gpu-tools-2.4-1.fc44.x86_64`
+returned low/high dwords `80200087` / `00000000` at `0x1082c0` / `0x1082c4`.
+The Gen11+ address and size fields identify **2 MiB at
+`0x80200000–0x803fffff`**, exactly the top of the observed 60 MiB DSM range.
+The other 58 MiB is not automatically available: firmware ownership, the
+first-page workaround, boot scanout and GGTT mappings still need investigation.
+
+The interpretation follows the pinned Linux
+[register definitions](https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/i915_reg.h)
+and [stolen-memory handling](https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gem/i915_gem_stolen.c).
+No Linux implementation was copied. The exact IGT v2.4 source inspected was
+`e6b603e4984e4ce30fe1cc2705734d0f130e0550`.
+
+`tools/collect-protected-stolen.py` requires the verified PCI ID, i915 ownership,
+BAR base, package version and an already mounted debugfs. It holds an existing
+i915 forcewake handle while issuing only the utility's CPU-MMIO read operation.
+IGT internally maps BAR0 writable even for this operation; this was not a
+read-only mapping. No register writes, GPU batches, driver changes or debugfs
+mount were requested, and i915 ownership was verified afterward. The exclusive
+host-config transaction finished successfully and its temporary credential
+channel was removed. Raw evidence is
+`logs/stolen-inventory-20261105/protected-stolen-20261105.json`.
+
+This is a Linux observation, not a RenkuOS boot-state measurement. In the
+existing generic GART manager, `reserved_size` describes already-backed space
+that can be allocated; it does not exclude firmware-owned ranges. Reducing it
+to 58 MiB alone would make the Intel GART initialization clear additional GGTT
+entries. Physical stolen-memory exclusions and virtual GGTT ownership must be
+handled separately before allowing driver attachment on this hardware.
