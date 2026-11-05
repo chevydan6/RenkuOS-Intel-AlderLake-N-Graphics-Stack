@@ -42,12 +42,12 @@ New helpers implement documented encodings; no Linux driver source was imported.
 - Patch 9 fixes generic GART unbinding to use the adjusted length after excluding
   already-backed memory. The real method bodies pass 46 host sanitizer checks;
   original code reproduces six neighboring-range failures. Native manager build
-  is pending the physical-test outage. This does not fix partial-bind cleanup.
+  and tests now pass. This patch alone does not fix partial-bind cleanup.
 - Patch 10 records each successfully bound page, unbinds the tail first and
   preserves owned backing/metadata on cleanup failure. Aperture and module
   teardown now return failure instead of destroying retained allocations.
   Its 154 host sanitizer checks pass; original code reproduces 39 failures.
-  Native manager compilation remains pending the physical-test outage.
+  Native manager compilation and the same mocked tests now pass.
 - These lifecycle checks simulate metadata, backing ownership, locking and bus
   callbacks. They do not validate actual page allocation, kernel concurrency or
   GPU completion. Borrowed buffers still need a real pinning contract, and
@@ -65,7 +65,8 @@ New helpers implement documented encodings; no Linux driver source was imported.
   constrained backing-page allocation fails before `ALLOCATED_APERTURE` is set.
   The actual allocation/free methods pass 67 host fault-injection checks;
   the original code reproduces three cleanup failures. VM allocation is mocked,
-  so this does not establish the actual kernel allocator's behavior.
+  so this does not establish the actual kernel allocator's behavior. Native
+  compilation and these same mocked tests also pass in bundle renku-020.
 
 ## Kernel and accelerant follow-up
 

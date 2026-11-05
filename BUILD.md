@@ -95,3 +95,10 @@ python3 tools/run-gart-allocation-host.py build/native-fresh
 Each preserves current/original binaries and logs in a new subdirectory, and
 rejects unexpected failures or sanitizer output. Actual method bodies are
 extracted with original attribution; kernel/VM/backend services are mocked.
+
+The x86_64 component recipe also needs the SDK's
+`private/kernel/boot/platform/bios_ia32` include directory for
+`platform_kernel_args.h`, reached through `vm_page.h`. Omitting it prevented
+the first complete generic GART-manager build. Native bundle renku-020 verifies
+the corrected search path with the matching RenkuOS SDK; no substitute header
+or ABI shim is used.

@@ -22,11 +22,11 @@ None is ready for physical installation:
 stolen-memory ownership, modern initialization and execution remain unresolved.
 
 Patches 9/10 address neighboring-PTE corruption and premature freeing after
-partial bind/unbind failures. Their 46 range and 154 lifecycle sanitizer checks
-pass; native generic-manager validation awaits the physical-test restoration
-handoff. See the [GART continuation report](results/2026-11-05-gart-lifecycle.md).
-Patch 11 releases the pointer table after backing-page allocation fails; 67 host
-checks pass, with three original-code failures. Native validation is pending.
+partial bind/unbind failures. Patch 11 releases the pointer table after backing
+allocation fails. All eleven patches now compile in native RenkuOS, including
+the complete generic GART manager. Its 267 mock-backed checks pass natively and
+under host sanitizers; original controls reproduce 48 failures. See the
+[GART continuation report](results/2026-11-05-gart-lifecycle.md).
 
 An isolated [Gen12 copy-packet experiment](BLIT_RESEARCH.md) passes 60,070
 host sanitizer checks. It has no submission path and is excluded from the

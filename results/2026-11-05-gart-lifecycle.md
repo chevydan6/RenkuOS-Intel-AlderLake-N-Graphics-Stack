@@ -86,3 +86,46 @@ native pipeline include the allocation test and original-source control. The
 offline copy experiment is included as source but excluded from native driver
 components. Native patches 9–11 await the explicit physical-test restoration
 handoff; no host, VM or NanoKVM job was started during that reservation.
+
+## Native validation after restoration
+
+The Wi-Fi/power owner published OUTAGE_RESTORED and cleared the authoritative
+marker. Fedora SSH and its task board were checked before claiming
+`gpu-gart-native-lifecycle`. All guest work ran under host-config, haiku-vm and
+build locks in a separate 768 MiB, two-vCPU, std-VGA VM. The existing Haiku VM
+and host GPU were preserved.
+
+First run `gpu-native-012` / bundle `renku-019` failed because the component
+recipe omitted the platform kernel-header search path. The failure and clean
+shutdown are preserved in `logs/renku-vm-012`. Adding the real SDK
+`kernel/boot/platform/bios_ia32` include path resolved compilation.
+
+Fresh run `gpu-native-013` / bundle `renku-020` passed with GCC 13.3.0 on
+RenkuOS hrev60072+518 and its matching development package. All **182** payload
+hashes verified. Complete generic GART manager, Intel GART, Intel kernel driver
+and accelerant link; all three kernel artifacts depend only on `_KERNEL_`.
+
+Native checks: 67 allocation, 46 range, 154 lifecycle, 185 hook lookup, 14 GGTT
+range, 28 PTE, 65,537 GGC, 22 ring lifecycle and five gating checks. Original
+controls reproduce the expected 3/6/39 allocation/range/lifetime failures and
+21/3/2 hook/ring/gating failures. These are software fixtures, not kernel module
+execution. The separate offline copy-packet experiment was not part of this
+native run.
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Generic GART manager | 166336 | `057b802dbcc53c9bee1a9cfa68b5ca657a3ffae30c06da268ffb58cd5db38876` |
+| Intel GART | 62984 | `bad6bd12d8a8d487b413e284bec8e0dffff47c4d79e4b4c7489f0eef81f87d7b` |
+| Intel kernel driver | 243440 | `3b2841c50802f8648fd7e3a9fae7ccbe061e930909f221cc40f29a2fe392e657` |
+| Intel accelerant | 884640 | `1bc52c8a26634bd7a3a0cfb08c5d43a525b675c6b7c13ac9be6fdb91a5e01fa1` |
+
+Manifest SHA-256:
+`4bcf7f6d1c5a183f9ed016c8e2d2717ba78dac02e615779afa175dddbd7742c0`.
+Host artifact finalization passed. Coordinator
+`astra-astra-gpu-98ac84db26f3.service` completed successfully in 146.709 seconds,
+using 151.822 CPU seconds and 1.5 GiB peak cgroup memory, with zero swap recorded.
+Guest shutdown was clean and QEMU exited zero. Evidence is retained locally in
+`logs/renku-vm-013` and on Fedora in `testing/gpu-native-013`.
+
+No module was installed or loaded. Hardware memory ownership, concurrency,
+engine quiescence, command execution and graphics acceleration remain unproven.

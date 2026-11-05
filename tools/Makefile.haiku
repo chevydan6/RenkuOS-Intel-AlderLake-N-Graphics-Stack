@@ -21,6 +21,7 @@ CXXFLAGS := -std=gnu++17 -O2 -g -Wall -fPIC -fno-exceptions -fno-rtti
 CFLAGS := -O2 -g -Wall -fPIC
 KERNELFLAGS := -D_KERNEL_MODE=1 -I$(PRIVATE) -I$(PRIVATE)/kernel -I$(PRIVATE)/drivers \
 	-I$(PRIVATE)/system -I$(PRIVATE)/kernel/arch/x86 \
+	-I$(PRIVATE)/kernel/boot/platform/bios_ia32 \
 	-I$(PRIVATE)/system/arch/x86_64 \
 	-I$(SOURCE)/build/config_headers \
 	-ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing \
