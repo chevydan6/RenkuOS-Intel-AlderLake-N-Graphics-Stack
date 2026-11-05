@@ -1,8 +1,13 @@
 # RenkuOS SSH, MCP and dual-boot preparation
 
-This directory contains the preparation code for a private RenkuOS installation.
-No laptop partition, EFI file, firmware boot order or GRUB configuration was
-changed during the validation described here.
+This directory contains preparation code for a private RenkuOS installation.
+After the isolated rehearsals, an 8 GiB RenkuOS partition and a separate GRUB
+entry were installed on the laptop. Fedora booted successfully afterward with
+its existing saved default. After a firmware message involving NanoKVM, the
+user booted RenkuOS. SSH confirmed `/boot` is the internal 8 GiB BFS partition,
+and the official MCP SDK successfully called the native server on the laptop.
+Wi-Fi initially obtained an address and reached the router, but inbound ARP
+failed until the laptop sent traffic; the underlying cause is not established.
 
 The physical Wi-Fi baseline is the verified hrev60072+518 image. The MT7921
 driver SHA-256 is
@@ -49,7 +54,12 @@ client with the actual RenkuOS address and a verified SSH host key after install
 - A disposable virtual EFI partition with a GRUB menu entry chainloaded the
   separate RenkuOS EFI loader; target-only boot, SSH and MCP passed again.
   `renkuos-grub.cfg` is a syntax-checked draft for the observed laptop ESP UUID,
-  not an installed or hardware-validated entry.
+  the same entry was later installed on the laptop; its RenkuOS boot path has
+  not yet been validated on physical hardware.
+- The installed 8 GiB BFS filesystem was copied to the fourth partition of a
+  separate sparse virtual disk at the planned laptop offset. The relocated
+  system booted, mounted that partition, and passed SSH and official MCP SDK
+  checks. This does not validate physical firmware or Wi-Fi behavior.
 - GPT headers copied from the laptop were applied to a sparse regular file.
   `gpt-rehearsal.py` shrank its third GPT entry by 8 GiB and added an aligned
   BFS entry, verifying the original partition starts, UUIDs and types. This
@@ -61,11 +71,27 @@ client with the actual RenkuOS address and a verified SSH host key after install
   shrank the Btrfs filesystem by 8 GiB, verified the content hash, unmounted it
   and passed `btrfs check --readonly`. The loop device and scratch image were
   removed. This exercises the command on scratch data, not the laptop's live
-  filesystem or its particular allocation/fragmentation.
+  filesystem or its particular allocation/fragmentation. The first laptop
+  shrink attempt failed for lack of relocation space without changing its size.
+  After a backed-up old kernel-build directory was removed from Trash, the
+  shrink succeeded and Fedora rebooted successfully.
 - `capture-fedora-boot-backup.sh` captured the existing GPT metadata, EFI and
   `/boot` contents, GRUB configuration and fstab. Their SHA-256 checks passed
   after copying to the workstation. This is a boot recovery artifact, not a
   complete backup of the laptop's personal data or running Fedora filesystem.
+- A private workstation backup of the root, home and nested machines snapshots
+  passed rsync checksum and metadata comparison, apart from synthetic timestamps
+  on two confirmed empty Btrfs subvolume placeholders. Boot and EFI archives
+  passed SHA-256 checks separately. The active swapfile was omitted and requires
+  recreation during a restore. The snapshots were taken at different times.
+- The rehearsed RenkuOS BFS image was written to the new partition and its full
+  8 GiB SHA-256 read-back matched the source. A subsequent user-assisted
+  physical boot reached that internal partition; SSH and MCP passed. Wi-Fi
+  reached the router and twenty workstation pings passed after initial ARP
+  failure. Unattended startup, the exact boot-menu path, long-term Wi-Fi
+  stability and GPU acceleration remain unverified. The user reported an
+  inoperative touchpad; RenkuOS initialized its ELAN driver and input watcher.
+  See `TOUCHPAD.md` for the firmware interrupt-resource finding.
 
 The target-only boot used a newly generated SSH host key. Installer excludes
 the source image's standard host keys; actual installation must establish and
@@ -75,7 +101,7 @@ GRUB test used a newly created disposable FAT image. It does not establish that
 the laptop's existing EFI partition can safely be edited by that library.
 
 Private raw images, VM disks, SSH keys, Wi-Fi settings and logs are excluded
-from this repository. GPT/partition backups and a complete verified data backup
-must be prepared before any actual laptop filesystem or partition change.
+from this repository. Retain the verified workstation backup and boot recovery
+artifacts throughout further disk and boot work.
 Physical Wi-Fi, SSH/MCP access, GRUB boot and Fedora recovery must be verified
 after installation before claiming the laptop installation is complete.

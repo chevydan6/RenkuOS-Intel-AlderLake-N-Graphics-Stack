@@ -16,6 +16,8 @@ jobs:
         run: python3 tools/prepare.py --output build/ci
       - name: Verify source coverage, original failure and payload
         run: python3 tools/check-source.py build/ci
+      - name: Check EDID-backed DDI pipe selection
+        run: python3 tests/ddi-pipe-host.py build/ci/source/src/add-ons/accelerants/intel_extreme/Ports.cpp
       - name: Compile and test GGTT range validation
         run: |
           g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=undefined,address -Ibuild/ci/source/src/add-ons/kernel/busses/agp_gart build/ci/tests/gtt-range-test.cpp -o build/ci/gtt-range-test
