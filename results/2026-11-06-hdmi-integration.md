@@ -34,3 +34,14 @@ diagnostic read CTL=0x00000008, COLOR=0, STRIDE=0, OFFSET=0, SURF=0, DDB=0 and
 WM0=0x00004007. This is a disabled primary plane with no DDB allocation and no
 enabled watermark. The required TC2 DDI_IO domain remained off. NanoKVM still
 reported VIDevFPS=0 and VIFPS=0. No HDMI output or acceleration was demonstrated.
+
+Build 048, through patch 53, passed native validation and was installed on the
+test USB with the explicit raster-test marker enabled. The laptop rebooted and
+executed the integrated experimental path. It returned a bounded timeout at
+the display-power stage with cleanup=0. SSH remained available; NanoKVM input
+counters remained zero. This is a failed output test, not working HDMI.
+
+Linux sequence review then identified an ordering error: port DDI_IO power is
+requested after Type-C PHY ownership, PLL programming and port clock enable,
+whereas the new manager requested it before those steps. A correction is
+being developed and has not yet been physically tested at this checkpoint.
