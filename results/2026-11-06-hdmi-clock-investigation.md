@@ -40,6 +40,27 @@ patched accelerant SHA-256 is
 `e64790decb30bcab3de9c5d9c92e682672feac16747d0cdcbdda5f2072e5626b`.
 The clock-mask correction has not been installed on the laptop.
 
+## Transcoder configuration gap
+
+The physical log reports `trans DDI func ctl reg: 0x30000` for the selected
+port-G pipe before setting its mode. Bit 31, the transcoder DDI-function
+enable bit, is clear in this value. In the current RenkuOS accelerant source,
+the relevant mode path reads `PIPE_DDI_FUNC_CTL` but has no corresponding
+write to select or enable the external DDI function. `Pipe::Enable()` writes
+the pipe and primary-plane controls, which are separate registers. Thus the
+captured value and static source analysis give a further concrete reason to
+investigate the missing external-transcoder configuration. The log does not
+capture a final read-back of that register, so this is not proof of its final
+state or the only cause of the missing HDMI picture.
+
+Linux's `intel_ddi_enable_transcoder_func()` selects the port and enables the
+DDI function; its display-version-13 clock selection uses the PHY associated
+with the encoder. The preceding HDMI sequence also sets PHY signal levels and
+powers lanes. Merely setting the enable bit without validated clock, port,
+PHY, and sequencing is not a safe or complete fix. See Linux
+[transcoder and HDMI setup](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_ddi.c)
+and [transcoder register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h).
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),
