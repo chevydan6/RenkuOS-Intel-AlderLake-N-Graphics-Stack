@@ -1,0 +1,51 @@
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+@@ -426,6 +426,11 @@
+ static void
+ init_interrupt_handler(intel_info &info)
+ {
++	// Until installation succeeds, teardown must not infer a live handler
++	// from a semaphore or a vector left over from an earlier open.
++	info.fake_interrupts = true;
++	info.irq = 0;
++	info.use_msi = false;
+ 	info.shared_info->vblank_sem = create_sem(0, "intel extreme vblank");
+ 	if (info.shared_info->vblank_sem < B_OK)
+ 		return;
+@@ -439,12 +444,12 @@
+ 	if (get_thread_info(thread, &threadInfo) != B_OK
+ 		|| set_sem_owner(info.shared_info->vblank_sem, threadInfo.team)
+ 			!= B_OK) {
+-		status = B_ERROR;
++		delete_sem(info.shared_info->vblank_sem);
++		info.shared_info->vblank_sem = B_ERROR;
++		return;
+ 	}
+ 
+ 	// Find the right interrupt vector, using MSIs if available.
+-	info.irq = 0;
+-	info.use_msi = false;
+ 	if (info.pci->u.h0.interrupt_pin != 0x00) {
+ 		info.irq = info.pci->u.h0.interrupt_line;
+ 		if (info.irq == 0xff)
+@@ -463,7 +468,10 @@
+ 		}
+ 	}
+ 
+-	if (status == B_OK && info.irq != 0) {
++	if (info.irq == 0)
++		status = B_ERROR;
++
++	if (status == B_OK) {
+ 		// we've gotten an interrupt line for us to use
+ 
+ 		info.fake_interrupts = false;
+@@ -1027,7 +1035,7 @@
+ {
+ 	CALLED();
+ 
+-	if (!info.fake_interrupts && info.shared_info->vblank_sem > 0) {
++	if (!info.fake_interrupts && info.shared_info->vblank_sem >= B_OK) {
+ 		// disable interrupt generation
+ 		if (info.device_type.Generation() >= 8) {
+ 			if (info.device_type.Generation() >= 11) {
