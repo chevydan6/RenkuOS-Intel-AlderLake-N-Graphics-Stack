@@ -1,0 +1,4 @@
+IRQ_CLOSE_RESULT run=1 vector=24 status=1 cpu=0 close_cpu=2 inflight=0 closed=1 retained=0 read=0 observed=1 callbacks=1 timeout=0 invalid=0 events=1,2,3
+IRQ_BRIDGE_DISPATCH_RETURN status=1 copy=0
+IRQ_BRIDGE_FREE
+IRQ_BRIDGE_UNINIT

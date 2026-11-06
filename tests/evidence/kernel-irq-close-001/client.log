@@ -1,0 +1,2 @@
+workers run=0 pinned=1 dispatch=0/0 remove=0/0
+PASS close client entered=0 close=0 dispatch=1 reopen=-1 errno=-2147483633 expected_denial=-2147483633; serial overlap proof required

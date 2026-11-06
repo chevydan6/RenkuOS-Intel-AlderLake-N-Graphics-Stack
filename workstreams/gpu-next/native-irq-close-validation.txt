@@ -1,0 +1,31 @@
+Native close-during-callback checkpoint, 2026-11-07
+
+Source2d71916f, isolated kernel validation branch. The active production GPU tree
+was not modified. Kernel/bridge/client cross-build passed. No new host simulation.
+
+One controlled native VM close test passed. Callback entry, actual close event,
+and callback exit had strict sequence1,2,3. DispatchCPU0, closeCPU2, one callback,
+no timeout/duplicate event, inflight0 after complete dispatch, and exact retained
+handler/vector snapshot B_OK. User joined dispatch and actually attempted reopen,
+receiving B_NOT_ALLOWED. No remover ran: resources intentionally stayed resident
+through VM shutdown. Bridge-tail marker precedes Free, then Uninit was observed.
+The tail marker is immediately before function return; the descriptor reference
+source trace provides the lifetime guarantee, rather than the marker alone.
+
+A fresh-boot normal regression passed all11 prior control/contention rounds on
+the changed kernel/packet layout. Host numeric verification independently checked
+CPU, event order, count, no timeout and success. QMP corroborates guest-initiated
+shutdown for both tests, not every userspace flush. Terra independently reviewed
+close evidence; did not rerun the VM. Candidate label is an explicit test identifier;
+precise source attribution uses recorded source commit plus artifact/package hashes.
+
+Evidence: tests/evidence/kernel-irq-close-001/ and installation/private/
+kernel-irq-close-001/. Matching kernel/bridge/client and boot package hashes were
+checked before execution. Fresh copy of recovery040, offline package replacement,
+canonical resource locks, host35s test deadline, partial timeout logs and QMP/kill
+cleanup. Recovery image and physical laptop were not changed.
+
+Limitations: one observed close schedule, software-dispatched resident test callback.
+This does not establish team-death behavior, actual hardware IRQ masking, all
+schedules, general legacy-driver failed-removal safety or real GPU execution.
+Physical memory/recovery access remains a gate; GPU acceleration is unproven.

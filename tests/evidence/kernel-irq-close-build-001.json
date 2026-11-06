@@ -1,0 +1,31 @@
+{
+  "source_commit": "2d71916ff3f582ddf1cc204450ae2d22094d0fad",
+  "revision_label": "git-d9507b4d-irq-close-candidate",
+  "cross_compilation_passed": true,
+  "instrumented_exports": 10,
+  "artifacts": {
+    "kernel": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/system/kernel/revisioned/kernel_x86_64",
+      "sha256": "aae4f35861021df3547dbc71039cb47b64a30559aa8b0d7c6a795a3be92dc6de"
+    },
+    "bridge": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/tests/system/kernel/irq_drain/irq_drain_bridge",
+      "sha256": "00df56ca36f61ecf725108265a818c3d2947c616003dc61b015f6f38809bed48"
+    },
+    "client": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/tests/system/kernel/irq_drain/irq_drain_client",
+      "sha256": "a4ce48e9ac561f115ee5af33e8d25e41d2c1bb56793d3d2946b6a1c5b38fe980"
+    }
+  },
+  "booted": false,
+  "host_simulation": false,
+  "physical_test": false,
+  "physical_gpu_execution": false,
+  "review": "Terra reviewed resident lifecycle, ordinary bridge refs, CPU observations, cancellation and vector gates. Runtime pending.",
+  "evidence_directory": "/home/dan/renkuos-development/testing/kernel-irq-close-build-001",
+  "revision_cache_regenerated": true,
+  "binary_revision_stamp_verified": true,
+  "scope": "Close-mode kernel/bridge/client cross-build; runtime not yet performed. Revision is an explicit test label, source commit recorded separately.",
+  "prior_disabled_build_evidence": "tests/evidence/kernel-irq-fixture-build-002.json (prior source)",
+  "disabled_build_current_source_tested": false
+}

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "strict_close_overlap": true,
+  "events": [
+    1,
+    2,
+    3
+  ],
+  "retained_handler_verified": true,
+  "bridge_free_after_dispatch_tail": true,
+  "reopen_denied": true,
+  "guest_shutdown": true,
+  "physical_gpu_execution": false,
+  "scope": "controlled close of instrumented resident callback; no team death or physical IRQ proof",
+  "client_sha256": "166c2db080c17d8d1992e8fd04d71225ed68be80de30c1cf596a1755939ec517",
+  "serial_sha256": "36fa79dabc7903801d5b64b9b035520e1e2827a78d749c4806db290c01274323"
+}

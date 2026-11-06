@@ -1,0 +1,28 @@
+{
+  "source_commit": "2d71916f",
+  "build_evidence": "tests/evidence/kernel-irq-close-build-001.json",
+  "runtime_label_note": "explicit candidate test label names prior base; exact provenance uses source commit and artifact hashes",
+  "close_cases_passed": 1,
+  "normal_drain_regression_rounds_passed": 11,
+  "physical_gpu_execution": false,
+  "scope": "instrumented resident callback close overlap; no team exit, physical IRQ or general driver teardown validation",
+  "private_evidence": "/home/dan/renkuos-development/installation/private/kernel-irq-close-001",
+  "files": {
+    "client.log": "166c2db080c17d8d1992e8fd04d71225ed68be80de30c1cf596a1755939ec517",
+    "result.json": "97afdc49bb7acbf2a17420a96e3911f150e3f022f527f1f141e521c1457d87ae",
+    "close-verification.json": "5b786890f6145f280339fb3f85efa53f486fee65cb8a73e7b3b1732a2eee23a1",
+    "qmp-events.json": "e0240a0ad742f42153e8bae0a7cc86b1d49929efe5339a0bf4a485eecda460ea",
+    "regression-client.log": "80404b9edf8c5672b0bfdbade50080f6f233ba9ffe9821a291f7611ae28da722",
+    "regression-result.json": "163b8aa2798c84d00c6dd7c4cb191aaa0be9ef771e8cb48d21ece2eb50e677b4",
+    "regression-round-verification.json": "179d971dc55375edeff209209631e82fd715a824824cb6766509e1abe7128c54",
+    "regression-qmp-events.json": "34c72d34fbf8a0bfa13648423006fa7d81e0c6129832e654a424cab9139e5f2e",
+    "verify-close.py": "f91fe6f6eee1d8d0c10ea5590a666c9cad61e087f9dc5f6d14ef35c3ebf193d7",
+    "verify-regression.py": "60af1fb8d2740592fc0bbf463c2fbed02cb13b9e5a91b4097be9baca0966776d",
+    "run.py": "e7249647b578a5a74eb4797cbd628832ce5a6b08228a3447db21345e6110b115",
+    "regression.py": "e5ef05cc3621c08d84390a2bf0f72833ca6ecaf5ca5922b1958d1a261447f4e3",
+    "serial.log": "36fa79dabc7903801d5b64b9b035520e1e2827a78d749c4806db290c01274323",
+    "regression-serial.log": "03b574943d7f040c9798d76ecb19413814cf13a6defa2000a3f2eb45bdf48a32"
+  },
+  "project_verifier_sha256": "ba60d0de062c38092bc0ab7ebc5fdf864d26765a0b6c57c1b4f2ecf76dc89e21",
+  "project_verifier_note": "Loads the large original serial log from private_evidence and verifies its recorded hash; original private verifier remains hashed in files."
+}
