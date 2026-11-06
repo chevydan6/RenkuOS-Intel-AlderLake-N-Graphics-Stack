@@ -1,0 +1,106 @@
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+@@ -423,6 +423,29 @@
+ }
+ 
+ 
++static status_t
++release_msi(intel_info& info)
++{
++	// Configuration owns the vectors independently of MSI enablement.
++	// Never return a potentially enabled vector to the allocator.
++	if (info.use_msi) {
++		status_t status = gPCI->disable_msi(info.pci->bus,
++			info.pci->device, info.pci->function);
++		if (status != B_OK)
++			return status;
++		info.use_msi = false;
++	}
++	if (info.msi_configured) {
++		status_t status = gPCI->unconfigure_msi(info.pci->bus,
++			info.pci->device, info.pci->function);
++		if (status != B_OK)
++			return status;
++		info.msi_configured = false;
++	}
++	return B_OK;
++}
++
++
+ static void
+ init_interrupt_handler(intel_info &info)
+ {
+@@ -459,12 +482,18 @@
+ 			info.pci->device, info.pci->function) >= 1) {
+ 		uint32 msiVector = 0;
+ 		if (gPCI->configure_msi(info.pci->bus, info.pci->device,
+-				info.pci->function, 1, &msiVector) == B_OK
+-			&& gPCI->enable_msi(info.pci->bus, info.pci->device,
+-				info.pci->function) == B_OK) {
+-			TRACE("using message signaled interrupts\n");
+-			info.irq = msiVector;
+-			info.use_msi = true;
++				info.pci->function, 1, &msiVector) == B_OK) {
++			info.msi_configured = true;
++			if (gPCI->enable_msi(info.pci->bus, info.pci->device,
++					info.pci->function) == B_OK) {
++				TRACE("using message signaled interrupts\n");
++				info.irq = msiVector;
++				info.use_msi = true;
++			} else {
++				// Failed enablement has not changed PCI interrupt delivery.
++				// Only fall back to INTx after releasing the unused vectors.
++				status = release_msi(info);
++			}
+ 		}
+ 	}
+ 
+@@ -579,6 +608,9 @@
+ 	}
+ 
+ 	if (status < B_OK) {
++		status_t cleanupStatus = release_msi(info);
++		if (cleanupStatus != B_OK)
++			ERROR("MSI resources retained: %s\n", strerror(cleanupStatus));
+ 		delete_sem(info.shared_info->vblank_sem);
+ 		info.shared_info->vblank_sem = B_ERROR;
+ 	}
+@@ -644,6 +676,9 @@
+ intel_extreme_init(intel_info &info)
+ {
+ 	CALLED();
++	// A failed MSI cleanup must not be forgotten by another open.
++	if (info.msi_configured)
++		return B_BUSY;
+ 	info.memory_owner = NULL;
+ 	info.memory_owner_lease = 0;
+ 	info.memory_owner_ready = false;
+@@ -1052,13 +1087,11 @@
+ 			remove_io_interrupt_handler(info.irq, intel_interrupt_handler, &info);
+ 		}
+ 
+-		if (info.use_msi) {
+-			gPCI->disable_msi(info.pci->bus,
+-				info.pci->device, info.pci->function);
+-			gPCI->unconfigure_msi(info.pci->bus,
+-				info.pci->device, info.pci->function);
+-		}
+-	}
++	}
++
++	status_t msiStatus = release_msi(info);
++	if (msiStatus != B_OK)
++		ERROR("MSI resources retained: %s\n", strerror(msiStatus));
+ 
+ 	bool registersOwnedByDriver = info.memory_owner == NULL;
+ 	release_aperture(info);
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h
+@@ -40,6 +40,7 @@
+ 	bool			fake_interrupts;
+ 	uint8			irq;
+ 	bool			use_msi;
++	bool			msi_configured;
+ 
+ 	const char*		device_identifier;
+ 	DeviceType		device_type;

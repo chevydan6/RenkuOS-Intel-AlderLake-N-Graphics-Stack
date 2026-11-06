@@ -7,7 +7,7 @@ not register addresses, timing, interrupt hardware, clone semantics or scanout.
 import pathlib,re,subprocess,sys,tempfile
 source=pathlib.Path(sys.argv[1]).read_text()
 methods=[]
-for result,name in [('static void','release_aperture'),('status_t','intel_free_memory'),('status_t','intel_allocate_memory'),('status_t','intel_extreme_init'),('void','intel_extreme_uninit')]:
+for result,name in [('static status_t','release_msi'),('static void','release_aperture'),('status_t','intel_free_memory'),('status_t','intel_allocate_memory'),('status_t','intel_extreme_init'),('void','intel_extreme_uninit')]:
  match=re.search(r'^'+result+r'\n'+name+r'\([^)]*\)\n\{.*?^}',source,re.M|re.S)
  if not match:raise SystemExit('missing '+name)
  methods.append(match.group())
@@ -72,7 +72,7 @@ struct intel_info {
  area_id registers_area,shared_area;intel_shared_info* shared_info;
  Owner* memory_owner;uint64 memory_owner_lease;bool memory_owner_ready;
  DeviceType device_type;int pch_info;const char* device_identifier;
- struct overlay_registers* overlay_registers;bool fake_interrupts,use_msi;uint8 irq;
+ struct overlay_registers* overlay_registers;bool fake_interrupts,use_msi,msi_configured;uint8 irq;
 };
 static std::vector<std::string> events;
 static int fault,refs,ownerReleases,legacyMaps,legacyUnmaps,mmioMaps,allocations;
@@ -125,8 +125,8 @@ struct Gart {
 static Gart gart;static Gart* gGART=&gart;
 struct PCI {
  void set_powerstate(uint32,uint32,uint32,int){events.push_back("power");}
- void disable_msi(uint32,uint32,uint32){assert(msiLive&&!irqLive);events.push_back("disable-msi");msiLive=false;}
- void unconfigure_msi(uint32,uint32,uint32){assert(!msiLive);events.push_back("unconfigure-msi");}
+ status_t disable_msi(uint32,uint32,uint32){assert(msiLive&&!irqLive);events.push_back("disable-msi");msiLive=false;return B_OK;}
+ status_t unconfigure_msi(uint32,uint32,uint32){assert(!msiLive);events.push_back("unconfigure-msi");return B_OK;}
 };
 static PCI pciModule;static PCI* gPCI=&pciModule;
 static void read_settings(bool& cursor){cursor=true;}
@@ -141,7 +141,7 @@ static bool intel_uses_physical_overlay(const intel_shared_info&){return false;}
 static void init_overlay_registers(overlay_registers*){}
 static void* get_boot_item(int,void*){return nullptr;}
 static void init_interrupt_handler(intel_info& info){
- events.push_back("irq-init");info.fake_interrupts=fakeIRQ;info.use_msi=!fakeIRQ;
+ events.push_back("irq-init");info.fake_interrupts=fakeIRQ;info.use_msi=!fakeIRQ;info.msi_configured=!fakeIRQ;
  info.shared_info->vblank_sem=fakeIRQ?-1:10;irqLive=msiLive=!fakeIRQ;
 }
 using interrupt_handler=int(*)(void*);
@@ -158,6 +158,12 @@ void intel_extreme_uninit(intel_info&);
 suffix=r'''
 int main(){
  unsigned cases=0;
+ {
+  intel_info retained{};retained.msi_configured=true;
+  events.clear();
+  assert(intel_extreme_init(retained)==B_BUSY);
+  assert(events.empty()&&!sharedAlive&&!legacyMMIOAlive);
+ }
  for(bool n100:{false,true})for(bool fallback:{false,true})for(int stage=0;stage<=8;stage++){
   assert(!sharedAlive&&!legacyMMIOAlive&&!irqLive&&!msiLive);
   events.clear();fault=stage;refs=ownerReleases=legacyMaps=legacyUnmaps=mmioMaps=allocations=0;

@@ -3,12 +3,27 @@
 """Observe actual IRQ initialization under modeled external failures.
 This baseline probe reports resource leaks; it is not hardware validation.
 """
-import pathlib, re, subprocess, sys, tempfile
-source = pathlib.Path(sys.argv[1]).read_text()
+import argparse
+import pathlib
+import re
+import subprocess
+import sys
+import tempfile
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('source', type=pathlib.Path)
+parser.add_argument('--early-paths', action='store_true')
+parser.add_argument('--msi', action='store_true')
+parser.add_argument('--generation', type=int, choices=(4, 8, 12), default=12)
+args = parser.parse_args()
+source = args.source.read_text()
 match = re.search(r'^static void\ninit_interrupt_handler\([^)]*\)\n\{.*?^}', source, re.M | re.S)
 if not match:
     raise SystemExit('missing production IRQ initializer')
 body = match.group()
+helper = re.search(r'^static status_t\nrelease_msi\([^)]*\)\n\{.*?^}', source, re.M | re.S)
+if helper:
+    body = helper.group() + '\n' + body
 uninit = re.search(r'^void\nintel_extreme_uninit\([^)]*\)\n\{.*?^}', source, re.M | re.S)
 if not uninit:
     raise SystemExit('missing production teardown')
@@ -32,7 +47,7 @@ struct thread_info {int team;};
 struct Device {int Generation()const{return 12;}};
 struct Shared {int vblank_sem,pch_info;};
 struct PciInfo {int bus,device,function;struct{struct{int interrupt_pin,interrupt_line;}h0;}u;};
-struct intel_info {Shared* shared_info;PciInfo* pci;Device device_type;int irq;bool use_msi,fake_interrupts;void* memory_owner;int registers_area,shared_area;};
+struct intel_info {Shared* shared_info;PciInfo* pci;Device device_type;int irq;bool use_msi,fake_interrupts;void* memory_owner;int registers_area,shared_area;bool msi_configured;};
 static int fault,semId,legacyLine;
 static bool semLive,configured,enabled,handlerLive;
 static bool unsafeDelete;
@@ -73,11 +88,12 @@ int main(){
  const char* names[]={"normal","create-sem","thread-info","sem-owner","configure-msi","enable-msi","install-handler","no-msi"};
  int findings=0;
  int earlyFailures=0;
+ int msiFailures=0;
  for(int f=0;f<8;f++)for(int line: {0,11}){
-  fault=f;legacyLine=line;semId=10;
+  fault=f;legacyLine=line;semId=10;teardownFault=0;
   semLive=configured=enabled=handlerLive=false;
   Shared shared={};PciInfo pci={};pci.u.h0.interrupt_pin=1;pci.u.h0.interrupt_line=line;
-  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2};
+  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false};
   init_interrupt_handler(info);
   bool orphanMSI=configured && (!enabled || !handlerLive);
   bool missingFallback=!handlerLive && !info.fake_interrupts;
@@ -85,6 +101,7 @@ int main(){
   printf("%s legacy=%d handler=%d configured=%d enabled=%d sem=%d fake=%d orphan-msi=%d missing-fallback=%d unused-sem=%d\n",
    names[f],line,handlerLive,configured,enabled,semLive,info.fake_interrupts,orphanMSI,missingFallback,unneededSem);
   if(orphanMSI||missingFallback||unneededSem)findings++;
+  if(orphanMSI||configured!=info.msi_configured||enabled!=info.use_msi)msiFailures++;
   if(f==1||f==2||f==3||(f==7&&line==0)){
    if(handlerLive||configured||enabled||semLive||!info.fake_interrupts)earlyFailures++;
   }
@@ -93,17 +110,45 @@ int main(){
   fault=0;semId=id;teardownFault=failure;
   semLive=configured=enabled=handlerLive=unsafeDelete=false;
   Shared shared={};PciInfo pci={};
-  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2};
+  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false};
   init_interrupt_handler(info);
   intel_extreme_uninit(info);
   printf("teardown sem-id=%d fault=%d handler=%d configured=%d enabled=%d sem=%d unsafe-delete=%d\n",
    id,failure,handlerLive,configured,enabled,semLive,unsafeDelete);
   if(handlerLive||configured||enabled||semLive||unsafeDelete)findings++;
   if(failure==0&&(handlerLive||configured||enabled||unsafeDelete))earlyFailures++;
+  if(failure!=3){
+   if(configured!=info.msi_configured||enabled!=info.use_msi||unsafeDelete)msiFailures++;
+   if(failure==0&&(configured||enabled))msiFailures++;
+   if(failure==1&&(!configured||!enabled))msiFailures++;
+   if(failure==2&&(!configured||enabled))msiFailures++;
+  }
+ }
+ // Failed cleanup must leave actionable state; a later explicit retry may
+ // clear it only after the backend succeeds. No interrupt handler exists here.
+ for(int acquisitionFault: {5,6})for(int cleanupFault: {1,2}){
+  fault=acquisitionFault;teardownFault=cleanupFault;semId=10;
+  semLive=configured=enabled=handlerLive=unsafeDelete=false;
+  Shared shared={};PciInfo pci={};pci.u.h0.interrupt_pin=1;pci.u.h0.interrupt_line=11;
+  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false};
+  init_interrupt_handler(info);
+  bool retained=acquisitionFault==6||cleanupFault==2;
+  bool enabledExpected=acquisitionFault==6&&cleanupFault==1;
+  if(retained){
+   if(!configured||!info.msi_configured||enabled!=enabledExpected
+    ||info.use_msi!=enabledExpected||handlerLive||semLive||unsafeDelete)msiFailures++;
+  }else if(configured||info.msi_configured||enabled||info.use_msi)msiFailures++;
+  teardownFault=0;
+#ifdef HAS_RELEASE_MSI
+  if(release_msi(info)!=B_OK||configured||enabled||info.msi_configured||info.use_msi)msiFailures++;
+#endif
  }
  printf("Observed %d cases with incomplete IRQ resource/fallback state (modeled host APIs only).\n",findings);
  printf("Early admission and valid semaphore teardown: %d failures\n",earlyFailures);
-#ifdef FOCUSED_EARLY_PATHS
+ printf("MSI acquisition and checked cleanup: %d failures\n",msiFailures);
+#ifdef FOCUSED_MSI
+ return msiFailures?2:0;
+#elif defined(FOCUSED_EARLY_PATHS)
  return earlyFailures?2:0;
 #else
  return findings?2:0;
@@ -112,6 +157,6 @@ int main(){
 '''
 with tempfile.TemporaryDirectory(prefix='renku-irq-init-') as tmp:
     cpp=pathlib.Path(tmp)/'probe.cpp'; binary=pathlib.Path(tmp)/'probe'
-    cpp.write_text('#include <initializer_list>\n'+prefix+constants+macros+body+test)
-    subprocess.run(['g++','-std=c++17','-Wall','-Wextra','-Werror',*(['-DFOCUSED_EARLY_PATHS'] if '--early-paths' in sys.argv[2:] else []),str(cpp),'-o',str(binary)],check=True)
+    cpp.write_text(('#define HAS_RELEASE_MSI\n' if helper else '')+'#include <initializer_list>\n'+prefix.replace('return 12;', f'return {args.generation};')+constants+macros+body+test)
+    subprocess.run(['g++','-std=c++17','-Wall','-Wextra','-Werror',*(['-DFOCUSED_MSI'] if args.msi else []),*(['-DFOCUSED_EARLY_PATHS'] if args.early_paths else []),str(cpp),'-o',str(binary)],check=True)
     sys.exit(subprocess.run([str(binary)],timeout=10).returncode)
