@@ -1,0 +1,36 @@
+From f01e0b782747076cb18d6c9f7952bcc358ee87e8 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 21:20:38 +0900
+Subject: [PATCH] agp_gart: release the backend if aperture metadata allocation
+ fails
+
+Check the nothrow Aperture allocation before calling InitCheck. If metadata allocation fails after backend creation, delete that backend while its module reference is held, then drop the reference and return B_NO_MEMORY without inserting a registry object.
+
+Thirteen production-manager host cases pass with ASAN/UBSAN and no exceptions or RTTI, including class-specific allocation failure, init failure, normal creation, retained unmap and guarded reopen. The baseline reaches a sanitizer-detected null pointer member access on metadata OOM. Native compilation remains pending.
+
+Assisted-by: Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+index 96134f6b..44fa9fbc 100644
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -1016,6 +1016,12 @@ map_aperture(uint8 bus, uint8 device, uint8 function, size_t size,
+ 			}
+ 
+ 			aperture = new(std::nothrow) Aperture(module, privateAperture);
++			if (aperture == NULL) {
++				module->delete_aperture(privateAperture);
++				put_module(name);
++				status = B_NO_MEMORY;
++				break;
++			}
+ 			status = aperture->InitCheck();
+ 			if (status == B_OK) {
+ 				if (_apertureBase != NULL)
+-- 
+2.43.0
+

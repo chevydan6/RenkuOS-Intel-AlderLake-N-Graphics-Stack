@@ -1,0 +1,68 @@
+From 50691f19a23c61d137b82937cf5c1307fff2b85b Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 21:16:37 +0900
+Subject: [PATCH] intel_gart: retain singleton ownership until aperture
+ deletion
+
+A failed GART unmap preserves its registry object and backend module reference. Refuse another Intel aperture creation while that singleton is active, before changing mapping fields or reinitializing GGTT entries. Publish ownership only after successful initialization and clear it after deletion; failed initial setup remains retryable.
+
+The GART manager global lock serializes creation and deletion. Ten actual-backend host cases pass with hardware calls mocked and ASAN/UBSAN; the baseline fails seven assertions. A separate production-manager control-flow model verifies retained-ID retry, guarded reopen rejection, balanced module references and lock coverage. Native compilation and hardware validation remain pending.
+
+Assisted-by: Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ .../kernel/busses/agp_gart/intel_gart.cpp        | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+index 18f5e6e8..281ef600 100644
+--- a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
++++ b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+@@ -284,6 +284,7 @@ struct intel_info {
+ 	addr_t		aperture_base;
+ 	phys_addr_t	aperture_physical_base;
+ 	area_id		aperture_area;
++	bool		aperture_created;
+ 	size_t		aperture_size;
+ 	size_t		aperture_stolen_size;
+ 
+@@ -918,6 +919,13 @@ intel_create_aperture(uint8 bus, uint8 device, uint8 function, size_t size,
+ 			|| function != sInfo.display.function))
+ 		return B_BAD_VALUE;
+ 
++	// The backend is a singleton. A failed manager unmap retains its
++	// aperture and module reference; remapping here would overwrite that
++	// live state and reinitialize GGTT entries still owned by the old ID.
++	// The GART manager serializes create/delete with its global lock.
++	if (sInfo.aperture_created)
++		return B_BUSY;
++
+ 	sInfo.aperture_size = size;
+ 
+ 	if (intel_map(sInfo) < B_OK)
+@@ -953,15 +961,21 @@ intel_create_aperture(uint8 bus, uint8 device, uint8 function, size_t size,
+ 
+ 	asm("wbinvd;");
+ 
++	// Failed map/PTE initialization must never publish singleton ownership.
++	sInfo.aperture_created = true;
+ 	*_aperture = NULL;
+ 	return B_OK;
+ }
+ 
+ 
+ void
+-intel_delete_aperture(void* aperture)
++intel_delete_aperture(void* /*aperture*/)
+ {
++	if (!sInfo.aperture_created)
++		return;
++
+ 	intel_unmap(sInfo);
++	sInfo.aperture_created = false;
+ }
+ 
+ 
+-- 
+2.43.0
+

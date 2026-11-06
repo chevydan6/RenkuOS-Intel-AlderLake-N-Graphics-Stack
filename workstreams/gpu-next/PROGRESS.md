@@ -54,3 +54,37 @@ Commit `1fee8aaa` rejects zero and `size_t` requests greater than `UINT32_MAX` i
 `memory-size-host.py` exercises the actual function with 111 sanitized boundary/failure cases, including 100 oversized values with nonzero low bits. The baseline fails 104 assertions. `--emit-cpp PATH` emits the standalone native fixture. Platform status macros are preserved when present, avoiding conflicts with Haiku `errno.h`; host compilation also passes when preexisting Haiku-style status macros are supplied.
 
 Parent reported native driver compilation succeeded; complete native fixture validation remains with the parent. No hardware acceleration or managed-buffer support is claimed.
+
+## Third checkpoint: preserve retained Intel aperture state
+
+Commit `50691f19` adds a private Intel backend singleton-ownership flag. If GART unmap fails, the old registry object, allocations, mappings and module reference survive. Previously a normal reopen could overwrite that retained singleton and initialize its GGTT again. A second creation now returns `B_BUSY` before changing any state, mapping or PTE. Ownership is published only after complete initialization and cleared after deletion; failed initial map/PTE initialization remains retryable. The shared ABI, legacy graphics callback cookie and managed API are unchanged.
+
+Validation:
+
+- Ten tests execute actual Intel create/delete function bodies, with only hardware/mapping callbacks and the privileged cache instruction mocked. They cover initial failure, partial PTE setup failure, rejection without side effects, later cleanup/recreation, unrelated PCI devices and repeated deletion. Sanitizers pass; the old source fails seven assertions.
+- A separate test executes actual generic GART map/unmap bodies against a simulated singleton backend. It verifies retained-ID retry, module references and global/per-aperture lock coverage; its guarded-backend mode rejects reopen and permits recreation after cleanup. Unguarded mode reproduces the old duplicate-backend creation hazard.
+- Native compilation is pending for `intel_gart`; the parent coordinates it. Recovery/adoption of a retained aperture ID remains separate work. No modern GPU commands or hardware rendering are enabled.
+
+```sh
+python3 gpu-driver/workstreams/gpu-next/intel-singleton-aperture-host.py source/gpu-next-worktree/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+python3 gpu-driver/workstreams/gpu-next/gart-retained-aperture-host.py source/gpu-next-worktree/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp --guarded-backend
+```
+
+Both generators support `--emit-cpp PATH` for native compiler validation. The manager test models locking assertions and references; it is not a concurrent kernel stress test or actual module-unload test.
+
+## Fourth checkpoint: manager metadata allocation failure
+
+Commit `f01e0b78` checks the nothrow `Aperture` allocation in generic GART `map_aperture()`. If it fails after backend creation, the manager deletes the new backend while still holding its module reference, drops that reference, and returns `B_NO_MEMORY` with no registry object. This is six production lines; no callback, ownership-recovery API or submission change.
+
+The actual-manager fixture now injects class-specific metadata allocation failure and metadata initialization failure, with strict backend-delete/module-reference ordering checks. Its guarded-backend mode passes 13 cases under ASAN/UBSAN with exceptions and RTTI disabled. Running it against the prior manager reproduces a sanitizer-detected null-pointer member access on metadata OOM. Native compilation is pending for `agp_gart`; the parent owns that build window.
+
+## Parent native validation: build 062
+
+All four checkpoints above now compile in the matching RenkuOS x86_64 build
+VM. The native fixtures pass 116 allocation-ioctl cases, 111 allocation-size
+cases, 10 Intel singleton cases, and 13 generic GART lifecycle/OOM cases.
+The host finalizer verifies the source manifest, linked module formats and
+expected dependencies for intel_gart, agp_gart, intel_extreme and its accelerant.
+This supersedes the pending-native notes above. These memory changes have not
+been installed on the physical laptop, and no command submission or rendering
+acceleration is enabled. The physical laptop remains on GPU cleanup build 057.
