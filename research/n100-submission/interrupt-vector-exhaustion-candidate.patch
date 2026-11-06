@@ -1,0 +1,11 @@
+--- a/src/system/kernel/interrupts.cpp
++++ b/src/system/kernel/interrupts.cpp
+@@ -641,7 +641,7 @@
+ 	MutexLocker locker(&sIOInterruptVectorAllocationLock);
+ 
+ 	int32 vector = 0;
+-	bool runFound = true;
++	bool runFound = false;
+ 	for (int32 i = 0; i < NUM_IO_VECTORS - (count - 1); i++) {
+ 		if (sAllocatedIOInterruptVectors[i])
+ 			continue;

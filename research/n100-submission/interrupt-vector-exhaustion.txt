@@ -1,0 +1,57 @@
+Interrupt vector exhaustion: kernel prerequisite for Intel MSI validation
+
+Pinned source: f01e0b782747076cb18d6c9f7952bcc358ee87e8
+Function: src/system/kernel/interrupts.cpp allocate_io_interrupt_vectors.
+Direct GPU dependency: x86/msi.cpp msi_allocate_vectors calls this function;
+Intel driver PCI configure_msi reaches this path. A duplicate vector assignment
+can invalidate the ownership assumptions required for callback lifetime testing.
+
+REPRODUCTION
+Actual production allocator extracted unchanged; external storage and mutex modeled.
+Eight slots, all256 occupancy maps, each valid contiguous request size1..8:
+2048 cases. Verify first-fit selection, output sentinel on failure, allocation map,
+vector type/assignment pointers and CPU-assignment metadata, including occupied slots.
+Baseline has255 failures. In particular occupancy0xff,count1 returnsB_OK,vector0
+and overwrites allocated metadata. No native kernel or physical fault was injected.
+
+CAUSE AND CANDIDATE
+runFound starts true. If every eligible starting slot is occupied, the loop only
+continues, so no candidate was examined but success is still reported at vector0.
+Initialize runFound=false; it becomes true only after finding an unoccupied start.
+Candidate passes all2048 cases, with rejected output/storage unchanged. Candidate:
+research/n100-submission/interrupt-vector-exhaustion-candidate.patch.
+This patch is intentionally outside production patches/ and has NOT been applied
+to the source worktree, built into a kernel or deployed.
+
+EVIDENCE
+/home/dan/renkuos-development/testing/irq-vector-001/
+interrupts-before.cpp, interrupts-candidate.cpp, before.log, candidate.log,
+results.json (source, candidate and fixture hashes).
+Reproduce:
+python3 workstreams/gpu-next/irq-vector-host.py <snapshot.cpp>
+Original exits2; candidate exits0. Tests cover valid positive counts and a non-null
+output. Mutex is a stub; no concurrency, architecture routing, full-size hardware
+vector space or kernel export/linkage evidence follows from this host fixture.
+
+REQUIRED NEXT CHECKPOINTS
+Independent Terra review/reproduction, source provenance and applicable kernel
+build procedure, a full kernel compilation, isolated boot and native validation.
+Verify the runtime kernel corresponds to the reviewed source; source inspection
+alone does not prove the currently installed kernel has this implementation.
+Do not stage the candidate as an ordinary GPU component patch: the current native
+component bundle neither exports nor compiles src/system/kernel/interrupts.cpp.
+Do not use reserve_io_interrupt_vectors as a speculative fallback: overlap panics,
+and its documented contract is hardwired vectors, not searching for free vectors.
+
+SYNTHETIC IRQ TEST HOLD
+Terra identified another design constraint: callback and remover can occupy both
+vCPUs while spinning with interrupts disabled, starving a third controller. Need
+bounded callback timeout and verified affinity/sufficient CPUs or another proven
+non-deadlocking test schedule. Also check private symbol exports and unconditional
+arch_debug_remove_interrupt_handler side effects. No native IRQ stress authorized
+by this host result. Known-working057 display/recovery image remains untouched.
+
+CURRENT GPU STATUS
+089 remains last native component milestone; no new driver change this checkpoint.
+0088 private-state source/host review accepted, callback drain and sem lifetime open.
+No new native compilation, VM test, physical GPU execution or acceleration proof.
