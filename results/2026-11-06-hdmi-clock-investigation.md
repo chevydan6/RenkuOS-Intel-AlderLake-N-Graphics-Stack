@@ -225,3 +225,10 @@ counts. Consequently it must not be wired into real modesetting until those
 requirements, pipe programming, ordering, failure handling, and concurrent
 access are resolved and verified. In particular, an AUX well alone is not
 evidence that the display engine is ready.
+
+Bundle `renku-040`, containing patches through 41, compiled in a disposable
+RenkuOS VM; native component tests and host artifact finalization passed, and
+the VM shut down cleanly. The new firmware input gate and shared-layout
+compatibility checks also passed host tests. The output sequence was exercised
+only against mock registers; the VM did not load the built driver or access
+the laptop GPU.
