@@ -1,0 +1,43 @@
+From 1fee8aaa172273473c42092e256b73fdf14054cb Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 21:06:17 +0900
+Subject: [PATCH] intel_extreme: reject allocation sizes that exceed the ioctl
+ ABI
+
+The accelerant accepts size_t but the private graphics allocation request carries a uint32 size. Reject zero and oversized requests before narrowing so a large buffer cannot silently become a smaller allocation. Preserve the caller output address on rejected requests.
+
+Tested 111 actual-function size-boundary cases with address and undefined-behavior sanitizers and no exceptions or RTTI. The prior source fails 104 truncation/boundary assertions. Native compilation remains pending.
+
+Assisted-by: Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ src/add-ons/accelerants/intel_extreme/memory.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/memory.cpp b/src/add-ons/accelerants/intel_extreme/memory.cpp
+index 731b972b..c5adcf03 100644
+--- a/src/add-ons/accelerants/intel_extreme/memory.cpp
++++ b/src/add-ons/accelerants/intel_extreme/memory.cpp
+@@ -11,6 +11,7 @@
+ #include "intel_extreme.h"
+ 
+ #include <errno.h>
++#include <stdint.h>
+ #include <unistd.h>
+ 
+ 
+@@ -44,6 +45,11 @@ intel_free_memory(addr_t base)
+ status_t
+ intel_allocate_memory(size_t size, uint32 flags, addr_t &base)
+ {
++	// The private ioctl carries a 32-bit size even on x86_64. Reject
++	// requests that would wrap into a smaller allocation before narrowing.
++	if (size == 0 || size > UINT32_MAX)
++		return B_BAD_VALUE;
++
+ 	intel_allocate_graphics_memory allocMemory;
+ 	allocMemory.magic = INTEL_PRIVATE_DATA_MAGIC;
+ 	allocMemory.size = size;
+-- 
+2.43.0
+

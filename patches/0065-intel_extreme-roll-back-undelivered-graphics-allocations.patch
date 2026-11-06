@@ -1,0 +1,62 @@
+From 7cba95852b3300e34448570bfed52b77f4d0bcb3 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 21:03:18 +0900
+Subject: [PATCH] intel_extreme: roll back undelivered graphics allocations
+
+Reject short allocation and free requests before accessing user memory. If a successful allocation cannot be returned to the caller, release it through normal GART teardown rather than leaking its aperture range and backing pages. Propagate teardown failure while leaving GART tracking intact.
+
+Tested with 116 production-case host fault-injection checks under address and undefined-behavior sanitizers, including repeated failed deliveries and teardown failure. The baseline fails 106 regression assertions. Native driver compilation and physical validation remain pending.
+
+Assisted-by: Codex
+Signed-off-by: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+---
+ .../drivers/graphics/intel_extreme/device.cpp | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp
+index 404f00ea..48aea769 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp
+@@ -319,6 +319,9 @@ device_ioctl(void* data, uint32 op, void* buffer, size_t bufferLength)
+ 		// graphics mem manager
+ 		case INTEL_ALLOCATE_GRAPHICS_MEMORY:
+ 		{
++			if (bufferLength < sizeof(intel_allocate_graphics_memory))
++				return B_BAD_VALUE;
++
+ 			intel_allocate_graphics_memory allocMemory;
+ 			if (user_memcpy(&allocMemory, buffer,
+ 					sizeof(intel_allocate_graphics_memory)) < B_OK)
+@@ -333,14 +336,28 @@ device_ioctl(void* data, uint32 op, void* buffer, size_t bufferLength)
+ 			if (status == B_OK) {
+ 				// copy result
+ 				if (user_memcpy(buffer, &allocMemory,
+-						sizeof(intel_allocate_graphics_memory)) < B_OK)
++						sizeof(intel_allocate_graphics_memory)) < B_OK) {
++					// The caller did not receive ownership of this allocation.
++					// Use the normal GART teardown so bound pages are never
++					// released before their mappings have been removed.
++					status_t cleanup = intel_free_memory(*info,
++						allocMemory.buffer_base);
++					if (cleanup < B_OK) {
++						ERROR("graphics allocation copyout rollback failed; "
++							"retaining GART backing\n");
++						return cleanup;
++					}
+ 					return B_BAD_ADDRESS;
++				}
+ 			}
+ 			return status;
+ 		}
+ 
+ 		case INTEL_FREE_GRAPHICS_MEMORY:
+ 		{
++			if (bufferLength < sizeof(intel_free_graphics_memory))
++				return B_BAD_VALUE;
++
+ 			intel_free_graphics_memory freeMemory;
+ 			if (user_memcpy(&freeMemory, buffer,
+ 					sizeof(intel_free_graphics_memory)) < B_OK)
+-- 
+2.43.0
+
