@@ -44,8 +44,15 @@ Physical USB test 004: the running accelerant matched the native build hash,
 and the candidate kernel driver and GART were loaded. The driver read EDID
 successfully from DDI G at `0x4005038` and listed it as a connected second
 port; previously the read at `0x4005030` failed. The log reports DDI G
-enabled. The HDMI picture and sustained stability require independent
-confirmation; this is not evidence of 2D or 3D GPU acceleration.
+enabled. These log entries alone are not evidence of a usable picture or of
+2D or 3D GPU acceleration.
+
+The user subsequently confirmed that the RenkuOS desktop is visible through
+NanoKVM over HDMI. `screenmode` reported 1920×1080, 24 bits and 60 Hz; the
+display log shows 1920×1080 programmed on DDI G. SSH remained available after
+approximately 18 minutes of uptime. This establishes initial physical HDMI
+output, not repeated-boot or long-term stability, independent monitor
+compatibility, or GPU rendering acceleration.
 
 The test image's existing `ScreenSaver_settings` could not be unflattened as
 a BMessage. It was backed up as `ScreenSaver_settings.before-gpu-test`, then
