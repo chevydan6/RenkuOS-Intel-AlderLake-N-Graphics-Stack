@@ -1,0 +1,124 @@
+// SPDX-License-Identifier: MIT
+#include "IntelApertureLeaseState.h"
+#include <cassert>
+#include <chrono>
+#include <condition_variable>
+#include <cstdio>
+#include <mutex>
+#include <thread>
+
+using Owner = IntelApertureLeaseState;
+
+static uint64_t
+Initialize(Owner& owner)
+{
+	uint64_t lease = 0;
+	assert(owner.BeginInitialization(lease) == Owner::Success && lease != 0);
+	assert(owner.Release(lease) == Owner::Busy);
+	assert(owner.FinishInitialization(lease, true) == Owner::Success);
+	return lease;
+}
+
+int
+main()
+{
+	// Initialization failure, last-close retention and explicit idle evidence.
+	{
+		Owner owner;
+		uint64_t display = 0, request = 91;
+		assert(owner.BeginInitialization(display) == Owner::Success);
+		assert(owner.AcquireRequest(request) == Owner::Busy && request == 91);
+		assert(owner.FinishInitialization(display, false) == Owner::Success);
+		assert(owner.Release(display) == Owner::Success);
+		assert(owner.BeginInitialization(request) == Owner::Busy);
+		assert(owner.BeginCleanup(false, true) == Owner::Busy);
+		assert(owner.BeginCleanup(true, false) == Owner::Busy);
+		assert(owner.BeginCleanup(true, true) == Owner::Success);
+		assert(owner.FinishCleanup(false) == Owner::Success);
+		assert(owner.CurrentState() == Owner::Quarantined);
+		assert(owner.BeginCleanup(true, true) == Owner::Busy);
+		assert(owner.BeginInitialization(request) == Owner::Busy);
+	}
+	// Failed owned allocation blocks diagnostic admission, preserving display
+	// cleanup; released cookies and operation tickets cannot be replayed.
+	{
+		Owner owner;
+		uint64_t display = Initialize(owner), request = 0, next = 91;
+		assert(owner.AcquireRequest(request) == Owner::Success);
+		assert(owner.AcquireRequest(next) == Owner::Busy && next == 91);
+		Owner::Operation failed, cleanup;
+		assert(owner.BeginOperation(display, Owner::Allocate, failed) == Owner::Success);
+		assert(owner.EndOperation(failed, true) == Owner::Success);
+		assert(!owner.DiagnosticAllowed());
+		assert(owner.BeginOperation(request, Owner::Allocate, failed) == Owner::Busy);
+		assert(owner.BeginOperation(display, Owner::Free, cleanup) == Owner::Success);
+		assert(owner.Release(display) == Owner::Success);
+		assert(owner.Release(display) == Owner::Invalid);
+		assert(owner.Release(request) == Owner::Success);
+		assert(owner.BeginCleanup(true, true) == Owner::Busy);
+		assert(owner.EndOperation(cleanup, false) == Owner::Success);
+		assert(owner.EndOperation(cleanup, false) == Owner::Invalid);
+		assert(owner.BeginOperation(display, Owner::Free, cleanup) == Owner::Invalid);
+		assert(owner.BeginCleanup(true, true) == Owner::Success);
+		assert(owner.BeginCleanup(true, true) == Owner::Busy);
+		assert(owner.FinishCleanup(true) == Owner::Success);
+		uint64_t recreated = Initialize(owner);
+		assert(recreated != display && recreated != request);
+		assert(owner.Release(display) == Owner::Invalid);
+		assert(owner.BeginOperation(request, Owner::Query, cleanup) == Owner::Invalid);
+	}
+	// Admission is externally mutex protected. Release between operation pin
+	// and backend return must neither allow cleanup nor permit a same-boot reopen.
+	for (unsigned round = 0; round < 100; round++) {
+		Owner owner;
+		std::mutex mutex;
+		std::condition_variable changed;
+		bool entered = false, released = false;
+		uint64_t display = Initialize(owner);
+		std::thread operation([&] {
+			Owner::Operation ticket;
+			{
+				std::unique_lock<std::mutex> lock(mutex);
+				assert(owner.BeginOperation(display, Owner::Allocate, ticket) == Owner::Success);
+				entered = true;
+				changed.notify_all();
+				assert(changed.wait_for(lock, std::chrono::seconds(5), [&] { return released; }));
+			}
+			// A real backend call returns here, outside the owner mutex.
+			std::lock_guard<std::mutex> lock(mutex);
+			assert(owner.EndOperation(ticket, true) == Owner::Success);
+			assert(!owner.DiagnosticAllowed());
+		});
+		{
+			std::unique_lock<std::mutex> lock(mutex);
+			assert(changed.wait_for(lock, std::chrono::seconds(5), [&] { return entered; }));
+			assert(owner.Release(display) == Owner::Success);
+			uint64_t unused = 73;
+			assert(owner.BeginInitialization(unused) == Owner::Busy && unused == 73);
+			assert(owner.BeginCleanup(true, true) == Owner::Busy);
+			released = true;
+		}
+		changed.notify_all();
+		operation.join();
+		assert(owner.BeginCleanup(true, true) == Owner::Success);
+		assert(owner.FinishCleanup(true) == Owner::Success);
+	}
+	// A single cleanup winner even when two final releases contend.
+	{
+		Owner owner;
+		uint64_t display = Initialize(owner);
+		std::mutex mutex;
+		unsigned winners = 0;
+		auto close = [&] {
+			std::lock_guard<std::mutex> lock(mutex);
+			if (owner.Release(display) == Owner::Success) {
+				assert(owner.BeginCleanup(true, true) == Owner::Success);
+				winners++;
+			}
+		};
+		std::thread first(close), second(close);
+		first.join(); second.join();
+		assert(winners == 1 && owner.CurrentState() == Owner::Closing);
+	}
+	puts("Lease transitions and 100 close/operation races passed (host state only)");
+}
