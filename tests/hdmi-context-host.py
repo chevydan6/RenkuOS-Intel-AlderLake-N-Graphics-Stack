@@ -8,6 +8,8 @@ header=header.replace('enum { B_OK=0, B_BAD_VALUE=-1,','enum {')
 header=header.replace('#include <cstddef>','#include <SupportDefs.h>\n#include <cstddef>')
 header=header.replace('pll_info pll_info;','struct pll_info pll_info;')
 header=header.replace('gpu_pci_revision;','gpu_pci_revision, display_pipe_leases, display_power_references[9], display_power_owned_requests;')
+header=header.replace('struct intel_shared_info {', 'struct display_mode {unsigned virtual_width,virtual_height;};\nstruct intel_shared_info { display_mode current_mode; uint32 frame_buffer_offset,bytes_per_row,bits_per_pixel,graphics_memory_size; void* frame_buffer;void* graphics_memory;')
+header=header.replace('#include <SupportDefs.h>','#include <SupportDefs.h>\nusing addr_t=uintptr_t;')
 with tempfile.TemporaryDirectory() as d:
  p=pathlib.Path(d)
  (p/'intel_extreme.h').write_text(header)

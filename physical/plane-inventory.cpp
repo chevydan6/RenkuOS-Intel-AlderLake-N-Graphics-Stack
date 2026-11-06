@@ -43,7 +43,12 @@ static int Inventory(const intel_shared_info& info,const RegisterView& regs) {
   if((main&need)!=need){printf("pipe%u skipped: unpowered\n",pipe);continue;}
   printf("pipe%u\n",pipe);uint32 delta=pipe*0x1000;
   regs.Print("PIPECONF",0x70008+delta);
+  regs.Print("UNDERRUN_DBG1",0x70064+delta);
   regs.Print("MBUS_DBOX",0x7003c+delta);
+  for(unsigned scaler=0;scaler<2;scaler++) {
+   uint32 control=0x68180+pipe*0x800+scaler*0x100;
+   regs.Print("PS_CTRL",control);regs.Print("PS_WIN_POS",control-0x10);regs.Print("PS_WIN_SIZE",control-0xc);
+  }
   regs.Print("TRANS_FUNC",0x60400+delta);
   regs.Print("DATA_M1",0x60030+delta);regs.Print("DATA_N1",0x60034+delta);
   regs.Print("LINK_M1",0x60040+delta);regs.Print("LINK_N1",0x60044+delta);

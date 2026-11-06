@@ -1,0 +1,191 @@
+From 7b8a2e4edc6254d7b78e8d4ae50dd2b8c023b8a7 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:56:10 +0900
+Subject: [PATCH] intel_extreme: plan bounded matching-mode desktop clone
+
+---
+ .../intel_extreme/AlderLakePlaneClone.h       | 172 ++++++++++++++++++
+ 1 file changed, 172 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h b/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
+new file mode 100644
+index 00000000..dee4e6c8
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
+@@ -0,0 +1,172 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_PLANE_CLONE_H
++#define INTEL_EXTREME_ALDER_LAKE_PLANE_CLONE_H
++#include <SupportDefs.h>
++#include <stddef.h>
++
++struct AlderLakeCloneInput {
++	uint32 sourceControl, sourceColor, sourceStride, sourcePosition, sourceSize, sourceOffset,
++		sourceSurface;
++	uint32 sourceWm0, sourceSagv;
++	uint32 sourceHTotal, targetHTotal, sourceVTotal, targetVTotal, sourcePipeSize;
++	// Verified conservative clock bounds, not the requested mode alone.
++	uint32 sourcePixelFloorKHz, targetPixelCeilKHz;
++	uint32 frameBufferOffset, allocationBytes, apertureBytes, width, height, bytesPerRow;
++	uint32 mbusControl, poweredSlices, activePipes, ddb[32], ddbCount;
++};
++struct AlderLakeClonePlan {
++	uint32 control, color, stride, position, size, offset, surface, pipeSize, ddb, wm0, sagv;
++	uint32 minimumBlocks;
++};
++static inline uint64 CloneCeil(uint64 n, uint64 d)
++{
++	return n / d + (n % d != 0);
++}
++
++// Linux icl_ddi_combo_pll_get_freq, including display12+ 38.4MHz fractional
++// doubling workaround. Floor intermediate clocks deliberately: the result
++// underestimates source rate, making subsequent target/source bounds safe.
++static inline status_t DecodeAlderLakeComboPixelFloor(
++	uint32 cfg0, uint32 cfg1, uint32 refKHz, uint32 linkM, uint32 linkN, uint32* pixelFloorKHz)
++{
++	if (!pixelFloorKHz || !linkM || !linkN || linkM > 0xffffff || linkN > 0xffffff
++		|| (refKHz != 19200 && refKHz != 24000 && refKHz != 38400))
++		return B_BAD_VALUE;
++	unsigned p, k;
++	switch ((cfg1 >> 2) & 15) {
++	case 1:
++		p = 2;
++		break;
++	case 2:
++		p = 3;
++		break;
++	case 4:
++		p = 5;
++		break;
++	case 8:
++		p = 7;
++		break;
++	default:
++		return B_BAD_VALUE;
++	}
++	switch ((cfg1 >> 6) & 7) {
++	case 1:
++		k = 1;
++		break;
++	case 2:
++		k = 2;
++		break;
++	case 4:
++		k = 3;
++		break;
++	default:
++		return B_BAD_VALUE;
++	}
++	unsigned q = (cfg1 & 0x200) ? ((cfg1 >> 10) & 255) : 1;
++	if (!q)
++		return B_BAD_VALUE;
++	uint64 fraction = (cfg0 >> 10) & 0x7fff, integer = cfg0 & 0x3ff;
++	if (refKHz == 38400) {
++		refKHz = 19200;
++		fraction *= 2;
++	}
++	uint64 dco = (integer * 32768 + fraction) * refKHz / 32768;
++	if (dco < 7998000 || dco > 10000000)
++		return B_BAD_VALUE;
++	uint64 symbol = dco / (p * q * k * 5), pixel = symbol * linkM / linkN;
++	if (pixel < 25000 || pixel > 600000)
++		return B_BAD_VALUE;
++	*pixelFloorKHz = (uint32)pixel;
++	return B_OK;
++}
++
++// Conservative envelope of Linux skl_wm_method1/method2 for identical linear
++// RGB8 geometry. Method2 rounds consumption UP to whole lines, so scaling only
++// the old block count is unsafe. Bound both latency methods independently,
++// including the method1 +1 and final block guard. No latency is invented.
++static inline status_t BoundAlderLakeCloneWatermark(uint32 oldWm, uint32 width, uint32 htotal,
++	uint32 sourceFloor, uint32 targetCeil, uint32* wm, uint32* minimum)
++{
++	if (!wm || !minimum || !sourceFloor || targetCeil < 25000 || targetCeil > 165001
++		|| sourceFloor < 25000 || sourceFloor > 600000 || !width || width > 4096 || htotal < width
++		|| htotal > 8192 || (oldWm & ~0x803fdfffU) || (oldWm & 0x80000000U) == 0)
++		return B_BAD_VALUE;
++	uint64 blocks = oldWm & 0x1fff, lines = (oldWm >> 14) & 255;
++	uint64 perLine = CloneCeil((uint64)width * 4, 512) + 1;
++	if (blocks < perLine || blocks < 2 || !lines)
++		return B_BAD_VALUE;
++	// Source method1 implies latency*pixels <= (blocks-2)*512/4.
++	// Source method2 implies latency*pixels <= lines*htotal.
++	uint64 latencyPixelsA = (blocks - 2) * 512 / 4;
++	uint64 latencyPixelsB = lines * htotal;
++	uint64 latencyPixels = latencyPixelsA > latencyPixelsB ? latencyPixelsA : latencyPixelsB;
++	uint64 method1 = CloneCeil(latencyPixels * targetCeil * 4, (uint64)sourceFloor * 512) + 1;
++	uint64 lineCount = CloneCeil(latencyPixels * targetCeil, (uint64)sourceFloor * htotal);
++	uint64 method2 = lineCount * perLine;
++	uint64 selected = method1 > method2 ? method1 : method2;
++	uint64 nextBlocks = selected + 1, nextLines = CloneCeil(selected, perLine);
++	if (nextBlocks < perLine)
++		nextBlocks = perLine;
++	if (nextBlocks > 0x1fff || nextLines > 255)
++		return B_BAD_VALUE;
++	uint64 minBlocks = nextBlocks + CloneCeil(nextBlocks, 10) + 1;
++	if (minBlocks > 2048)
++		return B_BAD_VALUE;
++	*wm = 0x80000000U | ((uint32)nextLines << 14) | (uint32)nextBlocks;
++	*minimum = (uint32)minBlocks;
++	return B_OK;
++}
++
++static inline status_t BuildAlderLakeClonePlan(
++	const AlderLakeCloneInput& in, AlderLakeClonePlan* out)
++{
++	if (!out || in.width != 1920 || in.height != 1080 || in.bytesPerRow != 7680
++		|| in.activePipes != 3 || in.poweredSlices != 15 || (in.mbusControl & 0xc0000000U)
++		|| in.ddbCount > 32 || !in.ddbCount || in.sourceHTotal != in.targetHTotal
++		|| in.sourceVTotal != in.targetVTotal || in.sourcePosition || in.sourceOffset
++		|| in.sourceStride != in.bytesPerRow / 64 || in.sourceSurface != in.frameBufferOffset
++		|| (in.frameBufferOffset & 4095) || in.frameBufferOffset > in.apertureBytes
++		|| in.allocationBytes > in.apertureBytes - in.frameBufferOffset
++		|| (uint64)in.bytesPerRow * in.height > in.allocationBytes
++		|| (in.sourceControl & 0x8f800000U) != 0x84000000U || (in.sourceControl & ~0xff800000U) != 8
++		|| in.sourceColor != 0x2000)
++		return B_BAD_VALUE;
++	uint32 size = ((in.height - 1) << 16) | (in.width - 1),
++		   pipeSize = ((in.width - 1) << 16) | (in.height - 1);
++	if (in.sourceSize != size || in.sourcePipeSize != pipeSize)
++		return B_BAD_VALUE;
++	// ADLP descriptor4096 blocks/four1024-block slices; A+B routing reserves
++	// S1/S2 to A and S3/S4 to B. Preserve the complete existing A allocation.
++	unsigned existing = 0;
++	for (unsigned i = 0; i < in.ddbCount; i++) {
++		if (in.ddb[i] == 0)
++			continue;
++		if (in.ddb[i] != 0x07ff0000U || ++existing > 1)
++			return B_BUSY;
++	}
++	if (existing != 1)
++		return B_BAD_VALUE;
++	AlderLakeClonePlan plan = { };
++	uint32 m0, ms;
++	status_t s = BoundAlderLakeCloneWatermark(in.sourceWm0, in.width, (in.sourceHTotal >> 16) + 1,
++		in.sourcePixelFloorKHz, in.targetPixelCeilKHz, &plan.wm0, &m0);
++	if (s != B_OK)
++		return s;
++	s = BoundAlderLakeCloneWatermark(in.sourceSagv, in.width, (in.sourceHTotal >> 16) + 1,
++		in.sourcePixelFloorKHz, in.targetPixelCeilKHz, &plan.sagv, &ms);
++	if (s != B_OK)
++		return s;
++	plan.minimumBlocks = m0 > ms ? m0 : ms;
++	plan.control = in.sourceControl;
++	plan.color = in.sourceColor;
++	plan.stride = in.sourceStride;
++	plan.position = 0;
++	plan.size = size;
++	plan.offset = 0;
++	plan.surface = in.frameBufferOffset;
++	plan.pipeSize = pipeSize;
++	plan.ddb = 0x0fff0800U;
++	*out = plan;
++	return B_OK;
++}
++#endif
+-- 
+2.43.0
+

@@ -1,0 +1,806 @@
+From 48cabc93fc5db366c7d3713a76b8cec43e0de93c Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 20:07:25 +0900
+Subject: [PATCH] intel_extreme: integrate guarded primary desktop clone
+
+---
+ .../intel_extreme/AlderLakeCloneMmio.h        |  96 ++++++++
+ .../AlderLakeClonePlaneProgrammer.h           | 187 +++++++++++++++
+ .../intel_extreme/AlderLakeHdmiContext.h      | 212 +++++++++++++++++-
+ .../intel_extreme/AlderLakePlaneClone.h       |   8 +-
+ .../accelerants/intel_extreme/Ports.cpp       |  15 ++
+ src/add-ons/accelerants/intel_extreme/Ports.h |   2 +
+ .../accelerants/intel_extreme/accelerant.h    |   2 +-
+ .../accelerants/intel_extreme/dpms.cpp        |  27 ++-
+ .../accelerants/intel_extreme/mode.cpp        |  17 +-
+ 9 files changed, 541 insertions(+), 25 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h
+new file mode 100644
+index 00000000..dd7c8265
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h
+@@ -0,0 +1,96 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_CLONE_MMIO_H
++#define INTEL_EXTREME_ALDER_LAKE_CLONE_MMIO_H
++#include "AlderLakeTypeCBackend.h"
++#include <OS.h>
++// Existing validated BAR only. Reads require the caller's proven powered-pipe
++// mask. Writes are confined to pipe B's primary and its two scalers.
++class AlderLakeCloneMmio {
++public:
++	AlderLakeCloneMmio(volatile uint8* base, size_t size)
++		: fBase(base)
++		, fSize(size)
++		, fMask(0)
++	{
++	}
++	void SetPoweredPipes(uint32 mask)
++	{
++		fMask = mask & 15;
++	}
++	AlderLakeTypeCIO Ops()
++	{
++		AlderLakeTypeCIO io = { this, Read, Write, Pause };
++		return io;
++	}
++
++private:
++	bool Valid(uint32 o) const
++	{
++		return fBase && !(o & 3) && fSize >= 4 && o <= fSize - 4;
++	}
++	bool WriteAllowed(uint32 o) const
++	{
++		if (!(fMask & 2))
++			return false;
++		const uint32 offsets[] = { 0x6101c, 0x68980, 0x68974, 0x68a80, 0x68a74, 0x71180, 0x7119c,
++			0x71188, 0x7118c, 0x71190, 0x711a4, 0x711cc, 0x71240, 0x71244, 0x71248, 0x7124c,
++			0x71250, 0x71254, 0x71258, 0x7125c, 0x71268, 0x7127c };
++		for (unsigned i = 0; i < sizeof(offsets) / sizeof(offsets[0]); i++)
++			if (o == offsets[i])
++				return true;
++		return false;
++	}
++	bool ReadAllowed(uint32 o) const
++	{
++		if (o == 0x45404 || o == 0x45504 || o == 0x4438c || o == 0x45008 || o == 0x44fe8
++			|| o == 0x44300 || o == 0x44304 || o == 0x46010 || o == 0x164284 || o == 0x164288
++			|| o == 0x164b10 || o == 0x164280)
++			return true;
++		if (WriteAllowed(o))
++			return true;
++		for (unsigned pipe = 0; pipe < 4; pipe++) {
++			if (!(fMask & (1U << pipe)))
++				continue;
++			uint32 d = pipe * 0x1000;
++			if (o == 0x70008 + d || o == 0x70080 + d || o == 0x7017c + d || o == 0x70040 + d
++				|| o == 0x70064 + d || o == 0x60000 + d || o == 0x6000c + d || o == 0x6001c + d
++				|| o == 0x60040 + d || o == 0x60044 + d || o == 0x60400 + d || o == 0x7003c + d)
++				return true;
++			for (unsigned plane = 0; plane < 7; plane++) {
++				uint32 p = d + plane * 0x100;
++				if (o == 0x70180 + p || o == 0x7027c + p)
++					return true;
++			}
++			const uint32 primary[]
++				= { 0x701cc, 0x70188, 0x7018c, 0x70190, 0x701a4, 0x7019c, 0x70240, 0x70258 };
++			for (unsigned i = 0; i < sizeof(primary) / sizeof(primary[0]); i++)
++				if (o == primary[i] + d)
++					return true;
++		}
++		return false;
++	}
++	static status_t Read(void* p, uint32 o, uint32* v)
++	{
++		AlderLakeCloneMmio& m = *(AlderLakeCloneMmio*)p;
++		if (!v || !m.Valid(o) || !m.ReadAllowed(o))
++			return B_BAD_VALUE;
++		*v = *(volatile uint32*)(m.fBase + o);
++		return B_OK;
++	}
++	static status_t Write(void* p, uint32 o, uint32 v)
++	{
++		AlderLakeCloneMmio& m = *(AlderLakeCloneMmio*)p;
++		if (!m.Valid(o) || !m.WriteAllowed(o))
++			return B_BAD_VALUE;
++		*(volatile uint32*)(m.fBase + o) = v;
++		return B_OK;
++	}
++	static void Pause(void*)
++	{
++		snooze(10);
++	}
++	volatile uint8* fBase;
++	size_t fSize;
++	uint32 fMask;
++};
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h b/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
+new file mode 100644
+index 00000000..41c7e5db
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
+@@ -0,0 +1,187 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_CLONE_PLANE_PROGRAMMER_H
++#define INTEL_EXTREME_ALDER_LAKE_CLONE_PLANE_PROGRAMMER_H
++#include "AlderLakePlaneClone.h"
++#include "AlderLakeTypeCBackend.h"
++
++// Pipe B primary only. Caller owns the display/pipe lease and has validated the
++// complete free DDB inventory, framebuffer backing and matching source plan.
++// Pipe B must keep running until Restore() has disabled/latch-drained its plane.
++class AlderLakeClonePlaneProgrammer {
++public:
++	AlderLakeClonePlaneProgrammer(const AlderLakeTypeCIO& io, unsigned attempts)
++		: fIO(io)
++		, fAttempts(attempts)
++		, fChanged(0)
++		, fEnabled(false)
++		, fControl(0)
++		, fSurface(0)
++		, fUnderrunBefore(0)
++		, fUnderrunAfter(0)
++	{
++	}
++	status_t Apply(const AlderLakeClonePlan& p)
++	{
++		if (NeedsCleanup())
++			return B_BUSY;
++		if (!fIO.read || !fIO.write || !fIO.pause || !fAttempts || p.ddb != 0x0fff0800U
++			|| p.minimumBlocks > 2048 || p.stride != 120 || p.size != 0x0437077f
++			|| p.pipeSize != 0x077f0437 || p.color != 0x2000 || (p.surface & 4095)
++			|| p.control != 0x94000008U)
++			return B_BAD_VALUE;
++		status_t s = Read(0x71180, &fControl);
++		if (s != B_OK)
++			return s;
++		if (fControl & 0x80000000U)
++			return B_BUSY;
++		s = Read(0x7119c, &fSurface);
++		if (s != B_OK)
++			return s;
++		if (fSurface != p.surface)
++			return B_BAD_VALUE;
++		for (unsigned i = 0; i < 20; i++) {
++			s = Read(Offset(i), &fSaved[i]);
++			if (s != B_OK)
++				return s;
++		}
++		if (fSaved[19] != 0)
++			return B_BUSY;
++		s = Read(0x71064, &fUnderrunBefore);
++		if (s != B_OK)
++			return s;
++		uint32 values[20] = { p.pipeSize, fSaved[1] & ~0x80000000U, 0, fSaved[3] & ~0x80000000U, 0,
++			p.stride, p.position, p.size, p.offset, p.color, p.wm0, 0, 0, 0, 0, 0, p.sagv, 0, 0,
++			p.ddb };
++		for (unsigned i = 0; i < 20; i++) {
++			s = fIO.write(fIO.cookie, Offset(i), values[i]);
++			if (s != B_OK)
++				return Fail(s);
++			fChanged |= 1U << i;
++		}
++		// Linux skl_plane_update_arm: control immediately before surface, because
++		// enabling an initially disabled control can self-arm.
++		s = fIO.write(fIO.cookie, 0x71180, p.control);
++		if (s != B_OK)
++			return Fail(s);
++		fEnabled = true;
++		s = fIO.write(fIO.cookie, 0x7119c, p.surface);
++		if (s != B_OK)
++			return Fail(s);
++		s = WaitFrame();
++		if (s != B_OK)
++			return Fail(s);
++		uint32 value;
++		s = Read(0x71180, &value);
++		if (s != B_OK)
++			return Fail(s);
++		if (!(value & 0x80000000U))
++			return Fail(B_ERROR);
++		s = Read(0x71064, &fUnderrunAfter);
++		if (s != B_OK)
++			return Fail(s);
++		if ((fUnderrunAfter & ~fUnderrunBefore) & 0x3f3f3f3fU)
++			return Fail(B_ERROR);
++		return B_OK;
++	}
++	status_t Restore()
++	{
++		if (fEnabled) {
++			status_t s = fIO.write(fIO.cookie, 0x71180, fControl & ~0x80000000U);
++			if (s != B_OK)
++				return s;
++			s = fIO.write(fIO.cookie, 0x7119c, fSurface);
++			if (s != B_OK)
++				return s;
++			s = WaitFrame();
++			if (s != B_OK)
++				return s;
++			fEnabled = false;
++		}
++		for (unsigned n = 20; n > 5; n--) {
++			unsigned i = n - 1;
++			if (!(fChanged & (1U << i)))
++				continue;
++			status_t s = fIO.write(fIO.cookie, Offset(i), fSaved[i]);
++			if (s != B_OK)
++				return s;
++			fChanged &= ~(1U << i);
++		}
++		// Scaler control first, window size last to arm the saved configuration.
++		for (unsigned n = 2; n > 0; n--) {
++			unsigned i = n == 2 ? 3 : 1;
++			uint32 bits = (1U << i) | (1U << (i + 1));
++			if (!(fChanged & bits))
++				continue;
++			status_t s = fIO.write(fIO.cookie, Offset(i), fSaved[i]);
++			if (s != B_OK)
++				return s;
++			s = fIO.write(fIO.cookie, Offset(i + 1), fSaved[i + 1]);
++			if (s != B_OK)
++				return s;
++			fChanged &= ~bits;
++		}
++		if (fChanged & 1) {
++			status_t s = fIO.write(fIO.cookie, Offset(0), fSaved[0]);
++			if (s != B_OK)
++				return s;
++			fChanged &= ~1U;
++		}
++		return B_OK;
++	}
++	bool NeedsCleanup() const
++	{
++		return fEnabled || fChanged;
++	}
++	uint32 UnderrunBefore() const
++	{
++		return fUnderrunBefore;
++	}
++	uint32 UnderrunAfter() const
++	{
++		return fUnderrunAfter;
++	}
++
++private:
++	static uint32 Offset(unsigned i)
++	{
++		const uint32 offsets[20] = { 0x6101c, 0x68980, 0x68974, 0x68a80, 0x68a74, 0x71188, 0x7118c,
++			0x71190, 0x711a4, 0x711cc, 0x71240, 0x71244, 0x71248, 0x7124c, 0x71250, 0x71254,
++			0x71258, 0x7125c, 0x71268, 0x7127c };
++		return offsets[i];
++	}
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t s = fIO.read(fIO.cookie, offset, value);
++		return s == B_OK && *value == 0xffffffffU ? B_ERROR : s;
++	}
++	status_t WaitFrame()
++	{
++		uint32 before;
++		status_t s = Read(0x71040, &before);
++		if (s != B_OK)
++			return s;
++		for (unsigned i = 0; i < fAttempts; i++) {
++			uint32 value;
++			s = Read(0x71040, &value);
++			if (s != B_OK)
++				return s;
++			if (value != before)
++				return B_OK;
++			fIO.pause(fIO.cookie);
++		}
++		return B_TIMED_OUT;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t s = Restore();
++		return s == B_OK ? cause : s;
++	}
++	AlderLakeClonePlaneProgrammer(const AlderLakeClonePlaneProgrammer&);
++	AlderLakeClonePlaneProgrammer& operator=(const AlderLakeClonePlaneProgrammer&);
++	AlderLakeTypeCIO fIO;
++	unsigned fAttempts;
++	uint32 fChanged;
++	bool fEnabled;
++	uint32 fControl, fSurface, fSaved[20], fUnderrunBefore, fUnderrunAfter;
++};
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+index 2901e0b0..ec560e19 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+@@ -1,13 +1,16 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_CONTEXT_H
+ #define INTEL_EXTREME_ALDER_LAKE_HDMI_CONTEXT_H
++#include "AlderLakeCloneMmio.h"
++#include "AlderLakeClonePlaneProgrammer.h"
+ #include "AlderLakeHdmiFirmware.h"
+ #include "AlderLakeHdmiSequence.h"
+ #include "AlderLakeTypeCMmio.h"
+ 
+ // Per-port diagnostic raster context. All methods require accelerant_lock.
+-// Owns persistent pipe/port leases and shared power references. No planes are
+-// enabled and no framebuffer is fetched. Caller validates firmware, mapping,
++// Owns persistent pipe/port leases and shared power references. Raster start
++// enables no planes; an optional validated Finish stage clones the primary.
++// Caller validates firmware, mapping,
+ // mode flags and sink timing before construction.
+ class AlderLakeHdmiContext {
+ public:
+@@ -15,6 +18,7 @@ public:
+ 		const AlderLakeHdmiFirmware& firmware, unsigned pipe)
+ 		: fFirmware(firmware)
+ 		, fPipeIndex(pipe)
++		, fShared(shared)
+ 		, fMmio(base, bytes, firmware.tcPort, pipe, true)
+ 		, fIO(fMmio.Ops())
+ 		, fWell(WellOps(this), firmware.tcPort, 500)
+@@ -24,6 +28,11 @@ public:
+ 			  firmware.tcPort, pipe, 500)
+ 		, fPipe(fIO, pipe, 500)
+ 		, fSequence(fIO, fWell, fPortLease, firmware.tcPort, pipe, 500)
++		, fCloneMmio(base, bytes)
++		, fCloneIO(fCloneMmio.Ops())
++		, fClone(fCloneIO, 10000)
++		, fCloneRequested(false)
++		, fCloneAllocationBytes(0)
+ 		, fActive(false)
+ 		, fConfigured(false)
+ 		, fStopping(false)
+@@ -91,7 +100,10 @@ public:
+ 	status_t Stop()
+ 	{
+ 		fStopping = true;
+-		status_t s = fSequence.End();
++		status_t s = fClone.Restore();
++		if (s != B_OK)
++			return s;
++		s = fSequence.End();
+ 		if (s == B_OK) {
+ 			fActive = false;
+ 			fStopping = false;
+@@ -106,7 +118,10 @@ public:
+ 			return B_OK;
+ 		if (!fConfigured)
+ 			return B_ERROR;
+-		return Start(fTiming, fHSync, fVSync);
++		status_t status = Start(fTiming, fHSync, fVSync);
++		if (status == B_OK && fCloneRequested)
++			status = EnableClone(fCloneAllocationBytes);
++		return status;
+ 	}
+ 	bool IsActive() const
+ 	{
+@@ -114,20 +129,189 @@ public:
+ 	}
+ 	bool NeedsCleanup() const
+ 	{
+-		return fSequence.NeedsCleanup();
++		return fClone.NeedsCleanup() || fSequence.NeedsCleanup();
++	}
++	status_t EnableClone(uint32 allocationBytes)
++	{
++		fStage = "desktop validation";
++		if (!IsActive() || fPipeIndex != 1 || fClone.NeedsCleanup())
++			return B_BUSY;
++		uint32 main, dc;
++		status_t status = fIO.read(fIO.cookie, 0x45404U, &main);
++		if (status != B_OK)
++			return status;
++		status = fIO.read(fIO.cookie, 0x45504U, &dc);
++		if (status != B_OK || dc != 0 || main == 0xffffffffU)
++			return B_BUSY;
++		uint32 powered = 0;
++		for (unsigned pipe = 0; pipe < 4; pipe++) {
++			uint32 state = 1U << (2 * (pipe + 5));
++			if ((main & (state | 1U)) == (state | 1U))
++				powered |= 1U << pipe;
++		}
++		if ((powered & 3) != 3)
++			return B_BUSY;
++		fCloneMmio.SetPoweredPipes(powered);
++		// Wait for the source surface/stride update from this modeset to latch.
++		status = WaitSourceFrame();
++		if (status != B_OK)
++			return status;
++		const display_mode& mode = fShared.current_mode;
++		if (fShared.bits_per_pixel != 32 || mode.virtual_width != 1920
++			|| mode.virtual_height != 1080 || fShared.bytes_per_row != 7680
++			|| allocationBytes != 7680U * 1080U || !fShared.frame_buffer
++			|| (addr_t)fShared.frame_buffer < (addr_t)fShared.graphics_memory
++			|| (addr_t)fShared.frame_buffer - (addr_t)fShared.graphics_memory
++				!= fShared.frame_buffer_offset)
++			return B_BAD_VALUE;
++		AlderLakeCloneInput in = { };
++		in.frameBufferOffset = fShared.frame_buffer_offset;
++		in.allocationBytes = allocationBytes;
++		in.apertureBytes = fShared.graphics_memory_size;
++		in.width = 1920;
++		in.height = 1080;
++		in.bytesPerRow = fShared.bytes_per_row;
++		in.targetPixelCeilKHz = fFirmware.pixelClockKHz + 1;
++		fStage = "desktop source plane";
++		const uint32 offsets[] = { 0x70180, 0x701cc, 0x70188, 0x7018c, 0x70190, 0x701a4, 0x7019c,
++			0x70240, 0x70258, 0x60000, 0x61000, 0x6000c, 0x6100c, 0x6001c };
++		uint32* fields[] = { &in.sourceControl, &in.sourceColor, &in.sourceStride,
++			&in.sourcePosition, &in.sourceSize, &in.sourceOffset, &in.sourceSurface, &in.sourceWm0,
++			&in.sourceSagv, &in.sourceHTotal, &in.targetHTotal, &in.sourceVTotal, &in.targetVTotal,
++			&in.sourcePipeSize };
++		for (unsigned i = 0; i < B_COUNT_OF(offsets); i++) {
++			status = CloneRead(offsets[i], fields[i]);
++			if (status != B_OK)
++				return status;
++		}
++		fStage = "desktop clock proof";
++		uint32 cfg0, cfg1, pll, ssc, m, n, clock, trans;
++		if (CloneRead(0x46010, &pll) != B_OK || (pll & 0xcc000000U) != 0xcc000000U
++			|| CloneRead(0x164284, &cfg0) != B_OK || CloneRead(0x164288, &cfg1) != B_OK
++			|| CloneRead(0x164b10, &ssc) != B_OK || (ssc & 0x200U) || CloneRead(0x60040, &m) != B_OK
++			|| CloneRead(0x60044, &n) != B_OK || CloneRead(0x164280, &clock) != B_OK
++			|| (clock & (3U | (1U << 10))) || CloneRead(0x60400, &trans) != B_OK
++			|| (trans & 0xff700000U) != 0x8a000000U)
++			return B_BAD_VALUE;
++		status = DecodeAlderLakeComboPixelFloor(cfg0, cfg1, fFirmware.referenceKHz, m & 0xffffffU,
++			n & 0xffffffU, &in.sourcePixelFloorKHz);
++		if (status != B_OK)
++			return status;
++		fStage = "desktop DDB routing";
++		status = CloneRead(0x4438c, &in.mbusControl);
++		if (status != B_OK)
++			return status;
++		uint32 dbox;
++		if (CloneRead(0x7103c, &dbox) != B_OK || (dbox & 0x01ffff0fU) != 0x01038804U)
++			return B_BAD_VALUE;
++		const uint32 dbuf[] = { 0x45008, 0x44fe8, 0x44300, 0x44304 };
++		for (unsigned i = 0; i < 4; i++) {
++			uint32 value;
++			status = CloneRead(dbuf[i], &value);
++			if (status != B_OK)
++				return status;
++			if ((value & 0xc0000000U) == 0xc0000000U)
++				in.poweredSlices |= 1U << i;
++		}
++		in.ddbCount = 32;
++		for (unsigned pipe = 0; pipe < 4; pipe++) {
++			if (!(powered & (1U << pipe)))
++				continue;
++			uint32 control;
++			status = CloneRead(0x70008 + pipe * 0x1000, &control);
++			if (status != B_OK)
++				return status;
++			if (control & 0x80000000U)
++				in.activePipes |= 1U << pipe;
++			status = CloneRead(0x7017c + pipe * 0x1000, &in.ddb[pipe * 8 + 7]);
++			if (status != B_OK)
++				return status;
++			for (unsigned plane = 0; plane < 7; plane++) {
++				status
++					= CloneRead(0x7027c + pipe * 0x1000 + plane * 0x100, &in.ddb[pipe * 8 + plane]);
++				if (status != B_OK)
++					return status;
++				if (pipe == 1) {
++					status = CloneRead(0x70180 + pipe * 0x1000 + plane * 0x100, &control);
++					if (status != B_OK || (control & 0x80000000U))
++						return B_BUSY;
++				}
++			}
++		}
++		AlderLakeClonePlan plan;
++		status = BuildAlderLakeClonePlan(in, &plan);
++		if (status != B_OK)
++			return status;
++		fStage = "desktop plane programming";
++		status = fClone.Apply(plan);
++		if (status != B_OK && fClone.NeedsCleanup())
++			fStopping = true;
++		if (status == B_OK) {
++			fCloneRequested = true;
++			fCloneAllocationBytes = allocationBytes;
++		}
++		return status;
++	}
++	uint32 CloneUnderrunBefore() const
++	{
++		return fClone.UnderrunBefore();
++	}
++	uint32 CloneUnderrunAfter() const
++	{
++		return fClone.UnderrunAfter();
++	}
++	uint32 PowerFailureRegister() const
++	{
++		return fDisplayPower.FailureRegister();
++	}
++	uint32 PowerFailureValue() const
++	{
++		return fDisplayPower.FailureValue();
++	}
++	uint32 PowerFailureMask() const
++	{
++		return fDisplayPower.FailureMask();
++	}
++	uint32 PowerFailureExpected() const
++	{
++		return fDisplayPower.FailureExpected();
++	}
++	uint32 FiaInitialValue() const
++	{
++		return fSequence.FiaInitialValue();
++	}
++	const AlderLakeHdmiDdiFailure& DdiFailure() const
++	{
++		return fSequence.DdiFailure();
+ 	}
+-	uint32 PowerFailureRegister() const { return fDisplayPower.FailureRegister(); }
+-	uint32 PowerFailureValue() const { return fDisplayPower.FailureValue(); }
+-	uint32 PowerFailureMask() const { return fDisplayPower.FailureMask(); }
+-	uint32 PowerFailureExpected() const { return fDisplayPower.FailureExpected(); }
+-	uint32 FiaInitialValue() const { return fSequence.FiaInitialValue(); }
+-	const AlderLakeHdmiDdiFailure& DdiFailure() const { return fSequence.DdiFailure(); }
+ 	const char* Stage() const
+ 	{
+ 		return fStage;
+ 	}
+ 
+ private:
++	status_t CloneRead(uint32 offset, uint32* value)
++	{
++		status_t status = fCloneIO.read(fCloneIO.cookie, offset, value);
++		return status == B_OK && *value == 0xffffffffU ? B_ERROR : status;
++	}
++	status_t WaitSourceFrame()
++	{
++		uint32 before;
++		status_t status = CloneRead(0x70040, &before);
++		if (status != B_OK)
++			return status;
++		for (unsigned i = 0; i < 10000; i++) {
++			uint32 value;
++			status = CloneRead(0x70040, &value);
++			if (status != B_OK)
++				return status;
++			if (value != before)
++				return B_OK;
++			fCloneIO.pause(fCloneIO.cookie);
++		}
++		return B_TIMED_OUT;
++	}
+ 	static status_t WellRead(void* p, uint32* value)
+ 	{
+ 		AlderLakeHdmiContext& c = *(AlderLakeHdmiContext*)p;
+@@ -152,6 +336,7 @@ private:
+ 	AlderLakeHdmiContext& operator=(const AlderLakeHdmiContext&);
+ 	AlderLakeHdmiFirmware fFirmware;
+ 	unsigned fPipeIndex;
++	intel_shared_info& fShared;
+ 	AlderLakeTypeCMmio fMmio;
+ 	AlderLakeTypeCIO fIO;
+ 	TypeCPowerWell fWell;
+@@ -160,6 +345,11 @@ private:
+ 	AlderLakeDisplayPower fDisplayPower;
+ 	AlderLakeHdmiPipe fPipe;
+ 	AlderLakeHdmiSequence fSequence;
++	AlderLakeCloneMmio fCloneMmio;
++	AlderLakeTypeCIO fCloneIO;
++	AlderLakeClonePlaneProgrammer fClone;
++	bool fCloneRequested;
++	uint32 fCloneAllocationBytes;
+ 	bool fActive, fConfigured, fStopping, fHSync, fVSync;
+ 	AlderLakeHdmiTiming fTiming;
+ 	const char* fStage;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h b/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
+index dee4e6c8..fd629e5a 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
+@@ -97,7 +97,7 @@ static inline status_t BoundAlderLakeCloneWatermark(uint32 oldWm, uint32 width,
+ 		return B_BAD_VALUE;
+ 	// Source method1 implies latency*pixels <= (blocks-2)*512/4.
+ 	// Source method2 implies latency*pixels <= lines*htotal.
+-	uint64 latencyPixelsA = (blocks - 2) * 512 / 4;
++	uint64 latencyPixelsA = (blocks - 2) * 512 / 4 + 1;
+ 	uint64 latencyPixelsB = lines * htotal;
+ 	uint64 latencyPixels = latencyPixelsA > latencyPixelsB ? latencyPixelsA : latencyPixelsB;
+ 	uint64 method1 = CloneCeil(latencyPixels * targetCeil * 4, (uint64)sourceFloor * 512) + 1;
+@@ -129,7 +129,11 @@ static inline status_t BuildAlderLakeClonePlan(
+ 		|| in.allocationBytes > in.apertureBytes - in.frameBufferOffset
+ 		|| (uint64)in.bytesPerRow * in.height > in.allocationBytes
+ 		|| (in.sourceControl & 0x8f800000U) != 0x84000000U || (in.sourceControl & ~0xff800000U) != 8
+-		|| in.sourceColor != 0x2000)
++		|| in.sourceColor != 0x2000
++		|| (in.sourceControl & 0x70000000U) != 0x10000000U
++		|| (in.mbusControl & 0x1c000000U) != 0x1c000000U
++		|| (in.sourceHTotal & 0xffffU) + 1 != in.width
++		|| (in.sourceVTotal & 0xffffU) + 1 != in.height)
+ 		return B_BAD_VALUE;
+ 	uint32 size = ((in.height - 1) << 16) | (in.width - 1),
+ 		   pipeSize = ((in.width - 1) << 16) | (in.height - 1);
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 52850da9..314d497c 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2258,6 +2258,21 @@ DigitalDisplayInterface::ShutdownGraphics()
+ }
+ 
+ 
++status_t
++DigitalDisplayInterface::FinishDisplayMode(uint32 allocationBytes)
++{
++	if (fHdmiContext == NULL || !fHdmiContext->IsActive()
++		|| access("/boot/home/config/settings/intel_extreme_tc_desktop_test", F_OK) != 0)
++		return B_OK;
++	status_t status = fHdmiContext->EnableClone(allocationBytes);
++	TRACE("ADL HDMI desktop: stage=%s status=%" B_PRId32
++		" underrun_before=%08" B_PRIx32 " underrun_after=%08" B_PRIx32 "\n",
++		fHdmiContext->Stage(),status,fHdmiContext->CloneUnderrunBefore(),
++		fHdmiContext->CloneUnderrunAfter());
++	return status;
++}
++
++
+ static bool
+ request_type_c_raster(port_index port)
+ {
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.h b/src/add-ons/accelerants/intel_extreme/Ports.h
+index 0e1cba47..5011d7c4 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.h
++++ b/src/add-ons/accelerants/intel_extreme/Ports.h
+@@ -56,6 +56,7 @@ virtual	status_t					SetPipe(Pipe* pipe);
+ 
+ virtual	status_t					Power(bool enabled);
+ virtual status_t					ShutdownGraphics() { return B_OK; };
++virtual status_t					FinishDisplayMode(uint32 allocationBytes) { return B_OK; };
+ 
+ 		bool						HasEDID();
+ virtual	status_t					GetEDID(edid1_info* edid,
+@@ -237,6 +238,7 @@ virtual	uint32						Type() const
+ 
+ virtual	status_t					Power(bool enabled);
+ virtual status_t					ShutdownGraphics();
++virtual status_t					FinishDisplayMode(uint32 allocationBytes);
+ 
+ virtual	status_t					SetPipe(Pipe* pipe);
+ virtual	status_t					SetupI2c(i2c_bus *bus);
+diff --git a/src/add-ons/accelerants/intel_extreme/accelerant.h b/src/add-ons/accelerants/intel_extreme/accelerant.h
+index 455aad45..aa4a225d 100644
+--- a/src/add-ons/accelerants/intel_extreme/accelerant.h
++++ b/src/add-ons/accelerants/intel_extreme/accelerant.h
+@@ -102,7 +102,7 @@ void dump_registers(void);
+ 
+ // dpms.cpp
+ extern void enable_display_plane(bool enable);
+-extern void set_display_power_mode(uint32 mode);
++extern status_t set_display_power_mode(uint32 mode);
+ 
+ // engine.cpp
+ extern void uninit_ring_buffer(ring_buffer &ringBuffer);
+diff --git a/src/add-ons/accelerants/intel_extreme/dpms.cpp b/src/add-ons/accelerants/intel_extreme/dpms.cpp
+index adb33bda..4bd342a2 100644
+--- a/src/add-ons/accelerants/intel_extreme/dpms.cpp
++++ b/src/add-ons/accelerants/intel_extreme/dpms.cpp
+@@ -23,7 +23,7 @@
+ #define CALLED(x...) TRACE("CALLED %s\n", __PRETTY_FUNCTION__)
+ 
+ 
+-static void
++static status_t
+ enable_all_pipes(bool enable)
+ {
+ 	// Go over each port and enable pipe/plane
+@@ -35,13 +35,16 @@ enable_all_pipes(bool enable)
+ 		if (gInfo->ports[i]->GetPipe() == NULL)
+ 			continue;
+ 
+-		gInfo->ports[i]->Power(enable);
++		status_t status = gInfo->ports[i]->Power(enable);
++		if (status != B_OK)
++			return status;
+ 	}
+ 
+ 	read32(INTEL_DISPLAY_A_BASE);
+ 		// flush the possibly cached PCI bus writes
+ 
+ 	set_frame_buffer_base();
++	return B_OK;
+ }
+ 
+ 
+@@ -83,7 +86,7 @@ enable_lvds_panel(bool enable)
+ }
+ 
+ 
+-void
++status_t
+ set_display_power_mode(uint32 mode)
+ {
+ 	uint32 monitorMode = 0;
+@@ -120,7 +123,8 @@ set_display_power_mode(uint32 mode)
+ 			}
+ 		}
+ 
+-		enable_all_pipes(true);
++		status_t status = enable_all_pipes(true);
++		if (status != B_OK) return status;
+ 	}
+ 
+ 	wait_for_vblank();
+@@ -156,8 +160,10 @@ set_display_power_mode(uint32 mode)
+ 			// TODO: monitorMode?
+ 	}
+ 
+-	if (mode != B_DPMS_ON)
+-		enable_all_pipes(false);
++	if (mode != B_DPMS_ON) {
++		status_t status = enable_all_pipes(false);
++		if (status != B_OK) return status;
++	}
+ 
+ 	if (mode == B_DPMS_OFF && useLegacyPll) {
+ 		write32(INTEL_DISPLAY_A_PLL, read32(INTEL_DISPLAY_A_PLL)
+@@ -176,6 +182,7 @@ set_display_power_mode(uint32 mode)
+ 
+ 	read32(INTEL_DISPLAY_A_BASE);
+ 		// flush the possibly cached PCI bus writes
++	return B_OK;
+ }
+ 
+ 
+@@ -212,9 +219,9 @@ intel_set_dpms_mode(uint32 mode)
+ 	if (!locker.IsLocked())
+ 		return B_ERROR;
+ 
+-	gInfo->shared_info->dpms_mode = mode;
+-	set_display_power_mode(mode);
+-
+-	return B_OK;
++	status_t status = set_display_power_mode(mode);
++	if (status == B_OK)
++		gInfo->shared_info->dpms_mode = mode;
++	return status;
+ }
+ 
+diff --git a/src/add-ons/accelerants/intel_extreme/mode.cpp b/src/add-ons/accelerants/intel_extreme/mode.cpp
+index 18fee7fc..592ef872 100644
+--- a/src/add-ons/accelerants/intel_extreme/mode.cpp
++++ b/src/add-ons/accelerants/intel_extreme/mode.cpp
+@@ -378,7 +378,13 @@ intel_set_display_mode(display_mode* mode)
+ 	//dump_registers();
+ 
+ 	// TODO: This may not be neccesary
+-	set_display_power_mode(B_DPMS_OFF);
++	status_t powerStatus = set_display_power_mode(B_DPMS_OFF);
++	if (powerStatus != B_OK) {
++		// A plane may still fetch the current allocation. Retain its backing
++		// until cleanup succeeds; attempt to restore the previous DPMS state.
++		set_display_power_mode(sharedInfo.dpms_mode);
++		return powerStatus;
++	}
+ 
+ 	// free old and allocate new frame buffer in graphics memory
+ 
+@@ -544,6 +550,15 @@ intel_set_display_mode(display_mode* mode)
+ 		// triggers writing back double-buffered registers
+ 		// which is INTEL_DISPLAY_X_BYTES_PER_ROW only apparantly
+ 
++	// Optional output stages consume the newly allocated framebuffer only
++	// after shared mode fields and double-buffered surface registers are set.
++	for (uint32 i = 0; i < gInfo->port_count; i++) {
++		if (gInfo->ports[i] == NULL) continue;
++		status_t status = gInfo->ports[i]->FinishDisplayMode(bytesPerRow * target.virtual_height);
++		if (status != B_OK)
++			ERROR("%s: optional output finish failed (%" B_PRId32 ")\n", __func__, status);
++	}
++
+ 	// Second register dump
+ 	//dump_registers();
+ 
+-- 
+2.43.0
+

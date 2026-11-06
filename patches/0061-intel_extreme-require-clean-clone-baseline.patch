@@ -1,0 +1,27 @@
+From 96696357cfb815f20daaacbfb42f1c26b35d822f Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 20:08:47 +0900
+Subject: [PATCH] intel_extreme: require clean underrun baseline before clone
+
+---
+ .../accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h b/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
+index 41c7e5db..f8a072e0 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
+@@ -49,6 +49,10 @@ public:
+ 		s = Read(0x71064, &fUnderrunBefore);
+ 		if (s != B_OK)
+ 			return s;
++		// Sticky prior faults would hide a repeated fault of the same type.
++		// Refuse this experiment rather than clearing interrupt/debug state.
++		if (fUnderrunBefore & 0x3f3f3f3fU)
++			return B_BUSY;
+ 		uint32 values[20] = { p.pipeSize, fSaved[1] & ~0x80000000U, 0, fSaved[3] & ~0x80000000U, 0,
+ 			p.stride, p.position, p.size, p.offset, p.color, p.wm0, 0, 0, 0, 0, 0, p.sagv, 0, 0,
+ 			p.ddb };
+-- 
+2.43.0
+

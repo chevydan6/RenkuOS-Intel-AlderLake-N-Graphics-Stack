@@ -9,12 +9,13 @@ import tempfile
 if len(sys.argv) != 2:
     raise SystemExit('usage: dpms-pll-host.py path/to/dpms.cpp')
 source = pathlib.Path(sys.argv[1]).read_text()
-start = source.index('void\nset_display_power_mode(uint32 mode)')
+start = source.index('status_t\nset_display_power_mode(uint32 mode)')
 end = source.index('\n\n//\t#pragma mark -', start)
 prefix = r'''
 #include <cstdint>
 #include <cstdio>
-using uint32=uint32_t;
+using uint32=uint32_t;using status_t=int;
+enum {B_OK=0};
 enum { INTEL_GROUP_ALD=1, B_DPMS_ON=0, B_DPMS_SUSPEND=1, B_DPMS_STAND_BY=2, B_DPMS_OFF=3,
  INTEL_DISPLAY_A_PLL=1, INTEL_DISPLAY_B_PLL=2, INTEL_ANALOG_PORT=3, INTEL_DIGITAL_PORT_B=4,
  INTEL_DISPLAY_A_BASE=5, DISPLAY_PLL_ENABLED=0x100, DISPLAY_MONITOR_ON=0,
@@ -27,7 +28,7 @@ uint32 regs[6]; unsigned pllWrites, pipeCalls; bool lastPipe;
 uint32 read32(uint32 reg) {return regs[reg];}
 void write32(uint32 reg,uint32 value) { if(reg==1||reg==2) pllWrites++; regs[reg]=value; }
 void spin(int) {} void wait_for_vblank() {} void enable_lvds_panel(bool) {}
-void enable_all_pipes(bool value) {pipeCalls++;lastPipe=value;}
+status_t enable_all_pipes(bool value) {pipeCalls++;lastPipe=value;return B_OK;}
 '''
 suffix = r'''
 int main() {
