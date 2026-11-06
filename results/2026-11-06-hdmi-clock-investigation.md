@@ -204,3 +204,24 @@ References: Linux [display-device classification](https://github.com/torvalds/li
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),
 and [DDI clock handling](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_ddi.c).
+
+## Further integration constraints
+
+Patches 35–41 add a shared port lease, a versioned shared-info interface,
+bounded MMIO adapter, Type-C clock selection, a legacy DPMS PLL guard, and
+firmware and PCI-revision validation. The new output sequence remains
+disconnected from the hardware modesetting path. Host tests exercise the
+sequence with 59 individual simulated write failures; these are not evidence
+of successful hardware operation. The previously reported firmware record
+must still be checked for its full size with the updated kernel interface.
+
+The Linux display-version-13 [power domain map](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_display_power_map.c)
+identifies dependencies beyond the per-port AUX well: the TC2 DDI lanes
+also require the display core DC-off domain, PW_2 and DDI_IO_TC2; the chosen
+pipe has its own power domain. Linux orders wells from parent to child and
+releases them in reverse. The existing mock sequence does not yet acquire
+all of these dependencies or establish their ownership and shared reference
+counts. Consequently it must not be wired into real modesetting until those
+requirements, pipe programming, ordering, failure handling, and concurrent
+access are resolved and verified. In particular, an AUX well alone is not
+evidence that the display engine is ready.
