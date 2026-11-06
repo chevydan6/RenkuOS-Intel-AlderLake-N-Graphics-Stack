@@ -110,6 +110,12 @@ awk '/^FAIL / {
     if ($0 == "FAIL Alder Lake register writes") writes++;
 } END { exit !(count == 3 && engines == 1 && rings == 1 && writes == 1) }' validation/control-lifecycle.log
 echo 'PASS original ring control: exactly 3 expected failures'
-tar -czf validation/artifacts.tar.gz build/intel_gart build/agp_gart build/intel_extreme.driver build/intel_extreme.accelerant \
+# Collect the retained owner whenever this bundle contains its source.
+owner_artifact=()
+if test -f source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp; then
+    test -f build/intel_memory_owner
+    owner_artifact=(build/intel_memory_owner)
+fi
+tar -czf validation/artifacts.tar.gz "${owner_artifact[@]}" build/intel_gart build/agp_gart build/intel_extreme.driver build/intel_extreme.accelerant \
     build/hooks-test build/gtt-range-test build/gtt-pte-test build/gtt-stolen-test \
     build/lifecycle-test build/intel_extreme.lifecycle.accelerant build/gating-test build/gart-range-test build/gart-lifecycle-test build/gart-allocation-test build/kernel-resources-test

@@ -1,0 +1,707 @@
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/IntelApertureLeaseState.h b/src/add-ons/kernel/drivers/graphics/intel_extreme/IntelApertureLeaseState.h
+deleted file mode 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/IntelApertureLeaseState.h
++++ /dev/null
+@@ -1,213 +0,0 @@
+-// SPDX-License-Identifier: MIT
+-#ifndef INTEL_APERTURE_LEASE_STATE_H
+-#define INTEL_APERTURE_LEASE_STATE_H
+-
+-#include <stddef.h>
+-#include <stdint.h>
+-
+-// Memory-only lifetime bookkeeping for the retained N100 owner. All methods,
+-// including queries, require the owner's mutex. This class performs no I/O and
+-// supplies no GPU publication or quiescence proof. The containing module must
+-// retain its record and resources until FinishCleanup succeeds.
+-class IntelApertureLeaseState {
+-public:
+-	enum State { Fresh, Initializing, Ready, RetainedDisplay, Closing,
+-		Quarantined, Closed };
+-	enum Result { Success, Invalid, Busy, Exhausted };
+-	enum Kind { Display, Request };
+-	enum Access { Query, Allocate, Free };
+-
+-	class Operation {
+-	public:
+-		// The containing adapter must end each begun ticket before destroying
+-		// it, including every error path. Abandoning a ticket retains its pin
+-		// indefinitely; the destructor deliberately cannot perform unlocked I/O.
+-		Operation() : fOwner(NULL), fLease(0) {}
+-	private:
+-		friend class IntelApertureLeaseState;
+-		Operation(const Operation&) = delete;
+-		Operation& operator=(const Operation&) = delete;
+-		IntelApertureLeaseState* fOwner;
+-		uint64_t fLease;
+-	};
+-
+-	IntelApertureLeaseState()
+-		: fState(Fresh), fNextID(0), fDiagnosticBlocked(false),
+-		  fUnresolvedAllocation(false)
+-	{
+-		for (unsigned i = 0; i < 2; i++) {
+-			fLeases[i].id = 0;
+-			fLeases[i].operations = 0;
+-			fLeases[i].live = false;
+-		}
+-	}
+-
+-	Result BeginInitialization(uint64_t& displayLease)
+-	{
+-		if (fState != Fresh && fState != Closed)
+-			return Busy;
+-		Result result = Acquire(Display, displayLease);
+-		if (result != Success)
+-			return result;
+-		fDiagnosticBlocked = true;
+-		fState = Initializing;
+-		return Success;
+-	}
+-
+-	Result FinishInitialization(uint64_t displayLease, bool success)
+-	{
+-		if (fState != Initializing || !IsLive(Display, displayLease))
+-			return Invalid;
+-		if (fLeases[Display].operations != 0)
+-			return Busy;
+-		// Failure can leave firmware scanout or partially acquired backing.
+-		// Retain ownership until the containing module proves cleanup safe.
+-		fState = success ? Ready : RetainedDisplay;
+-		fDiagnosticBlocked = !success || fUnresolvedAllocation;
+-		return Success;
+-	}
+-
+-	Result AcquireRequest(uint64_t& requestLease)
+-	{
+-		if (!DiagnosticAllowed())
+-			return Busy;
+-		return Acquire(Request, requestLease);
+-	}
+-
+-	Result Release(uint64_t lease)
+-	{
+-		if (fState == Initializing)
+-			return Busy;
+-		Lease* record = Find(lease);
+-		if (record == NULL || !record->live)
+-			return Invalid;
+-		record->live = false;
+-		if (record == &fLeases[Display]) {
+-			fState = RetainedDisplay;
+-			fDiagnosticBlocked = true;
+-		}
+-		return Success;
+-	}
+-
+-	Result BeginOperation(uint64_t lease, Access access, Operation& operation)
+-	{
+-		if (access != Query && access != Allocate && access != Free)
+-			return Invalid;
+-		Lease* record = Find(lease);
+-		if (record == NULL || !record->live || operation.fOwner != NULL)
+-			return Invalid;
+-		if (fState == Closing || fState == Closed)
+-			return Busy;
+-		// Only the initializing display lease can forward GART calls here.
+-		// FinishInitialization and Release cannot race past active tickets.
+-		if (fState == Initializing && record != &fLeases[Display])
+-			return Busy;
+-		if (access == Allocate && ((fState != Ready && fState != Initializing)
+-			|| (record == &fLeases[Request] && fDiagnosticBlocked)))
+-			return Busy;
+-		if (record->operations == UINT64_MAX)
+-			return Exhausted;
+-		record->operations++;
+-		operation.fOwner = this;
+-		operation.fLease = lease;
+-		return Success;
+-	}
+-
+-	Result EndOperation(Operation& operation, bool allocationFailed)
+-	{
+-		if (operation.fOwner != this)
+-			return Invalid;
+-		Lease* record = Find(operation.fLease);
+-		if (record == NULL || record->operations == 0)
+-			return Invalid;
+-		// Must occur under the same mutex, BEFORE dropping the operation pin.
+-		// This conservatively covers GART's hidden partial-bind rollback failure.
+-		if (allocationFailed) {
+-			fDiagnosticBlocked = true;
+-			fUnresolvedAllocation = true;
+-		}
+-		record->operations--;
+-		operation.fOwner = NULL;
+-		operation.fLease = 0;
+-		return Success;
+-	}
+-
+-	Result BeginCleanup(bool displayQuiescent, bool gpuQuiescent)
+-	{
+-		if (fState == Fresh || fState == Initializing || fState == Closing
+-			|| fState == Closed || fState == Quarantined)
+-			return Busy;
+-		// Quiescence alone cannot resolve hidden partial-bind ownership.
+-		// No in-place reclamation protocol exists for this condition yet.
+-		if (fUnresolvedAllocation || !displayQuiescent || !gpuQuiescent)
+-			return Busy;
+-		for (unsigned i = 0; i < 2; i++) {
+-			if (fLeases[i].live || fLeases[i].operations != 0)
+-				return Busy;
+-		}
+-		fState = Closing;
+-		fDiagnosticBlocked = true;
+-		return Success;
+-	}
+-
+-	Result FinishCleanup(bool success)
+-	{
+-		if (fState != Closing)
+-			return Invalid;
+-		fState = success ? Closed : Quarantined;
+-		return Success;
+-	}
+-
+-	bool DiagnosticAllowed() const
+-	{
+-		return fState == Ready && !fDiagnosticBlocked && fLeases[Display].live;
+-	}
+-
+-	State CurrentState() const { return fState; }
+-
+-private:
+-	struct Lease {
+-		uint64_t id;
+-		uint64_t operations;
+-		bool live;
+-	};
+-
+-	Result Acquire(Kind kind, uint64_t& output)
+-	{
+-		Lease& lease = fLeases[kind];
+-		if (lease.live || lease.operations != 0)
+-			return Busy;
+-		if (fNextID == UINT64_MAX)
+-			return Exhausted;
+-		lease.id = ++fNextID;
+-		lease.live = true;
+-		output = lease.id;
+-		return Success;
+-	}
+-
+-	bool IsLive(Kind kind, uint64_t id) const
+-	{
+-		return id != 0 && fLeases[kind].id == id && fLeases[kind].live;
+-	}
+-
+-	Lease* Find(uint64_t id)
+-	{
+-		if (id == 0)
+-			return NULL;
+-		for (unsigned i = 0; i < 2; i++) {
+-			if (fLeases[i].id == id)
+-				return &fLeases[i];
+-		}
+-		return NULL;
+-	}
+-
+-	IntelApertureLeaseState(const IntelApertureLeaseState&) = delete;
+-	IntelApertureLeaseState& operator=(const IntelApertureLeaseState&) = delete;
+-	State fState;
+-	uint64_t fNextID;
+-	bool fDiagnosticBlocked;
+-	bool fUnresolvedAllocation;
+-	Lease fLeases[2];
+-};
+-
+-#endif
+diff --git a/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h b/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
+new file mode 100644
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
+@@ -0,0 +1,213 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_APERTURE_LEASE_STATE_H
++#define INTEL_APERTURE_LEASE_STATE_H
++
++#include <stddef.h>
++#include <stdint.h>
++
++// Memory-only lifetime bookkeeping for the retained N100 owner. All methods,
++// including queries, require the owner's mutex. This class performs no I/O and
++// supplies no GPU publication or quiescence proof. The containing module must
++// retain its record and resources until FinishCleanup succeeds.
++class IntelApertureLeaseState {
++public:
++	enum State { Fresh, Initializing, Ready, RetainedDisplay, Closing,
++		Quarantined, Closed };
++	enum Result { Success, Invalid, Busy, Exhausted };
++	enum Kind { Display, Request };
++	enum Access { Query, Allocate, Free };
++
++	class Operation {
++	public:
++		// The containing adapter must end each begun ticket before destroying
++		// it, including every error path. Abandoning a ticket retains its pin
++		// indefinitely; the destructor deliberately cannot perform unlocked I/O.
++		Operation() : fOwner(NULL), fLease(0) {}
++	private:
++		friend class IntelApertureLeaseState;
++		Operation(const Operation&) = delete;
++		Operation& operator=(const Operation&) = delete;
++		IntelApertureLeaseState* fOwner;
++		uint64_t fLease;
++	};
++
++	IntelApertureLeaseState()
++		: fState(Fresh), fNextID(0), fDiagnosticBlocked(false),
++		  fUnresolvedAllocation(false)
++	{
++		for (unsigned i = 0; i < 2; i++) {
++			fLeases[i].id = 0;
++			fLeases[i].operations = 0;
++			fLeases[i].live = false;
++		}
++	}
++
++	Result BeginInitialization(uint64_t& displayLease)
++	{
++		if (fState != Fresh && fState != Closed)
++			return Busy;
++		Result result = Acquire(Display, displayLease);
++		if (result != Success)
++			return result;
++		fDiagnosticBlocked = true;
++		fState = Initializing;
++		return Success;
++	}
++
++	Result FinishInitialization(uint64_t displayLease, bool success)
++	{
++		if (fState != Initializing || !IsLive(Display, displayLease))
++			return Invalid;
++		if (fLeases[Display].operations != 0)
++			return Busy;
++		// Failure can leave firmware scanout or partially acquired backing.
++		// Retain ownership until the containing module proves cleanup safe.
++		fState = success ? Ready : RetainedDisplay;
++		fDiagnosticBlocked = !success || fUnresolvedAllocation;
++		return Success;
++	}
++
++	Result AcquireRequest(uint64_t& requestLease)
++	{
++		if (!DiagnosticAllowed())
++			return Busy;
++		return Acquire(Request, requestLease);
++	}
++
++	Result Release(uint64_t lease)
++	{
++		if (fState == Initializing)
++			return Busy;
++		Lease* record = Find(lease);
++		if (record == NULL || !record->live)
++			return Invalid;
++		record->live = false;
++		if (record == &fLeases[Display]) {
++			fState = RetainedDisplay;
++			fDiagnosticBlocked = true;
++		}
++		return Success;
++	}
++
++	Result BeginOperation(uint64_t lease, Access access, Operation& operation)
++	{
++		if (access != Query && access != Allocate && access != Free)
++			return Invalid;
++		Lease* record = Find(lease);
++		if (record == NULL || !record->live || operation.fOwner != NULL)
++			return Invalid;
++		if (fState == Closing || fState == Closed)
++			return Busy;
++		// Only the initializing display lease can forward GART calls here.
++		// FinishInitialization and Release cannot race past active tickets.
++		if (fState == Initializing && record != &fLeases[Display])
++			return Busy;
++		if (access == Allocate && ((fState != Ready && fState != Initializing)
++			|| (record == &fLeases[Request] && fDiagnosticBlocked)))
++			return Busy;
++		if (record->operations == UINT64_MAX)
++			return Exhausted;
++		record->operations++;
++		operation.fOwner = this;
++		operation.fLease = lease;
++		return Success;
++	}
++
++	Result EndOperation(Operation& operation, bool allocationFailed)
++	{
++		if (operation.fOwner != this)
++			return Invalid;
++		Lease* record = Find(operation.fLease);
++		if (record == NULL || record->operations == 0)
++			return Invalid;
++		// Must occur under the same mutex, BEFORE dropping the operation pin.
++		// This conservatively covers GART's hidden partial-bind rollback failure.
++		if (allocationFailed) {
++			fDiagnosticBlocked = true;
++			fUnresolvedAllocation = true;
++		}
++		record->operations--;
++		operation.fOwner = NULL;
++		operation.fLease = 0;
++		return Success;
++	}
++
++	Result BeginCleanup(bool displayQuiescent, bool gpuQuiescent)
++	{
++		if (fState == Fresh || fState == Initializing || fState == Closing
++			|| fState == Closed || fState == Quarantined)
++			return Busy;
++		// Quiescence alone cannot resolve hidden partial-bind ownership.
++		// No in-place reclamation protocol exists for this condition yet.
++		if (fUnresolvedAllocation || !displayQuiescent || !gpuQuiescent)
++			return Busy;
++		for (unsigned i = 0; i < 2; i++) {
++			if (fLeases[i].live || fLeases[i].operations != 0)
++				return Busy;
++		}
++		fState = Closing;
++		fDiagnosticBlocked = true;
++		return Success;
++	}
++
++	Result FinishCleanup(bool success)
++	{
++		if (fState != Closing)
++			return Invalid;
++		fState = success ? Closed : Quarantined;
++		return Success;
++	}
++
++	bool DiagnosticAllowed() const
++	{
++		return fState == Ready && !fDiagnosticBlocked && fLeases[Display].live;
++	}
++
++	State CurrentState() const { return fState; }
++
++private:
++	struct Lease {
++		uint64_t id;
++		uint64_t operations;
++		bool live;
++	};
++
++	Result Acquire(Kind kind, uint64_t& output)
++	{
++		Lease& lease = fLeases[kind];
++		if (lease.live || lease.operations != 0)
++			return Busy;
++		if (fNextID == UINT64_MAX)
++			return Exhausted;
++		lease.id = ++fNextID;
++		lease.live = true;
++		output = lease.id;
++		return Success;
++	}
++
++	bool IsLive(Kind kind, uint64_t id) const
++	{
++		return id != 0 && fLeases[kind].id == id && fLeases[kind].live;
++	}
++
++	Lease* Find(uint64_t id)
++	{
++		if (id == 0)
++			return NULL;
++		for (unsigned i = 0; i < 2; i++) {
++			if (fLeases[i].id == id)
++				return &fLeases[i];
++		}
++		return NULL;
++	}
++
++	IntelApertureLeaseState(const IntelApertureLeaseState&) = delete;
++	IntelApertureLeaseState& operator=(const IntelApertureLeaseState&) = delete;
++	State fState;
++	uint64_t fNextID;
++	bool fDiagnosticBlocked;
++	bool fUnresolvedAllocation;
++	Lease fLeases[2];
++};
++
++#endif
+diff --git a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+new file mode 100644
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -0,0 +1,28 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_MEMORY_OWNER_H
++#define INTEL_MEMORY_OWNER_H
++
++#include <AGP.h>
++#include <module.h>
++
++#define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
++
++// Private kernel interface. Addresses and leases must never be user input.
++struct intel_memory_owner_resources {
++	aperture_info aperture;
++	area_id registers_area;
++	addr_t registers;
++};
++
++struct intel_memory_owner_module_info {
++	module_info info;
++	status_t (*begin_display)(uint8 bus, uint8 device, uint8 function,
++		uint64* lease, intel_memory_owner_resources* resources);
++	status_t (*finish_display)(uint64 lease, bool initialized);
++	status_t (*release_display)(uint64 lease);
++	status_t (*query)(uint64 lease, aperture_info* info);
++	status_t (*allocate)(uint64 lease, size_t size, size_t alignment,
++		uint32 flags, addr_t* base, phys_addr_t* physical);
++	status_t (*free)(uint64 lease, addr_t base);
++};
++#endif
+diff --git a/src/add-ons/kernel/bus_managers/intel_memory_owner/Jamfile b/src/add-ons/kernel/bus_managers/intel_memory_owner/Jamfile
+new file mode 100644
+--- /dev/null
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/Jamfile
+@@ -0,0 +1,5 @@
++SubDir HAIKU_TOP src add-ons kernel bus_managers intel_memory_owner ;
++UsePrivateHeaders [ FDirName graphics intel_extreme ] ;
++UsePrivateHeaders graphics ;
++UsePrivateKernelHeaders ;
++KernelAddon intel_memory_owner : IntelMemoryOwner.cpp ;
+diff --git a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -0,0 +1,212 @@
++// SPDX-License-Identifier: MIT
++#include <IntelMemoryOwner.h>
++#include <IntelApertureLeaseState.h>
++#include <KernelExport.h>
++#include <PCI.h>
++#include <kernel/lock.h>
++
++// Deliberately one retained N100 record. No publication, reset or in-place
++// recovery entry point exists. Driver wiring is a separately reviewed step.
++static mutex sLock;
++static IntelApertureLeaseState sState;
++static agp_gart_module_info* sGART;
++static pci_module_info* sPCI;
++static aperture_id sAperture = -1;
++static intel_memory_owner_resources sResources;
++
++static status_t
++Status(IntelApertureLeaseState::Result result)
++{
++	switch (result) {
++		case IntelApertureLeaseState::Success: return B_OK;
++		case IntelApertureLeaseState::Busy: return B_BUSY;
++		case IntelApertureLeaseState::Exhausted: return B_NO_MEMORY;
++		default: return B_BAD_VALUE;
++	}
++}
++
++// A ticket is ended under the owner mutex on every return path. Backend calls
++// occur without this mutex; the pin and permanent module retain their targets.
++class Operation {
++public:
++	Operation(uint64 lease, IntelApertureLeaseState::Access access)
++		: fAllocation(access == IntelApertureLeaseState::Allocate),
++		  fFailed(true)
++	{
++		mutex_lock(&sLock);
++		fStatus = Status(sState.BeginOperation(lease, access, fTicket));
++		mutex_unlock(&sLock);
++	}
++	~Operation()
++	{
++		if (fStatus != B_OK)
++			return;
++		mutex_lock(&sLock);
++		sState.EndOperation(fTicket, fAllocation && fFailed);
++		mutex_unlock(&sLock);
++	}
++	status_t InitCheck() const { return fStatus; }
++	void Succeeded() { fFailed = false; }
++private:
++	Operation(const Operation&) = delete;
++	Operation& operator=(const Operation&) = delete;
++	IntelApertureLeaseState::Operation fTicket;
++	status_t fStatus;
++	bool fAllocation;
++	bool fFailed;
++};
++
++static status_t
++Query(uint64 lease, aperture_info* info)
++{
++	Operation operation(lease, IntelApertureLeaseState::Query);
++	if (operation.InitCheck() != B_OK)
++		return operation.InitCheck();
++	if (info == NULL)
++		return B_BAD_VALUE;
++	return sGART->get_aperture_info(sAperture, info);
++}
++
++static status_t
++Allocate(uint64 lease, size_t size, size_t alignment, uint32 flags,
++	addr_t* base, phys_addr_t* physical)
++{
++	Operation operation(lease, IntelApertureLeaseState::Allocate);
++	if (operation.InitCheck() != B_OK)
++		return operation.InitCheck();
++	status_t status = sGART->allocate_memory(sAperture, size, alignment,
++		flags, base, physical);
++	if (status == B_OK)
++		operation.Succeeded();
++	return status;
++}
++
++static status_t
++Free(uint64 lease, addr_t base)
++{
++	Operation operation(lease, IntelApertureLeaseState::Free);
++	if (operation.InitCheck() != B_OK)
++		return operation.InitCheck();
++	return sGART->free_memory(sAperture, base);
++}
++
++static status_t
++FinishDisplay(uint64 lease, bool initialized)
++{
++	mutex_lock(&sLock);
++	status_t result = Status(sState.FinishInitialization(lease, initialized));
++	mutex_unlock(&sLock);
++	return result;
++}
++
++static status_t
++ReleaseDisplay(uint64 lease)
++{
++	mutex_lock(&sLock);
++	status_t result = Status(sState.Release(lease));
++	mutex_unlock(&sLock);
++	// Last close is not scanout-idle evidence. Keep MMIO, GART and backing.
++	return result;
++}
++
++static status_t
++BeginDisplay(uint8 bus, uint8 device, uint8 function, uint64* lease,
++	intel_memory_owner_resources* resources)
++{
++	if (lease == NULL || resources == NULL)
++		return B_BAD_VALUE;
++	// Copy identity from our own PCI module reference, not driver storage.
++	pci_info pci;
++	bool found = false;
++	for (uint32 index = 0; sPCI->get_nth_pci_info(index, &pci) == B_OK; index++) {
++		if (pci.bus == bus && pci.device == device && pci.function == function) {
++			found = true;
++			break;
++		}
++	}
++	if (!found || pci.vendor_id != 0x8086 || pci.device_id != 0x46d1
++		|| pci.revision != 0)
++		return B_NOT_SUPPORTED;
++
++	uint64 id = 0;
++	mutex_lock(&sLock);
++	status_t status = Status(sState.BeginInitialization(id));
++	mutex_unlock(&sLock);
++	if (status != B_OK)
++		return status;
++
++	// Initializing prevents concurrent acquire/release. The lease is not
++	// returned until every required resource is owned by this module.
++	addr_t apertureBase = 0;
++	sAperture = sGART->map_aperture(bus, device, function, 0, &apertureBase);
++	if (sAperture < B_OK)
++		status = sAperture;
++	else
++		status = Query(id, &sResources.aperture);
++
++	if (status == B_OK) {
++		phys_addr_t base = pci.u.h0.base_registers[0];
++		uint64 size = pci.u.h0.base_register_sizes[0];
++		if ((pci.u.h0.base_register_flags[0] & PCI_address_type)
++			== PCI_address_type_64) {
++			base |= (uint64)pci.u.h0.base_registers[1] << 32;
++			size |= (uint64)pci.u.h0.base_register_sizes[1] << 32;
++		}
++		if (size == 0 || size > SIZE_MAX || base > UINT64_MAX - size)
++			status = B_BAD_VALUE;
++		else {
++			void* address = NULL;
++			sResources.registers_area = map_physical_memory("intel owner mmio",
++				base, (size_t)size, B_ANY_KERNEL_ADDRESS,
++				B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA | B_CLONEABLE_AREA,
++				&address);
++			if (sResources.registers_area < B_OK)
++				status = sResources.registers_area;
++			else
++				sResources.registers = (addr_t)address;
++		}
++	}
++	if (status != B_OK) {
++		// No guessed teardown of inherited scanout or partial acquisition.
++		FinishDisplay(id, false);
++		ReleaseDisplay(id);
++		return status;
++	}
++	*resources = sResources;
++	*lease = id;
++	return B_OK;
++}
++
++static status_t
++StandardOperations(int32 operation, ...)
++{
++	switch (operation) {
++		case B_MODULE_INIT:
++		{
++			status_t status = get_module(B_PCI_MODULE_NAME, (module_info**)&sPCI);
++			if (status != B_OK)
++				return status;
++			status = get_module(B_AGP_GART_MODULE_NAME, (module_info**)&sGART);
++			if (status != B_OK) {
++				put_module(B_PCI_MODULE_NAME);
++				return status;
++			}
++			mutex_init(&sLock, "intel memory owner");
++			sResources.registers_area = -1;
++			return B_OK;
++		}
++		case B_MODULE_UNINIT:
++			// No reviewed display-stop/hidden-backing recovery protocol exists.
++			// B_KEEP_LOADED retains code as well as these module dependencies.
++			return B_BUSY;
++		default:
++			return B_BAD_VALUE;
++	}
++}
++
++static intel_memory_owner_module_info sModule = {
++	{ INTEL_MEMORY_OWNER_MODULE_NAME, B_KEEP_LOADED, StandardOperations },
++	BeginDisplay, FinishDisplay, ReleaseDisplay, Query, Allocate, Free
++};
++
++module_info* modules[] = { (module_info*)&sModule, NULL };
+diff --git a/src/add-ons/kernel/bus_managers/Jamfile b/src/add-ons/kernel/bus_managers/Jamfile
+--- a/src/add-ons/kernel/bus_managers/Jamfile
++++ b/src/add-ons/kernel/bus_managers/Jamfile
+@@ -8,6 +8,7 @@
+ SubInclude HAIKU_TOP src add-ons kernel bus_managers hyperv ;
+ SubInclude HAIKU_TOP src add-ons kernel bus_managers i2c ;
+ SubInclude HAIKU_TOP src add-ons kernel bus_managers isa ;
++SubInclude HAIKU_TOP src add-ons kernel bus_managers intel_memory_owner ;
+ SubInclude HAIKU_TOP src add-ons kernel bus_managers mmc ;
+ SubInclude HAIKU_TOP src add-ons kernel bus_managers pci ;
+ SubInclude HAIKU_TOP src add-ons kernel bus_managers ps2 ;

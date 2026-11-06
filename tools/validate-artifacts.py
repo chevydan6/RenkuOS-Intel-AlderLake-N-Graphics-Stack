@@ -8,9 +8,12 @@ import subprocess
 import sys
 
 out = pathlib.Path(sys.argv[1])
-for name, symbol in [('intel_gart', 'modules'), ('agp_gart', 'modules'),
+artifacts = [('intel_gart', 'modules'), ('agp_gart', 'modules'),
                      ('intel_extreme.driver', 'publish_devices'),
-                     ('intel_extreme.accelerant', 'get_accelerant_hook')]:
+                     ('intel_extreme.accelerant', 'get_accelerant_hook')]
+if '--require-memory-owner' in sys.argv[2:]:
+    artifacts.append(('intel_memory_owner', 'modules'))
+for name, symbol in artifacts:
     path = out / name
     header = subprocess.check_output(['readelf', '-h', str(path)], text=True)
     if 'ELF64' not in header or 'Advanced Micro Devices X86-64' not in header or 'DYN' not in header:
@@ -22,7 +25,7 @@ for name, symbol in [('intel_gart', 'modules'), ('agp_gart', 'modules'),
         raise SystemExit(f'{name}: test-only lifecycle export in production artifact')
     dynamic = subprocess.check_output(['readelf', '-d', str(path)], text=True)
     needed = re.findall(r'\(NEEDED\).*\[(.*?)\]', dynamic)
-    if name in ('intel_gart', 'agp_gart', 'intel_extreme.driver') and needed != ['_KERNEL_']:
+    if name in ('intel_gart', 'agp_gart', 'intel_extreme.driver', 'intel_memory_owner') and needed != ['_KERNEL_']:
         raise SystemExit(f'unexpected kernel dependencies: {needed}')
     print(f'PASS {name}: {path.stat().st_size} bytes, sha256={hashlib.sha256(path.read_bytes()).hexdigest()}')
     print(f'  dynamic dependencies: {needed}')

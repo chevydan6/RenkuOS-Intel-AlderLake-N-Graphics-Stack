@@ -1,0 +1,117 @@
+diff --git a/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h b/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
+--- a/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
++++ b/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
+@@ -33,7 +33,7 @@
+ 
+ 	IntelApertureLeaseState()
+ 		: fState(Fresh), fNextID(0), fDiagnosticBlocked(false),
+-		  fUnresolvedAllocation(false)
++		  fUnresolvedBacking(false)
+ 	{
+ 		for (unsigned i = 0; i < 2; i++) {
+ 			fLeases[i].id = 0;
+@@ -63,7 +63,7 @@
+ 		// Failure can leave firmware scanout or partially acquired backing.
+ 		// Retain ownership until the containing module proves cleanup safe.
+ 		fState = success ? Ready : RetainedDisplay;
+-		fDiagnosticBlocked = !success || fUnresolvedAllocation;
++		fDiagnosticBlocked = !success || fUnresolvedBacking;
+ 		return Success;
+ 	}
+ 
+@@ -113,7 +113,7 @@
+ 		return Success;
+ 	}
+ 
+-	Result EndOperation(Operation& operation, bool allocationFailed)
++	Result EndOperation(Operation& operation, bool backingUnresolved)
+ 	{
+ 		if (operation.fOwner != this)
+ 			return Invalid;
+@@ -121,10 +121,10 @@
+ 		if (record == NULL || record->operations == 0)
+ 			return Invalid;
+ 		// Must occur under the same mutex, BEFORE dropping the operation pin.
+-		// This conservatively covers GART's hidden partial-bind rollback failure.
+-		if (allocationFailed) {
++		// Covers hidden allocation rollback and failed-free/unbind retention.
++		if (backingUnresolved) {
+ 			fDiagnosticBlocked = true;
+-			fUnresolvedAllocation = true;
++			fUnresolvedBacking = true;
+ 		}
+ 		record->operations--;
+ 		operation.fOwner = NULL;
+@@ -139,7 +139,7 @@
+ 			return Busy;
+ 		// Quiescence alone cannot resolve hidden partial-bind ownership.
+ 		// No in-place reclamation protocol exists for this condition yet.
+-		if (fUnresolvedAllocation || !displayQuiescent || !gpuQuiescent)
++		if (fUnresolvedBacking || !displayQuiescent || !gpuQuiescent)
+ 			return Busy;
+ 		for (unsigned i = 0; i < 2; i++) {
+ 			if (fLeases[i].live || fLeases[i].operations != 0)
+@@ -206,7 +206,7 @@
+ 	State fState;
+ 	uint64_t fNextID;
+ 	bool fDiagnosticBlocked;
+-	bool fUnresolvedAllocation;
++	bool fUnresolvedBacking;
+ 	Lease fLeases[2];
+ };
+ 
+diff --git a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -30,7 +30,8 @@
+ class Operation {
+ public:
+ 	Operation(uint64 lease, IntelApertureLeaseState::Access access)
+-		: fAllocation(access == IntelApertureLeaseState::Allocate),
++		: fCanRetainBacking(access == IntelApertureLeaseState::Allocate
++			|| access == IntelApertureLeaseState::Free),
+ 		  fFailed(true)
+ 	{
+ 		mutex_lock(&sLock);
+@@ -42,7 +43,7 @@
+ 		if (fStatus != B_OK)
+ 			return;
+ 		mutex_lock(&sLock);
+-		sState.EndOperation(fTicket, fAllocation && fFailed);
++		sState.EndOperation(fTicket, fCanRetainBacking && fFailed);
+ 		mutex_unlock(&sLock);
+ 	}
+ 	status_t InitCheck() const { return fStatus; }
+@@ -52,7 +53,7 @@
+ 	Operation& operator=(const Operation&) = delete;
+ 	IntelApertureLeaseState::Operation fTicket;
+ 	status_t fStatus;
+-	bool fAllocation;
++	bool fCanRetainBacking;
+ 	bool fFailed;
+ };
+ 
+@@ -87,7 +88,10 @@
+ 	Operation operation(lease, IntelApertureLeaseState::Free);
+ 	if (operation.InitCheck() != B_OK)
+ 		return operation.InitCheck();
+-	return sGART->free_memory(sAperture, base);
++	status_t status = sGART->free_memory(sAperture, base);
++	if (status == B_OK)
++		operation.Succeeded();
++	return status;
+ }
+ 
+ static status_t
+@@ -152,7 +156,10 @@
+ 			base |= (uint64)pci.u.h0.base_registers[1] << 32;
+ 			size |= (uint64)pci.u.h0.base_register_sizes[1] << 32;
+ 		}
+-		if (size == 0 || size > SIZE_MAX || base > UINT64_MAX - size)
++		if ((pci.u.h0.base_register_flags[0] & PCI_address_space) != 0
++			|| base == 0 || (base & (B_PAGE_SIZE - 1)) != 0
++			|| size == 0 || (size & (B_PAGE_SIZE - 1)) != 0
++			|| size > SIZE_MAX || base > UINT64_MAX - size)
+ 			status = B_BAD_VALUE;
+ 		else {
+ 			void* address = NULL;

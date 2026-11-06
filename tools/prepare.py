@@ -15,6 +15,7 @@ PATHS = [
     'License.md', 'headers/private/graphics', 'build/config_headers',
     'src/add-ons/kernel/busses/agp_gart',
     'src/add-ons/kernel/bus_managers/agp_gart',
+    'src/add-ons/kernel/bus_managers/Jamfile',
     'src/add-ons/kernel/drivers/graphics/intel_extreme',
     'src/add-ons/kernel/drivers/graphics/common',
     'src/system/kernel/util/kernel_cpp.cpp',

@@ -42,7 +42,9 @@ if status == 0:
     with tarfile.open(validation / 'artifacts.tar.gz') as tar:
         tar.extractall(artifact_dir, filter='data')
     subprocess.run([sys.executable, str(pathlib.Path(__file__).with_name('validate-artifacts.py')),
-                    str(artifact_dir / 'build')], check=True)
+                    str(artifact_dir / 'build')] + (['--require-memory-owner'] if
+                    (bundle / 'source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp').exists()
+                    else []), check=True)
     for p in sorted((artifact_dir / 'build').iterdir()):
         record['artifacts'][p.name] = {
             'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}

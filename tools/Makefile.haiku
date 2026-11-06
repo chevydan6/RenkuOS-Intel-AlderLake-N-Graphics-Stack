@@ -198,3 +198,18 @@ test: all $(OUT)/intel_extreme.control.accelerant $(OUT)/intel_extreme.lifecycle
 	$(OUT)/kernel-resources-test
 	python3 tools/regression-control.py
 	python3 tools/validate-artifacts.py $(OUT)
+
+# Memory-only retained owner; absent from unpatched baseline controls.
+OWNER_SOURCE := $(SOURCE)/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+ifneq ($(wildcard $(OWNER_SOURCE)),)
+all: $(OUT)/intel_memory_owner
+
+$(OUT)/intel_memory_owner.o: $(OWNER_SOURCE) Makefile
+	mkdir -p $(OUT)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(KERNELFLAGS) -c $< -o $@
+
+$(OUT)/intel_memory_owner: $(OUT)/intel_memory_owner.o $(OUT)/driver/kernel_cpp.o
+	$(CXX) -shared -nostdlib -Wl,--no-undefined -Wl,-soname,intel_memory_owner \
+		-Wl,-z,max-page-size=0x1000 -o $@ $^ \
+		-L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
+endif
