@@ -47,12 +47,13 @@ port; previously the read at `0x4005030` failed. The log reports DDI G
 enabled. These log entries alone are not evidence of a usable picture or of
 2D or 3D GPU acceleration.
 
-The user subsequently confirmed that the RenkuOS desktop is visible through
-NanoKVM over HDMI. `screenmode` reported 1920×1080, 24 bits and 60 Hz; the
-display log shows 1920×1080 programmed on DDI G. SSH remained available after
-approximately 18 minutes of uptime. This establishes initial physical HDMI
-output, not repeated-boot or long-term stability, independent monitor
-compatibility, or GPU rendering acceleration.
+Correction: the user clarified that NanoKVM is not showing a picture. An
+earlier interpretation of their reply as confirmation of an HDMI desktop was
+incorrect. `screenmode` reported 1920×1080, 24 bits and 60 Hz; the display log
+shows 1920×1080 programmed on DDI G, but a usable HDMI picture is unconfirmed.
+NanoKVM status showed `state=0`, `now_fps=0`; the meaning of those values is
+not independently established here. SSH remained available after approximately
+21 minutes of uptime. Long-term stability and GPU acceleration are unproven.
 
 The test image's existing `ScreenSaver_settings` could not be unflattened as
 a BMessage. It was backed up as `ScreenSaver_settings.before-gpu-test`, then
