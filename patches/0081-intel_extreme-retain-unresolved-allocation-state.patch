@@ -1,0 +1,90 @@
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/IntelApertureLeaseState.h b/src/add-ons/kernel/drivers/graphics/intel_extreme/IntelApertureLeaseState.h
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/IntelApertureLeaseState.h
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/IntelApertureLeaseState.h
+@@ -19,6 +19,9 @@
+ 
+ 	class Operation {
+ 	public:
++		// The containing adapter must end each begun ticket before destroying
++		// it, including every error path. Abandoning a ticket retains its pin
++		// indefinitely; the destructor deliberately cannot perform unlocked I/O.
+ 		Operation() : fOwner(NULL), fLease(0) {}
+ 	private:
+ 		friend class IntelApertureLeaseState;
+@@ -29,7 +32,8 @@
+ 	};
+ 
+ 	IntelApertureLeaseState()
+-		: fState(Fresh), fNextID(0), fDiagnosticBlocked(false)
++		: fState(Fresh), fNextID(0), fDiagnosticBlocked(false),
++		  fUnresolvedAllocation(false)
+ 	{
+ 		for (unsigned i = 0; i < 2; i++) {
+ 			fLeases[i].id = 0;
+@@ -54,10 +58,12 @@
+ 	{
+ 		if (fState != Initializing || !IsLive(Display, displayLease))
+ 			return Invalid;
++		if (fLeases[Display].operations != 0)
++			return Busy;
+ 		// Failure can leave firmware scanout or partially acquired backing.
+ 		// Retain ownership until the containing module proves cleanup safe.
+ 		fState = success ? Ready : RetainedDisplay;
+-		fDiagnosticBlocked = !success;
++		fDiagnosticBlocked = !success || fUnresolvedAllocation;
+ 		return Success;
+ 	}
+ 
+@@ -85,12 +91,18 @@
+ 
+ 	Result BeginOperation(uint64_t lease, Access access, Operation& operation)
+ 	{
++		if (access != Query && access != Allocate && access != Free)
++			return Invalid;
+ 		Lease* record = Find(lease);
+ 		if (record == NULL || !record->live || operation.fOwner != NULL)
+ 			return Invalid;
+-		if (fState == Closing || fState == Closed || fState == Initializing)
+-			return Busy;
+-		if (access == Allocate && (fState != Ready
++		if (fState == Closing || fState == Closed)
++			return Busy;
++		// Only the initializing display lease can forward GART calls here.
++		// FinishInitialization and Release cannot race past active tickets.
++		if (fState == Initializing && record != &fLeases[Display])
++			return Busy;
++		if (access == Allocate && ((fState != Ready && fState != Initializing)
+ 			|| (record == &fLeases[Request] && fDiagnosticBlocked)))
+ 			return Busy;
+ 		if (record->operations == UINT64_MAX)
+@@ -110,8 +122,10 @@
+ 			return Invalid;
+ 		// Must occur under the same mutex, BEFORE dropping the operation pin.
+ 		// This conservatively covers GART's hidden partial-bind rollback failure.
+-		if (allocationFailed)
++		if (allocationFailed) {
+ 			fDiagnosticBlocked = true;
++			fUnresolvedAllocation = true;
++		}
+ 		record->operations--;
+ 		operation.fOwner = NULL;
+ 		operation.fLease = 0;
+@@ -123,7 +137,9 @@
+ 		if (fState == Fresh || fState == Initializing || fState == Closing
+ 			|| fState == Closed || fState == Quarantined)
+ 			return Busy;
+-		if (!displayQuiescent || !gpuQuiescent)
++		// Quiescence alone cannot resolve hidden partial-bind ownership.
++		// No in-place reclamation protocol exists for this condition yet.
++		if (fUnresolvedAllocation || !displayQuiescent || !gpuQuiescent)
+ 			return Busy;
+ 		for (unsigned i = 0; i < 2; i++) {
+ 			if (fLeases[i].live || fLeases[i].operations != 0)
+@@ -190,6 +206,7 @@
+ 	State fState;
+ 	uint64_t fNextID;
+ 	bool fDiagnosticBlocked;
++	bool fUnresolvedAllocation;
+ 	Lease fLeases[2];
+ };
+ 
