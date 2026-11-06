@@ -1,0 +1,24 @@
+{
+  "source_commit": "0dde783675cb2febd868c4512a65bdd1e18a584c",
+  "instrumented": {
+    "compiled": true,
+    "booted": false,
+    "physical_gpu_execution": false,
+    "sha256": "b3059b118b8c072c5e0213c784a80ac103b1e160139e7ea91fcc59a812126f65",
+    "export_count": 7,
+    "persistent_run_records": 32,
+    "review": "Terra accepted per-run record correction; serialized fixture/worker lifetime still required"
+  },
+  "disabled": {
+    "compiled": true,
+    "forced_interrupt_object_rebuild": true,
+    "test_exports": 0,
+    "sha256": "9c8ea8fab22ce5be0c6ae5f0d5e4ba5c3e2566daa11abe553cac198228ca6568",
+    "booted": false
+  },
+  "evidence_directory": "/home/dan/renkuos-development/testing/kernel-irq-build-002",
+  "source_worktree": "/home/dan/renkuos-development/source/gpu-kernel-validation",
+  "runtime_tested": false,
+  "native_fixture_pending": true,
+  "physical_gpu_execution": false
+}
