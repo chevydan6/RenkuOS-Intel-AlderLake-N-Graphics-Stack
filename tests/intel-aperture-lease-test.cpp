@@ -150,6 +150,34 @@ main()
 		assert(owner.Release(display) == Owner::Success);
 		assert(owner.BeginCleanup(true, true) == Owner::Busy);
 	}
+	// Abort revokes only an initializing display lease, retaining every ticket.
+	for (bool failure : {false, true}) {
+		Owner owner;
+		uint64_t display = 0;
+		assert(owner.BeginInitialization(display) == Owner::Success);
+		Owner::Operation ticket;
+		assert(owner.BeginOperation(display, Owner::Allocate, ticket) == Owner::Success);
+		assert(owner.AbortInitialization(display + 1) == Owner::Invalid);
+		assert(owner.AbortInitialization(display) == Owner::Success);
+		assert(owner.AbortInitialization(display) == Owner::Invalid);
+		assert(owner.Release(display) == Owner::Invalid);
+		assert(owner.FinishInitialization(display, true) == Owner::Invalid);
+		assert(owner.BeginCleanup(true, true) == Owner::Busy);
+		Owner::Operation rejected;
+		assert(owner.BeginOperation(display, Owner::Free, rejected) == Owner::Invalid);
+		assert(owner.EndOperation(ticket, failure) == Owner::Success);
+		assert(owner.EndOperation(ticket, failure) == Owner::Invalid);
+		assert(!owner.DiagnosticAllowed());
+		assert(owner.BeginCleanup(false, true) == Owner::Busy);
+		assert(owner.BeginCleanup(true, true) == (failure ? Owner::Busy : Owner::Success));
+	}
+	{
+		Owner owner;
+		uint64_t display = Initialize(owner), request = 0;
+		assert(owner.AcquireRequest(request) == Owner::Success);
+		assert(owner.AbortInitialization(request) == Owner::Invalid);
+		assert(owner.AbortInitialization(display) == Owner::Invalid);
+	}
 	// A single cleanup winner even when two final releases contend.
 	{
 		Owner owner;

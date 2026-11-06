@@ -76,7 +76,7 @@ struct intel_info {
 };
 static std::vector<std::string> events;
 static int fault,refs,ownerReleases,legacyMaps,legacyUnmaps,mmioMaps,allocations;
-static bool irqLive,msiLive,fakeIRQ;
+static bool irqLive,msiLive,fakeIRQ,ownerLeaseLive;
 static void* sharedMemory;
 static bool sharedAlive,legacyMMIOAlive,ownerMMIOAlive;
 static status_t delete_area(area_id id){
@@ -100,7 +100,7 @@ struct AreaKeeper {
 struct Owner {
  status_t begin_display(uint32,uint32,uint32,uint64* lease,intel_memory_owner_resources* out){
   events.push_back("begin");if(fault==2)return -5;
-  *lease=91;*out={{0x80000000,0x100000,0x10000,0x1000},3,0x9000};ownerMMIOAlive=true;return B_OK;
+  ownerLeaseLive=true;*lease=91;*out={{0x80000000,0x100000,0x10000,0x1000},3,0x9000};ownerMMIOAlive=true;return B_OK;
  }
  status_t finish_display(uint64 lease,bool success){
   assert(lease==91);events.push_back(success?"finish-ok":"finish-failed");
@@ -108,7 +108,7 @@ struct Owner {
   if(success&&fault==5)return -5;
   return B_OK;
  }
- status_t release_display(uint64 lease){assert(lease==91&&!irqLive&&!msiLive);events.push_back("release");ownerReleases++;return fault==6?B_BUSY:B_OK;}
+ status_t release_display(uint64 lease){assert(lease==91&&!irqLive&&!msiLive);events.push_back("release");ownerReleases++;assert(ownerLeaseLive);ownerLeaseLive=false;return B_OK;}
  status_t allocate(uint64 lease,size_t,size_t,uint32,addr_t* base,phys_addr_t* physical){assert(lease==91);allocations++;if(fault==7)return -5;*base=0x102000;if(physical)*physical=0x40000;return B_OK;}
  status_t free(uint64 lease,addr_t){assert(lease==91);return B_OK;}
 };
@@ -161,7 +161,7 @@ int main(){
  for(bool n100:{false,true})for(bool fallback:{false,true})for(int stage=0;stage<=8;stage++){
   assert(!sharedAlive&&!legacyMMIOAlive&&!irqLive&&!msiLive);
   events.clear();fault=stage;refs=ownerReleases=legacyMaps=legacyUnmaps=mmioMaps=allocations=0;
-  fakeIRQ=fallback;ownerMMIOAlive=false;
+  fakeIRQ=fallback;ownerMMIOAlive=ownerLeaseLive=false;
   pci_info pci{};pci.vendor_id=0x8086;pci.device_id=n100?0x46d1:0x1234;
   pci.u.h0.base_registers[0]=0x90000000;pci.u.h0.base_register_sizes[0]=0x10000;
   intel_info info{};info.pci=&pci;info.device_type={n100?12:7,n100};
@@ -176,7 +176,7 @@ int main(){
    assert(intel_free_memory(info,0x102000)==B_OK);
    intel_extreme_uninit(info);
   }
-  assert(!sharedAlive&&!legacyMMIOAlive&&!irqLive&&!msiLive&&refs==0);
+  assert(!sharedAlive&&!legacyMMIOAlive&&!irqLive&&!msiLive&&refs==0&&!ownerLeaseLive);
   if(n100){
    assert(legacyMaps==0&&legacyUnmaps==0&&mmioMaps==0);
    assert(ownerReleases==((stage==1||stage==2)?0:1));

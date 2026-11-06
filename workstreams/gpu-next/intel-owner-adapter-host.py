@@ -168,16 +168,20 @@ int main(){
    }
   }
  }
- // Initialization finish/release must not race past an active adapter pin.
- for (int fail = 0; fail < 2; fail++) {
+ // Abort an initializing display lease while each backend call is pinned.
+ for (int kind = 0; kind < 3; kind++) for (int fail = 0; fail < 2; fail++) {
   Reset(0);
   assert(StandardOperations(B_MODULE_INIT) == B_OK);
   uint64 lease = Begin();
-  blockedKind = 1;
-  failure = fail ? 6 : 0;
+  blockedKind = kind;
+  failure = fail ? (kind == 0 ? 4 : kind == 1 ? 6 : 7) : 0;
   std::thread worker([&] {
+   aperture_info info{};
    addr_t base = 73;
-   assert(Allocate(lease, 4096, 4096, 3, &base, nullptr) == (fail ? -5 : B_OK));
+   status_t result = kind == 0 ? Query(lease, &info)
+    : kind == 1 ? Allocate(lease, 4096, 4096, 3, &base, nullptr)
+    : Free(lease, 0x102000);
+   assert(result == (fail ? -5 : B_OK));
   });
   {
    std::unique_lock<std::mutex> lock(backendGate);
@@ -186,15 +190,32 @@ int main(){
   }
   assert(FinishDisplay(lease, true) == B_BUSY);
   assert(FinishDisplay(lease, false) == B_BUSY);
-  assert(ReleaseDisplay(lease) == B_BUSY);
+  assert(ReleaseDisplay(lease + 1) == B_BAD_VALUE);
+  assert(ReleaseDisplay(lease) == B_OK);
+  assert(ReleaseDisplay(lease) == B_BAD_VALUE);
+  assert(FinishDisplay(lease, true) == B_BAD_VALUE);
+  aperture_info info{};
+  addr_t base = 73;
+  assert(Query(lease, &info) == B_BAD_VALUE);
+  assert(Allocate(lease, 4096, 4096, 3, &base, nullptr) == B_BAD_VALUE);
+  assert(Free(lease, 0x102000) == B_BAD_VALUE);
+  {
+   std::lock_guard<std::mutex> lock(sLock);
+   assert(!sState.DiagnosticAllowed());
+   assert(sState.BeginCleanup(true, true) == IntelApertureLeaseState::Busy);
+  }
   {
    std::lock_guard<std::mutex> lock(backendGate);
    backendReleased = true;
   }
   backendChanged.notify_all();
   worker.join();
-  assert(FinishDisplay(lease, true) == B_OK);
-  assert(sState.DiagnosticAllowed() == !fail);
+  assert(refs == 2 && sResources.registers_area == 12 && mapCalls == 1);
+  assert(!sState.DiagnosticAllowed());
+  assert(sState.CurrentState() == IntelApertureLeaseState::RetainedDisplay);
+  assert(sState.BeginCleanup(false, true) == IntelApertureLeaseState::Busy);
+  assert(sState.BeginCleanup(true, true) == (fail && kind != 0
+   ? IntelApertureLeaseState::Busy : IntelApertureLeaseState::Success));
  }
  puts("300 adapter release races and initialization barriers passed; modeled backend");
  puts("Actual owner adapter initialization/forwarding/failure fixtures passed; mocked OS/GART only");

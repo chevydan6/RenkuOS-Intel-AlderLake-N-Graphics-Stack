@@ -1,0 +1,52 @@
+diff --git a/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h b/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
+--- a/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
++++ b/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h
+@@ -67,6 +67,18 @@
+ 		return Success;
+ 	}
+ 
++	// Revoke the caller's initializing lease without discarding in-flight pins.
++	// This is not successful hardware shutdown or resource reclamation.
++	Result AbortInitialization(uint64_t displayLease)
++	{
++		if (fState != Initializing || !IsLive(Display, displayLease))
++			return Invalid;
++		fLeases[Display].live = false;
++		fState = RetainedDisplay;
++		fDiagnosticBlocked = true;
++		return Success;
++	}
++
+ 	Result AcquireRequest(uint64_t& requestLease)
+ 	{
+ 		if (!DiagnosticAllowed())
+diff --git a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -19,6 +19,8 @@
+ 	status_t (*begin_display)(uint8 bus, uint8 device, uint8 function,
+ 		uint64* lease, intel_memory_owner_resources* resources);
+ 	status_t (*finish_display)(uint64 lease, bool initialized);
++	// Revokes the lease even during initialization; never claims hardware idle
++	// or frees retained mappings. In-flight operations finish under module pins.
+ 	status_t (*release_display)(uint64 lease);
+ 	status_t (*query)(uint64 lease, aperture_info* info);
+ 	status_t (*allocate)(uint64 lease, size_t size, size_t alignment,
+diff --git a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -107,8 +107,13 @@
+ ReleaseDisplay(uint64 lease)
+ {
+ 	mutex_lock(&sLock);
+-	status_t result = Status(sState.Release(lease));
++	IntelApertureLeaseState::Result release = sState.Release(lease);
++	if (release == IntelApertureLeaseState::Busy)
++		release = sState.AbortInitialization(lease);
++	status_t result = Status(release);
+ 	mutex_unlock(&sLock);
++	// Success means lease revocation, including aborted initialization.
++	// Existing operation tickets still retain their pins until completion.
+ 	// Last close is not scanout-idle evidence. Keep MMIO, GART and backing.
+ 	return result;
+ }
