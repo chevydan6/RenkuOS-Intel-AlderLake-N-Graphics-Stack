@@ -44,7 +44,19 @@ int main() {
 			|| io.write(io.cookie,offset,0)!=B_BAD_VALUE
 			|| io.read(io.cookie,offset-0x1000,&value)!=B_BAD_VALUE)errors++;
 	}
+	words[0x45404/4]=0xfc0f;
+	if(io.write(io.cookie,0x45404,0xfc07)!=B_OK
+		|| io.write(io.cookie,0x45404,0xfc27)!=B_BAD_VALUE)errors++;
+	words[0x45454/4]=3;
+	if(io.write(io.cookie,0x45454,0x203)!=B_OK
+		|| io.write(io.cookie,0x45454,0x303)!=B_BAD_VALUE
+		|| io.write(io.cookie,0x45454,0x283)!=B_BAD_VALUE)errors++;
+	if(io.write(io.cookie,0x45504,0)!=B_BAD_VALUE
+		|| io.read(io.cookie,0x71080,&value)!=B_OK
+		|| io.write(io.cookie,0x71080,0)!=B_BAD_VALUE
+		|| io.read(io.cookie,0x71780,&value)!=B_OK
+		|| io.write(io.cookie,0x71780,0)!=B_BAD_VALUE)errors++;
 	if (errors) { fprintf(stderr, "%u MMIO adapter cases failed\n", errors); return 1; }
-	puts("16 MMIO range, bank, device and access-control cases passed; RAM only");
+	puts("19 MMIO range, bank, device and access-control cases passed; RAM only");
 	return 0;
 }

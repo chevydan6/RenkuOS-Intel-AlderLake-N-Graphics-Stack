@@ -1,0 +1,88 @@
+From b103eb563a2acca03286457cd1e19db6b1266746 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:15:36 +0900
+Subject: [PATCH] intel_extreme: stop owned output before accelerant teardown
+
+---
+ src/add-ons/accelerants/intel_extreme/Ports.cpp | 15 +++++++++++++++
+ src/add-ons/accelerants/intel_extreme/Ports.h   |  2 ++
+ .../accelerants/intel_extreme/accelerant.cpp    | 17 +++++++++++++++++
+ 3 files changed, 34 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 4447a2b9..6c76777a 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2243,6 +2243,21 @@ DigitalDisplayInterface::~DigitalDisplayInterface()
+ }
+ 
+ 
++status_t
++DigitalDisplayInterface::ShutdownGraphics()
++{
++	// The caller holds accelerant_lock, before destroying shared locks/maps.
++	if (fHdmiContext == NULL)
++		return B_OK;
++	status_t status = fHdmiContext->Stop();
++	if (status != B_OK)
++		return status;
++	delete fHdmiContext;
++	fHdmiContext = NULL;
++	return B_OK;
++}
++
++
+ static bool
+ request_type_c_raster(port_index port)
+ {
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.h b/src/add-ons/accelerants/intel_extreme/Ports.h
+index 4afa0aee..0e1cba47 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.h
++++ b/src/add-ons/accelerants/intel_extreme/Ports.h
+@@ -55,6 +55,7 @@ virtual	status_t					SetPipe(Pipe* pipe);
+ 										{ return fPipe; };
+ 
+ virtual	status_t					Power(bool enabled);
++virtual status_t					ShutdownGraphics() { return B_OK; };
+ 
+ 		bool						HasEDID();
+ virtual	status_t					GetEDID(edid1_info* edid,
+@@ -235,6 +236,7 @@ virtual	uint32						Type() const
+ 										{ return INTEL_PORT_TYPE_DVI; }
+ 
+ virtual	status_t					Power(bool enabled);
++virtual status_t					ShutdownGraphics();
+ 
+ virtual	status_t					SetPipe(Pipe* pipe);
+ virtual	status_t					SetupI2c(i2c_bus *bus);
+diff --git a/src/add-ons/accelerants/intel_extreme/accelerant.cpp b/src/add-ons/accelerants/intel_extreme/accelerant.cpp
+index 01d3c7b9..38e7e4e9 100644
+--- a/src/add-ons/accelerants/intel_extreme/accelerant.cpp
++++ b/src/add-ons/accelerants/intel_extreme/accelerant.cpp
+@@ -708,6 +708,23 @@ intel_uninit_accelerant(void)
+ {
+ 	CALLED();
+ 
++	// Stop any owned diagnostic output while the shared lock and BAR mapping
++	// still exist. Failed cleanup retains its leases and power references for
++	// a retry/recovery, rather than freeing the live ownership context.
++	{
++		Autolock locker(gInfo->shared_info->accelerant_lock);
++		if (!locker.IsLocked()) {
++			ERROR("Cannot lock graphics cleanup; accelerant resources retained\n");
++			return;
++		}
++		for (uint32 i = 0; i < gInfo->port_count; i++) {
++			if (gInfo->ports[i] != NULL && gInfo->ports[i]->ShutdownGraphics() != B_OK) {
++				ERROR("Graphics cleanup incomplete; accelerant resources retained\n");
++				return;
++			}
++		}
++	}
++
+ 	// delete accelerant instance data
+ 	delete_area(gInfo->mode_list_area);
+ 	gInfo->mode_list = NULL;
+-- 
+2.43.0
+

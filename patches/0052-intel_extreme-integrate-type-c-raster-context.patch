@@ -1,0 +1,475 @@
+From 0b087dd7c51f75b6fd8e3bee7d4f76c83dbe4cbf Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:13:35 +0900
+Subject: [PATCH] intel_extreme: integrate opt-in no-plane Type-C raster
+ context
+
+---
+ .../intel_extreme/AlderLakeHdmiContext.h      | 161 ++++++++++++++++++
+ .../intel_extreme/AlderLakeHdmiSequence.h     |  27 ++-
+ .../intel_extreme/AlderLakeTypeCMmio.h        |  16 +-
+ .../accelerants/intel_extreme/Ports.cpp       |  79 ++++++++-
+ src/add-ons/accelerants/intel_extreme/Ports.h |   6 +
+ 5 files changed, 280 insertions(+), 9 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+new file mode 100644
+index 00000000..506c78e4
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+@@ -0,0 +1,161 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_CONTEXT_H
++#define INTEL_EXTREME_ALDER_LAKE_HDMI_CONTEXT_H
++#include "AlderLakeHdmiFirmware.h"
++#include "AlderLakeHdmiSequence.h"
++#include "AlderLakeTypeCMmio.h"
++
++// Per-port diagnostic raster context. All methods require accelerant_lock.
++// Owns persistent pipe/port leases and shared power references. No planes are
++// enabled and no framebuffer is fetched. Caller validates firmware, mapping,
++// mode flags and sink timing before construction.
++class AlderLakeHdmiContext {
++public:
++	AlderLakeHdmiContext(volatile uint8* base, size_t bytes, intel_shared_info& shared,
++		const AlderLakeHdmiFirmware& firmware, unsigned pipe)
++		: fFirmware(firmware)
++		, fPipeIndex(pipe)
++		, fMmio(base, bytes, firmware.tcPort, pipe, true)
++		, fIO(fMmio.Ops())
++		, fWell(WellOps(this), firmware.tcPort, 500)
++		, fPortLease(&shared.type_c_port_leases, firmware.tcPort)
++		, fPipeLease(&shared.display_pipe_leases, pipe)
++		, fDisplayPower(fIO, shared.display_power_references, &shared.display_power_owned_requests,
++			  firmware.tcPort, pipe, 500)
++		, fPipe(fIO, pipe, 500)
++		, fSequence(fIO, fWell, fPortLease, firmware.tcPort, pipe, 500)
++		, fActive(false)
++		, fConfigured(false)
++		, fStopping(false)
++		, fHSync(false)
++		, fVSync(false)
++		, fStage("idle")
++	{
++	}
++	status_t Start(const AlderLakeHdmiTiming& timing, bool hsync, bool vsync)
++	{
++		fStage = "prior cleanup";
++		if (fActive || fStopping || fSequence.NeedsCleanup())
++			return B_BUSY;
++		if (fPipeIndex > 2 || fFirmware.tcPort < 1 || fFirmware.tcPort > 4)
++			return B_BAD_VALUE;
++		// Inspect only already-powered pipe registers. Do not touch an active
++		// firmware pipe or any plane/cursor that may fetch memory.
++		fStage = "parent power";
++		uint32 main, dc;
++		status_t s = fIO.read(fIO.cookie, 0x45404, &main);
++		if (s != B_OK)
++			return s;
++		s = fIO.read(fIO.cookie, 0x45504, &dc);
++		if (s != B_OK)
++			return s;
++		uint32 states = 1U | (1U << 2) | (1U << (2 * (fPipeIndex + 5)));
++		if (main == 0xffffffffU || dc == 0xffffffffU || (main & states) != states
++			|| (dc & 0x2000000bU))
++			return B_BUSY;
++		fStage = "pipe disabled";
++		uint32 control;
++		s = fIO.read(fIO.cookie, 0x70008U + fPipeIndex * 0x1000U, &control);
++		if (s != B_OK)
++			return s;
++		if (control & 0xc0000000U)
++			return B_BUSY;
++		fStage = "all planes disabled";
++		for (unsigned plane = 0; plane < 7; plane++) {
++			s = fIO.read(fIO.cookie, 0x70180U + fPipeIndex * 0x1000U + plane * 0x100U, &control);
++			if (s != B_OK)
++				return s;
++			if (control == 0xffffffffU || (control & 0x80000000U))
++				return B_BUSY;
++		}
++		fStage = "cursor disabled";
++		s = fIO.read(fIO.cookie, 0x70080U + fPipeIndex * 0x1000U, &control);
++		if (s != B_OK)
++			return s;
++		if (control == 0xffffffffU || (control & 0x3fU))
++			return B_BUSY;
++		s = fSequence.Begin(fFirmware.pixelClockKHz, fFirmware.referenceKHz, fFirmware.preset,
++			fFirmware.loadgenWorkaround, hsync, vsync, fFirmware.laneReversal, &fPipe, &timing,
++			&fPipeLease, &fDisplayPower, true);
++		fStage = fSequence.Stage();
++		if (s == B_OK) {
++			fActive = true;
++			fConfigured = true;
++			fTiming = timing;
++			fHSync = hsync;
++			fVSync = vsync;
++		} else if (fSequence.NeedsCleanup())
++			fStopping = true;
++		return s;
++	}
++	status_t Stop()
++	{
++		fStopping = true;
++		status_t s = fSequence.End();
++		if (s == B_OK) {
++			fActive = false;
++			fStopping = false;
++		}
++		return s;
++	}
++	status_t Resume()
++	{
++		if (fStopping)
++			return B_BUSY;
++		if (fActive)
++			return B_OK;
++		if (!fConfigured)
++			return B_ERROR;
++		return Start(fTiming, fHSync, fVSync);
++	}
++	bool IsActive() const
++	{
++		return fActive && !fStopping;
++	}
++	bool NeedsCleanup() const
++	{
++		return fSequence.NeedsCleanup();
++	}
++	const char* Stage() const
++	{
++		return fStage;
++	}
++
++private:
++	static status_t WellRead(void* p, uint32* value)
++	{
++		AlderLakeHdmiContext& c = *(AlderLakeHdmiContext*)p;
++		return c.fIO.read(c.fIO.cookie, 0x45444, value);
++	}
++	static status_t WellWrite(void* p, uint32 value)
++	{
++		AlderLakeHdmiContext& c = *(AlderLakeHdmiContext*)p;
++		return c.fIO.write(c.fIO.cookie, 0x45444, value);
++	}
++	static void Pause(void* p)
++	{
++		AlderLakeHdmiContext& c = *(AlderLakeHdmiContext*)p;
++		c.fIO.pause(c.fIO.cookie);
++	}
++	static TypeCPowerWellOps WellOps(void* cookie)
++	{
++		TypeCPowerWellOps ops = { cookie, WellRead, WellWrite, Pause };
++		return ops;
++	}
++	AlderLakeHdmiContext(const AlderLakeHdmiContext&);
++	AlderLakeHdmiContext& operator=(const AlderLakeHdmiContext&);
++	AlderLakeHdmiFirmware fFirmware;
++	unsigned fPipeIndex;
++	AlderLakeTypeCMmio fMmio;
++	AlderLakeTypeCIO fIO;
++	TypeCPowerWell fWell;
++	TypeCPortLease fPortLease;
++	DisplayPipeLease fPipeLease;
++	AlderLakeDisplayPower fDisplayPower;
++	AlderLakeHdmiPipe fPipe;
++	AlderLakeHdmiSequence fSequence;
++	bool fActive, fConfigured, fStopping, fHSync, fVSync;
++	AlderLakeHdmiTiming fTiming;
++	const char* fStage;
++};
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 68a259ee..04c63188 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -27,7 +27,7 @@ public:
+ 		: fWell(well), fLease(lease), fBackend(io, well, tcPort, attempts),
+ 		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts), fClock(io, tcPort),
+ 		  fTranscoder(io, pipe), fSignal(io, tcPort),
+-		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false), fIO(io), fPipeStage(NULL), fPipeLease(NULL), fDisplayPower(NULL)
++		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false), fIO(io), fPipeStage(NULL), fPipeLease(NULL), fDisplayPower(NULL), fStage("idle")
+ 	{
+ 	}
+ 
+@@ -39,6 +39,7 @@ public:
+ 		DisplayPipeLease* pipeLease = NULL,
+ 		AlderLakeDisplayPower* displayPower = NULL, bool dviCompatible = false)
+ 	{
++		fStage = "validation";
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+ 			|| fClock.NeedsCleanup()
+ 			|| fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
+@@ -70,13 +71,15 @@ public:
+ 			loadgenWorkaround, &signalPlan);
+ 		if (status != B_OK) return status;
+ 
++		fStage = "port lease";
+ 		status = fLease.Acquire();
+ 		if (status != B_OK) return status;
+ 		fStarted = true;
+ 		fPipeStage = pipeStage;
+ 		fPipeLease = pipeLease;
+ 		if (fPipeLease != NULL) {
+-			status = fPipeLease->Acquire();
++			fStage = "pipe lease";
++		status = fPipeLease->Acquire();
+ 			if (status != B_OK) {
+ 				fPipeStage = NULL;
+ 				fPipeLease = NULL;
+@@ -85,31 +88,41 @@ public:
+ 		}
+ 		fDisplayPower = displayPower;
+ 		if (fDisplayPower != NULL) {
+-			status = fDisplayPower->Acquire();
++			fStage = "display power";
++		status = fDisplayPower->Acquire();
+ 			if (status != B_OK) return Fail(status);
+ 			status = CheckAlderLakeHdmiPowerPrerequisites(fIO, fPort, fPipe);
+ 			if (status != B_OK) return Fail(status);
+ 		}
++		fStage = "AUX/PHY ownership";
+ 		status = fPower.Acquire();
+ 		if (status != B_OK) return Fail(status);
++		fStage = "Dekel PLL";
+ 		status = fPll.Program(pllPlan);
+ 		if (status != B_OK) return Fail(status);
++		fStage = "port clock";
+ 		status = fClock.Enable();
+ 		if (status != B_OK) return Fail(status);
+ 		if (fPipeStage != NULL) {
+-			status = fPipeStage->Prepare(*timing);
++			fStage = "pipe timing";
++		status = fPipeStage->Prepare(*timing);
+ 			if (status != B_OK) return Fail(status);
+ 		}
++		fStage = "transcoder configure";
+ 		status = fTranscoder.Configure(transPlan);
+ 		if (status != B_OK) return Fail(status);
++		fStage = "transcoder function";
+ 		status = fTranscoder.Enable();
+ 		if (status != B_OK) return Fail(status);
+ 		if (fPipeStage != NULL) {
+-			status = fPipeStage->Enable();
++			fStage = "pipe enable";
++		status = fPipeStage->Enable();
+ 			if (status != B_OK) return Fail(status);
+ 		}
++		fStage = "PHY signal";
+ 		status = fSignal.Apply(preset, pixelClockKHz, loadgenWorkaround);
+ 		if (status != B_OK) return Fail(status);
++		fStage = "DDI buffer";
+ 		status = fBuffer.Enable(laneReversal);
+ 		if (status != B_OK) return Fail(status);
+ 		return B_OK;
+@@ -153,6 +166,9 @@ public:
+ 		return B_OK;
+ 	}
+ 
++	bool NeedsCleanup() const { return fStarted; }
++	const char* Stage() const { return fStage; }
++
+ private:
+ 	status_t Fail(status_t cause)
+ 	{
+@@ -176,6 +192,7 @@ private:
+ 	AlderLakeHdmiPipe* fPipeStage;
+ 	DisplayPipeLease* fPipeLease;
+ 	AlderLakeDisplayPower* fDisplayPower;
++	const char* fStage;
+ };
+ 
+ #endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+index b2459b2e..e0ac099d 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+@@ -68,7 +68,13 @@ private:
+ 			|| offset == plane + 0x19cU || offset == plane + 0x27cU
+ 			|| offset == plane + 0x240U)
+ 			return !write;
+-		if (offset == 0x45504U || offset == 0x45404U || offset == 0x45454U)
++		if (offset == 0x45504U)
++			return !write;
++		if (offset == 0x45404U || offset == 0x45454U)
++			return true;
++		if (offset == plane + 0x80U
++			|| (offset >= plane + 0x180U && offset <= plane + 0x780U
++				&& (offset - plane - 0x180U) % 0x100U == 0))
+ 			return !write;
+ 		if (offset == 0x161500U + (fPort - 1) * 4U)
+ 			return !write;
+@@ -93,6 +99,14 @@ private:
+ 	{
+ 		AlderLakeTypeCMmio& self = *(AlderLakeTypeCMmio*)cookie;
+ 		if (!self.Allowed(offset, true)) return B_BAD_VALUE;
++		if (offset == 0x45404U || offset == 0x45454U) {
++			const uint32 allowed = offset == 0x45404U
++				? 2U | (2U << 2) | (2U << (2 * (self.fPipe + 5)))
++				: 2U << (2 * (self.fPort + 2));
++			uint32 current = *(volatile uint32*)(self.fBase + offset);
++			if (current == 0xffffffffU || ((value ^ current) & ~allowed) != 0)
++				return B_BAD_VALUE;
++		}
+ 		if (offset == 0x1010a0U) {
+ 			unsigned shift = (self.fPort - 1) * 8;
+ 			if ((value & ~(0xfU << shift)) != 0 || (value >> shift) > 2)
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 27d2e1e1..4447a2b9 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -27,6 +27,8 @@
+ #include "PanelFitter.h"
+ #include "TigerLakePLL.h"
+ #include "AlderLakeHdmiFirmware.h"
++#include "AlderLakeHdmiContext.h"
++#include <unistd.h>
+ #include "AlderLakeHdmiPowerPrerequisites.h"
+ #include "AlderLakeTypeCMmio.h"
+ 
+@@ -2221,13 +2223,36 @@ EmbeddedDisplayPort::IsConnected()
+ DigitalDisplayInterface::DigitalDisplayInterface(port_index index,
+ 		const char* baseName)
+ 	:
+-	Port(index, baseName)
++	Port(index, baseName),
++	fHdmiContext(NULL)
+ {
+ 	// As of Haswell, Intel decided to change eDP ports to a "DDI" bus...
+ 	// on a dare because the hardware engineers were drunk one night.
+ }
+ 
+ 
++DigitalDisplayInterface::~DigitalDisplayInterface()
++{
++	if (fHdmiContext == NULL)
++		return;
++	Autolock locker(gInfo->shared_info->accelerant_lock);
++	if (locker.IsLocked() && fHdmiContext->Stop() == B_OK)
++		delete fHdmiContext;
++	else
++		ERROR("HDMI raster cleanup incomplete; references retained until recovery\n");
++}
++
++
++static bool
++request_type_c_raster(port_index port)
++{
++	return gInfo->has_shared_layout
++		&& gInfo->shared_info->device_type.IsModel(INTEL_MODEL_ALDM)
++		&& (port == INTEL_PORT_F || port == INTEL_PORT_G)
++		&& access("/boot/home/config/settings/intel_extreme_tc_raster_test", F_OK) == 0;
++}
++
++
+ addr_t
+ DigitalDisplayInterface::_PortRegister()
+ {
+@@ -2274,6 +2299,12 @@ DigitalDisplayInterface::_DDCRegister()
+ status_t
+ DigitalDisplayInterface::Power(bool enabled)
+ {
++	if (fHdmiContext != NULL || request_type_c_raster(PortIndex())) {
++		if (fHdmiContext == NULL)
++			return enabled ? B_ERROR : B_OK;
++		return enabled ? fHdmiContext->Resume() : fHdmiContext->Stop();
++	}
++
+ 	if (fPipe == NULL) {
+ 		ERROR("%s: Setting power without assigned pipe!\n", __func__);
+ 		return B_ERROR;
+@@ -2644,9 +2675,48 @@ DigitalDisplayInterface::_SetPortLinkGen8(const display_timing& timing, uint32 p
+ 	return B_OK;
+ }
+ 
++status_t
++DigitalDisplayInterface::_SetRasterMode(display_mode* mode)
++{
++	if (fHdmiContext != NULL) {
++		status_t status = fHdmiContext->Stop();
++		if (status != B_OK)
++			return status;
++		delete fHdmiContext;
++		fHdmiContext = NULL;
++	}
++	AlderLakeHdmiFirmware firmware;
++	status_t status = ReadAlderLakeHdmiFirmware(gInfo->shared_info,
++		gInfo->has_shared_layout, PortIndex(), mode->timing.pixel_clock, &firmware);
++	if (status != B_OK || mode->timing.pixel_clock > 165000
++		|| (mode->timing.flags & B_TIMING_INTERLACED) != 0
++		|| !HasEDID() || fEDIDInfo.display.input_type != 1
++		|| fPipe->Index() < INTEL_PIPE_A || fPipe->Index() > INTEL_PIPE_C)
++		return B_BAD_VALUE;
++	area_info area;
++	if (get_area_info(gInfo->regs_area, &area) != B_OK || area.address != gInfo->registers)
++		return B_BAD_VALUE;
++	fHdmiContext = new(std::nothrow) AlderLakeHdmiContext(gInfo->registers, area.size,
++		*gInfo->shared_info, firmware, fPipe->Index() - INTEL_PIPE_A);
++	if (fHdmiContext == NULL)
++		return B_NO_MEMORY;
++	const display_timing& t = mode->timing;
++	AlderLakeHdmiTiming timing = {t.h_display, t.h_sync_start, t.h_sync_end, t.h_total,
++		t.v_display, t.v_sync_start, t.v_sync_end, t.v_total};
++	status = fHdmiContext->Start(timing, (t.flags & B_POSITIVE_HSYNC) != 0,
++		(t.flags & B_POSITIVE_VSYNC) != 0);
++	TRACE("ADL HDMI raster: stage=%s status=%" B_PRId32
++		" cleanup=%u (no planes enabled)\n", fHdmiContext->Stage(), status,
++		(unsigned)fHdmiContext->NeedsCleanup());
++	if (status == B_OK)
++		memcpy(&fCurrentMode, mode, sizeof(display_mode));
++	return status;
++}
++
++
+ // Called only from the modesetting transaction while accelerant_lock is held.
+-// This preflight uses the existing BAR mapping and reads only. Output execution
+-// stays disabled until plane programming and HDMI packet setup are integrated.
++// This preflight uses the existing BAR mapping and reads only. The separate
++// opt-in raster path sends DVI-compatible TMDS without enabling memory planes.
+ static void
+ diagnose_alder_lake_hdmi(port_index port, pipe_index pipe, uint32 pixelClock)
+ {
+@@ -2731,6 +2801,9 @@ DigitalDisplayInterface::SetDisplayMode(display_mode* target, uint32 colorMode)
+ 
+ 	diagnose_alder_lake_hdmi(PortIndex(), fPipe->Index(), target->timing.pixel_clock);
+ 
++	if (fHdmiContext != NULL || request_type_c_raster(PortIndex()))
++		return _SetRasterMode(target);
++
+ 	display_timing hardwareTarget = target->timing;
+ 	bool needsScaling = false;
+ 	if ((PortIndex() == INTEL_PORT_A)
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.h b/src/add-ons/accelerants/intel_extreme/Ports.h
+index cb7cff89..4afa0aee 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.h
++++ b/src/add-ons/accelerants/intel_extreme/Ports.h
+@@ -221,12 +221,16 @@ virtual	bool						IsConnected();
+ };
+ 
+ 
++class AlderLakeHdmiContext;
++
+ class DigitalDisplayInterface : public Port {
+ public:
+ 									DigitalDisplayInterface(
+ 										port_index index = INTEL_PORT_A,
+ 										const char* baseName = "Digital Display Interface");
+ 
++virtual								~DigitalDisplayInterface();
++
+ virtual	uint32						Type() const
+ 										{ return INTEL_PORT_TYPE_DVI; }
+ 
+@@ -246,6 +250,8 @@ virtual	addr_t						_DDCRegister();
+ virtual addr_t						_PortRegister();
+ private:
+ 		uint8						fMaxLanes;
++		AlderLakeHdmiContext*		fHdmiContext;
++		status_t					_SetRasterMode(display_mode* mode);
+ 
+ 		status_t					_SetPortLinkGen8(const display_timing& timing,
+ 										uint32 pllSel);
+-- 
+2.43.0
+
