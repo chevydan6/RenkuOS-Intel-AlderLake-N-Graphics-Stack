@@ -1,0 +1,179 @@
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+@@ -583,6 +583,24 @@
+ static void
+ release_aperture(intel_info& info)
+ {
++	if (info.memory_owner != NULL) {
++		if (!info.memory_owner_ready) {
++			status_t status = info.memory_owner->finish_display(
++				info.memory_owner_lease, false);
++			if (status != B_OK)
++				ERROR("owner initialization unwind retained: %s\n", strerror(status));
++		}
++		status_t status = info.memory_owner->release_display(info.memory_owner_lease);
++		if (status != B_OK)
++			ERROR("owner display release retained: %s\n", strerror(status));
++		// The retained module owns its resources even after this caller drops
++		// its reference. Never unmap its GART aperture or MMIO area here.
++		put_module(INTEL_MEMORY_OWNER_MODULE_NAME);
++		info.memory_owner = NULL;
++		info.memory_owner_lease = 0;
++		info.memory_owner_ready = false;
++		return;
++	}
+ 	status_t status = gGART->unmap_aperture(info.aperture);
+ 	if (status < B_OK) {
+ 		// GART retains the aperture and its backing on teardown failure.
+@@ -596,6 +614,8 @@
+ status_t
+ intel_free_memory(intel_info &info, addr_t base)
+ {
++	if (info.memory_owner != NULL)
++		return info.memory_owner->free(info.memory_owner_lease, base);
+ 	return gGART->free_memory(info.aperture, base);
+ }
+ 
+@@ -604,6 +624,9 @@
+ intel_allocate_memory(intel_info &info, size_t size, size_t alignment,
+ 	uint32 flags, addr_t* _base, phys_addr_t* _physicalBase)
+ {
++	if (info.memory_owner != NULL)
++		return info.memory_owner->allocate(info.memory_owner_lease, size,
++			alignment, flags, _base, _physicalBase);
+ 	return gGART->allocate_memory(info.aperture, size, alignment,
+ 		flags, _base, _physicalBase);
+ }
+@@ -613,12 +636,40 @@
+ intel_extreme_init(intel_info &info)
+ {
+ 	CALLED();
+-	info.aperture = gGART->map_aperture(info.pci->bus, info.pci->device,
+-		info.pci->function, 0, &info.aperture_base);
+-	if (info.aperture < B_OK) {
+-		ERROR("error: could not map GART aperture! (%s)\n",
+-			strerror(info.aperture));
+-		return info.aperture;
++	info.memory_owner = NULL;
++	info.memory_owner_lease = 0;
++	info.memory_owner_ready = false;
++	aperture_info apertureInfo;
++	if (info.pci->vendor_id == 0x8086 && info.pci->device_id == 0x46d1
++		&& info.pci->revision == 0) {
++		status_t status = get_module(INTEL_MEMORY_OWNER_MODULE_NAME,
++			(module_info**)&info.memory_owner);
++		if (status != B_OK) {
++			info.memory_owner = NULL;
++			return status;
++		}
++		intel_memory_owner_resources resources;
++		status = info.memory_owner->begin_display(info.pci->bus,
++			info.pci->device, info.pci->function, &info.memory_owner_lease,
++			&resources);
++		if (status != B_OK) {
++			put_module(INTEL_MEMORY_OWNER_MODULE_NAME);
++			info.memory_owner = NULL;
++			return status;
++		}
++		info.aperture = -1; // Only the retained module knows its GART ID.
++		info.aperture_base = resources.aperture.base;
++		info.registers_area = resources.registers_area;
++		info.registers = resources.registers;
++		apertureInfo = resources.aperture;
++	} else {
++		info.aperture = gGART->map_aperture(info.pci->bus, info.pci->device,
++			info.pci->function, 0, &info.aperture_base);
++		if (info.aperture < B_OK) {
++			ERROR("error: could not map GART aperture! (%s)\n",
++				strerror(info.aperture));
++			return info.aperture;
++		}
+ 	}
+ 
+ 	AreaKeeper sharedCreator;
+@@ -663,14 +714,16 @@
+ 		barSize |= (uint64)info.pci->u.h0.base_register_sizes[mmioIndex + 1] << 32;
+ 	}
+ 	AreaKeeper mmioMapper;
+-	info.registers_area = mmioMapper.Map("intel extreme mmio", addr, barSize,
+-		B_ANY_KERNEL_ADDRESS,
+-		B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA | B_CLONEABLE_AREA,
+-		(void**)&info.registers);
+-	if (mmioMapper.InitCheck() < B_OK) {
+-		ERROR("error: could not map memory I/O!\n");
+-		release_aperture(info);
+-		return info.registers_area;
++	if (info.memory_owner == NULL) {
++		info.registers_area = mmioMapper.Map("intel extreme mmio", addr, barSize,
++			B_ANY_KERNEL_ADDRESS,
++			B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA | B_CLONEABLE_AREA,
++			(void**)&info.registers);
++		if (mmioMapper.InitCheck() < B_OK) {
++			ERROR("error: could not map memory I/O!\n");
++			release_aperture(info);
++			return info.registers_area;
++		}
+ 	}
+ 
+ 	bool hasPCH = (info.pch_info != INTEL_PCH_NONE);
+@@ -769,8 +822,8 @@
+ 	sharedCreator.Detach();
+ 	mmioMapper.Detach();
+ 
+-	aperture_info apertureInfo;
+-	gGART->get_aperture_info(info.aperture, &apertureInfo);
++	if (info.memory_owner == NULL)
++		gGART->get_aperture_info(info.aperture, &apertureInfo);
+ 
+ 	info.shared_info->registers_area = info.registers_area;
+ 	info.shared_info->graphics_memory = (uint8*)info.aperture_base;
+@@ -955,6 +1008,15 @@
+ 	}
+ 	TRACE("%s: hw_cdclk: %" B_PRIu32 " kHz\n", __func__, info.shared_info->hw_cdclk);
+ 
++	if (info.memory_owner != NULL) {
++		status_t status = info.memory_owner->finish_display(
++			info.memory_owner_lease, true);
++		if (status != B_OK) {
++			intel_extreme_uninit(info);
++			return status;
++		}
++		info.memory_owner_ready = true;
++	}
+ 	TRACE("%s: completed successfully!\n", __func__);
+ 	return B_OK;
+ }
+@@ -990,8 +1052,10 @@
+ 		}
+ 	}
+ 
++	bool registersOwnedByDriver = info.memory_owner == NULL;
+ 	release_aperture(info);
+ 
+-	delete_area(info.registers_area);
++	if (registersOwnedByDriver)
++		delete_area(info.registers_area);
+ 	delete_area(info.shared_area);
+ }
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h
+@@ -10,6 +10,7 @@
+ 
+ 
+ #include <AGP.h>
++#include <IntelMemoryOwner.h>
+ #include <KernelExport.h>
+ #include <PCI.h>
+ 
+@@ -24,6 +25,9 @@
+ 	pci_info*		pci;
+ 	addr_t			aperture_base;
+ 	aperture_id		aperture;
++	intel_memory_owner_module_info* memory_owner;
++	uint64			memory_owner_lease;
++	bool			memory_owner_ready;
+ 
+ 	addr_t			registers;
+ 

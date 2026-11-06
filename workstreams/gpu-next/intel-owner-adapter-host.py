@@ -41,13 +41,32 @@ test = r'''
 #include <cstring>
 #include <new>
 #include <cstdio>
+#include <condition_variable>
+#include <chrono>
+#include <thread>
 static int failure,refs,mapCalls,allocateCalls,freeCalls;
 static pci_info device;
+static std::mutex backendGate;
+static std::condition_variable backendChanged;
+static int blockedKind = -1;
+static bool backendEntered, backendReleased;
+
+static void PauseBackend(int kind)
+{
+ std::unique_lock<std::mutex> lock(backendGate);
+ if (blockedKind != kind)
+  return;
+ backendEntered = true;
+ backendChanged.notify_all();
+ assert(backendChanged.wait_for(lock, std::chrono::seconds(5),
+  [] { return backendReleased; }));
+}
+
 static status_t Enumerate(uint32 index,pci_info* out){if(index)return -5;*out=device;return B_OK;}
 static aperture_id Map(uint8,uint8,uint8,size_t,addr_t* out){mapCalls++;if(failure==3)return -5;*out=0x100000;return 7;}
-static status_t QueryMock(aperture_id id,aperture_info* out){assert(id==7);if(failure==4)return -5;*out={0x80000000,0x100000,0x10000,0x1000};return B_OK;}
-static status_t AllocateMock(aperture_id id,size_t,size_t,uint32,addr_t* base,phys_addr_t* physical){assert(id==7);allocateCalls++;if(failure==6)return -5;if(base)*base=0x102000;if(physical)*physical=0x40000;return B_OK;}
-static status_t FreeMock(aperture_id id,addr_t){assert(id==7);freeCalls++;return failure==7?-5:B_OK;}
+static status_t QueryMock(aperture_id id,aperture_info* out){assert(id==7);PauseBackend(0);if(failure==4)return -5;*out={0x80000000,0x100000,0x10000,0x1000};return B_OK;}
+static status_t AllocateMock(aperture_id id,size_t,size_t,uint32,addr_t* base,phys_addr_t* physical){assert(id==7);PauseBackend(1);allocateCalls++;if(failure==6)return -5;if(base)*base=0x102000;if(physical)*physical=0x40000;return B_OK;}
+static status_t FreeMock(aperture_id id,addr_t){assert(id==7);PauseBackend(2);freeCalls++;return failure==7?-5:B_OK;}
 static pci_module_info pciModule{Enumerate};
 static agp_gart_module_info gartModule{Map,QueryMock,AllocateMock,FreeMock};
 status_t get_module(const char* name,module_info** out){
@@ -64,6 +83,7 @@ area_id map_physical_memory(const char*,phys_addr_t base,size_t size,uint32,uint
 static void Reset(int stage){
  sState.~IntelApertureLeaseState();new(&sState)IntelApertureLeaseState;
  sAperture=-1;sResources={};failure=stage;refs=mapCalls=allocateCalls=freeCalls=0;
+ blockedKind=-1;backendEntered=backendReleased=false;
  device={};device.device=2;device.vendor_id=0x8086;device.device_id=0x46d1;
  device.u.h0.base_registers[0]=0x90000000;device.u.h0.base_register_sizes[0]=0x10000;
 }
@@ -103,6 +123,80 @@ int main(){
   assert(sState.BeginCleanup(true,true)==(stage?IntelApertureLeaseState::Busy:IntelApertureLeaseState::Success));
   assert(refs==2);
  }
+ // Hold each actual forwarding call inside the modeled backend. Release
+ // must retain its operation pin until RAII completion, including failures.
+ for (int kind = 0; kind < 3; kind++) {
+  for (int fail = 0; fail < 2; fail++) {
+   for (int round = 0; round < 50; round++) {
+    Reset(0);
+    assert(StandardOperations(B_MODULE_INIT) == B_OK);
+    uint64 lease = Begin();
+    assert(FinishDisplay(lease, true) == B_OK);
+    failure = fail ? (kind == 0 ? 4 : kind == 1 ? 6 : 7) : 0;
+    blockedKind = kind;
+    status_t result = B_BUSY;
+    std::thread worker([&] {
+     aperture_info info{};
+     addr_t base = 73;
+     if (kind == 0) result = Query(lease, &info);
+     else if (kind == 1) result = Allocate(lease, 4096, 4096, 3, &base, nullptr);
+     else result = Free(lease, 0x102000);
+    });
+    {
+     std::unique_lock<std::mutex> lock(backendGate);
+     assert(backendChanged.wait_for(lock, std::chrono::seconds(5),
+      [] { return backendEntered; }));
+    }
+    assert(ReleaseDisplay(lease) == B_OK);
+    uint64 rejected = 99;
+    intel_memory_owner_resources resource{};
+    assert(BeginDisplay(0, 2, 0, &rejected, &resource) == B_BUSY && rejected == 99);
+    {
+     std::lock_guard<std::mutex> lock(sLock);
+     assert(sState.BeginCleanup(true, true) == IntelApertureLeaseState::Busy);
+    }
+    {
+     std::lock_guard<std::mutex> lock(backendGate);
+     backendReleased = true;
+    }
+    backendChanged.notify_all();
+    worker.join();
+    assert(result == (fail ? -5 : B_OK));
+    assert(refs == 2 && mapCalls == 1 && sResources.registers_area == 12);
+    assert(sState.BeginCleanup(true, true) == (fail && kind != 0
+     ? IntelApertureLeaseState::Busy : IntelApertureLeaseState::Success));
+   }
+  }
+ }
+ // Initialization finish/release must not race past an active adapter pin.
+ for (int fail = 0; fail < 2; fail++) {
+  Reset(0);
+  assert(StandardOperations(B_MODULE_INIT) == B_OK);
+  uint64 lease = Begin();
+  blockedKind = 1;
+  failure = fail ? 6 : 0;
+  std::thread worker([&] {
+   addr_t base = 73;
+   assert(Allocate(lease, 4096, 4096, 3, &base, nullptr) == (fail ? -5 : B_OK));
+  });
+  {
+   std::unique_lock<std::mutex> lock(backendGate);
+   assert(backendChanged.wait_for(lock, std::chrono::seconds(5),
+    [] { return backendEntered; }));
+  }
+  assert(FinishDisplay(lease, true) == B_BUSY);
+  assert(FinishDisplay(lease, false) == B_BUSY);
+  assert(ReleaseDisplay(lease) == B_BUSY);
+  {
+   std::lock_guard<std::mutex> lock(backendGate);
+   backendReleased = true;
+  }
+  backendChanged.notify_all();
+  worker.join();
+  assert(FinishDisplay(lease, true) == B_OK);
+  assert(sState.DiagnosticAllowed() == !fail);
+ }
+ puts("300 adapter release races and initialization barriers passed; modeled backend");
  puts("Actual owner adapter initialization/forwarding/failure fixtures passed; mocked OS/GART only");
 }
 '''
