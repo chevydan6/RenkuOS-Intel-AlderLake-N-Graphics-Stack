@@ -45,3 +45,22 @@ Linux sequence review then identified an ordering error: port DDI_IO power is
 requested after Type-C PHY ownership, PLL programming and port clock enable,
 whereas the new manager requested it before those steps. A correction is
 being developed and has not yet been physically tested at this checkpoint.
+
+## First physical TMDS output
+
+Build 049 passed Type-C ownership, AUX, PLL and clock stages but still timed
+out at DDI_IO. Build 051 captured the accepted request without acknowledgement:
+DDI_IO=0x203 (expected masked0x300), TCSS=0x0c, buffer=0xc0,
+PLL=0xcc000000, CLKSEL=0x80000000, gate=0x4, AUX=0x303. Cleanup completed.
+
+Patch58 adds the Linux-documented four-lane FIA allocation before PLL setup.
+Build052 passed native compilation and artifact validation, was installed on
+both override paths of the isolated test USB, and booted on the N100 laptop.
+The real raster path completed: stage DDI buffer, status B_OK, cleanup1 meaning
+resources remain held for the active output. NanoKVM reported state1,
+VIDevFPS51 and VIFPS60. Its authenticated MJPEG stream returned a1920x1080
+black frame, which was opened and visually inspected. All external image
+planes are intentionally disabled; this demonstrates TMDS video output, not
+desktop scanout or GPU acceleration. The internal installed OS was untouched.
+Desktop output still requires validated DDB allocation, watermarks and primary
+plane programming against the shared framebuffer.
