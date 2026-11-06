@@ -29,17 +29,22 @@ int main() {
   for (unsigned port = INTEL_PORT_A; port <= INTEL_PORT_G; ++port) {
    for (unsigned enabled = 0; enabled < 2; ++enabled) {
     uint32 state = (value << 27) | (enabled << 31) | 0x12345u;
-    bool got = ddi_pipe_selects_port(state, 12, (port_index)port);
+    bool got = ddi_pipe_selects_port(state, 12, (port_index)port, false);
     if (got != (value == port)) ++failures;
    }
   }
  }
  for (unsigned value = 0; value < 8; ++value)
   for (unsigned port = INTEL_PORT_A; port <= INTEL_PORT_G; ++port)
-   if (ddi_pipe_selects_port((value << 28) | 0x12345u, 9, (port_index)port)
+   if (ddi_pipe_selects_port((value << 28) | 0x12345u, 9, (port_index)port, false)
        != (value + 1 == port)) ++failures;
+ for (unsigned value = 0; value < 16; ++value) {
+  uint32 state = value << 27;
+  if (ddi_pipe_selects_port(state, 12, INTEL_PORT_F, true) != (value == INTEL_PORT_D)) ++failures;
+  if (ddi_pipe_selects_port(state, 12, INTEL_PORT_G, true) != (value == INTEL_PORT_E)) ++failures;
+ }
  if (failures) { std::fprintf(stderr, "%u selector failures\n", failures); return 1; }
- std::puts("280 Gen12 and legacy display-port selection checks passed");
+ std::puts("312 Gen12, legacy and Alder Lake mobile port-selection checks passed");
 }
 '''
 with tempfile.TemporaryDirectory(prefix='ddi-port-select-') as tmp:

@@ -1,0 +1,116 @@
+From 200a4e3a50086c5030e69c5906faaff7125e4e6b Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:12:20 +0900
+Subject: [PATCH] intel_extreme: retain shared Type-C power references
+
+---
+ .../intel_extreme/TypeCPowerLifecycle.h       | 10 +++----
+ .../intel_extreme/TypeCPowerWell.h            | 30 ++++++++++++++-----
+ 2 files changed, 27 insertions(+), 13 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+index 2c2256c5..fa62850e 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+@@ -9,11 +9,11 @@
+ #include <stddef.h>
+ 
+ // The platform backend supplies the actual power-well, readiness and PHY
+-// operations. Calls on one lifecycle and its backend must be serialized by
+-// the caller, including against other users of the shared power domain. Each
+-// release and ownership mutations must leave their resource unchanged on
+-// failure. acquirePower must report whether cleanup remains necessary even
+-// when acquisition fails.
++// operations. The caller must hold exclusive ownership of this port for the
++// entire lifecycle and serialize backend operations across the shared power
++// domain. Release and ownership mutations must leave their resource unchanged
++// on failure. acquirePower must report whether cleanup remains necessary
++// even when acquisition fails.
+ struct TypeCPowerOps {
+ 	void* cookie;
+ 	status_t (*acquirePower)(void* cookie, bool* held);
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h b/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
+index 71eeff82..2fdd6981 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
+@@ -8,10 +8,10 @@
+ #include <SupportDefs.h>
+ #include <stddef.h>
+ 
+-// The caller must serialize every register user and maintain a shared
+-// reference count so that Release() cannot clear a request while another
+-// user relies on it. A failing write must leave the register unchanged. The
+-// caller supplies a validated register and port; this class maps no hardware.
++// The caller must serialize every register user and make all users of a well
++// share this instance, including across accelerant teams. A failing write must
++// leave the register unchanged. The caller supplies a validated register and
++// port; this class maps no hardware.
+ struct TypeCPowerWellOps {
+ 	void* cookie;
+ 	status_t (*read)(void* cookie, uint32* value);
+@@ -24,14 +24,20 @@ public:
+ 	TypeCPowerWell(const TypeCPowerWellOps& ops, unsigned port,
+ 		unsigned attempts)
+ 		: fOps(ops), fPort(port), fAttempts(attempts), fHeld(false),
+-		  fOwnRequest(false)
++		  fOwnRequest(false), fReferences(0)
+ 	{
+ 	}
+ 
+ 	status_t Acquire()
+ 	{
+-		if (fHeld)
+-			return B_BUSY;
++		if (fHeld) {
++			// Zero references means a previous failed acquisition is still
++			// awaiting cleanup, not an active shared power reference.
++			if (fReferences == 0 || fReferences == 0xffffffffU)
++				return B_BUSY;
++			fReferences++;
++			return B_OK;
++		}
+ 		// Alder Lake-P exposes up to four Type-C AUX wells, indexed 3-6.
+ 		if (fPort < 1 || fPort > 4 || fAttempts == 0 || fOps.read == NULL
+ 			|| fOps.write == NULL || fOps.pause == NULL)
+@@ -60,8 +66,10 @@ public:
+ 					status = B_ERROR;
+ 				break;
+ 			}
+-			if ((value & StateMask()) != 0)
++			if ((value & StateMask()) != 0) {
++				fReferences = 1;
+ 				return B_OK;
++			}
+ 			fOps.pause(fOps.cookie);
+ 		}
+ 		if (status == B_OK)
+@@ -74,6 +82,10 @@ public:
+ 	{
+ 		if (!fHeld)
+ 			return B_OK;
++		if (fReferences > 1) {
++			fReferences--;
++			return B_OK;
++		}
+ 		if (fOwnRequest) {
+ 			uint32 value;
+ 			status_t status = fOps.read(fOps.cookie, &value);
+@@ -87,6 +99,7 @@ public:
+ 			fOwnRequest = false;
+ 		}
+ 		fHeld = false;
++		fReferences = 0;
+ 		return B_OK;
+ 	}
+ 
+@@ -103,6 +116,7 @@ private:
+ 	unsigned fAttempts;
+ 	bool fHeld;
+ 	bool fOwnRequest;
++	uint32 fReferences;
+ };
+ 
+ #endif
+-- 
+2.43.0
+

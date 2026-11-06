@@ -126,6 +126,28 @@ polling, TC-cold blocking, microcontroller-health checks, or the HDMI enable
 sequence; it cannot power the port or fix HDMI by itself. No physical hardware
 was changed or tested for this patch.
 
+Patch 19 adds a callback-driven per-port AUX power-well helper, and patch 20
+adds local shared references and preserves cleanup state after failed
+acquisition. These helpers are not wired to hardware. Sharing one instance
+and serializing all access, including between accelerant teams, remains a
+requirement before integration. The lifecycle and well tests cover shared
+references, existing requests, timeouts, ownership, and rollback; 13 lifecycle
+and 14 well/integration cases passed on the host and in RenkuOS. Bundle
+`renku-030` compiled and passed its component checks and host finalization in
+a disposable RenkuOS VM.
+
+Patch 21 corrects a separate port routing error for Alder Lake mobile devices.
+Linux maps VBT DVO F/G to TC1/TC2 on display version 13, while its port enum
+maps TC1/TC2 to hardware D/E. Thus the observed VBT G/TC2 corresponds to the
+hardware DDI E buffer control, whereas the old Renku code selected DDI G.
+The patch adjusts buffer-register and existing-transcoder decoding for VBT
+F/G. The extracted register selector passes 15 host cases and its unpatched
+control fails two; the port-selector test passes 312 cases. This candidate
+has not been run on the laptop, and does not implement the missing PHY/PLL,
+power-domain, or transcoder initialization. References: Linux
+[VBT mapping](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_bios.c)
+and [port numbering](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_display_limits.h).
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),

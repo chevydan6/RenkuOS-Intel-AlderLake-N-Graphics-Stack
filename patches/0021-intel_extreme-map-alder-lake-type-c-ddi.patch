@@ -1,0 +1,70 @@
+From bc04f74893c0ee32fde6875b99fbcf56166fdf24 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:12:20 +0900
+Subject: [PATCH] intel_extreme: map Alder Lake mobile Type-C DDI ports
+
+---
+ .../accelerants/intel_extreme/Ports.cpp       | 21 +++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 2091449e..2a9c4fd4 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -43,8 +43,15 @@
+ 
+ 
+ static bool
+-ddi_pipe_selects_port(uint32 pipeState, uint32 generation, port_index port)
+-{
++ddi_pipe_selects_port(uint32 pipeState, uint32 generation, port_index port,
++	bool alderLakeMobile)
++{
++	// The VBT names F/G correspond to hardware Type-C ports 1/2 on
++	// Alder Lake-P/N (hardware port numbers D/E respectively).
++	if (alderLakeMobile && port == INTEL_PORT_F)
++		port = INTEL_PORT_D;
++	else if (alderLakeMobile && port == INTEL_PORT_G)
++		port = INTEL_PORT_E;
+ 	if (generation >= 12) {
+ 		uint32 selection = (pipeState & TGL_PIPE_DDI_SELECT_MASK)
+ 			>> TGL_PIPE_DDI_SELECT_SHIFT;
+@@ -358,7 +365,8 @@ Port::PipePreference()
+ 			}
+ 
+ 			if (ddi_pipe_selects_port(pipeState,
+-					gInfo->shared_info->device_type.Generation(), PortIndex())) {
++					gInfo->shared_info->device_type.Generation(), PortIndex(),
++					gInfo->shared_info->device_type.IsModel(INTEL_MODEL_ALDM))) {
+ 				switch (pipeCnt) {
+ 					case 0:
+ 						return INTEL_PIPE_A;
+@@ -2234,11 +2242,15 @@ DigitalDisplayInterface::_PortRegister()
+ 		case INTEL_PORT_E:
+ 			return DDI_BUF_CTL_E;
+ 		case INTEL_PORT_F:
++			if (gInfo->shared_info->device_type.IsModel(INTEL_MODEL_ALDM))
++				return DDI_BUF_CTL_D;
+ 			if ((gInfo->shared_info->device_type.Generation() > 8) &&
+ 				!gInfo->shared_info->device_type.InGroup(INTEL_GROUP_SKY))
+ 				return DDI_BUF_CTL_F;
+ 			return 0;
+ 		case INTEL_PORT_G:
++			if (gInfo->shared_info->device_type.IsModel(INTEL_MODEL_ALDM))
++				return DDI_BUF_CTL_E;
+ 			if (gInfo->shared_info->device_type.Generation() >= 12)
+ 				return DDI_BUF_CTL_G;
+ 			return 0;
+@@ -2454,7 +2466,8 @@ DigitalDisplayInterface::IsConnected()
+ 				break;
+ 		}
+ 		if (ddi_pipe_selects_port(pipeState,
+-				gInfo->shared_info->device_type.Generation(), PortIndex())) {
++				gInfo->shared_info->device_type.Generation(), PortIndex(),
++				gInfo->shared_info->device_type.IsModel(INTEL_MODEL_ALDM))) {
+ 			TRACE("%s: PIPE_DDI_FUNC_CTL nr %" B_PRIx32 ": 0x%" B_PRIx32 "\n", __func__, pipeCnt + 1, pipeState);
+ 			// See if the BIOS enabled our output as it indicates it's in use
+ 			if (pipeState & PIPE_DDI_FUNC_CTL_ENABLE) {
+-- 
+2.43.0
+

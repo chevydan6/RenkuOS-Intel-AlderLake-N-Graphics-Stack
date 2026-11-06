@@ -1,0 +1,163 @@
+From 1193336fd5e927308d44f22fe0dba847057c0fbc Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:08:18 +0900
+Subject: [PATCH] intel_extreme: add Type-C power-well lifecycle
+
+---
+ .../intel_extreme/TypeCPowerLifecycle.h       |  13 ++-
+ .../intel_extreme/TypeCPowerWell.h            | 108 ++++++++++++++++++
+ 2 files changed, 117 insertions(+), 4 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+index 859ab749..2c2256c5 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+@@ -11,10 +11,12 @@
+ // The platform backend supplies the actual power-well, readiness and PHY
+ // operations. Calls on one lifecycle and its backend must be serialized by
+ // the caller, including against other users of the shared power domain. Each
+-// mutating callback must either succeed or leave its resource unchanged.
++// release and ownership mutations must leave their resource unchanged on
++// failure. acquirePower must report whether cleanup remains necessary even
++// when acquisition fails.
+ struct TypeCPowerOps {
+ 	void* cookie;
+-	status_t (*acquirePower)(void* cookie);
++	status_t (*acquirePower)(void* cookie, bool* held);
+ 	status_t (*releasePower)(void* cookie);
+ 	status_t (*isOwned)(void* cookie, bool* owned);
+ 	status_t (*setOwned)(void* cookie, bool owned);
+@@ -37,10 +39,13 @@ public:
+ 			|| fOps.isReady == NULL)
+ 			return B_BAD_VALUE;
+ 
+-		status_t status = fOps.acquirePower(fOps.cookie);
++		bool powerHeld = false;
++		status_t status = fOps.acquirePower(fOps.cookie, &powerHeld);
++		fPowerHeld = powerHeld;
+ 		if (status != B_OK)
+ 			return status;
+-		fPowerHeld = true;
++		if (!fPowerHeld)
++			return B_ERROR;
+ 
+ 		bool owned = false;
+ 		status = fOps.isOwned(fOps.cookie, &owned);
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h b/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
+new file mode 100644
+index 00000000..71eeff82
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
+@@ -0,0 +1,108 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_TYPE_C_POWER_WELL_H
++#define INTEL_EXTREME_TYPE_C_POWER_WELL_H
++
++#include <SupportDefs.h>
++#include <stddef.h>
++
++// The caller must serialize every register user and maintain a shared
++// reference count so that Release() cannot clear a request while another
++// user relies on it. A failing write must leave the register unchanged. The
++// caller supplies a validated register and port; this class maps no hardware.
++struct TypeCPowerWellOps {
++	void* cookie;
++	status_t (*read)(void* cookie, uint32* value);
++	status_t (*write)(void* cookie, uint32 value);
++	void (*pause)(void* cookie);
++};
++
++class TypeCPowerWell {
++public:
++	TypeCPowerWell(const TypeCPowerWellOps& ops, unsigned port,
++		unsigned attempts)
++		: fOps(ops), fPort(port), fAttempts(attempts), fHeld(false),
++		  fOwnRequest(false)
++	{
++	}
++
++	status_t Acquire()
++	{
++		if (fHeld)
++			return B_BUSY;
++		// Alder Lake-P exposes up to four Type-C AUX wells, indexed 3-6.
++		if (fPort < 1 || fPort > 4 || fAttempts == 0 || fOps.read == NULL
++			|| fOps.write == NULL || fOps.pause == NULL)
++			return B_BAD_VALUE;
++
++		uint32 value;
++		status_t status = fOps.read(fOps.cookie, &value);
++		if (status != B_OK)
++			return status;
++		if (value == 0xffffffffU)
++			return B_ERROR;
++
++		const uint32 request = RequestMask();
++		if ((value & request) == 0) {
++			status = fOps.write(fOps.cookie, value | request);
++			if (status != B_OK)
++				return status;
++			fOwnRequest = true;
++		}
++		fHeld = true;
++
++		for (unsigned i = 0; i < fAttempts; i++) {
++			status = fOps.read(fOps.cookie, &value);
++			if (status != B_OK || value == 0xffffffffU) {
++				if (status == B_OK)
++					status = B_ERROR;
++				break;
++			}
++			if ((value & StateMask()) != 0)
++				return B_OK;
++			fOps.pause(fOps.cookie);
++		}
++		if (status == B_OK)
++			status = B_TIMED_OUT;
++		status_t cleanup = Release();
++		return cleanup == B_OK ? status : cleanup;
++	}
++
++	status_t Release()
++	{
++		if (!fHeld)
++			return B_OK;
++		if (fOwnRequest) {
++			uint32 value;
++			status_t status = fOps.read(fOps.cookie, &value);
++			if (status != B_OK)
++				return status;
++			if (value == 0xffffffffU)
++				return B_ERROR;
++			status = fOps.write(fOps.cookie, value & ~RequestMask());
++			if (status != B_OK)
++				return status;
++			fOwnRequest = false;
++		}
++		fHeld = false;
++		return B_OK;
++	}
++
++	bool IsHeld() const { return fHeld; }
++
++private:
++	uint32 StateMask() const { return 1U << (2 * (fPort + 2)); }
++	uint32 RequestMask() const { return 2U << (2 * (fPort + 2)); }
++	TypeCPowerWell(const TypeCPowerWell&);
++	TypeCPowerWell& operator=(const TypeCPowerWell&);
++
++	TypeCPowerWellOps fOps;
++	unsigned fPort;
++	unsigned fAttempts;
++	bool fHeld;
++	bool fOwnRequest;
++};
++
++#endif
+-- 
+2.43.0
+

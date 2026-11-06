@@ -7,10 +7,12 @@ struct Mock {
 	int fail, releases, relinquishes, acquisitions;
 };
 
-static status_t Acquire(void* p) {
+static status_t Acquire(void* p, bool* held) {
 	Mock& m = *(Mock*)p;
-	if (m.fail == 1) return B_ERROR;
-	m.power = true; m.acquisitions++; return B_OK;
+	if (m.fail == 1) { *held = false; return B_ERROR; }
+	if (m.fail == 8) { *held = false; return B_OK; }
+	m.power = true; m.acquisitions++; *held = true;
+	return m.fail == 7 ? B_ERROR : B_OK;
 }
 static status_t Release(void* p) {
 	Mock& m = *(Mock*)p;
@@ -85,7 +87,19 @@ int main() {
 		m.fail = 0;
 		if (p.Release() != B_OK || m.power || m.owned) errors++;
 	}
+	{
+		Mock m = {false, false, true, 7, 0, 0, 0};
+		TypeCPowerLifecycle p(Ops(m));
+		if (p.Acquire() == B_OK || !m.power || p.Acquire() != B_BUSY) errors++;
+		m.fail = 0;
+		if (p.Release() != B_OK || m.power || m.releases != 1) errors++;
+	}
+	{
+		Mock m = {false, false, true, 8, 0, 0, 0};
+		TypeCPowerLifecycle p(Ops(m));
+		if (p.Acquire() != B_ERROR || m.power || m.releases != 0) errors++;
+	}
 	if (errors) { fprintf(stderr, "%u lifecycle cases failed\n", errors); return 1; }
-	puts("11 Type-C power acquisition, rollback and retry cases passed");
+	puts("13 Type-C power acquisition, rollback and retry cases passed");
 	return 0;
 }
