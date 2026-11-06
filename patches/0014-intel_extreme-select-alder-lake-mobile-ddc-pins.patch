@@ -1,0 +1,35 @@
+From faa3e49af03742ff118d3f968f8beb053f3eb373 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 15:13:40 +0900
+Subject: [PATCH] intel_extreme: select Alder Lake mobile DDC pins
+
+---
+ src/add-ons/accelerants/intel_extreme/Ports.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 43365307..bbf20e55 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -507,6 +507,18 @@ Port::_DDCPin()
+ 	if (!_IsPortInVBT(&foundIndex))
+ 		return 0;
+ 	child_device_config& config = gInfo->shared_info->device_configs[foundIndex];
++	// Alder Lake-P/N VBT DDC bus numbers differ from Ice Lake's.
++	if (gInfo->shared_info->device_type.IsModel(INTEL_MODEL_ALDM)) {
++		switch (config.ddc_pin) {
++			case 1: return INTEL_I2C_IO_B;
++			case 2: return INTEL_I2C_IO_C;
++			case 3: return INTEL_I2C_IO_J;
++			case 4: return INTEL_I2C_IO_K;
++			case 5: return INTEL_I2C_IO_L;
++			case 6: return INTEL_I2C_IO_M;
++			default: return 0;
++		}
++	}
+ 	if (gInfo->shared_info->pch_info >= INTEL_PCH_ICP) {
+ 		switch (config.ddc_pin) {
+ 			case 1:
+-- 
+2.43.0
+
