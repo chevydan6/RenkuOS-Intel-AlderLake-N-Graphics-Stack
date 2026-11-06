@@ -8,6 +8,8 @@ NanoKVM captured the desktop and a live RGB/text validation window; the display
 underrun flags remained zero. This is native display scanout, not accelerated
 2D/3D rendering. The path is experimental and requires explicit test markers.
 See the [hardware report](results/2026-11-06-hdmi-integration.md).
+See [MAINTENANCE.md](MAINTENANCE.md) for module boundaries, resource ownership,
+hardware invariants and the cleanup/review workflow.
 
 The following early milestones describe the investigation before that result;
 their former hardware-validation restrictions are historical.

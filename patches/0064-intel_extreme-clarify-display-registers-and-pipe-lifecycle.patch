@@ -1,0 +1,900 @@
+From eeb334df797e95af2f0df9cbe309426759558564 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 20:54:48 +0900
+Subject: [PATCH] intel_extreme: clarify pipe lifecycle and centralize shared
+ register offsets
+
+---
+ .../intel_extreme/AlderLakeCloneMmio.h        |  11 +-
+ .../intel_extreme/AlderLakeDisplayPower.h     |   5 +-
+ .../intel_extreme/AlderLakeDisplayRegisters.h |  30 +++
+ .../intel_extreme/AlderLakeHdmiContext.h      |  29 +--
+ .../intel_extreme/AlderLakeHdmiPipe.h         | 198 ++++++++++--------
+ .../AlderLakeHdmiPowerPrerequisites.h         |   7 +-
+ .../intel_extreme/AlderLakeHdmiSequence.h     |  10 +-
+ .../intel_extreme/AlderLakeTypeCBackend.h     |   9 +-
+ .../intel_extreme/AlderLakeTypeCMmio.h        |  25 +--
+ .../intel_extreme/DekelHdmiLaneMode.h         |   7 +-
+ .../intel_extreme/DekelHdmiPllProgrammer.h    |   3 +-
+ .../intel_extreme/DekelHdmiSignalProgrammer.h |   7 +-
+ .../accelerants/intel_extreme/Ports.cpp       |   2 +-
+ .../intel_extreme/TypeCFiaLaneCount.h         |   5 +-
+ .../intel_extreme/TypeCHdmiBuffer.h           |   3 +-
+ .../intel_extreme/TypeCHdmiClock.h            |   3 +-
+ 16 files changed, 214 insertions(+), 140 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeDisplayRegisters.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h
+index dd7c8265..650b8793 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeCloneMmio.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_ALDER_LAKE_CLONE_MMIO_H
+ #define INTEL_EXTREME_ALDER_LAKE_CLONE_MMIO_H
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ #include <OS.h>
+ // Existing validated BAR only. Reads require the caller's proven powered-pipe
+@@ -42,7 +43,8 @@ private:
+ 	}
+ 	bool ReadAllowed(uint32 o) const
+ 	{
+-		if (o == 0x45404 || o == 0x45504 || o == 0x4438c || o == 0x45008 || o == 0x44fe8
++		if (o == AlderLakeRegisters::kMainPowerDriver || o == AlderLakeRegisters::kDcStateEnable
++			|| o == 0x4438c || o == 0x45008 || o == 0x44fe8
+ 			|| o == 0x44300 || o == 0x44304 || o == 0x46010 || o == 0x164284 || o == 0x164288
+ 			|| o == 0x164b10 || o == 0x164280)
+ 			return true;
+@@ -52,13 +54,14 @@ private:
+ 			if (!(fMask & (1U << pipe)))
+ 				continue;
+ 			uint32 d = pipe * 0x1000;
+-			if (o == 0x70008 + d || o == 0x70080 + d || o == 0x7017c + d || o == 0x70040 + d
+-				|| o == 0x70064 + d || o == 0x60000 + d || o == 0x6000c + d || o == 0x6001c + d
++			if (o == AlderLakeRegisters::kPipeControlBase + d || o == AlderLakeRegisters::kCursorControlBase + d
++				|| o == 0x7017c + d || o == 0x70040 + d
++				|| o == 0x70064 + d || o == AlderLakeRegisters::kPipeTimingBase + d || o == 0x6000c + d || o == 0x6001c + d
+ 				|| o == 0x60040 + d || o == 0x60044 + d || o == 0x60400 + d || o == 0x7003c + d)
+ 				return true;
+ 			for (unsigned plane = 0; plane < 7; plane++) {
+ 				uint32 p = d + plane * 0x100;
+-				if (o == 0x70180 + p || o == 0x7027c + p)
++				if (o == AlderLakeRegisters::kPrimaryPlaneControlBase + p || o == 0x7027c + p)
+ 					return true;
+ 			}
+ 			const uint32 primary[]
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+index 5b449018..69d774a9 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_ALDER_LAKE_DISPLAY_POWER_H
+ #define INTEL_EXTREME_ALDER_LAKE_DISPLAY_POWER_H
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ 
+ // Shared references[9] and ownedRequests must be common to every accelerant
+@@ -40,7 +41,7 @@ public:
+ 			|| !fIO.read || !fIO.write || !fIO.pause)
+ 			return B_BAD_VALUE;
+ 		uint32 dc;
+-		status_t status = Read(0x45504, &dc);
++		status_t status = Read(AlderLakeRegisters::kDcStateEnable, &dc);
+ 		if (status != B_OK)
+ 			return status;
+ 		if (dc & 0x2000000bU)
+@@ -152,7 +153,7 @@ private:
+ 	}
+ 	static uint32 Register(unsigned slot)
+ 	{
+-		return slot < 5 ? 0x45404 : 0x45454;
++		return slot < 5 ? AlderLakeRegisters::kMainPowerDriver : AlderLakeRegisters::kDdiPowerDriver;
+ 	}
+ 	static unsigned Index(unsigned slot)
+ 	{
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayRegisters.h b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayRegisters.h
+new file mode 100644
+index 00000000..ee0ed14c
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayRegisters.h
+@@ -0,0 +1,30 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_DISPLAY_REGISTERS_H
++#define INTEL_EXTREME_ALDER_LAKE_DISPLAY_REGISTERS_H
++
++#include <SupportDefs.h>
++
++// Physical BAR offsets for the verified display-version-13 path. These are
++// not the register-block-tagged offsets used by the inherited read32 API.
++// Callers still validate the mapped BAR, power state, port and pipe indices.
++// Reference: Intel display PRMs and i915 intel_display_regs.h. Type-C bases
++// refer to TC1; per-port strides remain explicit at their call sites.
++namespace AlderLakeRegisters {
++enum : uint32 {
++	kMainPowerDriver = 0x00045404U,
++	kAuxPowerDriver = 0x00045444U,
++	kDdiPowerDriver = 0x00045454U,
++	kDcStateEnable = 0x00045504U,
++	kTypeCStatusBase = 0x00161500U,
++	kTypeCBufferControlBase = 0x00064300U,
++	kDekelHealthBase = 0x0016836cU,
++	kHipIndex0 = 0x001010a0U,
++	kPipeControlBase = 0x00070008U,
++	kPipeMiscBase = 0x00070030U,
++	kPipeTimingBase = 0x00060000U,
++	kPrimaryPlaneControlBase = 0x00070180U,
++	kCursorControlBase = 0x00070080U,
++};
++}
++
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+index ec560e19..52ba0d31 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_CONTEXT_H
+ #define INTEL_EXTREME_ALDER_LAKE_HDMI_CONTEXT_H
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeCloneMmio.h"
+ #include "AlderLakeClonePlaneProgrammer.h"
+ #include "AlderLakeHdmiFirmware.h"
+@@ -52,10 +53,10 @@ public:
+ 		// firmware pipe or any plane/cursor that may fetch memory.
+ 		fStage = "parent power";
+ 		uint32 main, dc;
+-		status_t s = fIO.read(fIO.cookie, 0x45404, &main);
++		status_t s = fIO.read(fIO.cookie, AlderLakeRegisters::kMainPowerDriver, &main);
+ 		if (s != B_OK)
+ 			return s;
+-		s = fIO.read(fIO.cookie, 0x45504, &dc);
++		s = fIO.read(fIO.cookie, AlderLakeRegisters::kDcStateEnable, &dc);
+ 		if (s != B_OK)
+ 			return s;
+ 		uint32 states = 1U | (1U << 2) | (1U << (2 * (fPipeIndex + 5)));
+@@ -64,21 +65,22 @@ public:
+ 			return B_BUSY;
+ 		fStage = "pipe disabled";
+ 		uint32 control;
+-		s = fIO.read(fIO.cookie, 0x70008U + fPipeIndex * 0x1000U, &control);
++		s = fIO.read(fIO.cookie, AlderLakeRegisters::kPipeControlBase + fPipeIndex * 0x1000U, &control);
+ 		if (s != B_OK)
+ 			return s;
+ 		if (control & 0xc0000000U)
+ 			return B_BUSY;
+ 		fStage = "all planes disabled";
+ 		for (unsigned plane = 0; plane < 7; plane++) {
+-			s = fIO.read(fIO.cookie, 0x70180U + fPipeIndex * 0x1000U + plane * 0x100U, &control);
++			s = fIO.read(fIO.cookie, AlderLakeRegisters::kPrimaryPlaneControlBase + fPipeIndex * 0x1000U
++				+ plane * 0x100U, &control);
+ 			if (s != B_OK)
+ 				return s;
+ 			if (control == 0xffffffffU || (control & 0x80000000U))
+ 				return B_BUSY;
+ 		}
+ 		fStage = "cursor disabled";
+-		s = fIO.read(fIO.cookie, 0x70080U + fPipeIndex * 0x1000U, &control);
++		s = fIO.read(fIO.cookie, AlderLakeRegisters::kCursorControlBase + fPipeIndex * 0x1000U, &control);
+ 		if (s != B_OK)
+ 			return s;
+ 		if (control == 0xffffffffU || (control & 0x3fU))
+@@ -137,10 +139,10 @@ public:
+ 		if (!IsActive() || fPipeIndex != 1 || fClone.NeedsCleanup())
+ 			return B_BUSY;
+ 		uint32 main, dc;
+-		status_t status = fIO.read(fIO.cookie, 0x45404U, &main);
++		status_t status = fIO.read(fIO.cookie, AlderLakeRegisters::kMainPowerDriver, &main);
+ 		if (status != B_OK)
+ 			return status;
+-		status = fIO.read(fIO.cookie, 0x45504U, &dc);
++		status = fIO.read(fIO.cookie, AlderLakeRegisters::kDcStateEnable, &dc);
+ 		if (status != B_OK || dc != 0 || main == 0xffffffffU)
+ 			return B_BUSY;
+ 		uint32 powered = 0;
+@@ -173,8 +175,9 @@ public:
+ 		in.bytesPerRow = fShared.bytes_per_row;
+ 		in.targetPixelCeilKHz = fFirmware.pixelClockKHz + 1;
+ 		fStage = "desktop source plane";
+-		const uint32 offsets[] = { 0x70180, 0x701cc, 0x70188, 0x7018c, 0x70190, 0x701a4, 0x7019c,
+-			0x70240, 0x70258, 0x60000, 0x61000, 0x6000c, 0x6100c, 0x6001c };
++		const uint32 offsets[] = { AlderLakeRegisters::kPrimaryPlaneControlBase, 0x701cc, 0x70188, 0x7018c, 0x70190,
++			0x701a4, 0x7019c,
++			0x70240, 0x70258, AlderLakeRegisters::kPipeTimingBase, 0x61000, 0x6000c, 0x6100c, 0x6001c };
+ 		uint32* fields[] = { &in.sourceControl, &in.sourceColor, &in.sourceStride,
+ 			&in.sourcePosition, &in.sourceSize, &in.sourceOffset, &in.sourceSurface, &in.sourceWm0,
+ 			&in.sourceSagv, &in.sourceHTotal, &in.targetHTotal, &in.sourceVTotal, &in.targetVTotal,
+@@ -218,7 +221,7 @@ public:
+ 			if (!(powered & (1U << pipe)))
+ 				continue;
+ 			uint32 control;
+-			status = CloneRead(0x70008 + pipe * 0x1000, &control);
++			status = CloneRead(AlderLakeRegisters::kPipeControlBase + pipe * 0x1000, &control);
+ 			if (status != B_OK)
+ 				return status;
+ 			if (control & 0x80000000U)
+@@ -232,7 +235,7 @@ public:
+ 				if (status != B_OK)
+ 					return status;
+ 				if (pipe == 1) {
+-					status = CloneRead(0x70180 + pipe * 0x1000 + plane * 0x100, &control);
++					status = CloneRead(AlderLakeRegisters::kPrimaryPlaneControlBase + pipe * 0x1000 + plane * 0x100, &control);
+ 					if (status != B_OK || (control & 0x80000000U))
+ 						return B_BUSY;
+ 				}
+@@ -315,12 +318,12 @@ private:
+ 	static status_t WellRead(void* p, uint32* value)
+ 	{
+ 		AlderLakeHdmiContext& c = *(AlderLakeHdmiContext*)p;
+-		return c.fIO.read(c.fIO.cookie, 0x45444, value);
++		return c.fIO.read(c.fIO.cookie, AlderLakeRegisters::kAuxPowerDriver, value);
+ 	}
+ 	static status_t WellWrite(void* p, uint32 value)
+ 	{
+ 		AlderLakeHdmiContext& c = *(AlderLakeHdmiContext*)p;
+-		return c.fIO.write(c.fIO.cookie, 0x45444, value);
++		return c.fIO.write(c.fIO.cookie, AlderLakeRegisters::kAuxPowerDriver, value);
+ 	}
+ 	static void Pause(void* p)
+ 	{
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h
+index 5f7d0981..bbfff5b9 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h
+@@ -1,16 +1,24 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_PIPE_H
+ #define INTEL_EXTREME_ALDER_LAKE_HDMI_PIPE_H
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ 
+ struct AlderLakeHdmiTiming {
+-	uint32 hDisplay, hSyncStart, hSyncEnd, hTotal;
+-	uint32 vDisplay, vSyncStart, vSyncEnd, vTotal;
++	uint32 hDisplay;
++	uint32 hSyncStart;
++	uint32 hSyncEnd;
++	uint32 hTotal;
++	uint32 vDisplay;
++	uint32 vSyncStart;
++	uint32 vSyncEnd;
++	uint32 vTotal;
+ };
+ // Injected-I/O pipe stage. Caller owns the pipe, power domains and global
+ // modesetting lock. Refuses active firmware pipes; never disables an unowned
+ // pipe. Transcoder function and port clocks must precede Enable(), while the
+-// DDI buffer must be disabled before Release(). PIPE_MISC must agree with the RGB8 DVI transcoder.
++// DDI buffer must be disabled before Release(). PIPE_MISC must agree with the
++// RGB8 DVI transcoder. Failed cleanup retains the saved state for a retry.
+ class AlderLakeHdmiPipe {
+ public:
+ 	AlderLakeHdmiPipe(const AlderLakeTypeCIO& io, unsigned pipe, unsigned attempts)
+@@ -20,107 +28,117 @@ public:
+ 		, fSavedControl(0)
+ 		, fSavedMisc(0)
+ 		, fMiscWritten(false)
+-		, fWritten(0)
++		, fWrittenTimings(0)
+ 		, fPrepared(false)
+ 		, fEnabled(false)
+ 	{
+ 	}
+-	status_t Prepare(const AlderLakeHdmiTiming& t)
++
++	status_t Prepare(const AlderLakeHdmiTiming& timing)
+ 	{
+ 		if (NeedsCleanup())
+ 			return B_BUSY;
+ 		if (fPipe > 2 || fAttempts == 0 || !fIO.read || !fIO.write || !fIO.pause
+-			|| !Valid(t.hDisplay, t.hSyncStart, t.hSyncEnd, t.hTotal)
+-			|| !Valid(t.vDisplay, t.vSyncStart, t.vSyncEnd, t.vTotal))
++			|| !IsValidTiming(timing.hDisplay, timing.hSyncStart, timing.hSyncEnd, timing.hTotal)
++			|| !IsValidTiming(timing.vDisplay, timing.vSyncStart, timing.vSyncEnd, timing.vTotal))
+ 			return B_BAD_VALUE;
+-		status_t s = Read(Control(), &fSavedControl);
+-		if (s != B_OK)
+-			return s;
+-		if (fSavedControl & 0xc0000000U)
++		status_t status = Read(ControlRegister(), &fSavedControl);
++		if (status != B_OK)
++			return status;
++		if (fSavedControl & (kPipeEnable | kPipeActive))
+ 			return B_BUSY;
+-		s = Read(Misc(), &fSavedMisc);
+-		if (s != B_OK)
+-			return s;
++		status = Read(MiscRegister(), &fSavedMisc);
++		if (status != B_OK)
++			return status;
+ 		for (unsigned i = 0; i < 6; i++) {
+-			s = Read(Timing(i), &fSaved[i]);
+-			if (s != B_OK)
+-				return s;
++			status = Read(TimingRegister(i), &fSavedTimings[i]);
++			if (status != B_OK)
++				return status;
+ 		}
+-		uint32 values[6] = { Pack(t.hDisplay, t.hTotal), Pack(t.hDisplay, t.hTotal),
+-			Pack(t.hSyncStart, t.hSyncEnd), Pack(t.vDisplay, t.vTotal), Pack(t.vDisplay, t.vTotal),
+-			Pack(t.vSyncStart, t.vSyncEnd) };
++		// Hardware order: horizontal total, blank, sync; vertical total,
++		// blank, sync. The blanking interval begins at the visible edge.
++		uint32 values[6] = {
++			PackTiming(timing.hDisplay, timing.hTotal),
++			PackTiming(timing.hDisplay, timing.hTotal),
++			PackTiming(timing.hSyncStart, timing.hSyncEnd),
++			PackTiming(timing.vDisplay, timing.vTotal),
++			PackTiming(timing.vDisplay, timing.vTotal),
++			PackTiming(timing.vSyncStart, timing.vSyncEnd)
++		};
+ 		for (unsigned i = 0; i < 6; i++) {
+-			s = fIO.write(fIO.cookie, Timing(i), values[i]);
+-			if (s != B_OK)
+-				return Fail(s);
+-			fWritten++;
++			status = fIO.write(fIO.cookie, TimingRegister(i), values[i]);
++			if (status != B_OK)
++				return Fail(status);
++			fWrittenTimings++;
+ 		}
+ 		// PIPE_MISC BPC is independent of TRANS_DDI_FUNC_CTL. ADLP value
+ 		// 4 in bits 7:5 means 12bpc, not 8bpc. Set RGB, 8bpc and no
+ 		// dithering before enabling the owned inactive pipe. Linux
+ 		// intel_display_regs.h PIPE_MISC documents these exact fields.
+-		s = fIO.write(fIO.cookie, Misc(), fSavedMisc & ~MiscMask());
+-		if (s != B_OK)
+-			return Fail(s);
++		status = fIO.write(fIO.cookie, MiscRegister(), fSavedMisc & ~Rgb8FormatMask());
++		if (status != B_OK)
++			return Fail(status);
+ 		fMiscWritten = true;
+ 		uint32 misc;
+-		s = Read(Misc(), &misc);
+-		if (s != B_OK || (misc & MiscMask()) != 0)
+-			return Fail(s != B_OK ? s : B_ERROR);
+-		s = fIO.write(fIO.cookie, Control(), fSavedControl & ~(7U << 21));
+-		if (s != B_OK)
+-			return Fail(s);
++		status = Read(MiscRegister(), &misc);
++		if (status != B_OK || (misc & Rgb8FormatMask()) != 0)
++			return Fail(status != B_OK ? status : B_ERROR);
++		status = fIO.write(fIO.cookie, ControlRegister(), fSavedControl & ~kInterlaceMask);
++		if (status != B_OK)
++			return Fail(status);
+ 		fPrepared = true;
+ 		return B_OK;
+ 	}
++
+ 	status_t Enable()
+ 	{
+ 		if (!fPrepared || fEnabled)
+ 			return B_BAD_VALUE;
+-		status_t s = fIO.write(fIO.cookie, Control(), (fSavedControl & ~(7U << 21)) | 0x80000000U);
+-		if (s != B_OK)
+-			return s;
++		status_t status = fIO.write(fIO.cookie, ControlRegister(), (fSavedControl & ~kInterlaceMask) | kPipeEnable);
++		if (status != B_OK)
++			return status;
+ 		fEnabled = true;
+-		s = Wait(true);
+-		return s == B_OK ? s : Fail(s);
++		status = WaitForActiveState(true);
++		return status == B_OK ? status : Fail(status);
+ 	}
++
+ 	status_t Release()
+ 	{
+ 		if (fEnabled) {
+-			status_t s = fIO.write(fIO.cookie, Control(), fSavedControl & ~(7U << 21));
+-			if (s != B_OK)
+-				return s;
+-			s = Wait(false);
+-			if (s != B_OK)
+-				return s;
++			status_t status = fIO.write(fIO.cookie, ControlRegister(), fSavedControl & ~kInterlaceMask);
++			if (status != B_OK)
++				return status;
++			status = WaitForActiveState(false);
++			if (status != B_OK)
++				return status;
+ 			fEnabled = false;
+ 		}
+ 		if (fPrepared) {
+-			status_t s = fIO.write(fIO.cookie, Control(), fSavedControl);
+-			if (s != B_OK)
+-				return s;
++			status_t status = fIO.write(fIO.cookie, ControlRegister(), fSavedControl);
++			if (status != B_OK)
++				return status;
+ 			fPrepared = false;
+ 		}
+ 		if (fMiscWritten) {
+ 			uint32 misc;
+-			status_t s = Read(Misc(), &misc);
+-			if (s != B_OK)
+-				return s;
+-			s = fIO.write(fIO.cookie, Misc(),
+-				(misc & ~MiscMask()) | (fSavedMisc & MiscMask()));
+-			if (s != B_OK)
+-				return s;
+-			s = Read(Misc(), &misc);
+-			if (s != B_OK || (misc & MiscMask()) != (fSavedMisc & MiscMask()))
+-				return s != B_OK ? s : B_ERROR;
++			status_t status = Read(MiscRegister(), &misc);
++			if (status != B_OK)
++				return status;
++			status = fIO.write(fIO.cookie, MiscRegister(),
++				(misc & ~Rgb8FormatMask()) | (fSavedMisc & Rgb8FormatMask()));
++			if (status != B_OK)
++				return status;
++			status = Read(MiscRegister(), &misc);
++			if (status != B_OK || (misc & Rgb8FormatMask()) != (fSavedMisc & Rgb8FormatMask()))
++				return status != B_OK ? status : B_ERROR;
+ 			fMiscWritten = false;
+ 		}
+-		while (fWritten) {
+-			unsigned i = fWritten - 1;
+-			status_t s = fIO.write(fIO.cookie, Timing(i), fSaved[i]);
+-			if (s != B_OK)
+-				return s;
+-			fWritten--;
++		while (fWrittenTimings) {
++			unsigned i = fWrittenTimings - 1;
++			status_t status = fIO.write(fIO.cookie, TimingRegister(i), fSavedTimings[i]);
++			if (status != B_OK)
++				return status;
++			fWrittenTimings--;
+ 		}
+ 		return B_OK;
+ 	}
+@@ -130,49 +148,53 @@ public:
+ 	}
+ 	bool NeedsCleanup() const
+ 	{
+-		return fPrepared || fEnabled || fWritten || fMiscWritten;
++		return fPrepared || fEnabled || fWrittenTimings || fMiscWritten;
+ 	}
+ 
+ private:
+-	static bool Valid(uint32 a, uint32 b, uint32 c, uint32 d)
++	static const uint32 kPipeEnable = 1U << 31;
++	static const uint32 kPipeActive = 1U << 30;
++	static const uint32 kInterlaceMask = 7U << 21;
++
++	static bool IsValidTiming(uint32 a, uint32 b, uint32 c, uint32 d)
+ 	{
+ 		return a > 0 && a <= b && b < c && c <= d && d <= 65536;
+ 	}
+-	static uint32 Pack(uint32 low, uint32 high)
++	static uint32 PackTiming(uint32 low, uint32 high)
+ 	{
+ 		return ((high - 1) << 16) | (low - 1);
+ 	}
+-	uint32 Timing(unsigned i) const
++	uint32 TimingRegister(unsigned i) const
+ 	{
+-		return 0x60000U + fPipe * 0x1000U + i * 4;
++		return AlderLakeRegisters::kPipeTimingBase + fPipe * 0x1000U + i * 4;
+ 	}
+-	static uint32 MiscMask()
++	static uint32 Rgb8FormatMask()
+ 	{
+ 		// YUV420 enable/full blend, output YUV, BPC, dither enable/type.
+ 		// Preserve all other fields, including inherited firmware bit24.
+ 		return (3U << 26) | (1U << 11) | (7U << 5) | (7U << 2);
+ 	}
+-	uint32 Misc() const
++	uint32 MiscRegister() const
+ 	{
+-		return 0x70030U + fPipe * 0x1000U;
++		return AlderLakeRegisters::kPipeMiscBase + fPipe * 0x1000U;
+ 	}
+-	uint32 Control() const
++	uint32 ControlRegister() const
+ 	{
+-		return 0x70008U + fPipe * 0x1000U;
++		return AlderLakeRegisters::kPipeControlBase + fPipe * 0x1000U;
+ 	}
+ 	status_t Read(uint32 offset, uint32* value)
+ 	{
+-		status_t s = fIO.read(fIO.cookie, offset, value);
+-		return s == B_OK && *value == 0xffffffffU ? B_ERROR : s;
++		status_t status = fIO.read(fIO.cookie, offset, value);
++		return status == B_OK && *value == 0xffffffffU ? B_ERROR : status;
+ 	}
+-	status_t Wait(bool enabled)
++	status_t WaitForActiveState(bool enabled)
+ 	{
+ 		for (unsigned i = 0; i < fAttempts; i++) {
+ 			uint32 value;
+-			status_t s = Read(Control(), &value);
+-			if (s != B_OK)
+-				return s;
+-			if (bool(value & 0x40000000U) == enabled)
++			status_t status = Read(ControlRegister(), &value);
++			if (status != B_OK)
++				return status;
++			if (bool(value & kPipeActive) == enabled)
+ 				return B_OK;
+ 			fIO.pause(fIO.cookie);
+ 		}
+@@ -180,16 +202,20 @@ private:
+ 	}
+ 	status_t Fail(status_t cause)
+ 	{
+-		status_t s = Release();
+-		return s == B_OK ? cause : s;
++		status_t status = Release();
++		return status == B_OK ? cause : status;
+ 	}
+ 	AlderLakeHdmiPipe(const AlderLakeHdmiPipe&);
+ 	AlderLakeHdmiPipe& operator=(const AlderLakeHdmiPipe&);
+ 	AlderLakeTypeCIO fIO;
+-	unsigned fPipe, fAttempts;
+-	uint32 fSavedControl, fSaved[6], fSavedMisc;
++	unsigned fPipe;
++	unsigned fAttempts;
++	uint32 fSavedControl;
++	uint32 fSavedTimings[6];
++	uint32 fSavedMisc;
+ 	bool fMiscWritten;
+-	unsigned fWritten;
+-	bool fPrepared, fEnabled;
++	unsigned fWrittenTimings;
++	bool fPrepared;
++	bool fEnabled;
+ };
+ #endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h
+index 7c1b2675..4853936b 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_POWER_PREREQUISITES_H
+ #define INTEL_EXTREME_ALDER_LAKE_HDMI_POWER_PREREQUISITES_H
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ 
+ // Conservative read-only gate, not a power-domain ownership implementation.
+@@ -13,13 +14,13 @@ static inline status_t CheckAlderLakeHdmiPowerPrerequisites(
+ 	if (tcPort < 1 || tcPort > 4 || pipe > 2 || io.read == NULL)
+ 		return B_BAD_VALUE;
+ 	uint32 dc, main, ddi;
+-	status_t s = io.read(io.cookie, 0x45504U, &dc);
++	status_t s = io.read(io.cookie, AlderLakeRegisters::kDcStateEnable, &dc);
+ 	if (s != B_OK)
+ 		return s;
+-	s = io.read(io.cookie, 0x45404U, &main);
++	s = io.read(io.cookie, AlderLakeRegisters::kMainPowerDriver, &main);
+ 	if (s != B_OK)
+ 		return s;
+-	s = io.read(io.cookie, 0x45454U, &ddi);
++	s = io.read(io.cookie, AlderLakeRegisters::kDdiPowerDriver, &ddi);
+ 	if (s != B_OK)
+ 		return s;
+ 	if (dc == 0xffffffffU || main == 0xffffffffU || ddi == 0xffffffffU)
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index c9289461..9b084ce3 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -5,6 +5,7 @@
+ #ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_SEQUENCE_H
+ #define INTEL_EXTREME_ALDER_LAKE_HDMI_SEQUENCE_H
+ 
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeDisplayPower.h"
+ #include "AlderLakeHdmiPipe.h"
+ #include "AlderLakeHdmiPowerPrerequisites.h"
+@@ -63,7 +64,8 @@ public:
+ 		fStage = "validation";
+ 		fDdiFailure.validMask = fDdiFailure.attemptedMask = fDdiFailure.sentinelMask = 0;
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+-			|| fFia.NeedsCleanup() || fClock.NeedsCleanup() || fLaneMode.NeedsCleanup() || fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
++			|| fFia.NeedsCleanup() || fClock.NeedsCleanup() || fLaneMode.NeedsCleanup()
++			|| fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
+ 			|| fBuffer.NeedsCleanup())
+ 			return B_BUSY;
+ 		if ((dviCompatible && pixelClockKHz > 165000) || fPort < 1 || fPort > 4
+@@ -250,9 +252,9 @@ private:
+ 	// Preserve evidence before cleanup removes power. No banked PHY access.
+ 	void CaptureDdiFailure()
+ 	{
+-		const uint32 offsets[] = {0x161500U + (fPort - 1) * 4,
+-			0x64300U + (fPort - 1) * 0x100, 0x46038U + (fPort - 1) * 8,
+-			0x4610cU + (fPort - 1) * 4, 0x164280U, 0x45444U, fPort <= 2 ? 0x1638c0U : 0x16e8c0U};
++		const uint32 offsets[] = {AlderLakeRegisters::kTypeCStatusBase + (fPort - 1) * 4,
++			AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100, 0x46038U + (fPort - 1) * 8,
++			0x4610cU + (fPort - 1) * 4, 0x164280U, AlderLakeRegisters::kAuxPowerDriver, fPort <= 2 ? 0x1638c0U : 0x16e8c0U};
+ 		for (unsigned i = 0; i < 7; i++) {
+ 			uint32 value = 0;
+ 			fDdiFailure.attemptedMask |= 1U << i;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h
+index 42798d46..d7948fc2 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h
+@@ -5,6 +5,7 @@
+ #ifndef INTEL_EXTREME_ALDER_LAKE_TYPE_C_BACKEND_H
+ #define INTEL_EXTREME_ALDER_LAKE_TYPE_C_BACKEND_H
+ 
++#include "AlderLakeDisplayRegisters.h"
+ #include "TypeCPowerLifecycle.h"
+ #include "TypeCPowerWell.h"
+ 
+@@ -41,9 +42,9 @@ private:
+ 			&& fIO.read != NULL && fIO.write != NULL && fIO.pause != NULL;
+ 	}
+ 
+-	uint32 BufferOffset() const { return 0x64300U + (fPort - 1) * 0x100U; }
+-	uint32 StatusOffset() const { return 0x161500U + (fPort - 1) * 4U; }
+-	uint32 PhyHealthOffset() const { return 0x16836cU + (fPort - 1) * 0x1000U; }
++	uint32 BufferOffset() const { return AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100U; }
++	uint32 StatusOffset() const { return AlderLakeRegisters::kTypeCStatusBase + (fPort - 1) * 4U; }
++	uint32 PhyHealthOffset() const { return AlderLakeRegisters::kDekelHealthBase + (fPort - 1) * 0x1000U; }
+ 
+ 	status_t Read(uint32 offset, uint32* value)
+ 	{
+@@ -61,7 +62,7 @@ private:
+ 		// selecting the bank and reading the aperture as one operation.
+ 		const uint32 index = 2U << ((fPort - 1) * 8);
+ 		for (unsigned i = 0; i < fAttempts; i++) {
+-			status_t status = fIO.write(fIO.cookie, 0x1010a0U, index);
++			status_t status = fIO.write(fIO.cookie, AlderLakeRegisters::kHipIndex0, index);
+ 			if (status != B_OK)
+ 				return status;
+ 			uint32 value;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+index e57dde06..b2f8646a 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+@@ -5,6 +5,7 @@
+ #ifndef INTEL_EXTREME_ALDER_LAKE_TYPE_C_MMIO_H
+ #define INTEL_EXTREME_ALDER_LAKE_TYPE_C_MMIO_H
+ 
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ #include <OS.h>
+ 
+@@ -58,10 +59,10 @@ private:
+ 	bool Allowed(uint32 offset, bool write) const
+ 	{
+ 		if (!Valid(offset)) return false;
+-		if ((offset >= 0x60000U + fPipe * 0x1000U
++		if ((offset >= AlderLakeRegisters::kPipeTimingBase + fPipe * 0x1000U
+ 			&& offset <= 0x60014U + fPipe * 0x1000U)
+-			|| offset == 0x70008U + fPipe * 0x1000U
+-			|| offset == 0x70030U + fPipe * 0x1000U)
++			|| offset == AlderLakeRegisters::kPipeControlBase + fPipe * 0x1000U
++			|| offset == AlderLakeRegisters::kPipeMiscBase + fPipe * 0x1000U)
+ 			return true;
+ 		const uint32 plane = 0x70000U + fPipe * 0x1000U;
+ 		if (offset == plane + 0x180U || offset == plane + 0x1ccU
+@@ -71,18 +72,18 @@ private:
+ 			return !write;
+ 		if (offset == (fPort <= 2 ? 0x1638c0U : 0x16e8c0U))
+ 			return true;
+-		if (offset == 0x45504U)
++		if (offset == AlderLakeRegisters::kDcStateEnable)
+ 			return !write;
+-		if (offset == 0x45404U || offset == 0x45454U)
++		if (offset == AlderLakeRegisters::kMainPowerDriver || offset == AlderLakeRegisters::kDdiPowerDriver)
+ 			return true;
+ 		if (offset == plane + 0x80U
+ 			|| (offset >= plane + 0x180U && offset <= plane + 0x780U
+ 				&& (offset - plane - 0x180U) % 0x100U == 0))
+ 			return !write;
+-		if (offset == 0x161500U + (fPort - 1) * 4U)
++		if (offset == AlderLakeRegisters::kTypeCStatusBase + (fPort - 1) * 4U)
+ 			return !write;
+-		if (offset == 0x45444U || offset == 0x1010a0U
+-			|| offset == 0x64300U + (fPort - 1) * 0x100U
++		if (offset == AlderLakeRegisters::kAuxPowerDriver || offset == AlderLakeRegisters::kHipIndex0
++			|| offset == AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100U
+ 			|| offset == 0x46038U + (fPort - 1) * 8U
+ 			|| offset == 0x4610cU + (fPort - 1) * 4U
+ 			|| offset == 0x164280U
+@@ -102,14 +103,14 @@ private:
+ 	{
+ 		AlderLakeTypeCMmio& self = *(AlderLakeTypeCMmio*)cookie;
+ 		if (!self.Allowed(offset, true)) return B_BAD_VALUE;
+-		if (offset == 0x70030U + self.fPipe * 0x1000U) {
++		if (offset == AlderLakeRegisters::kPipeMiscBase + self.fPipe * 0x1000U) {
+ 			const uint32 mask = (3U << 26) | (1U << 11) | (7U << 5) | (7U << 2);
+ 			uint32 current = *(volatile uint32*)(self.fBase + offset);
+ 			if (current == 0xffffffffU || ((current ^ value) & ~mask) != 0)
+ 				return B_BAD_VALUE;
+ 		}
+-		if (offset == 0x45404U || offset == 0x45454U) {
+-			const uint32 allowed = offset == 0x45404U
++		if (offset == AlderLakeRegisters::kMainPowerDriver || offset == AlderLakeRegisters::kDdiPowerDriver) {
++			const uint32 allowed = offset == AlderLakeRegisters::kMainPowerDriver
+ 				? 2U | (2U << 2) | (2U << (2 * (self.fPipe + 5)))
+ 				: 2U << (2 * (self.fPort + 2));
+ 			uint32 current = *(volatile uint32*)(self.fBase + offset);
+@@ -122,7 +123,7 @@ private:
+ 			if (current == 0xffffffffU || ((current ^ value) & ~mask) != 0)
+ 				return B_BAD_VALUE;
+ 		}
+-		if (offset == 0x1010a0U) {
++		if (offset == AlderLakeRegisters::kHipIndex0) {
+ 			unsigned shift = (self.fPort - 1) * 8;
+ 			if ((value & ~(0xfU << shift)) != 0 || (value >> shift) > 2)
+ 				return B_BAD_VALUE;
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h
+index c7ba1f19..4cb4ce67 100644
+--- a/src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_DEKEL_HDMI_LANE_MODE_H
+ #define INTEL_EXTREME_DEKEL_HDMI_LANE_MODE_H
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ 
+ // Legacy HDMI uses four lanes, both Dekel lane groups in X2 mode. Requires
+@@ -21,12 +22,12 @@ public:
+ 		if (fPort < 1 || fPort > 4 || !fIO.read || !fIO.write)
+ 			return B_BAD_VALUE;
+ 		uint32 value;
+-		status_t s = Read(0x161500U + (fPort - 1) * 4, &value);
++		status_t s = Read(AlderLakeRegisters::kTypeCStatusBase + (fPort - 1) * 4, &value);
+ 		if (s != B_OK)
+ 			return s;
+ 		if (!(value & 4U))
+ 			return B_BUSY;
+-		s = Read(0x64300U + (fPort - 1) * 0x100, &value);
++		s = Read(AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100, &value);
+ 		if (s != B_OK)
+ 			return s;
+ 		if ((value & 0x80000000U) || !(value & 0x40U))
+@@ -93,7 +94,7 @@ private:
+ 	}
+ 	status_t Select(unsigned lane)
+ 	{
+-		return fIO.write(fIO.cookie, 0x1010a0U, lane << ((fPort - 1) * 8));
++		return fIO.write(fIO.cookie, AlderLakeRegisters::kHipIndex0, lane << ((fPort - 1) * 8));
+ 	}
+ 	status_t ReadLane(unsigned lane, uint32* value)
+ 	{
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+index b7627e91..eefd6f45 100644
+--- a/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+@@ -5,6 +5,7 @@
+ #ifndef INTEL_EXTREME_DEKEL_HDMI_PLL_PROGRAMMER_H
+ #define INTEL_EXTREME_DEKEL_HDMI_PLL_PROGRAMMER_H
+ 
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ #include "DekelHdmiPll.h"
+ 
+@@ -137,7 +138,7 @@ private:
+ 	}
+ 	status_t Select(uint32 offset)
+ 	{
+-		return fIO.write(fIO.cookie, 0x1010a0U,
++		return fIO.write(fIO.cookie, AlderLakeRegisters::kHipIndex0,
+ 			((offset >> 12) & 0xfU) << ((fPort - 1) * 8));
+ 	}
+ 	status_t ReadPhy(uint32 offset, uint32* value)
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
+index c0efa578..2af1d636 100644
+--- a/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
+@@ -5,6 +5,7 @@
+ #ifndef INTEL_EXTREME_DEKEL_HDMI_SIGNAL_PROGRAMMER_H
+ #define INTEL_EXTREME_DEKEL_HDMI_SIGNAL_PROGRAMMER_H
+ 
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ #include "DekelHdmiSignal.h"
+ 
+@@ -71,10 +72,10 @@ private:
+ 	status_t CheckPort()
+ 	{
+ 		uint32 value;
+-		status_t status = Read(0x161500U + (fPort - 1) * 4U, &value);
++		status_t status = Read(AlderLakeRegisters::kTypeCStatusBase + (fPort - 1) * 4U, &value);
+ 		if (status != B_OK) return status;
+ 		if ((value & (1U << 2)) == 0) return B_ERROR;
+-		status = Read(0x64300U + (fPort - 1) * 0x100U, &value);
++		status = Read(AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100U, &value);
+ 		if (status != B_OK) return status;
+ 		if ((value & (1U << 31)) != 0) return B_BUSY;
+ 		return (value & (1U << 6)) != 0 ? B_OK : B_ERROR;
+@@ -83,7 +84,7 @@ private:
+ 		{ return 0x168000U + (fPort - 1) * 0x1000U + (offset & 0xfffU); }
+ 	status_t Select(uint32 offset)
+ 	{
+-		return fIO.write(fIO.cookie, 0x1010a0U,
++		return fIO.write(fIO.cookie, AlderLakeRegisters::kHipIndex0,
+ 			((offset >> 12) & 0xfU) << ((fPort - 1) * 8));
+ 	}
+ 	status_t ReadPhy(uint32 offset, uint32* value)
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 314d497c..d4bd649e 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2805,7 +2805,7 @@ diagnose_alder_lake_hdmi(port_index port, pipe_index pipe, uint32 pixelClock)
+ 	TRACE("ADL HDMI preflight: TC%u pipe%u ref=%" B_PRIu32
+ 		" preset=%u DC=%08" B_PRIx32 " MAIN=%08" B_PRIx32
+ 		" DDI=%08" B_PRIx32 " prerequisites=%" B_PRId32
+-		"; output sequence remains disabled\n", firmware.tcPort,
++		"; preflight only, output selection follows\n", firmware.tcPort,
+ 		(unsigned)(pipe - INTEL_PIPE_A), firmware.referenceKHz, firmware.preset,
+ 		dc, main, ddi, status);
+ 
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCFiaLaneCount.h b/src/add-ons/accelerants/intel_extreme/TypeCFiaLaneCount.h
+index c888e77f..6c70ded6 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCFiaLaneCount.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCFiaLaneCount.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: MIT */
+ #ifndef INTEL_EXTREME_TYPE_C_FIA_LANE_COUNT_H
+ #define INTEL_EXTREME_TYPE_C_FIA_LANE_COUNT_H
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ 
+ // ADL-P modular FIA owns two ports per instance. For legacy four-lane TMDS,
+@@ -23,12 +24,12 @@ public:
+ 		if (fPort < 1 || fPort > 4 || !fIO.read || !fIO.write)
+ 			return B_BAD_VALUE;
+ 		uint32 value;
+-		status_t s = Read(0x161500U + (fPort - 1) * 4, &value);
++		status_t s = Read(AlderLakeRegisters::kTypeCStatusBase + (fPort - 1) * 4, &value);
+ 		if (s != B_OK)
+ 			return s;
+ 		if (!(value & 4))
+ 			return B_BUSY;
+-		s = Read(0x64300U + (fPort - 1) * 0x100, &value);
++		s = Read(AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100, &value);
+ 		if (s != B_OK)
+ 			return s;
+ 		if ((value & 0x80000000U) || !(value & 0x40U))
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
+index 014ea2f2..d3670d19 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
+@@ -5,6 +5,7 @@
+ #ifndef INTEL_EXTREME_TYPE_C_HDMI_BUFFER_H
+ #define INTEL_EXTREME_TYPE_C_HDMI_BUFFER_H
+ 
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ 
+ // Injected-I/O helper. The caller must hold the port lease, power and PHY
+@@ -66,7 +67,7 @@ private:
+ 	enum { kEnable = 1U << 31, kOwned = 1U << 6, kIdle = 1U << 7,
+ 		kReverse = 1U << 16, kRateMask = 0xfU << 20, kWidthMask = 7U << 1,
+ 		kTouched = kEnable | kReverse | kRateMask | kWidthMask };
+-	uint32 Offset() const { return 0x64300U + (fPort - 1) * 0x100U; }
++	uint32 Offset() const { return AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100U; }
+ 	status_t Read(uint32* value)
+ 	{
+ 		status_t status = fIO.read(fIO.cookie, Offset(), value);
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h
+index 641419f0..ca519a11 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h
+@@ -5,6 +5,7 @@
+ #ifndef INTEL_EXTREME_TYPE_C_HDMI_CLOCK_H
+ #define INTEL_EXTREME_TYPE_C_HDMI_CLOCK_H
+ 
++#include "AlderLakeDisplayRegisters.h"
+ #include "AlderLakeTypeCBackend.h"
+ 
+ // Injected-I/O helper for the ADL-P/N Type-C clock. Caller holds the port,
+@@ -80,7 +81,7 @@ private:
+ 		kGateOffset = 0x164280 };
+ 	uint32 GateMask() const { return 1U << (fPort + 11); }
+ 	uint32 ClockOffset() const { return 0x4610cU + (fPort - 1) * 4U; }
+-	uint32 BufferOffset() const { return 0x64300U + (fPort - 1) * 0x100U; }
++	uint32 BufferOffset() const { return AlderLakeRegisters::kTypeCBufferControlBase + (fPort - 1) * 0x100U; }
+ 	uint32 PllOffset() const { return 0x46038U + (fPort - 1) * 8U; }
+ 	status_t Read(uint32 offset, uint32* value)
+ 	{
+-- 
+2.43.0
+
