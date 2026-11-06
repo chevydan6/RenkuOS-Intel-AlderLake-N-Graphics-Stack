@@ -1,0 +1,19 @@
+{
+  "source": "tests/sem-owner-exit.cpp",
+  "source_sha256": "6a7433eafc02198f0c7d6d80f2b086a47d796098d8c1056bbc17dde564493981",
+  "private_evidence": "/home/dan/renkuos-development/installation/private/sem-owner-001",
+  "files": {
+    "test.log": "b0b66ec5f155878fa59de4da7d41d1e7f24771a94182cc3450cd4c3bcb11c6dd",
+    "result.json": "7760a6f3fd6d6d5e9e17f4ace6293d12ecafc1d56eda0eaf2337a83d81f74ae9",
+    "qmp-events.json": "ef2ae1ebf301920794eac6cb6e13e38db12e503a1eeb98f1dc6e9872f9a27c65",
+    "compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "run.py": "a50c555c50cdb39eb0fe3031850b935ee43e488f9a6bfbe536823aea1f7ed4ac",
+    "serial.log": "2eeb6c21b7ba512a186c4d1a86254172603840c41343dedb08d99aaf1ea0a076"
+  },
+  "verified_cases": [
+    "owner_exit",
+    "owner_exec"
+  ],
+  "scope": "native userspace semaphore behavior on recorded baseline kernel; no driver teardown, same-slot reuse or ID wrap validation",
+  "physical_gpu_execution": false
+}

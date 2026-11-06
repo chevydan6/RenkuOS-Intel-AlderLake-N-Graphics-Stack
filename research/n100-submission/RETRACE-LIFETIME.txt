@@ -1,0 +1,59 @@
+Retrace notification lifetime and the first GPU execution path
+Astra/Terra source review, 2026-11-07. Native reproduction passed for owner exit and exec.
+
+Observed production contract
+intel_extreme.cpp:458-475 creates vblank_sem in the kernel, then transfers its
+ownership to the calling team. accelerant.cpp:773-777 exposes this ID through
+B_ACCELERANT_RETRACE_SEMAPHORE; mode.cpp:291 waits directly using acquire_sem_etc.
+app_server also caches the returned ID (Terra review: AccelerantHWInterface.cpp).
+The private driver semaphore field prevents shared-info tampering from choosing
+the IRQ signal target; it does not extend the owning team's lifetime.
+
+Kernel source evidence
+sem.cpp:create_sem creates kernel-owned semaphores. User acquire paths add
+B_CHECK_PERMISSION; switch_sem_etc rejects kernel-owned semaphore acquisition.
+Keeping this semaphore kernel-owned would therefore break the existing API.
+Team::~Team deletes owned semaphores after releasing its IO context. Exec deletes
+owned semaphores before vfs_exec_io_context. A second client retaining a device
+handle does not by itself preserve the first team's semaphore through exit/exec.
+
+uninit_sem_locked wakes queued waiters with B_BAD_SEM_ID. get/count/release/delete
+validate full semaphore IDs under the semaphore lock, not an unchecked pointer.
+Slots advance their ID generation when freed. Immediate stale-ID rejection is the
+expected behavior; finite generation wrap remains a theoretical alias concern.
+No semaphore use-after-free has been demonstrated by these source observations.
+
+Decision for this milestone
+Preserve the working retrace ABI while documenting notification loss on owner
+exit/exec. Do not replace ownership alone, invent a stable user-team lifetime,
+or add a generic kernel semaphore permission/lifetime API without separate design.
+A complete retrace fix needs ownership independent of an exiting client plus a
+compatible notification/cached-ID contract. This issue remains open.
+
+The reviewed first-GPU diagnostic already uses a retained module worker and
+bounded engine-status/CSB polling, subject to exact hardware ordering/retirement
+review. It must not use the public retrace semaphore as a completion or resource
+lifetime primitive. Any internal wait objects must have kernel-owned lifetime
+through completion/reset quiescence. A display retrace event is not GPU command
+retirement evidence. This is a dependency clarification, not completion of safety
+validation: callback/code ownership, physical memory/recovery validation, bounded
+reset and verified command retirement remain required before GPU execution.
+
+Native reproducer
+tests/sem-owner-exit.cpp creates a semaphore
+owned by a child team and confirms a parent waiter is blocked (count -1). It then
+exits or execs the child. The exec case handshakes after exec and confirms the same
+team remains alive. Expected: waiter and old-ID operations return B_BAD_SEM_ID.
+A new distinct semaphore ID checks only that allocation, not same-slot reuse or
+ID wrap. Alarm15s, waiter2s, parent observation1s and host25s watchdog are required.
+Run in a disposable native VM. It performs no driver install or GPU operation.
+
+Native result
+Both cases compiled with -Wall -Wextra -Werror and passed on baseline kernel
+SHA66753cb36a1481790dbf55a564e8632fdcb7534fdacbb6f5999432ea196de4f6.
+Waiter, info/count/release/delete all returned B_BAD_SEM_ID (-2147479552).
+IDs1828/1836 were invalidated; replacement IDs1832/1840 were distinct. This does
+not force reuse of the same semaphore slot. Client exit0; QMP corroborated
+guest-initiated shutdown. Evidence tests/evidence/sem-owner-001/. Driver behavior
+was not directly exercised and the retrace notification defect remains unfixed.
+No production driver change, physical hardware test or GPU execution occurred.

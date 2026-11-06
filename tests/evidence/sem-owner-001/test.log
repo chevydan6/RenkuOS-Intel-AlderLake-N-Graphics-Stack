@@ -1,0 +1,3 @@
+PASS owner_exit old=1828 replacement=1832 waiter=-2147479552 info=-2147479552 count=-2147479552 release=-2147479552 delete=-2147479552 expected_bad_id=-2147479552
+PASS owner_exec old=1836 replacement=1840 waiter=-2147479552 info=-2147479552 count=-2147479552 release=-2147479552 delete=-2147479552 expected_bad_id=-2147479552
+PASS native semaphore owner lifetime; no GPU execution

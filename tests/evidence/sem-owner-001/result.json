@@ -1,0 +1,12 @@
+{
+  "source_sha256": "6a7433eafc02198f0c7d6d80f2b086a47d796098d8c1056bbc17dde564493981",
+  "native_compiled": true,
+  "tested": true,
+  "physical_gpu_execution": false,
+  "guest_shutdown": true,
+  "uname": "Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku\n",
+  "kernel_sha256": "66753cb36a1481790dbf55a564e8632fdcb7534fdacbb6f5999432ea196de4f6",
+  "test_exit": 0,
+  "passed": true,
+  "shutdown_ssh_status": 255
+}
