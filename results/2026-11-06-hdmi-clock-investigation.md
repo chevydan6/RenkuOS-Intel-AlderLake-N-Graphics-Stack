@@ -61,6 +61,25 @@ PHY, and sequencing is not a safe or complete fix. See Linux
 [transcoder and HDMI setup](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_ddi.c)
 and [transcoder register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h).
 
+## Implementation progress
+
+Patch 16 corrects the Gen12-and-newer transcoder port-selection field: it
+uses four bits at bit 27, with zero representing no selected port. Both pipe
+preference and connection detection use the corrected decode; older hardware
+retains its previous decoding. The extracted function passed 280 host cases;
+the earlier pipe-availability and clock-mask tests also passed. Bundle
+`renku-026`, containing patches 1–16, compiled and passed native component
+checks in a disposable RenkuOS VM, then passed host finalization. The VM shut
+down cleanly. The new accelerant was not installed on the physical laptop.
+
+`experiments/dekel-address` contains an unconnected C++ address calculation
+for the 4 KiB banked Type-C PHY register aperture and HIP index. Its 104 host
+checks pass with address and undefined-behavior sanitizers. It does not map or
+access registers and is not built into the driver. Before real access, the
+implementation still needs correct register-region mapping, serialization
+across index selection and access, power and ownership handling, validated PLL
+parameters and lock timeouts, and a complete transcoder and PHY sequence.
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),

@@ -1,0 +1,72 @@
+From 0617faa04ec684a764f17a2dfd380fe64affb5c1 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 16:43:08 +0900
+Subject: [PATCH] intel_extreme: decode modern transcoder port selection
+
+---
+ .../graphics/intel_extreme/intel_extreme.h    |  2 +-
+ .../accelerants/intel_extreme/Ports.cpp       | 21 ++++++++++++++++---
+ 2 files changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/headers/private/graphics/intel_extreme/intel_extreme.h b/headers/private/graphics/intel_extreme/intel_extreme.h
+index 4cfe4218..7ddcce64 100644
+--- a/headers/private/graphics/intel_extreme/intel_extreme.h
++++ b/headers/private/graphics/intel_extreme/intel_extreme.h
+@@ -1150,7 +1150,7 @@ struct intel_brightness_legacy {
+ #define PIPE_DDI_SELECT_PORT(x)			((x) << PIPE_DDI_SELECT_SHIFT)
+ #define TGL_PIPE_DDI_SELECT_PORT(x)		((x) << TGL_PIPE_DDI_SELECT_SHIFT)
+ #define PIPE_DDI_SELECT_MASK			(7 << PIPE_DDI_SELECT_SHIFT)
+-#define TGL_PIPE_DDI_SELECT_MASK		(7 << TGL_PIPE_DDI_SELECT_SHIFT)
++#define TGL_PIPE_DDI_SELECT_MASK		(0xfU << TGL_PIPE_DDI_SELECT_SHIFT)
+ #define PIPE_DDI_PORT_NONE				0
+ #define PIPE_DDI_PORT_B					1
+ #define PIPE_DDI_PORT_C					2
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 07ae1554..c682cb24 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -42,6 +42,20 @@
+ #define CALLED(x...) TRACE("CALLED %s\n", __PRETTY_FUNCTION__)
+ 
+ 
++static bool
++ddi_pipe_selects_port(uint32 pipeState, uint32 generation, port_index port)
++{
++	if (generation >= 12) {
++		uint32 selection = (pipeState & TGL_PIPE_DDI_SELECT_MASK)
++			>> TGL_PIPE_DDI_SELECT_SHIFT;
++		return selection != 0 && selection == (uint32)port;
++	}
++
++	return (((pipeState & PIPE_DDI_SELECT_MASK) >> PIPE_DDI_SELECT_SHIFT) + 1)
++		== (uint32)port;
++}
++
++
+ static bool
+ wait_for_set(addr_t address, uint32 mask, uint32 timeout)
+ {
+@@ -343,8 +357,8 @@ Port::PipePreference()
+ 					break;
+ 			}
+ 
+-			if ((((pipeState & PIPE_DDI_SELECT_MASK) >> PIPE_DDI_SELECT_SHIFT) + 1)
+-				== (uint32)PortIndex()) {
++			if (ddi_pipe_selects_port(pipeState,
++					gInfo->shared_info->device_type.Generation(), PortIndex())) {
+ 				switch (pipeCnt) {
+ 					case 0:
+ 						return INTEL_PIPE_A;
+@@ -2439,7 +2453,8 @@ DigitalDisplayInterface::IsConnected()
+ 				pipeState = read32(PIPE_DDI_FUNC_CTL_A);
+ 				break;
+ 		}
+-		if ((((pipeState & PIPE_DDI_SELECT_MASK) >> PIPE_DDI_SELECT_SHIFT) + 1) == (uint32)PortIndex()) {
++		if (ddi_pipe_selects_port(pipeState,
++				gInfo->shared_info->device_type.Generation(), PortIndex())) {
+ 			TRACE("%s: PIPE_DDI_FUNC_CTL nr %" B_PRIx32 ": 0x%" B_PRIx32 "\n", __func__, pipeCnt + 1, pipeState);
+ 			// See if the BIOS enabled our output as it indicates it's in use
+ 			if (pipeState & PIPE_DDI_FUNC_CTL_ENABLE) {
+-- 
+2.43.0
+
