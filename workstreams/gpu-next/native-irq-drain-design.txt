@@ -27,7 +27,7 @@ Verified source constraints
 4. B_NO_ENABLE_COUNTER avoids architecture enable/disable operations. Allocate
    with INTERRUPT_TYPE_UNKNOWN to avoid IRQ routing/CPU assignment side effects.
    install still invokes the architecture debugger hook: reject legacy vectors
-   0..31, including the keyboard, before registering anything.
+   0..15, including the keyboard, before registering anything.
 5. src/libs/gnu/sched_affinity.cpp implements pthread_setaffinity_np via
    _kern_set_thread_affinity; libgnu.so includes this source. The syscall rejects
    kernel-team threads. Use pinned USER threads entering synchronous ioctls;
@@ -47,6 +47,10 @@ Exclusive allocation is the ownership contract, not protection against arbitrary
 kernel callers violating it. Do not claim a general race-free public query API.
 The fixture exposes no arbitrary vector/pointer writes to userspace. Single-open,
 root-only admission, fixed opcodes and kernel-owned callback/data are required.
+The fixture now lives directly in the opt-in kernel, with a thin legacy device
+bridge; this provides permanent callback/state lifetime without an extra module.
+The ordinary fd reference keeps the bridge loaded across ioctl; close only marks
+the resident fixture closed. Forced unpublish/reload is outside this test.
 
 Terra review correction: function entry alone does not prove lock contention;
 the remover could be descheduled between entry and acquiring the lock.
@@ -99,7 +103,7 @@ Do not add a negative control that removes a live no-lock handler: that would
 intentionally create a use-after-free in the guest rather than validate safely.
 
 Cleanup and failure containment
-Fixture code and data stay loaded for the entire VM boot (retained module owner).
+Fixture code and data stay loaded for the entire VM boot (resident kernel owner).
 Close/team exit must not free active resources; worker state is kernel-owned.
 Successful teardown removes the exact handler, joins both workers, verifies the
 empty list, then frees the allocation once. On uncertain removal or worker state,
@@ -120,3 +124,17 @@ Implemented this checkpoint: this design only; no new executable fixture.
 Compiled/simulated/tested this checkpoint: none. Prior allocator kernel boot and
 host cases remain valid only within their recorded scope. Physical GPU execution:
 none demonstrated. This experiment cannot satisfy the GPU-execution milestone.
+
+Implementation review refinement (2026-11-07)
+Terra accepted the resident kernel fixture and ordinary bridge lifetime trace.
+Prepare/finish and worker admission share a mutex; each role is claimed once.
+Finish closes admission before checking both completions and inflight==0.
+Client joins worker ioctls and cancels both before any ioctl if readiness fails.
+Removal CPU is now recorded at the actual IRQ-disabled lock hook. The sequential
+control admits removal only after dispatcher completion.
+
+Terra independently accepted narrowing vector rejection to <16 on x86: the
+debugger hook only mutates keyboard IRQ1; actual IOAPIC ranges are reserved by
+the controller, and allocator indices16..31 are not CPU exception vectors.
+Keep every ownership/no-lock/enable-counter/handler snapshot gate and record the
+actual allocated vector. No generic hardware-routing or physical safety claim.
