@@ -33,3 +33,9 @@ This is a software-only check: native compilation and a controlled physical
 test are still required. It does not establish that the target connector uses
 DDI G or that this change fixes HDMI. No additional physical hardware access
 was performed during this investigation.
+
+Follow-up: bundle `renku-024` compiled in a disposable RenkuOS hrev60072+518
+VM with GCC 13.3.0. The native component tests and host finalizer passed; the VM
+shut down cleanly. The candidate accelerant SHA-256 is
+`7facc545bc3ad34ad3a87cfb3df4d913c78a5e48d459963ed71cc399dba29fe9`.
+The VM uses emulated graphics and did not load or test the Intel GPU.
