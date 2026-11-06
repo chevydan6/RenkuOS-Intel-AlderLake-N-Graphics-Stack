@@ -50,15 +50,15 @@ being developed and has not yet been physically tested at this checkpoint.
 
 Build 049 passed Type-C ownership, AUX, PLL and clock stages but still timed
 out at DDI_IO. Build 051 captured the accepted request without acknowledgement:
-DDI_IO=0x203 (expected masked0x300), TCSS=0x0c, buffer=0xc0,
+DDI_IO=0x203 (expected masked 0x300), TCSS=0x0c, buffer=0xc0,
 PLL=0xcc000000, CLKSEL=0x80000000, gate=0x4, AUX=0x303. Cleanup completed.
 
 Patch58 adds the Linux-documented four-lane FIA allocation before PLL setup.
 Build052 passed native compilation and artifact validation, was installed on
 both override paths of the isolated test USB, and booted on the N100 laptop.
-The real raster path completed: stage DDI buffer, status B_OK, cleanup1 meaning
-resources remain held for the active output. NanoKVM reported state1,
-VIDevFPS51 and VIFPS60. Its authenticated MJPEG stream returned a1920x1080
+The real raster path completed: stage DDI buffer, status B_OK, cleanup 1 meaning
+resources remain held for the active output. NanoKVM reported state 1,
+VIDevFPS 51 and VIFPS 60. Its authenticated MJPEG stream returned a 1920×1080
 black frame, which was opened and visually inspected. All external image
 planes are intentionally disabled; this demonstrates TMDS video output, not
 desktop scanout or GPU acceleration. The internal installed OS was untouched.
@@ -68,16 +68,16 @@ plane programming against the shared framebuffer.
 The read-only inventory helper subsequently compiled and ran on the laptop
 using existing driver areas and the normal accelerant lock. The primary plane
 on pipe A occupies DDB blocks [0,2048); every other powered plane/cursor has an
-empty allocation. The verified Alder Lake-P/N descriptor has4096 blocks in four
+empty allocation. The verified Alder Lake-P/N descriptor has 4096 blocks in four
 1024-block slices, and the Linux A+B routing assigns B the free [2048,4096)
 range. All four slices are powered, MBUS join/hash are clear, and both active
 pipes have matching horizontal/vertical timing totals. Shared framebuffer:
-offset0, stride7680, RGB32,1920x1080, mode pixel clock138780 kHz.
+offset 0, stride 7680, RGB32, 1920x1080, mode pixel clock 138780 kHz.
 
-The actual internal PLL registers are enable0xcc000000, CFGCR0=0x00b555a5,
+The actual internal PLL registers are enable 0xcc000000, CFGCR0=0x00b555a5,
 CFGCR1=0x88, SSC=0x401320ff (SSC enable clear). Clock decoding must include the
-display-version12+38.4MHz reference fractional correction from Linux; assuming
+display-version 12+ / 38.4 MHz reference fractional correction from Linux; assuming
 the nominal mode clock is exact would be incorrect. Desktop watermark planning
-remains under development. A later NanoKVM sample still reported VIFPS60,
-VIDropCnt0 and CSI overflow0; this is a limited raster test, not a long-term
+remains under development. A later NanoKVM sample still reported VIFPS 60,
+VIDropCnt 0 and CSI overflow 0; this is a limited raster test, not a long-term
 stability or desktop validation.
