@@ -1,0 +1,32 @@
+From e6cc770e28722f7d614e186f79999e2c0b2cbeed Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 16:25:15 +0900
+Subject: [PATCH] intel_extreme: preserve unrelated display clock fields
+
+---
+ src/add-ons/accelerants/intel_extreme/Ports.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index bbf20e55..07ae1554 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2753,13 +2753,13 @@ DigitalDisplayInterface::SetDisplayMode(display_mode* target, uint32 colorMode)
+ 		TRACE("PLL configuration before changes: %" B_PRIx32 "\n", config);
+ 		if (chosenPLL == 0) {
+ 			config |= TGL_DPCLKA_DDIA_CLOCK_OFF;
+-			config &= TGL_DPCLKA_DDIA_CLOCK_SELECT;
++			config &= ~TGL_DPCLKA_DDIA_CLOCK_SELECT;
+ 			write32(TGL_DPCLKA_CFGCR0, config);
+ 			config &= ~TGL_DPCLKA_DDIA_CLOCK_OFF;
+ 			write32(TGL_DPCLKA_CFGCR0, config);
+ 		} else {
+ 			config |= TGL_DPCLKA_DDIB_CLOCK_OFF;
+-			config &= TGL_DPCLKA_DDIB_CLOCK_SELECT;
++			config &= ~TGL_DPCLKA_DDIB_CLOCK_SELECT;
+ 			config |= 1 << TGL_DPCLKA_DDIB_CLOCK_SELECT_SHIFT;
+ 			write32(TGL_DPCLKA_CFGCR0, config);
+ 			config &= ~TGL_DPCLKA_DDIB_CLOCK_OFF;
+-- 
+2.43.0
+
