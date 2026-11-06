@@ -1,0 +1,122 @@
+Native interrupt callback-drain experiment — proposed design
+Astra, 2026-11-07. Status: revised design accepted by Terra; code review required before execution.
+
+Purpose and scope
+The legacy Intel driver must not free callback state or unload callback code
+while an interrupt callback is active. This experiment checks the kernel's
+locking dispatch/removal path on a disposable VM before driver teardown changes.
+It does not generate a hardware interrupt, access the GPU, prove PCI interrupt
+masking, or authorize physical deployment. No GPU workloads are introduced.
+
+Source baseline
+Isolated gpu-kernel-validation worktree, ee4f34defcd6aca262814ffdbc72cdb8f8af64b3.
+The allocator correction has host regression evidence and a verified native VM
+boot. Existing gpu-next-worktree changes and recovery image remain untouched.
+
+Verified source constraints
+1. interrupts.cpp:277 and 355 condition vector_lock acquisition/release on
+   no_lock_vector. Initialization clears that flag, installation can set it,
+   and removal/free/allocation do not reset it. Flags 0 alone are insufficient.
+2. remove_io_interrupt_handler matches both callback and data under vector_lock;
+   success unlinks and frees the handler node. A no-lock dispatch can therefore
+   race node destruction. Never probe that path by setting B_NO_LOCK_VECTOR.
+3. io_interrupt_handler continues statistics/load accounting after releasing
+   vector_lock (through update_int_load). Removal returning is not proof that
+   the entire dispatcher has returned. Keep vector allocation/CPU assignment
+   until dispatch and removal worker ioctls have both returned.
+4. B_NO_ENABLE_COUNTER avoids architecture enable/disable operations. Allocate
+   with INTERRUPT_TYPE_UNKNOWN to avoid IRQ routing/CPU assignment side effects.
+   install still invokes the architecture debugger hook: reject legacy vectors
+   0..31, including the keyboard, before registering anything.
+5. src/libs/gnu/sched_affinity.cpp implements pthread_setaffinity_np via
+   _kern_set_thread_affinity; libgnu.so includes this source. The syscall rejects
+   kernel-team threads. Use pinned USER threads entering synchronous ioctls;
+   do not call the user syscall with kernel pointers or kernel thread IDs.
+
+Minimal test-only instrumentation (not a production API)
+Add an isolated, explicitly enabled fixture hook in interrupts.cpp, absent from
+normal builds. Its fixed-size kernel-owned record targets one allocated vector.
+A snapshot taken with allocation mutex then interrupts-disabled vector_lock
+must verify allocation, UNKNOWN type, non-null assigned_cpu with cpu == -1,
+no_lock_vector == false, and an initially empty handler list. After installing
+exactly one fixture callback, require the list contains exactly that callback
+and data, no next node, and no_lock_vector remains false. Never reset the flag.
+Invalid state aborts before dispatch; unexpected existing handlers are not removed.
+
+Exclusive allocation is the ownership contract, not protection against arbitrary
+kernel callers violating it. Do not claim a general race-free public query API.
+The fixture exposes no arbitrary vector/pointer writes to userspace. Single-open,
+root-only admission, fixed opcodes and kernel-owned callback/data are required.
+
+Terra review correction: function entry alone does not prove lock contention;
+the remover could be descheduled between entry and acquiring the lock.
+For the armed vector and exact callback/data pair only, after disabling interrupts,
+try_acquire_spinlock first. If it fails, publish a contention sequence event then
+call the ordinary acquire_spinlock. If it succeeds, retain the lock and record
+uncontended (round inconclusive); never acquire it twice. All other paths use the
+original acquisition. No extra lock, allocation, logging or waiting in the hook.
+Match the exact run ID as well as callback/data. Use release/acquire publication
+and atomic monotonically increasing sequence IDs.
+Hook state remains resident until both workers return. Record callback exit and
+removal return separately. This instrumented path preserves ownership semantics
+but is not evidence of execution of a byte-identical uninstrumented kernel.
+
+Execution and scheduling
+Use a fresh disposable boot with four virtual CPUs, verified candidate revision,
+serial logs and an external host watchdog. Before allocating a vector, verify
+libgnu affinity calls and readback for worker A on CPU 0, worker B on CPU 1 and
+controller on CPU 2. Record kernel-observed CPU IDs at each ioctl entry. Abort
+if affinity or CPU availability is not established; no fallback to one CPU.
+
+Allocate one vector only; reject unsafe/legacy state without saturation or loops
+holding multiple vectors. Install with B_NO_ENABLE_COUNTER, without NO_LOCK.
+A enters the dispatcher ioctl: disable interrupts, call actual io_interrupt_handler
+with B_EDGE_TRIGGERED, restore interrupts, then publish dispatch-returned.
+Callback uses atomic state only. It publishes entered and a sequence number,
+then waits for the contention event with both a time limit (initial 20 ms)
+and a fixed iteration cap. It never sleeps, allocates, logs or takes a semaphore.
+At its deadline it records timeout; it ALWAYS returns B_HANDLED_INTERRUPT.
+B waits in ordinary thread context for callback-entered with a bounded deadline,
+then calls actual removal with the exact callback/data. The in-kernel hook records
+contention only after an actual failed try-lock. Callback sees that event and records exit before returning.
+
+The independent callback deadline prevents a spinlock-holder from depending on
+a scheduler/controller release. A host watchdog remains necessary: this is not
+a claim that an SMP kernel lock operation itself has a bounded timeout.
+
+Pass criteria
+Check DEBUG_INTERRUPTS configuration and reject unexpected dispatch counts.
+UNKNOWN dispatch still updates vector/assignment load statistics; this is not
+a side-effect-free operation, and must stay in the isolated disposable VM.
+Require exact callback count 1, correct CPU IDs, removal B_OK, dispatcher handled,
+timeout false, and strict event ordering: callback-enter < lock-contention < callback-exit <
+removal-return. Require both worker returns before any vector release. Verify
+post-removal empty list with no-lock still false. Repeat a bounded number of
+rounds (initially 10); record every round. An overlap timeout is INCONCLUSIVE,
+never pass. This tests the observed locking-path drain property, not all schedules.
+A sequential control verifies installation/removal without forced overlap.
+Do not add a negative control that removes a live no-lock handler: that would
+intentionally create a use-after-free in the guest rather than validate safely.
+
+Cleanup and failure containment
+Fixture code and data stay loaded for the entire VM boot (retained module owner).
+Close/team exit must not free active resources; worker state is kernel-owned.
+Successful teardown removes the exact handler, joins both workers, verifies the
+empty list, then frees the allocation once. On uncertain removal or worker state,
+retain resources, reject further operations and terminate the disposable VM via
+external watchdog. Do not fall through to cleanup that assumes quiescence.
+Restore the source snapshot between instrumented and ordinary kernel builds;
+keep the instrumented patch and artifact provenance separate from production.
+
+Remaining implementation gates
+Confirm actual DEBUG_SPINLOCKS/CONTENTION build semantics and release bookkeeping; exact build switch
+and export mechanism; native fixture/client compilation; affinity preflight;
+verified instrumented kernel boot. Then execute only in the locked disposable VM.
+Physical memory validation, semaphore owner-exit behavior, failed-removal driver
+containment, MMIO mapping and safe display reopen remain separate open gates.
+
+Evidence classification
+Implemented this checkpoint: this design only; no new executable fixture.
+Compiled/simulated/tested this checkpoint: none. Prior allocator kernel boot and
+host cases remain valid only within their recorded scope. Physical GPU execution:
+none demonstrated. This experiment cannot satisfy the GPU-execution milestone.
