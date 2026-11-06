@@ -110,6 +110,22 @@ internal display or another user of a shared power domain. See Linux
 and [power-well handling](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_display_power_well.c).
 No Type-C power or ownership writes were added or executed in this step.
 
+Patch 18 adds a callback-driven Type-C power lifecycle to the accelerant
+source. It tracks the power reference and whether it personally acquired PHY
+ownership, preserves pre-existing ownership, and retains state for a cleanup
+retry when a release fails. Its backend contract requires callers to serialize
+operations across shared resources and requires failed mutations to leave the
+resource unchanged. Eleven simulated acquisition, rollback, invalid-backend,
+and retry cases pass both on the host with sanitizers and in a RenkuOS VM.
+The 18-patch `renku-028` bundle built and passed native component checks and
+host finalization; the VM shut down cleanly.
+
+The lifecycle is not yet instantiated in the driver and has no physical
+register backend. It does not implement power-well refcounting, PHY readiness
+polling, TC-cold blocking, microcontroller-health checks, or the HDMI enable
+sequence; it cannot power the port or fix HDMI by itself. No physical hardware
+was changed or tested for this patch.
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),

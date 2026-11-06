@@ -1,0 +1,114 @@
+From eea03a07a84d53fed00fccb00dd8d25b718bce48 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:03:14 +0900
+Subject: [PATCH] intel_extreme: add Type-C power ownership lifecycle
+
+---
+ .../intel_extreme/TypeCPowerLifecycle.h       | 95 +++++++++++++++++++
+ 1 file changed, 95 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+new file mode 100644
+index 00000000..859ab749
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+@@ -0,0 +1,95 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_TYPE_C_POWER_LIFECYCLE_H
++#define INTEL_EXTREME_TYPE_C_POWER_LIFECYCLE_H
++
++#include <SupportDefs.h>
++#include <stddef.h>
++
++// The platform backend supplies the actual power-well, readiness and PHY
++// operations. Calls on one lifecycle and its backend must be serialized by
++// the caller, including against other users of the shared power domain. Each
++// mutating callback must either succeed or leave its resource unchanged.
++struct TypeCPowerOps {
++	void* cookie;
++	status_t (*acquirePower)(void* cookie);
++	status_t (*releasePower)(void* cookie);
++	status_t (*isOwned)(void* cookie, bool* owned);
++	status_t (*setOwned)(void* cookie, bool owned);
++	status_t (*isReady)(void* cookie, bool* ready);
++};
++
++class TypeCPowerLifecycle {
++public:
++	explicit TypeCPowerLifecycle(const TypeCPowerOps& ops)
++		: fOps(ops), fPowerHeld(false), fOwnershipTaken(false), fActive(false)
++	{
++	}
++
++	status_t Acquire()
++	{
++		if (fActive || fPowerHeld || fOwnershipTaken)
++			return B_BUSY;
++		if (fOps.acquirePower == NULL || fOps.releasePower == NULL
++			|| fOps.isOwned == NULL || fOps.setOwned == NULL
++			|| fOps.isReady == NULL)
++			return B_BAD_VALUE;
++
++		status_t status = fOps.acquirePower(fOps.cookie);
++		if (status != B_OK)
++			return status;
++		fPowerHeld = true;
++
++		bool owned = false;
++		status = fOps.isOwned(fOps.cookie, &owned);
++		if (status == B_OK && !owned) {
++			status = fOps.setOwned(fOps.cookie, true);
++			if (status == B_OK)
++				fOwnershipTaken = true;
++		}
++
++		bool ready = false;
++		if (status == B_OK)
++			status = fOps.isReady(fOps.cookie, &ready);
++		if (status == B_OK && !ready)
++			status = B_ERROR;
++		if (status != B_OK) {
++			status_t cleanup = Release();
++			return cleanup == B_OK ? status : cleanup;
++		}
++
++		fActive = true;
++		return B_OK;
++	}
++
++	status_t Release()
++	{
++		fActive = false;
++		if (fOwnershipTaken) {
++			status_t status = fOps.setOwned(fOps.cookie, false);
++			if (status != B_OK)
++				return status;
++			fOwnershipTaken = false;
++		}
++		if (fPowerHeld) {
++			status_t status = fOps.releasePower(fOps.cookie);
++			if (status != B_OK)
++				return status;
++			fPowerHeld = false;
++		}
++		return B_OK;
++	}
++
++private:
++	TypeCPowerLifecycle(const TypeCPowerLifecycle&);
++	TypeCPowerLifecycle& operator=(const TypeCPowerLifecycle&);
++
++	TypeCPowerOps fOps;
++	bool fPowerHeld;
++	bool fOwnershipTaken;
++	bool fActive;
++};
++
++#endif
+-- 
+2.43.0
+
