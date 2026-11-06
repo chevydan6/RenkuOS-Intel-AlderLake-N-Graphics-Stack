@@ -1,0 +1,197 @@
+From 1db06b95afb6e8d7bcdc7eff7f4682bcf7beea23 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 18:56:11 +0900
+Subject: [PATCH] intel_extreme: pin ready display power dependencies
+
+---
+ .../graphics/intel_extreme/intel_extreme.h    |   4 +-
+ .../intel_extreme/AlderLakeDisplayPower.h     | 155 ++++++++++++++++++
+ 2 files changed, 158 insertions(+), 1 deletion(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+
+diff --git a/headers/private/graphics/intel_extreme/intel_extreme.h b/headers/private/graphics/intel_extreme/intel_extreme.h
+index ce5c5c23..5762b517 100644
+--- a/headers/private/graphics/intel_extreme/intel_extreme.h
++++ b/headers/private/graphics/intel_extreme/intel_extreme.h
+@@ -496,6 +496,8 @@ struct intel_shared_info {
+ 	uint32			gpu_pci_device;
+ 	uint32			gpu_pci_revision;
+ 	uint32			display_pipe_leases;
++	uint32			display_power_references[9];
++	uint32			display_power_owned_requests;
+ };
+ 
+ enum pipe_index {
+@@ -557,7 +559,7 @@ enum {
+ 	INTEL_GET_SHARED_INFO_LAYOUT
+ };
+ 
+-#define INTEL_SHARED_INFO_LAYOUT_VERSION 3
++#define INTEL_SHARED_INFO_LAYOUT_VERSION 4
+ 
+ struct intel_get_shared_info_layout {
+ 	uint32 magic;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+new file mode 100644
+index 00000000..b1b3a943
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+@@ -0,0 +1,155 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_DISPLAY_POWER_H
++#define INTEL_EXTREME_ALDER_LAKE_DISPLAY_POWER_H
++#include "AlderLakeTypeCBackend.h"
++
++// Shared references[9] and ownedRequests must be common to every accelerant
++// instance and protected by accelerant_lock. First five slots are PW1, PW2,
++// pipe A/B/C; final four slots are DDI_IO_TC1..4. Pin only already-powered main
++// wells: cold enabling them requires fuse/IRQ/workaround handling not provided
++// here. DDI_IO may transition on. DC states must already be disabled; no DMC
++// state is changed. A crashed holder requires separate recovery.
++class AlderLakeDisplayPower {
++public:
++	AlderLakeDisplayPower(const AlderLakeTypeCIO& io, uint32* references, uint32* ownedRequests,
++		unsigned port, unsigned pipe, unsigned attempts)
++		: fIO(io)
++		, fReferences(references)
++		, fOwned(ownedRequests)
++		, fPort(port)
++		, fPipe(pipe)
++		, fAttempts(attempts)
++		, fAcquired(0)
++	{
++	}
++	status_t Acquire()
++	{
++		if (fAcquired)
++			return B_BUSY;
++		if (!fReferences || !fOwned || fPort < 1 || fPort > 4 || fPipe > 2 || !fAttempts
++			|| !fIO.read || !fIO.write || !fIO.pause)
++			return B_BAD_VALUE;
++		uint32 dc;
++		status_t s = Read(0x45504, &dc);
++		if (s != B_OK)
++			return s;
++		if (dc & 0x2000000bU)
++			return B_BUSY;
++		for (unsigned stage = 0; stage < 4; stage++) {
++			unsigned slot = Slot(stage);
++			uint32 bit = 1U << slot;
++			if (fReferences[slot] == 0xffffffffU || (!fReferences[slot] && (*fOwned & bit)))
++				return Fail(B_BUSY);
++			uint32 value;
++			s = Read(Register(slot), &value);
++			if (s != B_OK)
++				return Fail(s);
++			uint32 request = Request(slot), state = request >> 1;
++			// Parent state must already be on; request pins it for this lifetime.
++			if (slot < 5 && !(value & state))
++				return Fail(B_BUSY);
++			if (fReferences[slot]) {
++				if ((value & (request | state)) != (request | state))
++					return Fail(B_ERROR);
++				fReferences[slot]++;
++				fAcquired++;
++				continue;
++			}
++			if (!(value & request)) {
++				s = fIO.write(fIO.cookie, Register(slot), value | request);
++				if (s != B_OK)
++					return Fail(s);
++				*fOwned |= bit;
++			}
++			fReferences[slot] = 1;
++			fAcquired++;
++			s = Wait(slot, true);
++			if (s != B_OK)
++				return Fail(s);
++		}
++		return B_OK;
++	}
++	status_t Release()
++	{
++		while (fAcquired) {
++			unsigned slot = Slot(fAcquired - 1);
++			uint32 bit = 1U << slot;
++			if (!fReferences[slot])
++				return B_ERROR;
++			if (fReferences[slot] > 1) {
++				fReferences[slot]--;
++				fAcquired--;
++				continue;
++			}
++			if (*fOwned & bit) {
++				uint32 value;
++				status_t s = Read(Register(slot), &value);
++				if (s != B_OK)
++					return s;
++				s = fIO.write(fIO.cookie, Register(slot), value & ~Request(slot));
++				if (s != B_OK)
++					return s;
++				s = Wait(slot, false);
++				if (s != B_OK)
++					return s;
++				*fOwned &= ~bit;
++			}
++			fReferences[slot] = 0;
++			fAcquired--;
++		}
++		return B_OK;
++	}
++	bool NeedsCleanup() const
++	{
++		return fAcquired != 0;
++	}
++
++private:
++	unsigned Slot(unsigned stage) const
++	{
++		return stage < 2 ? stage : stage == 2 ? 2 + fPipe : 4 + fPort;
++	}
++	static uint32 Register(unsigned slot)
++	{
++		return slot < 5 ? 0x45404 : 0x45454;
++	}
++	static unsigned Index(unsigned slot)
++	{
++		return slot < 2 ? slot : slot < 5 ? slot + 3 : slot - 2;
++	}
++	static uint32 Request(unsigned slot)
++	{
++		return 2U << (2 * Index(slot));
++	}
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t s = fIO.read(fIO.cookie, offset, value);
++		return s == B_OK && *value == 0xffffffffU ? B_ERROR : s;
++	}
++	status_t Wait(unsigned slot, bool on)
++	{
++		uint32 request = Request(slot), mask = on ? request | (request >> 1) : request;
++		for (unsigned i = 0; i < fAttempts; i++) {
++			uint32 value;
++			status_t s = Read(Register(slot), &value);
++			if (s != B_OK)
++				return s;
++			if ((value & mask) == (on ? mask : 0))
++				return B_OK;
++			fIO.pause(fIO.cookie);
++		}
++		return B_TIMED_OUT;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t s = Release();
++		return s == B_OK ? cause : s;
++	}
++	AlderLakeDisplayPower(const AlderLakeDisplayPower&);
++	AlderLakeDisplayPower& operator=(const AlderLakeDisplayPower&);
++	AlderLakeTypeCIO fIO;
++	uint32* fReferences;
++	uint32* fOwned;
++	unsigned fPort, fPipe, fAttempts, fAcquired;
++};
++#endif
+-- 
+2.43.0
+

@@ -1,0 +1,110 @@
+From 3ed6ebe5a4f3d68dd284091afe93cbf868f8f8e9 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 18:57:49 +0900
+Subject: [PATCH] intel_extreme: compose HDMI display power lifetime
+
+---
+ .../intel_extreme/AlderLakeDisplayPower.h     |  2 ++
+ .../intel_extreme/AlderLakeHdmiSequence.h     | 28 +++++++++++++++----
+ 2 files changed, 24 insertions(+), 6 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+index b1b3a943..e759d44d 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+@@ -99,6 +99,8 @@ public:
+ 		}
+ 		return B_OK;
+ 	}
++	unsigned Port() const { return fPort; }
++	unsigned PipeIndex() const { return fPipe; }
+ 	bool NeedsCleanup() const
+ 	{
+ 		return fAcquired != 0;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 416abd5a..2b181feb 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -13,6 +13,7 @@
+ #include "TypeCPortLease.h"
+ #include "AlderLakeHdmiPipe.h"
+ #include "DisplayPipeLease.h"
++#include "AlderLakeDisplayPower.h"
+ #include "AlderLakeHdmiPowerPrerequisites.h"
+ 
+ // Experimental orchestration. The caller must validate the device, firmware
+@@ -26,7 +27,7 @@ public:
+ 		: fWell(well), fLease(lease), fBackend(io, well, tcPort, attempts),
+ 		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts), fClock(io, tcPort),
+ 		  fTranscoder(io, pipe), fSignal(io, tcPort),
+-		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false), fIO(io), fPipeStage(NULL), fPipeLease(NULL)
++		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false), fIO(io), fPipeStage(NULL), fPipeLease(NULL), fDisplayPower(NULL)
+ 	{
+ 	}
+ 
+@@ -35,7 +36,8 @@ public:
+ 		bool positiveVSync, bool laneReversal,
+ 		AlderLakeHdmiPipe* pipeStage = NULL,
+ 		const AlderLakeHdmiTiming* timing = NULL,
+-		DisplayPipeLease* pipeLease = NULL)
++		DisplayPipeLease* pipeLease = NULL,
++		AlderLakeDisplayPower* displayPower = NULL)
+ 	{
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+ 			|| fClock.NeedsCleanup()
+@@ -45,13 +47,14 @@ public:
+ 			|| fLease.Port() != fPort || fPipe > 2)
+ 			return B_BAD_VALUE;
+ 		if ((pipeStage == NULL) != (timing == NULL)
+-			|| (pipeStage == NULL) != (pipeLease == NULL)) return B_BAD_VALUE;
++			|| (pipeStage == NULL) != (pipeLease == NULL)
++			|| (pipeStage == NULL) != (displayPower == NULL)) return B_BAD_VALUE;
+ 		if (pipeStage != NULL) {
+ 			if (pipeStage->PipeIndex() != fPipe || pipeStage->NeedsCleanup()
+-				|| pipeLease->PipeIndex() != fPipe || pipeLease->IsHeld())
++				|| pipeLease->PipeIndex() != fPipe || pipeLease->IsHeld()
++				|| displayPower->Port() != fPort || displayPower->PipeIndex() != fPipe
++				|| displayPower->NeedsCleanup())
+ 				return B_BUSY;
+-			status_t power = CheckAlderLakeHdmiPowerPrerequisites(fIO, fPort, fPipe);
+-			if (power != B_OK) return power;
+ 		}
+ 		DekelHdmiPllPlan pllPlan;
+ 		TypeCHdmiTranscoderPlan transPlan;
+@@ -79,6 +82,13 @@ public:
+ 				return Fail(status);
+ 			}
+ 		}
++		fDisplayPower = displayPower;
++		if (fDisplayPower != NULL) {
++			status = fDisplayPower->Acquire();
++			if (status != B_OK) return Fail(status);
++			status = CheckAlderLakeHdmiPowerPrerequisites(fIO, fPort, fPipe);
++			if (status != B_OK) return Fail(status);
++		}
+ 		status = fPower.Acquire();
+ 		if (status != B_OK) return Fail(status);
+ 		status = fPll.Program(pllPlan);
+@@ -126,6 +136,11 @@ public:
+ 		if (status != B_OK) return status;
+ 		status = fPower.Release();
+ 		if (status != B_OK) return status;
++		if (fDisplayPower != NULL) {
++			status = fDisplayPower->Release();
++			if (status != B_OK) return status;
++			fDisplayPower = NULL;
++		}
+ 		if (fPipeLease != NULL) {
+ 			status = fPipeLease->Release();
+ 			if (status != B_OK) return status;
+@@ -159,6 +174,7 @@ private:
+ 	AlderLakeTypeCIO fIO;
+ 	AlderLakeHdmiPipe* fPipeStage;
+ 	DisplayPipeLease* fPipeLease;
++	AlderLakeDisplayPower* fDisplayPower;
+ };
+ 
+ #endif
+-- 
+2.43.0
+

@@ -83,9 +83,9 @@ static bool Restored(const Mock& m) {
 static status_t Begin(AlderLakeHdmiSequence& s) {
 	return s.Begin(148500, 19200, 9, false, true, true, false);
 }
-static status_t StagedBegin(AlderLakeHdmiSequence& s,AlderLakeHdmiPipe& pipe,DisplayPipeLease& lease) {
+static status_t StagedBegin(AlderLakeHdmiSequence& s,AlderLakeHdmiPipe& pipe,DisplayPipeLease& lease,AlderLakeDisplayPower& power) {
  AlderLakeHdmiTiming t={1920,2008,2052,2200,1080,1084,1089,1125};
- return s.Begin(148500,19200,9,false,true,true,false,&pipe,&t,&lease);
+ return s.Begin(148500,19200,9,false,true,true,false,&pipe,&t,&lease,&power);
 }
 int main() {
 	unsigned errors = 0, beginWrites = 0; Mock m; uint32 leases = 0; Reset(m);
@@ -102,16 +102,16 @@ int main() {
 	Reset(m); leases=0;
 	{
 	 TypeCPowerWell well(WellOps(m),2,3);TypeCPortLease lease(&leases,2);
-	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);AlderLakeHdmiPipe pipe(IO(m),1,3);uint32 pipeMask=0;DisplayPipeLease pipeLease(&pipeMask,1);
-	 if(StagedBegin(s,pipe,pipeLease)!=B_OK || !(m.pipeControl&0x40000000U))errors++;
+	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);AlderLakeHdmiPipe pipe(IO(m),1,3);uint32 pipeMask=0;DisplayPipeLease pipeLease(&pipeMask,1);uint32 powerRefs[9]={},powerOwned=0;AlderLakeDisplayPower displayPower(IO(m),powerRefs,&powerOwned,2,1,3);
+	 if(StagedBegin(s,pipe,pipeLease,displayPower)!=B_OK || !(m.pipeControl&0x40000000U))errors++;
 	 stagedWrites=m.writes;
 	 if(s.End()!=B_OK || !Restored(m) || pipeMask)errors++;
 	}
 	for(unsigned failure=1;failure<=stagedWrites;failure++) {
 	 Reset(m);leases=0;m.failAt=failure;
 	 TypeCPowerWell well(WellOps(m),2,3);TypeCPortLease lease(&leases,2);
-	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);AlderLakeHdmiPipe pipe(IO(m),1,3);uint32 pipeMask=0;DisplayPipeLease pipeLease(&pipeMask,1);
-	 if(StagedBegin(s,pipe,pipeLease)==B_OK || !Restored(m) || leases || pipeMask || pipe.NeedsCleanup()) {fprintf(stderr,"staged failure %u\n",failure);errors++;}
+	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);AlderLakeHdmiPipe pipe(IO(m),1,3);uint32 pipeMask=0;DisplayPipeLease pipeLease(&pipeMask,1);uint32 powerRefs[9]={},powerOwned=0;AlderLakeDisplayPower displayPower(IO(m),powerRefs,&powerOwned,2,1,3);
+	 if(StagedBegin(s,pipe,pipeLease,displayPower)==B_OK || !Restored(m) || leases || pipeMask || pipe.NeedsCleanup()) {fprintf(stderr,"staged failure %u\n",failure);errors++;}
 	}
 	for (unsigned failure = 1; failure <= beginWrites; failure++) {
 		Reset(m); leases = 0; m.failAt = failure;

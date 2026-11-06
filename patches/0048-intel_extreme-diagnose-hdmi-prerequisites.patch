@@ -1,0 +1,89 @@
+From 0089e78c95aab78e38baa7d1eef6b200f4d37913 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 18:57:49 +0900
+Subject: [PATCH] intel_extreme: diagnose HDMI prerequisites during modesetting
+
+---
+ .../accelerants/intel_extreme/Ports.cpp       | 52 +++++++++++++++++++
+ 1 file changed, 52 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 2a9c4fd4..0c8767db 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -26,6 +26,9 @@
+ #include "FlexibleDisplayInterface.h"
+ #include "PanelFitter.h"
+ #include "TigerLakePLL.h"
++#include "AlderLakeHdmiFirmware.h"
++#include "AlderLakeHdmiPowerPrerequisites.h"
++#include "AlderLakeTypeCMmio.h"
+ 
+ #include <new>
+ 
+@@ -2641,6 +2644,53 @@ DigitalDisplayInterface::_SetPortLinkGen8(const display_timing& timing, uint32 p
+ 	return B_OK;
+ }
+ 
++// Called only from the modesetting transaction while accelerant_lock is held.
++// This preflight uses the existing BAR mapping and reads only. Output execution
++// stays disabled until plane programming and HDMI packet setup are integrated.
++static void
++diagnose_alder_lake_hdmi(port_index port, pipe_index pipe, uint32 pixelClock)
++{
++	if (!gInfo->shared_info->device_type.IsModel(INTEL_MODEL_ALDM)
++		|| (port != INTEL_PORT_F && port != INTEL_PORT_G))
++		return;
++
++	AlderLakeHdmiFirmware firmware;
++	status_t status = ReadAlderLakeHdmiFirmware(gInfo->shared_info,
++		gInfo->has_shared_layout, port, pixelClock, &firmware);
++	if (status != B_OK) {
++		TRACE("ADL HDMI preflight: firmware/layout rejected (%" B_PRId32 ")\n", status);
++		return;
++	}
++	if (pipe < INTEL_PIPE_A || pipe > INTEL_PIPE_C)
++		return;
++
++	area_info area;
++	status = get_area_info(gInfo->regs_area, &area);
++	if (status != B_OK || area.address != gInfo->registers) {
++		TRACE("ADL HDMI preflight: register mapping rejected\n");
++		return;
++	}
++	AlderLakeTypeCMmio mmio(gInfo->registers, area.size, firmware.tcPort,
++		pipe - INTEL_PIPE_A, true);
++	AlderLakeTypeCIO io = mmio.Ops();
++	uint32 dc, main, ddi;
++	if (io.read(io.cookie, 0x45504U, &dc) != B_OK
++		|| io.read(io.cookie, 0x45404U, &main) != B_OK
++		|| io.read(io.cookie, 0x45454U, &ddi) != B_OK) {
++		TRACE("ADL HDMI preflight: power register read rejected\n");
++		return;
++	}
++	status = CheckAlderLakeHdmiPowerPrerequisites(io, firmware.tcPort,
++		pipe - INTEL_PIPE_A);
++	TRACE("ADL HDMI preflight: TC%u pipe%u ref=%" B_PRIu32
++		" preset=%u DC=%08" B_PRIx32 " MAIN=%08" B_PRIx32
++		" DDI=%08" B_PRIx32 " prerequisites=%" B_PRId32
++		"; output sequence remains disabled\n", firmware.tcPort,
++		(unsigned)(pipe - INTEL_PIPE_A), firmware.referenceKHz, firmware.preset,
++		dc, main, ddi, status);
++}
++
++
+ status_t
+ DigitalDisplayInterface::SetDisplayMode(display_mode* target, uint32 colorMode)
+ {
+@@ -2653,6 +2703,8 @@ DigitalDisplayInterface::SetDisplayMode(display_mode* target, uint32 colorMode)
+ 		return B_ERROR;
+ 	}
+ 
++	diagnose_alder_lake_hdmi(PortIndex(), fPipe->Index(), target->timing.pixel_clock);
++
+ 	display_timing hardwareTarget = target->timing;
+ 	bool needsScaling = false;
+ 	if ((PortIndex() == INTEL_PORT_A)
+-- 
+2.43.0
+
