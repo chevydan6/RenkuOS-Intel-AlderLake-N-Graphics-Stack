@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('source', type=pathlib.Path)
 parser.add_argument('--early-paths', action='store_true')
 parser.add_argument('--msi', action='store_true')
+parser.add_argument('--private-state', action='store_true')
 parser.add_argument('--generation', type=int, choices=(4, 8, 12), default=12)
 args = parser.parse_args()
 source = args.source.read_text()
@@ -28,6 +29,9 @@ uninit = re.search(r'^void\nintel_extreme_uninit\([^)]*\)\n\{.*?^}', source, re.
 if not uninit:
     raise SystemExit('missing production teardown')
 body += '\n' + uninit.group()
+signal = re.search(r'^static int32\nrelease_vblank_sem\([^)]*\)\n\{.*?^}', source, re.M | re.S)
+if signal:
+    body += '\n' + signal.group()
 lexical = re.sub(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\])*"', '', body, flags=re.S)
 names = set(re.findall(r'\b[A-Z][A-Z0-9_]+\b', lexical))
 functions = set(re.findall(r'\b([A-Z][A-Z0-9_]+)\(', lexical))
@@ -38,7 +42,7 @@ prefix = r'''
 #include <cstdio>
 #include <cstdint>
 #include <cassert>
-using uint32=uint32_t;using status_t=int;using thread_id=int;
+using int32=int32_t;using uint32=uint32_t;using status_t=int;using thread_id=int;
 constexpr int B_OK=0,B_ERROR=-1;
 #define TRACE(...) ((void)0)
 #define ERROR(...) ((void)0)
@@ -47,11 +51,14 @@ struct thread_info {int team;};
 struct Device {int Generation()const{return 12;}};
 struct Shared {int vblank_sem,pch_info;};
 struct PciInfo {int bus,device,function;struct{struct{int interrupt_pin,interrupt_line;}h0;}u;};
-struct intel_info {Shared* shared_info;PciInfo* pci;Device device_type;int irq;bool use_msi,fake_interrupts;void* memory_owner;int registers_area,shared_area;bool msi_configured;};
+struct intel_info {Shared* shared_info;PciInfo* pci;Device device_type;int irq;bool use_msi,fake_interrupts;void* memory_owner;int registers_area,shared_area;bool msi_configured;int vblank_sem;bool interrupt_handler_installed;};
 static int fault,semId,legacyLine;
 static bool semLive,configured,enabled,handlerLive;
 static bool unsafeDelete;
 static int teardownFault;
+static int signaledSem;
+static int get_sem_count(int id,int32* count){assert(id==semId);*count=-1;return 0;}
+static int release_sem_etc(int id,int,int){assert(id==semId);signaledSem=id;return 0;}
 static int create_sem(int,const char*){if(fault==1)return -1;semLive=true;return semId;}
 static int delete_sem(int id){assert(id==semId&&semLive);semLive=false;return 0;}
 static int find_thread(void*){return 1;}
@@ -89,11 +96,12 @@ int main(){
  int findings=0;
  int earlyFailures=0;
  int msiFailures=0;
+ int privateFailures=0;
  for(int f=0;f<8;f++)for(int line: {0,11}){
   fault=f;legacyLine=line;semId=10;teardownFault=0;
   semLive=configured=enabled=handlerLive=false;
   Shared shared={};PciInfo pci={};pci.u.h0.interrupt_pin=1;pci.u.h0.interrupt_line=line;
-  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false};
+  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false,-1,false};
   init_interrupt_handler(info);
   bool orphanMSI=configured && (!enabled || !handlerLive);
   bool missingFallback=!handlerLive && !info.fake_interrupts;
@@ -110,7 +118,7 @@ int main(){
   fault=0;semId=id;teardownFault=failure;
   semLive=configured=enabled=handlerLive=unsafeDelete=false;
   Shared shared={};PciInfo pci={};
-  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false};
+  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false,-1,false};
   init_interrupt_handler(info);
   intel_extreme_uninit(info);
   printf("teardown sem-id=%d fault=%d handler=%d configured=%d enabled=%d sem=%d unsafe-delete=%d\n",
@@ -130,7 +138,7 @@ int main(){
   fault=acquisitionFault;teardownFault=cleanupFault;semId=10;
   semLive=configured=enabled=handlerLive=unsafeDelete=false;
   Shared shared={};PciInfo pci={};pci.u.h0.interrupt_pin=1;pci.u.h0.interrupt_line=11;
-  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false};
+  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false,-1,false};
   init_interrupt_handler(info);
   bool retained=acquisitionFault==6||cleanupFault==2;
   bool enabledExpected=acquisitionFault==6&&cleanupFault==1;
@@ -143,10 +151,27 @@ int main(){
   if(release_msi(info)!=B_OK||configured||enabled||info.msi_configured||info.use_msi)msiFailures++;
 #endif
  }
+ // A client must not control which kernel semaphore is signaled, nor
+ // suppress removal of a successfully installed handler via shared state.
+ for(int published: {-1,0,12345}){
+  fault=0;teardownFault=0;semId=10;signaledSem=-1;
+  semLive=configured=enabled=handlerLive=unsafeDelete=false;
+  Shared shared={};PciInfo pci={};
+  intel_info info={&shared,&pci,{},0,false,false,nullptr,1,2,false,-1,false};
+  init_interrupt_handler(info);
+  shared.vblank_sem=published;
+  release_vblank_sem(info);
+  if(signaledSem!=semId)privateFailures++;
+  intel_extreme_uninit(info);
+  if(handlerLive||info.interrupt_handler_installed||configured||enabled||unsafeDelete)privateFailures++;
+ }
  printf("Observed %d cases with incomplete IRQ resource/fallback state (modeled host APIs only).\n",findings);
  printf("Early admission and valid semaphore teardown: %d failures\n",earlyFailures);
  printf("MSI acquisition and checked cleanup: %d failures\n",msiFailures);
-#ifdef FOCUSED_MSI
+ printf("Private semaphore/handler state: %d failures\n",privateFailures);
+#ifdef FOCUSED_PRIVATE
+ return privateFailures?2:0;
+#elif defined(FOCUSED_MSI)
  return msiFailures?2:0;
 #elif defined(FOCUSED_EARLY_PATHS)
  return earlyFailures?2:0;
@@ -158,5 +183,5 @@ int main(){
 with tempfile.TemporaryDirectory(prefix='renku-irq-init-') as tmp:
     cpp=pathlib.Path(tmp)/'probe.cpp'; binary=pathlib.Path(tmp)/'probe'
     cpp.write_text(('#define HAS_RELEASE_MSI\n' if helper else '')+'#include <initializer_list>\n'+prefix.replace('return 12;', f'return {args.generation};')+constants+macros+body+test)
-    subprocess.run(['g++','-std=c++17','-Wall','-Wextra','-Werror',*(['-DFOCUSED_MSI'] if args.msi else []),*(['-DFOCUSED_EARLY_PATHS'] if args.early_paths else []),str(cpp),'-o',str(binary)],check=True)
+    subprocess.run(['g++','-std=c++17','-Wall','-Wextra','-Werror',*(['-DFOCUSED_PRIVATE'] if args.private_state else []),*(['-DFOCUSED_MSI'] if args.msi else []),*(['-DFOCUSED_EARLY_PATHS'] if args.early_paths else []),str(cpp),'-o',str(binary)],check=True)
     sys.exit(subprocess.run([str(binary)],timeout=10).returncode)

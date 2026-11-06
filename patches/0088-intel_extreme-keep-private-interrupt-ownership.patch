@@ -1,0 +1,116 @@
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+@@ -73,9 +73,9 @@
+ release_vblank_sem(intel_info &info)
+ {
+ 	int32 count;
+-	if (get_sem_count(info.shared_info->vblank_sem, &count) == B_OK
++	if (get_sem_count(info.vblank_sem, &count) == B_OK
+ 		&& count < 0) {
+-		release_sem_etc(info.shared_info->vblank_sem, -count,
++		release_sem_etc(info.vblank_sem, -count,
+ 			B_DO_NOT_RESCHEDULE);
+ 		return B_INVOKE_SCHEDULER;
+ 	}
+@@ -452,10 +452,12 @@
+ 	// Until installation succeeds, teardown must not infer a live handler
+ 	// from a semaphore or a vector left over from an earlier open.
+ 	info.fake_interrupts = true;
++	info.interrupt_handler_installed = false;
+ 	info.irq = 0;
+ 	info.use_msi = false;
+-	info.shared_info->vblank_sem = create_sem(0, "intel extreme vblank");
+-	if (info.shared_info->vblank_sem < B_OK)
++	info.vblank_sem = create_sem(0, "intel extreme vblank");
++	info.shared_info->vblank_sem = info.vblank_sem;
++	if (info.vblank_sem < B_OK)
+ 		return;
+ 
+ 	status_t status = B_OK;
+@@ -465,9 +467,10 @@
+ 	thread_id thread = find_thread(NULL);
+ 	thread_info threadInfo;
+ 	if (get_thread_info(thread, &threadInfo) != B_OK
+-		|| set_sem_owner(info.shared_info->vblank_sem, threadInfo.team)
++		|| set_sem_owner(info.vblank_sem, threadInfo.team)
+ 			!= B_OK) {
+-		delete_sem(info.shared_info->vblank_sem);
++		delete_sem(info.vblank_sem);
++		info.vblank_sem = B_ERROR;
+ 		info.shared_info->vblank_sem = B_ERROR;
+ 		return;
+ 	}
+@@ -512,6 +515,7 @@
+ 			status = install_io_interrupt_handler(info.irq,
+ 				handler, (void*)&info, 0);
+ 			if (status == B_OK) {
++				info.interrupt_handler_installed = true;
+ 				gen8_enable_interrupts(info, INTEL_PIPE_A, true);
+ 				gen8_enable_interrupts(info, INTEL_PIPE_B, true);
+ 				if (info.device_type.Generation() >= 11)
+@@ -586,6 +590,7 @@
+ 			status = install_io_interrupt_handler(info.irq,
+ 				&intel_interrupt_handler, (void*)&info, 0);
+ 			if (status == B_OK) {
++				info.interrupt_handler_installed = true;
+ 				g35_clear_interrupt_status(info, INTEL_PIPE_A);
+ 				g35_clear_interrupt_status(info, INTEL_PIPE_B);
+ 
+@@ -611,7 +616,8 @@
+ 		status_t cleanupStatus = release_msi(info);
+ 		if (cleanupStatus != B_OK)
+ 			ERROR("MSI resources retained: %s\n", strerror(cleanupStatus));
+-		delete_sem(info.shared_info->vblank_sem);
++		delete_sem(info.vblank_sem);
++		info.vblank_sem = B_ERROR;
+ 		info.shared_info->vblank_sem = B_ERROR;
+ 	}
+ }
+@@ -677,7 +683,7 @@
+ {
+ 	CALLED();
+ 	// A failed MSI cleanup must not be forgotten by another open.
+-	if (info.msi_configured)
++	if (info.msi_configured || info.interrupt_handler_installed)
+ 		return B_BUSY;
+ 	info.memory_owner = NULL;
+ 	info.memory_owner_lease = 0;
+@@ -1070,7 +1076,7 @@
+ {
+ 	CALLED();
+ 
+-	if (!info.fake_interrupts && info.shared_info->vblank_sem >= B_OK) {
++	if (info.interrupt_handler_installed) {
+ 		// disable interrupt generation
+ 		if (info.device_type.Generation() >= 8) {
+ 			if (info.device_type.Generation() >= 11) {
+@@ -1080,11 +1086,15 @@
+ 			interrupt_handler handler = &gen8_interrupt_handler;
+ 			if (info.device_type.Generation() >= 11)
+ 				handler = &gen11_interrupt_handler;
+-			remove_io_interrupt_handler(info.irq, handler, &info);
++			if (remove_io_interrupt_handler(info.irq, handler, &info) == B_OK)
++				info.interrupt_handler_installed = false;
+ 		} else {
+ 			write32(info, find_reg(info, INTEL_INTERRUPT_ENABLED), 0);
+ 			write32(info, find_reg(info, INTEL_INTERRUPT_MASK), ~0);
+-			remove_io_interrupt_handler(info.irq, intel_interrupt_handler, &info);
++			if (remove_io_interrupt_handler(info.irq, intel_interrupt_handler, &info)
++					== B_OK) {
++				info.interrupt_handler_installed = false;
++			}
+ 		}
+ 
+ 	}
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme_private.h
+@@ -37,6 +37,9 @@
+ 
+ 	struct overlay_registers* overlay_registers;
+ 
++	// Kernel-owned state; shared_info is writable by accelerant clients.
++	sem_id			vblank_sem;
++	bool			interrupt_handler_installed;
+ 	bool			fake_interrupts;
+ 	uint8			irq;
+ 	bool			use_msi;

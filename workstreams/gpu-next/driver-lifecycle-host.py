@@ -72,7 +72,7 @@ struct intel_info {
  area_id registers_area,shared_area;intel_shared_info* shared_info;
  Owner* memory_owner;uint64 memory_owner_lease;bool memory_owner_ready;
  DeviceType device_type;int pch_info;const char* device_identifier;
- struct overlay_registers* overlay_registers;bool fake_interrupts,use_msi,msi_configured;uint8 irq;
+ struct overlay_registers* overlay_registers;bool fake_interrupts,use_msi,msi_configured,interrupt_handler_installed;int vblank_sem;uint8 irq;
 };
 static std::vector<std::string> events;
 static int fault,refs,ownerReleases,legacyMaps,legacyUnmaps,mmioMaps,allocations;
@@ -141,7 +141,7 @@ static bool intel_uses_physical_overlay(const intel_shared_info&){return false;}
 static void init_overlay_registers(overlay_registers*){}
 static void* get_boot_item(int,void*){return nullptr;}
 static void init_interrupt_handler(intel_info& info){
- events.push_back("irq-init");info.fake_interrupts=fakeIRQ;info.use_msi=!fakeIRQ;info.msi_configured=!fakeIRQ;
+ events.push_back("irq-init");info.fake_interrupts=fakeIRQ;info.use_msi=!fakeIRQ;info.msi_configured=!fakeIRQ;info.interrupt_handler_installed=!fakeIRQ;info.vblank_sem=fakeIRQ?-1:10;
  info.shared_info->vblank_sem=fakeIRQ?-1:10;irqLive=msiLive=!fakeIRQ;
 }
 using interrupt_handler=int(*)(void*);
@@ -151,7 +151,7 @@ static int intel_interrupt_handler(void*){return 0;}
 static void gen11_enable_global_interrupts(intel_info&,bool enabled){assert(!enabled);events.push_back("disable-gen11");}
 static void gen8_enable_global_interrupts(intel_info&,bool enabled){assert(!enabled);events.push_back("disable-gen8");}
 static uint32 find_reg(const intel_info&,uint32 value){return value;}
-static void remove_io_interrupt_handler(uint8,interrupt_handler,void*){assert(irqLive);irqLive=false;events.push_back("remove-irq");}
+static status_t remove_io_interrupt_handler(uint8,interrupt_handler,void*){assert(irqLive);irqLive=false;events.push_back("remove-irq");return B_OK;}
 static status_t intel_allocate_memory(intel_info&,size_t,size_t,uint32,addr_t*,phys_addr_t* =nullptr);
 void intel_extreme_uninit(intel_info&);
 '''
@@ -161,6 +161,9 @@ int main(){
  {
   intel_info retained{};retained.msi_configured=true;
   events.clear();
+  assert(intel_extreme_init(retained)==B_BUSY);
+  assert(events.empty()&&!sharedAlive&&!legacyMMIOAlive);
+  retained.msi_configured=false;retained.interrupt_handler_installed=true;
   assert(intel_extreme_init(retained)==B_BUSY);
   assert(events.empty()&&!sharedAlive&&!legacyMMIOAlive);
  }
