@@ -64,3 +64,20 @@ planes are intentionally disabled; this demonstrates TMDS video output, not
 desktop scanout or GPU acceleration. The internal installed OS was untouched.
 Desktop output still requires validated DDB allocation, watermarks and primary
 plane programming against the shared framebuffer.
+
+The read-only inventory helper subsequently compiled and ran on the laptop
+using existing driver areas and the normal accelerant lock. The primary plane
+on pipe A occupies DDB blocks [0,2048); every other powered plane/cursor has an
+empty allocation. The verified Alder Lake-P/N descriptor has4096 blocks in four
+1024-block slices, and the Linux A+B routing assigns B the free [2048,4096)
+range. All four slices are powered, MBUS join/hash are clear, and both active
+pipes have matching horizontal/vertical timing totals. Shared framebuffer:
+offset0, stride7680, RGB32,1920x1080, mode pixel clock138780 kHz.
+
+The actual internal PLL registers are enable0xcc000000, CFGCR0=0x00b555a5,
+CFGCR1=0x88, SSC=0x401320ff (SSC enable clear). Clock decoding must include the
+display-version12+38.4MHz reference fractional correction from Linux; assuming
+the nominal mode clock is exact would be incorrect. Desktop watermark planning
+remains under development. A later NanoKVM sample still reported VIFPS60,
+VIDropCnt0 and CSI overflow0; this is a limited raster test, not a long-term
+stability or desktop validation.
