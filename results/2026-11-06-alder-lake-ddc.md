@@ -39,3 +39,16 @@ VM with GCC 13.3.0. The native component tests and host finalizer passed; the VM
 shut down cleanly. The candidate accelerant SHA-256 is
 `7facc545bc3ad34ad3a87cfb3df4d913c78a5e48d459963ed71cc399dba29fe9`.
 The VM uses emulated graphics and did not load or test the Intel GPU.
+
+Physical USB test 004: the running accelerant matched the native build hash,
+and the candidate kernel driver and GART were loaded. The driver read EDID
+successfully from DDI G at `0x4005038` and listed it as a connected second
+port; previously the read at `0x4005030` failed. The log reports DDI G
+enabled. The HDMI picture and sustained stability require independent
+confirmation; this is not evidence of 2D or 3D GPU acceleration.
+
+The test image's existing `ScreenSaver_settings` could not be unflattened as
+a BMessage. It was backed up as `ScreenSaver_settings.before-gpu-test`, then
+a valid settings message with `timeflags=0` was installed and read back. This
+disables screen saver and DPMS blanking for the test image; it does not prove
+that system suspend or firmware lid behavior has been disabled.
