@@ -5,11 +5,12 @@
 struct Mock {
 	uint32 power, buffer, status, hip, pll, portClock, clockGates, clock, function, phy[16384];
 	unsigned writes, failAt, pauses;
-	uint32 pipeControl, timings[6],ddiPower; bool orderError,blockDdiAck;
+	uint32 pipeControl, timings[6],ddiPower,fia; bool orderError,blockDdiAck;
 };
 static status_t Read(void* p, uint32 offset, uint32* value) {
 	Mock& m = *(Mock*)p;
-	if (offset == 0x45504) *value = 0;
+	if (offset == 0x1638c0) *value=m.fia;
+	else if (offset == 0x45504) *value = 0;
 	else if (offset == 0x45404) *value = 0x300f;
 	else if (offset == 0x45454) *value = m.ddiPower;
 	else if (offset == 0x71008) *value = m.pipeControl;
@@ -32,7 +33,8 @@ static status_t Write(void* p, uint32 offset, uint32 value) {
 	Mock& m = *(Mock*)p;
 	m.writes++;
 	if (m.failAt && m.writes == m.failAt) return B_ERROR;
-	if (offset == 0x45454) {
+	if (offset == 0x1638c0) m.fia=value;
+	else if (offset == 0x45454) {
 		m.ddiPower = value & ~0x100U;
 		if (value & 0x200U) {
 			if (!(m.pll & 0x40000000U) || !(m.portClock & 0x80000000U)
@@ -74,13 +76,13 @@ static status_t WellWrite(void* p, uint32 value) { return Write(p, 0x45444, valu
 static AlderLakeTypeCIO IO(Mock& m) { AlderLakeTypeCIO io = {&m, Read, Write, Pause}; return io; }
 static TypeCPowerWellOps WellOps(Mock& m) { TypeCPowerWellOps ops = {&m, WellRead, WellWrite, Pause}; return ops; }
 static void Reset(Mock& m) {
-	m = {}; m.buffer = 1U << 7; m.status = 1U << 2; m.function = 0x30000;
+	m = {}; m.fia=0xa5; m.buffer = 1U << 7; m.status = 1U << 2; m.function = 0x30000;
 	m.portClock = 0x123; m.clockGates = 0x40002000;
 	for (unsigned i = 0; i < 16384; i++) m.phy[i] = 0x12345678;
 	m.phy[0x236c / 4] |= 1U << 15;
 }
 static bool Restored(const Mock& m) {
-	if (m.pipeControl || m.orderError || m.ddiPower) return false;
+	if (m.pipeControl || m.orderError || m.ddiPower || m.fia!=0xa5) return false;
 	for (unsigned i=0;i<6;i++) if(m.timings[i]) return false;
 	if (m.power || m.buffer != (1U << 7) || m.pll || m.clock || m.function != 0x30000
 		|| m.portClock != 0x123 || m.clockGates != 0x40002000) return false;
@@ -125,7 +127,7 @@ int main() {
 	 uint32 powerRefs[9]={},powerOwned=0;AlderLakeDisplayPower displayPower(IO(m),powerRefs,&powerOwned,2,1,3);
 	 if(StagedBegin(s,pipe,pipeLease,displayPower)!=B_TIMED_OUT || !Restored(m) || pipeMask || leases)errors++;
 	 const AlderLakeHdmiDdiFailure& snap=s.DdiFailure();
-	 if(snap.attemptedMask!=0x3f || snap.validMask!=0x3f || snap.sentinelMask
+	 if(snap.attemptedMask!=0x7f || snap.validMask!=0x7f || snap.sentinelMask
 	  || !(snap.values[1]&0x40U) || !(snap.values[2]&0x40000000U)
 	  || !(snap.values[3]&0x80000000U))errors++;
 	}
