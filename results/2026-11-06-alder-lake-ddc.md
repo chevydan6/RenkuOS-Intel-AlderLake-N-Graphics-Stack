@@ -55,6 +55,14 @@ NanoKVM status showed `state=0`, `now_fps=0`; the meaning of those values is
 not independently established here. SSH remained available after approximately
 21 minutes of uptime. Long-term stability and GPU acceleration are unproven.
 
+Offline follow-up lead: the Gen12 port-clock selection code in `Ports.cpp`
+uses `config &= TGL_DPCLKA_DDIB_CLOCK_SELECT` before setting the selection,
+which appears to preserve the selection mask while clearing unrelated bits.
+The log shows the clock configuration changing from `0x1` to `0x4` during
+DDI G setup. This requires verification against register definitions and the
+platform programming sequence; it is not yet an established cause or a
+validated change. No additional hardware registers were written for this lead.
+
 The test image's existing `ScreenSaver_settings` could not be unflattened as
 a BMessage. It was backed up as `ScreenSaver_settings.before-gpu-test`, then
 a valid settings message with `timeflags=0` was installed and read back. This
