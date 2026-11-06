@@ -1,0 +1,138 @@
+From 33046307e632f73cdf0a0a7e807d4131590cf648 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:31:44 +0900
+Subject: [PATCH] intel_extreme: snapshot powered DDI failure before cleanup
+
+---
+ .../intel_extreme/AlderLakeHdmiContext.h      |  1 +
+ .../intel_extreme/AlderLakeHdmiSequence.h     | 36 +++++++++++++++++--
+ .../accelerants/intel_extreme/Ports.cpp       | 12 +++++++
+ 3 files changed, 47 insertions(+), 2 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+index 4ffe4fc6..ad896fef 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+@@ -120,6 +120,7 @@ public:
+ 	uint32 PowerFailureValue() const { return fDisplayPower.FailureValue(); }
+ 	uint32 PowerFailureMask() const { return fDisplayPower.FailureMask(); }
+ 	uint32 PowerFailureExpected() const { return fDisplayPower.FailureExpected(); }
++	const AlderLakeHdmiDdiFailure& DdiFailure() const { return fSequence.DdiFailure(); }
+ 	const char* Stage() const
+ 	{
+ 		return fStage;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 50a9199e..dbbda49d 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -17,6 +17,14 @@
+ #include "TypeCHdmiTranscoderProgrammer.h"
+ #include "TypeCPortLease.h"
+ 
++struct AlderLakeHdmiDdiFailure {
++	uint32 values[6];
++	uint32 validMask;
++	uint32 attemptedMask;
++	uint32 sentinelMask;
++	status_t readStatus[6];
++};
++
+ // Experimental orchestration. The caller must validate the device, firmware
+ // port mapping and signal preset; prepare pipe timings; hold display-core
+ // power, the exclusive port and pipe leases, and a shared lock for all
+@@ -41,7 +49,7 @@ public:
+ 		, fPipeStage(NULL)
+ 		, fPipeLease(NULL)
+ 		, fDisplayPower(NULL)
+-		, fStage("idle")
++		, fStage("idle"), fDdiFailure()
+ 	{
+ 	}
+ 
+@@ -52,6 +60,7 @@ public:
+ 		bool dviCompatible = false)
+ 	{
+ 		fStage = "validation";
++		fDdiFailure.validMask = fDdiFailure.attemptedMask = fDdiFailure.sentinelMask = 0;
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+ 			|| fClock.NeedsCleanup() || fLaneMode.NeedsCleanup() || fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
+ 			|| fBuffer.NeedsCleanup())
+@@ -121,8 +130,10 @@ public:
+ 		if (fDisplayPower != NULL) {
+ 			fStage = "DDI IO power";
+ 			status = fDisplayPower->AcquireDdiIo();
+-			if (status != B_OK)
++			if (status != B_OK) {
++				CaptureDdiFailure();
+ 				return Fail(status);
++			}
+ 			status = CheckAlderLakeHdmiPowerPrerequisites(fIO, fPort, fPipe);
+ 			if (status != B_OK)
+ 				return Fail(status);
+@@ -221,12 +232,32 @@ public:
+ 	{
+ 		return fStarted;
+ 	}
++	const AlderLakeHdmiDdiFailure& DdiFailure() const { return fDdiFailure; }
+ 	const char* Stage() const
+ 	{
+ 		return fStage;
+ 	}
+ 
+ private:
++	// Only called after successful parent/AUX acquisition, PLL and clock setup.
++	// Preserve evidence before cleanup removes power. No banked PHY access.
++	void CaptureDdiFailure()
++	{
++		const uint32 offsets[] = {0x161500U + (fPort - 1) * 4,
++			0x64300U + (fPort - 1) * 0x100, 0x46038U + (fPort - 1) * 8,
++			0x4610cU + (fPort - 1) * 4, 0x164280U, 0x45444U};
++		for (unsigned i = 0; i < 6; i++) {
++			uint32 value = 0;
++			fDdiFailure.attemptedMask |= 1U << i;
++			status_t status = fIO.read(fIO.cookie, offsets[i], &value);
++			fDdiFailure.readStatus[i] = status;
++			fDdiFailure.values[i] = value;
++			if (status == B_OK) {
++				if (value == 0xffffffffU) fDdiFailure.sentinelMask |= 1U << i;
++				else fDdiFailure.validMask |= 1U << i;
++			}
++		}
++	}
+ 	status_t Fail(status_t cause)
+ 	{
+ 		status_t cleanup = End();
+@@ -251,6 +282,7 @@ private:
+ 	DisplayPipeLease* fPipeLease;
+ 	AlderLakeDisplayPower* fDisplayPower;
+ 	const char* fStage;
++	AlderLakeHdmiDdiFailure fDdiFailure;
+ };
+ 
+ #endif
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index f44f6f7d..41f1a670 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2729,6 +2729,18 @@ DigitalDisplayInterface::_SetRasterMode(display_mode* mode)
+ 			fHdmiContext->PowerFailureRegister(), fHdmiContext->PowerFailureValue(),
+ 			fHdmiContext->PowerFailureMask(), fHdmiContext->PowerFailureExpected());
+ 	}
++	const AlderLakeHdmiDdiFailure& snapshot = fHdmiContext->DdiFailure();
++	if (status != B_OK && snapshot.attemptedMask != 0) {
++		TRACE("ADL HDMI DDI failure: valid=%02" B_PRIx32 " sentinel=%02" B_PRIx32
++			" TCSS=%08" B_PRIx32 " BUFFER=%08" B_PRIx32 " PLL=%08" B_PRIx32
++			" CLKSEL=%08" B_PRIx32 " GATE=%08" B_PRIx32 " AUX=%08" B_PRIx32 "\n",
++			snapshot.validMask, snapshot.sentinelMask, snapshot.values[0], snapshot.values[1], snapshot.values[2],
++			snapshot.values[3], snapshot.values[4], snapshot.values[5]);
++		TRACE("ADL HDMI DDI read status: %" B_PRId32 " %" B_PRId32 " %" B_PRId32
++			" %" B_PRId32 " %" B_PRId32 " %" B_PRId32 "\n", snapshot.readStatus[0],
++			snapshot.readStatus[1], snapshot.readStatus[2], snapshot.readStatus[3],
++			snapshot.readStatus[4], snapshot.readStatus[5]);
++	}
+ 	if (status == B_OK)
+ 		memcpy(&fCurrentMode, mode, sizeof(display_mode));
+ 	return status;
+-- 
+2.43.0
+

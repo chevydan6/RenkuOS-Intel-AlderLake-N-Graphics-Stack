@@ -37,7 +37,10 @@ int main(){unsigned errors=0;
   if(p.Acquire()!=B_BUSY||m.writes||p.NeedsCleanup())errors++;
  }
  {Mock m;m.stuck=true;uint32 refs[9]={},owned=0;AlderLakeDisplayPower p(m.Ops(),refs,&owned,2,1,3);
-  if(p.Acquire()!=B_TIMED_OUT||p.NeedsCleanup()||owned||!Empty(refs))errors++;
+  if(p.Acquire()!=B_TIMED_OUT||p.NeedsCleanup()||owned||!Empty(refs)
+   ||p.FailureRegister()!=0x45454||p.FailureValue()!=0x200
+   ||p.FailureMask()!=0x300||p.FailureExpected()!=0x300||m.ddi)errors++;
+  m.stuck=false;if(p.Acquire()!=B_OK||p.FailureRegister()!=0||p.Release()!=B_OK)errors++;
  }
  {Mock m;uint32 refs[9]={},owned=0;AlderLakeDisplayPower p(m.Ops(),refs,&owned,2,1,3);
   if(p.Acquire()!=B_OK)errors++;

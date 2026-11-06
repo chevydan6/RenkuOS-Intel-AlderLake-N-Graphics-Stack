@@ -1,0 +1,211 @@
+From 66c8fa8186314cb6f27c327bb9f6088b19997362 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:27:36 +0900
+Subject: [PATCH] intel_extreme: configure legacy Dekel lane mode before
+ transcoder
+
+---
+ .../intel_extreme/AlderLakeHdmiSequence.h     |  11 +-
+ .../intel_extreme/AlderLakeTypeCMmio.h        |   2 +-
+ .../intel_extreme/DekelHdmiLaneMode.h         | 119 ++++++++++++++++++
+ 3 files changed, 129 insertions(+), 3 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 66041286..50a9199e 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -10,6 +10,7 @@
+ #include "AlderLakeHdmiPowerPrerequisites.h"
+ #include "DekelHdmiPllProgrammer.h"
+ #include "DekelHdmiSignalProgrammer.h"
++#include "DekelHdmiLaneMode.h"
+ #include "DisplayPipeLease.h"
+ #include "TypeCHdmiBuffer.h"
+ #include "TypeCHdmiClock.h"
+@@ -30,7 +31,7 @@ public:
+ 		, fPower(fBackend.LifecycleOps(), true)
+ 		, fPll(io, tcPort, attempts)
+ 		, fClock(io, tcPort)
+-		, fTranscoder(io, pipe)
++		, fLaneMode(io, tcPort), fTranscoder(io, pipe)
+ 		, fSignal(io, tcPort)
+ 		, fBuffer(io, tcPort, attempts)
+ 		, fPort(tcPort)
+@@ -52,7 +53,7 @@ public:
+ 	{
+ 		fStage = "validation";
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+-			|| fClock.NeedsCleanup() || fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
++			|| fClock.NeedsCleanup() || fLaneMode.NeedsCleanup() || fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
+ 			|| fBuffer.NeedsCleanup())
+ 			return B_BUSY;
+ 		if ((dviCompatible && pixelClockKHz > 165000) || fPort < 1 || fPort > 4
+@@ -126,6 +127,9 @@ public:
+ 			if (status != B_OK)
+ 				return Fail(status);
+ 		}
++		fStage = "legacy PHY lane mode";
++		status = fLaneMode.Apply();
++		if (status != B_OK) return Fail(status);
+ 		if (fPipeStage != NULL) {
+ 			fStage = "pipe timing";
+ 			status = fPipeStage->Prepare(*timing);
+@@ -178,6 +182,8 @@ public:
+ 		status = fTranscoder.Release();
+ 		if (status != B_OK)
+ 			return status;
++		status = fLaneMode.Restore();
++		if (status != B_OK) return status;
+ 		if (fDisplayPower != NULL) {
+ 			status = fDisplayPower->ReleaseDdiIo();
+ 			if (status != B_OK)
+@@ -234,6 +240,7 @@ private:
+ 	TypeCPowerLifecycle fPower;
+ 	DekelHdmiPllProgrammer fPll;
+ 	TypeCHdmiClock fClock;
++	DekelHdmiLaneMode fLaneMode;
+ 	TypeCHdmiTranscoderProgrammer fTranscoder;
+ 	DekelHdmiSignalProgrammer fSignal;
+ 	TypeCHdmiBuffer fBuffer;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+index e0ac099d..30d20239 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+@@ -50,7 +50,7 @@ private:
+ 		}
+ 		if (fBank == 0 || fBank == 1) {
+ 			uint32 laneOffset = internal & 0xfffU;
+-			return laneOffset == 0x2c0 || laneOffset == 0x2c4
++			return laneOffset == 0xa0 || laneOffset == 0x2c0 || laneOffset == 0x2c4
+ 				|| laneOffset == 0x2c8 || laneOffset == 0xd00;
+ 		}
+ 		return false;
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h
+new file mode 100644
+index 00000000..c7ba1f19
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiLaneMode.h
+@@ -0,0 +1,119 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_DEKEL_HDMI_LANE_MODE_H
++#define INTEL_EXTREME_DEKEL_HDMI_LANE_MODE_H
++#include "AlderLakeTypeCBackend.h"
++
++// Legacy HDMI uses four lanes, both Dekel lane groups in X2 mode. Requires
++// exclusive bank/register lock, powered PHY, ownership and disabled buffer.
++// Inspired by icl_program_mg_dp_mode and WA14018221282 in Linux intel_ddi.c.
++class DekelHdmiLaneMode {
++public:
++	DekelHdmiLaneMode(const AlderLakeTypeCIO& io, unsigned port)
++		: fIO(io)
++		, fPort(port)
++		, fWritten(0)
++	{
++	}
++	status_t Apply()
++	{
++		if (fWritten)
++			return B_BUSY;
++		if (fPort < 1 || fPort > 4 || !fIO.read || !fIO.write)
++			return B_BAD_VALUE;
++		uint32 value;
++		status_t s = Read(0x161500U + (fPort - 1) * 4, &value);
++		if (s != B_OK)
++			return s;
++		if (!(value & 4U))
++			return B_BUSY;
++		s = Read(0x64300U + (fPort - 1) * 0x100, &value);
++		if (s != B_OK)
++			return s;
++		if ((value & 0x80000000U) || !(value & 0x40U))
++			return B_BUSY;
++		for (unsigned lane = 0; lane < 2; lane++) {
++			s = ReadLane(lane, &fSaved[lane]);
++			if (s != B_OK)
++				return Fail(s);
++		}
++		for (unsigned lane = 0; lane < 2; lane++) {
++			s = WriteLane(lane, (fSaved[lane] & ~0xc0U) | 0x80U);
++			if (s != B_OK)
++				return Fail(s);
++			fWritten++;
++		}
++		for (unsigned lane = 0; lane < 2; lane++) {
++			s = ReadLane(lane, &value);
++			if (s != B_OK)
++				return Fail(s);
++			if ((value & 0xc0U) != 0x80U) {
++				// Display12/13 WA14018221282: verify and rewrite dropped PHY write.
++				s = WriteLane(lane, (value & ~0xc0U) | 0x80U);
++				if (s != B_OK)
++					return Fail(s);
++				s = ReadLane(lane, &value);
++				if (s != B_OK)
++					return Fail(s);
++				if ((value & 0xc0U) != 0x80U)
++					return Fail(B_ERROR);
++			}
++		}
++		return B_OK;
++	}
++	status_t Restore()
++	{
++		while (fWritten) {
++			unsigned lane = fWritten - 1;
++			uint32 value;
++			status_t s = ReadLane(lane, &value);
++			if (s != B_OK)
++				return s;
++			s = WriteLane(lane, (value & ~0xc0U) | (fSaved[lane] & 0xc0U));
++			if (s != B_OK)
++				return s;
++			s = ReadLane(lane, &value);
++			if (s != B_OK)
++				return s;
++			if ((value & 0xc0U) != (fSaved[lane] & 0xc0U))
++				return B_ERROR;
++			fWritten--;
++		}
++		return B_OK;
++	}
++	bool NeedsCleanup() const
++	{
++		return fWritten != 0;
++	}
++
++private:
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t s = fIO.read(fIO.cookie, offset, value);
++		return s == B_OK && *value == 0xffffffffU ? B_ERROR : s;
++	}
++	status_t Select(unsigned lane)
++	{
++		return fIO.write(fIO.cookie, 0x1010a0U, lane << ((fPort - 1) * 8));
++	}
++	status_t ReadLane(unsigned lane, uint32* value)
++	{
++		status_t s = Select(lane);
++		return s == B_OK ? Read(0x1680a0U + (fPort - 1) * 0x1000, value) : s;
++	}
++	status_t WriteLane(unsigned lane, uint32 value)
++	{
++		status_t s = Select(lane);
++		return s == B_OK ? fIO.write(fIO.cookie, 0x1680a0U + (fPort - 1) * 0x1000, value) : s;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t s = Restore();
++		return s == B_OK ? cause : s;
++	}
++	DekelHdmiLaneMode(const DekelHdmiLaneMode&);
++	DekelHdmiLaneMode& operator=(const DekelHdmiLaneMode&);
++	AlderLakeTypeCIO fIO;
++	unsigned fPort, fWritten;
++	uint32 fSaved[2];
++};
++#endif
+-- 
+2.43.0
+

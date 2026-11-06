@@ -1,0 +1,110 @@
+From ce6f9dba8a6c92bf7a9f4a345f0b6f88bca46b06 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:29:44 +0900
+Subject: [PATCH] intel_extreme: retain pre-cleanup power timeout readbacks
+
+---
+ .../intel_extreme/AlderLakeDisplayPower.h       | 17 ++++++++++++++++-
+ .../intel_extreme/AlderLakeHdmiContext.h        |  4 ++++
+ src/add-ons/accelerants/intel_extreme/Ports.cpp |  6 ++++++
+ 3 files changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+index 77d49967..5b449018 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeDisplayPower.h
+@@ -19,7 +19,8 @@ public:
+ 		, fPort(port)
+ 		, fPipe(pipe)
+ 		, fAttempts(attempts)
+-		, fAcquired(0)
++		, fAcquired(0), fFailureRegister(0), fFailureValue(0),
++		  fFailureMask(0), fFailureExpected(0)
+ 	{
+ 	}
+ 	status_t Acquire()
+@@ -34,6 +35,7 @@ public:
+ 	{
+ 		if (fAcquired)
+ 			return B_BUSY;
++		fFailureRegister = fFailureValue = fFailureMask = fFailureExpected = 0;
+ 		if (!fReferences || !fOwned || fPort < 1 || fPort > 4 || fPipe > 2 || !fAttempts
+ 			|| !fIO.read || !fIO.write || !fIO.pause)
+ 			return B_BAD_VALUE;
+@@ -60,6 +62,10 @@ public:
+ 	{
+ 		return ReleaseUntil(0);
+ 	}
++	uint32 FailureRegister() const { return fFailureRegister; }
++	uint32 FailureValue() const { return fFailureValue; }
++	uint32 FailureMask() const { return fFailureMask; }
++	uint32 FailureExpected() const { return fFailureExpected; }
+ 	unsigned Port() const
+ 	{
+ 		return fPort;
+@@ -164,15 +170,23 @@ private:
+ 	status_t Wait(unsigned slot, bool on)
+ 	{
+ 		uint32 request = Request(slot), mask = on ? request | (request >> 1) : request;
++		uint32 lastValue = 0;
+ 		for (unsigned i = 0; i < fAttempts; i++) {
+ 			uint32 value;
+ 			status_t s = Read(Register(slot), &value);
+ 			if (s != B_OK)
+ 				return s;
++			lastValue = value;
+ 			if ((value & mask) == (on ? mask : 0))
+ 				return B_OK;
+ 			fIO.pause(fIO.cookie);
+ 		}
++		if (fFailureRegister == 0) {
++			fFailureRegister = Register(slot);
++			fFailureValue = lastValue;
++			fFailureMask = mask;
++			fFailureExpected = on ? mask : 0;
++		}
+ 		return B_TIMED_OUT;
+ 	}
+ 	status_t Fail(status_t cause)
+@@ -186,5 +200,6 @@ private:
+ 	uint32* fReferences;
+ 	uint32* fOwned;
+ 	unsigned fPort, fPipe, fAttempts, fAcquired;
++	uint32 fFailureRegister, fFailureValue, fFailureMask, fFailureExpected;
+ };
+ #endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+index 506c78e4..4ffe4fc6 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiContext.h
+@@ -116,6 +116,10 @@ public:
+ 	{
+ 		return fSequence.NeedsCleanup();
+ 	}
++	uint32 PowerFailureRegister() const { return fDisplayPower.FailureRegister(); }
++	uint32 PowerFailureValue() const { return fDisplayPower.FailureValue(); }
++	uint32 PowerFailureMask() const { return fDisplayPower.FailureMask(); }
++	uint32 PowerFailureExpected() const { return fDisplayPower.FailureExpected(); }
+ 	const char* Stage() const
+ 	{
+ 		return fStage;
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 6c76777a..f44f6f7d 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2723,6 +2723,12 @@ DigitalDisplayInterface::_SetRasterMode(display_mode* mode)
+ 	TRACE("ADL HDMI raster: stage=%s status=%" B_PRId32
+ 		" cleanup=%u (no planes enabled)\n", fHdmiContext->Stage(), status,
+ 		(unsigned)fHdmiContext->NeedsCleanup());
++	if (status != B_OK && fHdmiContext->PowerFailureRegister() != 0) {
++		TRACE("ADL HDMI power timeout: register=%08" B_PRIx32
++			" value=%08" B_PRIx32 " mask=%08" B_PRIx32 " expected=%08" B_PRIx32 "\n",
++			fHdmiContext->PowerFailureRegister(), fHdmiContext->PowerFailureValue(),
++			fHdmiContext->PowerFailureMask(), fHdmiContext->PowerFailureExpected());
++	}
+ 	if (status == B_OK)
+ 		memcpy(&fCurrentMode, mode, sizeof(display_mode));
+ 	return status;
+-- 
+2.43.0
+

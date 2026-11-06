@@ -5,7 +5,7 @@
 struct Mock {
 	uint32 power, buffer, status, hip, pll, portClock, clockGates, clock, function, phy[16384];
 	unsigned writes, failAt, pauses;
-	uint32 pipeControl, timings[6],ddiPower; bool orderError;
+	uint32 pipeControl, timings[6],ddiPower; bool orderError,blockDdiAck;
 };
 static status_t Read(void* p, uint32 offset, uint32* value) {
 	Mock& m = *(Mock*)p;
@@ -37,7 +37,7 @@ static status_t Write(void* p, uint32 offset, uint32 value) {
 		if (value & 0x200U) {
 			if (!(m.pll & 0x40000000U) || !(m.portClock & 0x80000000U)
 				|| !(m.buffer & 0x40U)) m.orderError=true;
-			else m.ddiPower |= 0x100U;
+			else if(!m.blockDdiAck) m.ddiPower |= 0x100U;
 		}
 	} else if (offset == 0x71008) {
 		if ((value & 0x80000000U) && !(m.function & 0x80000000U)) m.orderError=true;
@@ -116,6 +116,18 @@ int main() {
 	 if(s.Begin(165001,19200,0,false,true,true,false,NULL,NULL,NULL,NULL,true)!=B_BAD_VALUE || m.writes)errors++;
 	 if(s.Begin(148500,19200,0,false,true,true,false,NULL,NULL,NULL,NULL,true)!=B_OK
 	  || m.function!=0xa9030000U || s.End()!=B_OK || !Restored(m))errors++;
+	}
+	Reset(m);leases=0;m.blockDdiAck=true;
+	{
+	 TypeCPowerWell well(WellOps(m),2,3);TypeCPortLease lease(&leases,2);
+	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);AlderLakeHdmiPipe pipe(IO(m),1,3);
+	 uint32 pipeMask=0;DisplayPipeLease pipeLease(&pipeMask,1);
+	 uint32 powerRefs[9]={},powerOwned=0;AlderLakeDisplayPower displayPower(IO(m),powerRefs,&powerOwned,2,1,3);
+	 if(StagedBegin(s,pipe,pipeLease,displayPower)!=B_TIMED_OUT || !Restored(m) || pipeMask || leases)errors++;
+	 const AlderLakeHdmiDdiFailure& snap=s.DdiFailure();
+	 if(snap.attemptedMask!=0x3f || snap.validMask!=0x3f || snap.sentinelMask
+	  || !(snap.values[1]&0x40U) || !(snap.values[2]&0x40000000U)
+	  || !(snap.values[3]&0x80000000U))errors++;
 	}
 	unsigned stagedWrites=0;
 	Reset(m); leases=0;

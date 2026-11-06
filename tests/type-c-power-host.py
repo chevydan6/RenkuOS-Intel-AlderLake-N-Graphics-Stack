@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory(prefix='type-c-power-') as tmp:
                  'dekel-pll-programmer-test', 'type-c-transcoder-programmer-test',
                  'type-c-buffer-test', 'dekel-hdmi-signal-test',
                  'dekel-signal-programmer-test', 'alder-lake-hdmi-sequence-test',
-                 'alder-lake-tc-mmio-test', 'type-c-clock-test', 'alder-lake-hdmi-pipe-test', 'alder-lake-hdmi-power-prerequisites-test', 'display-pipe-lease-test', 'alder-lake-display-power-test'):
+                 'alder-lake-tc-mmio-test', 'type-c-clock-test', 'alder-lake-hdmi-pipe-test', 'alder-lake-hdmi-power-prerequisites-test', 'display-pipe-lease-test', 'alder-lake-display-power-test', 'dekel-hdmi-lane-mode-test'):
         binary = pathlib.Path(tmp) / name
         test = pathlib.Path(__file__).with_name(name + '.cpp')
         subprocess.run(['c++', '-std=c++17', '-Wall', '-Wextra', '-Werror',
