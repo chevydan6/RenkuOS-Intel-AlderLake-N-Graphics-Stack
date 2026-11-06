@@ -1,0 +1,25 @@
+{
+  "runtime_revision_verified": true,
+  "revision_evidence": "kernel serial boot banner; uname revision belongs to libroot",
+  "kernel_file_sha256": "e2fbc2f00d8bb4161dc994ed0950a96f4793861bd7a2a9173b8d699c9885bc21",
+  "boot_package_sha256": "5a7885cd40b572b89d2bd818917bd51aada9f9201ebca835d1cfad57a40e9391",
+  "uname": "Haiku shredder R1~beta6+development hrev60072+518 Nov  6 2026 22:34 x86_64 x86_64 Haiku\n",
+  "physical_gpu_execution": false,
+  "irq_stress_tested": false,
+  "clean_shutdown": true,
+  "evidence_sha256": {
+    "verified-result.json": "be06848f97a23140f305f755ce4b081df27376a5b53380fdc3d1a72002c43424",
+    "verified-serial.log": "12f24ccf0e81d87ab08cb1aec22755c3194c41cf05c44ee71f5a4453627fa8ec",
+    "verified-boot.log": "7b2e5b5084c719002942c2ee0cecbb193d3395b3bce44d7edd9925932bc1086f",
+    "package-comparison.json": "9e448207fc3dce3d76ca85a79a852c80d7fb034bba3a4268749af784d3657723"
+  },
+  "source_commit": "ee4f34defcd6aca262814ffdbc72cdb8f8af64b3",
+  "source_worktree": "/home/dan/renkuos-development/source/gpu-kernel-validation",
+  "evidence_directory": "/home/dan/renkuos-development/installation/private/kernel-boot-002",
+  "build_target": "<revisioned>kernel_x86_64",
+  "failed_attempts_preserved": [
+    "kernel-boot-001/candidate-boot.log",
+    "kernel-boot-002/candidate-boot.log"
+  ],
+  "scope": "Full kernel cross-compilation and disposable VM boot; no native IRQ stress or physical GPU execution"
+}

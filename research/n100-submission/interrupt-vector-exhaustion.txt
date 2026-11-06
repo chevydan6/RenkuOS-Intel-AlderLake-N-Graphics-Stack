@@ -55,3 +55,6 @@ CURRENT GPU STATUS
 089 remains last native component milestone; no new driver change this checkpoint.
 0088 private-state source/host review accepted, callback drain and sem lifetime open.
 No new native compilation, VM test, physical GPU execution or acceleration proof.
+
+FOLLOW-UP: full kernel cross-build passed; isolated source commit ee4f34defcd6aca262814ffdbc72cdb8f8af64b3
+Evidence testing/kernel-vector-build-001/. Native boot/IRQ still pending.

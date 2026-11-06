@@ -1,0 +1,67 @@
+Disposable allocator-kernel boot validation
+
+Purpose: boot the actual allocator-corrected kernel before synthetic IRQ lifetime
+validation. This is not Intel GPU execution and does not validate physical IRQs.
+
+Source: isolated gpu/n100-vector-exhaustion commit ee4f34defcd6aca262814ffdbc72cdb8f8af64b3.
+Build: pinned CI toolchain image recorded in testing/kernel-vector-build-001/provenance.json.
+IMPORTANT: jam kernel_x86_64 links a kernel but does not stamp its runtime revision.
+Use jam '<revisioned>kernel_x86_64' for the actual boot artifact (kernel/Jamfile178).
+The stamp is git-f01e0b78-irq-vector-validation, an explicit test label, not a release.
+Stamped SHA256:e2fbc2f00d8bb4161dc994ed0950a96f4793861bd7a2a9173b8d699c9885bc21.
+
+Loader: loader.cpp opens system/kernel_x86_64 through BootVolume.SystemDirectory.
+That directory is packagefs from the selected system package, chosen via
+system/packages/administrative/activated-packages. Non-packaged kernel override
+is not established by the driver add-on lookup path. Do not assume it works.
+
+Procedure implemented (private scripts and complete logs retained):
+1. Fresh reflink/sparse copy of preserved installation/private/gpu-hdmi-build-040/disk.img.
+2. Boot read-only inventory under host-config/haiku-vm/build locks. Capture uname,
+activated-packages, selected system package and guest kernel; compare source/destination hashes.
+Selected package:haiku-r1~beta6_hrev60072_518-1-x86_64.hpkg.
+Original package SHA256:b04e3ba74d3c9d217f8918833e48809cd8ac0eef3730e4de5f7cc51b8e883955.
+Original kernel SHA256:66753cb36a1481790dbf55a564e8632fdcb7534fdacbb6f5999432ea196de4f6.
+3. On a package COPY, built package tool add -f -1 replaces only kernel_x86_64.
+Use the revisioned build directory as input and the writable generic build attribute
+store; copying the file alone loses attributes held outside Linux file xattrs.
+4. Extract original/candidate, compare all6204 paths: modes, regular-file SHA256,
+symlink targets and package metadata. Only kernel entry may differ. Inspect TOC
+attribute descriptors; all non-kernel entries retained, kernel build attributes present.
+This file comparison is not a separate byte-hash comparison of every attribute value.
+5. Do NOT replace an active live system package: package daemon may ignore same-name
+created events or cancel removal, and system packages are special during activation.
+6. Build '<build>bfs_shell'. With VM STOPPED and canonical locks held, use explicit
+GPT BFS byte bounds (from sfdisk JSON, not guessed) and /myfs/system/packages/path.
+Read original package through BFS and verify hash. Copy candidate at same filename.
+Unmount, remount and read it back; compare entire hpkg SHA256 and activated list.
+Only disposable image is mounted; no block device or physical target passed to tool.
+7. Boot bounded with serial/QMP, verify unique KERNEL SERIAL revision, guest-visible kernel
+and selected package hashes, preserve logs and require clean shutdown. Uname uses
+libroot's own revision (uname.c:41), not the kernel revision; combine offline boot-input and guest hash evidence.
+
+Attempts:
+- kernel-boot-001 baseline inventory completed and shut down cleanly.
+- First package extraction failed because build's generic attribute store was mounted
+read-only; rerun with writable build store succeeded. Original logs preserved.
+- Kernel package v2 retained attributes, but used unstamped linkable kernel. Boot
+reached SSH with new compile timestamp and old revision; required unique-label
+assertion failed, QMP cleanup stopped VM. NOT counted as verified candidate boot.
+- Built revision-stamped target, prepared package v3, repeated full comparisons.
+- kernel-boot-002 is a fresh040 copy; offline before/after verification passed.
+- Stamped002 boot reached SSH and printed the unique kernel revision, but the
+verifier incorrectly expected uname to expose that revision. It failed and QMP
+cleanup stopped the VM. Source audit proves uname's revision comes from libroot.
+- Corrected verification now uses the kernel-owned serial banner plus package and
+kernel SHA256 checks. Separate verified-*.logs preserve both prior failed attempts.
+Verified repeat completed: unique kernel-owned serial banner, exact selected
+package and kernel hashes matched, and clean shutdown succeeded. Evidence:
+kernel-boot-002/verified-result.json, verified-serial.log and verified-boot.log.
+Stamped boot package SHA256:5a7885cd40b572b89d2bd818917bd51aada9f9201ebca835d1cfad57a40e9391.
+This proves disposable kernel boot, not native allocator saturation/IRQ stress.
+
+Evidence: installation/private/kernel-boot-001/ (inventory, package preparation,
+comparison and failed first boot); kernel-boot-002/ (fresh stamped retry).
+Recovery/source040 image and physical057 configuration unchanged.
+Remaining: actual kernel IRQ synchronization/admission tests, semaphore owner-exit
+lifetime, desktop/physical memory validation, GPU submission/completion/recovery.
