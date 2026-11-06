@@ -32,7 +32,7 @@ int main() {
 	info = Default(); info.device_type.aldm = false;
 	if (Read(info, true, &out) != B_BAD_VALUE) errors++;
 	info = Default(); info.got_vbt = false;
-	if (Read(info, true, &out) != B_BAD_VALUE) errors++;
+	if (Read(info, true, &out) != B_OK || out.tcPort != 2) errors++;
 	info = Default(); info.vbt_bdb_version = 183;
 	if (Read(info, true, &out) != B_BAD_VALUE) errors++;
 	info = Default(); info.vbt_child_device_size = offsetof(child_device_config, dvo_cfg) + 1;

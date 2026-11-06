@@ -1,0 +1,28 @@
+From 5c7444faed06f43f1fbd329f5a2142233da3529e Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 18:28:59 +0900
+Subject: [PATCH] intel_extreme: validate HDMI VBT independently of panel
+ timing
+
+---
+ src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
+index 5b27d39a..fec85f07 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
+@@ -26,7 +26,9 @@ ReadAlderLakeHdmiFirmware(const intel_shared_info* info, bool layoutCompatible,
+ {
+ 	if (!layoutCompatible || info == NULL || result == NULL)
+ 		return B_BAD_VALUE;
+-	if (!info->device_type.IsModel(INTEL_MODEL_ALDM) || !info->got_vbt
++	// got_vbt reflects whether panel timing was found, not whether the VBT
++	// child records were parsed. Validate those records independently below.
++	if (!info->device_type.IsModel(INTEL_MODEL_ALDM)
+ 		|| info->gpu_pci_vendor != 0x8086 || info->gpu_pci_device != 0x46d1
+ 		|| info->gpu_pci_revision != 0
+ 		|| info->vbt_bdb_version < 184
+-- 
+2.43.0
+
