@@ -45,6 +45,12 @@ int main(){unsigned errors=0;
   if(p.Release()!=B_ERROR||!p.NeedsCleanup()||!owned||refs[0]!=1)errors++;
   m.failAt=0;if(p.Release()!=B_OK||p.NeedsCleanup()||owned||!Empty(refs))errors++;
  }
+ {Mock m;uint32 refs[9]={},owned=0;AlderLakeDisplayPower p(m.Ops(),refs,&owned,2,1,3);
+  if(p.AcquireParents()!=B_OK||m.ddi||refs[6])errors++;
+  m.failAt=m.writes+1;
+  if(p.AcquireDdiIo()!=B_ERROR||refs[0]!=1||!p.NeedsCleanup()||p.ReleaseDdiIo()!=B_OK||refs[0]!=1)errors++;
+  m.failAt=0;if(p.Release()!=B_OK||!Empty(refs)||owned)errors++;
+ }
  if(errors){fprintf(stderr,"%u display power failures\n",errors);return 1;}
- puts("11 display power pinning, sharing, rollback and cleanup retry cases passed");return 0;
+ puts("12 display power pinning, sharing, rollback and cleanup retry cases passed");return 0;
 }

@@ -5,13 +5,13 @@
 struct Mock {
 	uint32 power, buffer, status, hip, pll, portClock, clockGates, clock, function, phy[16384];
 	unsigned writes, failAt, pauses;
-	uint32 pipeControl, timings[6]; bool orderError;
+	uint32 pipeControl, timings[6],ddiPower; bool orderError;
 };
 static status_t Read(void* p, uint32 offset, uint32* value) {
 	Mock& m = *(Mock*)p;
 	if (offset == 0x45504) *value = 0;
 	else if (offset == 0x45404) *value = 0x300f;
-	else if (offset == 0x45454) *value = 0x300;
+	else if (offset == 0x45454) *value = m.ddiPower;
 	else if (offset == 0x71008) *value = m.pipeControl;
 	else if (offset >= 0x61000 && offset <= 0x61014) *value=m.timings[(offset-0x61000)/4];
 	else if (offset == 0x45444) *value = m.power;
@@ -32,11 +32,19 @@ static status_t Write(void* p, uint32 offset, uint32 value) {
 	Mock& m = *(Mock*)p;
 	m.writes++;
 	if (m.failAt && m.writes == m.failAt) return B_ERROR;
-	if (offset == 0x71008) {
+	if (offset == 0x45454) {
+		m.ddiPower = value & ~0x100U;
+		if (value & 0x200U) {
+			if (!(m.pll & 0x40000000U) || !(m.portClock & 0x80000000U)
+				|| !(m.buffer & 0x40U)) m.orderError=true;
+			else m.ddiPower |= 0x100U;
+		}
+	} else if (offset == 0x71008) {
 		if ((value & 0x80000000U) && !(m.function & 0x80000000U)) m.orderError=true;
 		m.pipeControl=(value&~0x40000000U)|((value&0x80000000U)>>1);
 	} else if (offset >= 0x61000 && offset <= 0x61014) m.timings[(offset-0x61000)/4]=value;
 	else if (offset == 0x45444) {
+		if ((value & (1U << 9)) && !(m.buffer & 0x40U)) m.orderError=true;
 		m.power = value;
 		if (value & (1U << 9)) m.power |= 1U << 8; else m.power &= ~(1U << 8);
 	} else if (offset == 0x64400) {
@@ -47,7 +55,10 @@ static status_t Write(void* p, uint32 offset, uint32 value) {
 		m.pll = value & ~((1U << 30) | (1U << 26));
 		if (value & (1U << 27)) m.pll |= 1U << 26;
 		if (value & (1U << 31)) m.pll |= 1U << 30;
-	} else if (offset == 0x46110) m.portClock = value;
+	} else if (offset == 0x46110) {
+		if (!(value & 0x80000000U) && (m.ddiPower & 0x200U)) m.orderError=true;
+		m.portClock = value;
+	}
 	else if (offset == 0x164280) m.clockGates = value;
 	else if (offset == 0x46144) m.clock = value;
 	else if (offset == 0x61400) m.function = value;
@@ -69,7 +80,7 @@ static void Reset(Mock& m) {
 	m.phy[0x236c / 4] |= 1U << 15;
 }
 static bool Restored(const Mock& m) {
-	if (m.pipeControl || m.orderError) return false;
+	if (m.pipeControl || m.orderError || m.ddiPower) return false;
 	for (unsigned i=0;i<6;i++) if(m.timings[i]) return false;
 	if (m.power || m.buffer != (1U << 7) || m.pll || m.clock || m.function != 0x30000
 		|| m.portClock != 0x123 || m.clockGates != 0x40002000) return false;
