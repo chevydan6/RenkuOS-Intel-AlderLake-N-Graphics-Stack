@@ -98,6 +98,14 @@ int main() {
 		beginWrites = m.writes;
 		if (s.End() != B_OK || !Restored(m) || s.End() != B_OK || leases != 0) errors++;
 	}
+	Reset(m);leases=0;
+	{
+	 TypeCPowerWell well(WellOps(m),2,3);TypeCPortLease lease(&leases,2);
+	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);
+	 if(s.Begin(165001,19200,0,false,true,true,false,NULL,NULL,NULL,NULL,true)!=B_BAD_VALUE || m.writes)errors++;
+	 if(s.Begin(148500,19200,0,false,true,true,false,NULL,NULL,NULL,NULL,true)!=B_OK
+	  || m.function!=0xa9030000U || s.End()!=B_OK || !Restored(m))errors++;
+	}
 	unsigned stagedWrites=0;
 	Reset(m); leases=0;
 	{

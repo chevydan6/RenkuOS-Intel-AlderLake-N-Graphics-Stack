@@ -37,7 +37,14 @@ int main() {
 	AlderLakeTypeCMmio badPort(base, words.size() * 4, 5, 1, true);
 	no = badPort.Ops();
 	if (no.write(no.cookie, 0x64400, 1) != B_BAD_VALUE) errors++;
+	const uint32 planeRegisters[] = {0x71180,0x711cc,0x71188,0x711a4,0x7119c,0x7127c,0x71240};
+	for (uint32 offset : planeRegisters) {
+		words[offset/4]=0x1234;
+		if(io.read(io.cookie,offset,&value)!=B_OK || value!=0x1234
+			|| io.write(io.cookie,offset,0)!=B_BAD_VALUE
+			|| io.read(io.cookie,offset-0x1000,&value)!=B_BAD_VALUE)errors++;
+	}
 	if (errors) { fprintf(stderr, "%u MMIO adapter cases failed\n", errors); return 1; }
-	puts("9 MMIO range, bank, device and access-control cases passed; RAM only");
+	puts("16 MMIO range, bank, device and access-control cases passed; RAM only");
 	return 0;
 }

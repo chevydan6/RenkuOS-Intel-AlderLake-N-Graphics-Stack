@@ -1,0 +1,114 @@
+From 3d99d5e34a7986f55a73f9c434a6fe7c62a194f9 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:00:16 +0900
+Subject: [PATCH] intel_extreme: plan explicit RGB8 DVI compatible TMDS output
+
+---
+ .../intel_extreme/AlderLakeHdmiSequence.h           |  7 ++++---
+ .../accelerants/intel_extreme/TypeCHdmiTranscoder.h | 13 ++++++++-----
+ .../intel_extreme/TypeCHdmiTranscoderProgrammer.h   |  3 ++-
+ 3 files changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 2b181feb..68a259ee 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -37,13 +37,14 @@ public:
+ 		AlderLakeHdmiPipe* pipeStage = NULL,
+ 		const AlderLakeHdmiTiming* timing = NULL,
+ 		DisplayPipeLease* pipeLease = NULL,
+-		AlderLakeDisplayPower* displayPower = NULL)
++		AlderLakeDisplayPower* displayPower = NULL, bool dviCompatible = false)
+ 	{
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+ 			|| fClock.NeedsCleanup()
+ 			|| fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
+ 			|| fBuffer.NeedsCleanup()) return B_BUSY;
+-		if (fPort < 1 || fPort > 4 || fWell.Port() != fPort
++		if ((dviCompatible && pixelClockKHz > 165000)
++			|| fPort < 1 || fPort > 4 || fWell.Port() != fPort
+ 			|| fLease.Port() != fPort || fPipe > 2)
+ 			return B_BAD_VALUE;
+ 		if ((pipeStage == NULL) != (timing == NULL)
+@@ -63,7 +64,7 @@ public:
+ 			&pllPlan);
+ 		if (status != B_OK) return status;
+ 		status = BuildAlderLakeMobileTypeCHdmiPlan(fPort, 8, positiveHSync,
+-			positiveVSync, &transPlan);
++			positiveVSync, &transPlan, dviCompatible);
+ 		if (status != B_OK) return status;
+ 		status = BuildDekelHdmiSignalPlan(preset, pixelClockKHz,
+ 			loadgenWorkaround, &signalPlan);
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
+index 87b4977d..9bffa85a 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
+@@ -19,12 +19,13 @@ struct TypeCHdmiTranscoderPlan {
+ static inline status_t
+ BuildTypeCHdmiTranscoderPlan(unsigned ddiSelection, unsigned phySelection,
+ 	unsigned bitsPerColor, bool positiveHSync, bool positiveVSync,
+-	TypeCHdmiTranscoderPlan* plan)
++	TypeCHdmiTranscoderPlan* plan, bool dviCompatible = false)
+ {
+ 	// The selections are one-based hardware encodings, not firmware DVO
+ 	// identifiers. Zero means disconnected and must not be enabled.
+ 	if (plan == NULL || ddiSelection < 1 || ddiSelection > 9
+-		|| phySelection < 1 || phySelection > 15)
++		|| phySelection < 1 || phySelection > 15
++		|| (dviCompatible && bitsPerColor != 8))
+ 		return B_BAD_VALUE;
+ 
+ 	uint32 bpc;
+@@ -37,12 +38,14 @@ BuildTypeCHdmiTranscoderPlan(unsigned ddiSelection, unsigned phySelection,
+ 	}
+ 
+ 	uint32 function = (ddiSelection << 27) | (bpc << 20);
++	if (dviCompatible)
++		function |= 1U << 24;
+ 	if (positiveHSync)
+ 		function |= 1U << 16;
+ 	if (positiveVSync)
+ 		function |= 1U << 17;
+ 	plan->clockSelect = phySelection << 28;
+-	plan->functionDisabled = function; // HDMI mode has a zero mode field.
++	plan->functionDisabled = function; // HDMI=0, DVI-compatible TMDS=1.
+ 	plan->functionEnabled = function | (1U << 31);
+ 	return B_OK;
+ }
+@@ -50,13 +53,13 @@ BuildTypeCHdmiTranscoderPlan(unsigned ddiSelection, unsigned phySelection,
+ 
+ static inline status_t
+ BuildAlderLakeMobileTypeCHdmiPlan(unsigned tcPort, unsigned bitsPerColor,
+-	bool positiveHSync, bool positiveVSync, TypeCHdmiTranscoderPlan* plan)
++	bool positiveHSync, bool positiveVSync, TypeCHdmiTranscoderPlan* plan, bool dviCompatible = false)
+ {
+ 	if (tcPort < 1 || tcPort > 4)
+ 		return B_BAD_VALUE;
+ 	// On display version 13, TC1..4 are logical DDI D..G and PHY F..I.
+ 	return BuildTypeCHdmiTranscoderPlan(tcPort + 3, tcPort + 5,
+-		bitsPerColor, positiveHSync, positiveVSync, plan);
++		bitsPerColor, positiveHSync, positiveVSync, plan, dviCompatible);
+ }
+ 
+ #endif
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
+index f27542db..32c3c163 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
+@@ -24,11 +24,12 @@ public:
+ 	{
+ 		if (fClockWritten || fFunctionWritten || fEnabled)
+ 			return B_BUSY;
+-		const uint32 allowed = 0x78000000U | 0x00700000U | 0x00030000U;
++		const uint32 allowed = 0x78000000U | 0x01000000U | 0x00700000U | 0x00030000U;
+ 		uint32 ddi = (plan.functionDisabled >> 27) & 0xfU;
+ 		uint32 bpc = (plan.functionDisabled >> 20) & 7U;
+ 		if (fPipe > 2 || fIO.read == NULL || fIO.write == NULL
+ 			|| ddi < 1 || ddi > 9 || bpc > 3
++			|| ((plan.functionDisabled & 0x01000000U) != 0 && bpc != 0)
+ 			|| (plan.functionDisabled & ~allowed) != 0
+ 			|| plan.functionEnabled != (plan.functionDisabled | 0x80000000U)
+ 			|| (plan.clockSelect & 0x0fffffffU) != 0
+-- 
+2.43.0
+

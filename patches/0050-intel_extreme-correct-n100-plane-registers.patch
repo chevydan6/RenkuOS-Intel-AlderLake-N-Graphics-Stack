@@ -1,0 +1,58 @@
+From bdb190f97ca344737728c84672fa28b9b07f32b7 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:01:34 +0900
+Subject: [PATCH] intel_extreme: correct N100 plane offset and format masks
+
+---
+ src/add-ons/accelerants/intel_extreme/Pipes.cpp | 13 +++++++++++--
+ src/add-ons/accelerants/intel_extreme/mode.cpp  |  7 ++++++-
+ 2 files changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/Pipes.cpp b/src/add-ons/accelerants/intel_extreme/Pipes.cpp
+index 7e8ff0c3..a37c988a 100644
+--- a/src/add-ons/accelerants/intel_extreme/Pipes.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Pipes.cpp
+@@ -39,11 +39,20 @@ program_pipe_color_modes(uint32 colorMode)
+ {
+ 	// All pipes get the same color mode
+ 	if (gInfo->shared_info->device_type.InFamily(INTEL_FAMILY_LAKE)) {
++		const intel_shared_info& shared = *gInfo->shared_info;
++		const bool verifiedN100 = gInfo->has_shared_layout
++			&& shared.device_type.IsModel(INTEL_MODEL_ALDM)
++			&& shared.gpu_pci_vendor == 0x8086
++			&& shared.gpu_pci_device == 0x46d1 && shared.gpu_pci_revision == 0;
++		// ICL+ format occupies bits 27:23. Bit 30 belongs to arbitration
++		// slots on this hardware; legacy plane-gamma handling must not clear it.
++		const uint32 clearMask = verifiedN100 ? (0x1fU << 23)
++			: DISPLAY_CONTROL_COLOR_MASK_SKY | DISPLAY_CONTROL_GAMMA;
+ 		write32(INTEL_DISPLAY_A_CONTROL, (read32(INTEL_DISPLAY_A_CONTROL)
+-			& ~(DISPLAY_CONTROL_COLOR_MASK_SKY | DISPLAY_CONTROL_GAMMA))
++			& ~clearMask)
+ 			| colorMode);
+ 		write32(INTEL_DISPLAY_B_CONTROL, (read32(INTEL_DISPLAY_B_CONTROL)
+-			& ~(DISPLAY_CONTROL_COLOR_MASK_SKY | DISPLAY_CONTROL_GAMMA))
++			& ~clearMask)
+ 			| colorMode);
+ 	} else {
+ 		write32(INTEL_DISPLAY_A_CONTROL, (read32(INTEL_DISPLAY_A_CONTROL)
+diff --git a/src/add-ons/accelerants/intel_extreme/mode.cpp b/src/add-ons/accelerants/intel_extreme/mode.cpp
+index 30f905f3..18fee7fc 100644
+--- a/src/add-ons/accelerants/intel_extreme/mode.cpp
++++ b/src/add-ons/accelerants/intel_extreme/mode.cpp
+@@ -140,7 +140,12 @@ set_frame_buffer_registers(uint32 offset)
+ 		|| sharedInfo.device_type.InFamily(INTEL_FAMILY_SER5)
+ 		|| sharedInfo.device_type.InFamily(INTEL_FAMILY_LAKE)
+ 		|| sharedInfo.device_type.InFamily(INTEL_FAMILY_SOC0)) {
+-		if (sharedInfo.device_type.InGroup(INTEL_GROUP_HAS)
++		const bool verifiedN100 = gInfo->has_shared_layout
++			&& sharedInfo.device_type.IsModel(INTEL_MODEL_ALDM)
++			&& sharedInfo.gpu_pci_vendor == 0x8086
++			&& sharedInfo.gpu_pci_device == 0x46d1
++			&& sharedInfo.gpu_pci_revision == 0;
++		if (verifiedN100 || sharedInfo.device_type.InGroup(INTEL_GROUP_HAS)
+ 			|| sharedInfo.device_type.InGroup(INTEL_GROUP_VLV)
+ 			|| sharedInfo.device_type.InGroup(INTEL_GROUP_CHV)) {
+ //			|| sharedInfo.device_type.InGroup(INTEL_GROUP_SKY)) {
+-- 
+2.43.0
+

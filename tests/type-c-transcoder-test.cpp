@@ -37,7 +37,12 @@ int main() {
 	if (BuildAlderLakeMobileTypeCHdmiPlan(0, 8, false, false, &p) != B_BAD_VALUE
 		|| BuildAlderLakeMobileTypeCHdmiPlan(5, 8, false, false, &p) != B_BAD_VALUE)
 		errors++;
+	if (BuildAlderLakeMobileTypeCHdmiPlan(2, 8, true, true, &p, true) != B_OK
+		|| p.functionDisabled != 0x29030000U || p.functionEnabled != 0xa9030000U)
+		errors++;
+	if (BuildAlderLakeMobileTypeCHdmiPlan(2, 10, true, true, &p, true) != B_BAD_VALUE)
+		errors++;
 	if (errors) { fprintf(stderr, "%u transcoder cases failed\n", errors); return 1; }
-	puts("156 HDMI transcoder plan cases passed; no hardware access");
+	puts("158 HDMI/DVI transcoder plan cases passed; no hardware access");
 	return 0;
 }

@@ -1,0 +1,67 @@
+From 18453b94a4ddf0e6438b99b5fb57772f339b2d14 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 19:03:21 +0900
+Subject: [PATCH] intel_extreme: inspect powered HDMI plane prerequisites
+
+---
+ .../intel_extreme/AlderLakeTypeCMmio.h        |  6 +++++
+ .../accelerants/intel_extreme/Ports.cpp       | 26 +++++++++++++++++++
+ 2 files changed, 32 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+index e6636f42..b2459b2e 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+@@ -62,6 +62,12 @@ private:
+ 			&& offset <= 0x60014U + fPipe * 0x1000U)
+ 			|| offset == 0x70008U + fPipe * 0x1000U)
+ 			return true;
++		const uint32 plane = 0x70000U + fPipe * 0x1000U;
++		if (offset == plane + 0x180U || offset == plane + 0x1ccU
++			|| offset == plane + 0x188U || offset == plane + 0x1a4U
++			|| offset == plane + 0x19cU || offset == plane + 0x27cU
++			|| offset == plane + 0x240U)
++			return !write;
+ 		if (offset == 0x45504U || offset == 0x45404U || offset == 0x45454U)
+ 			return !write;
+ 		if (offset == 0x161500U + (fPort - 1) * 4U)
+diff --git a/src/add-ons/accelerants/intel_extreme/Ports.cpp b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+index 0c8767db..27d2e1e1 100644
+--- a/src/add-ons/accelerants/intel_extreme/Ports.cpp
++++ b/src/add-ons/accelerants/intel_extreme/Ports.cpp
+@@ -2688,6 +2688,32 @@ diagnose_alder_lake_hdmi(port_index port, pipe_index pipe, uint32 pixelClock)
+ 		"; output sequence remains disabled\n", firmware.tcPort,
+ 		(unsigned)(pipe - INTEL_PIPE_A), firmware.referenceKHz, firmware.preset,
+ 		dc, main, ddi, status);
++
++	// Plane/DDB registers require the selected pipe's main power well. A
++	// snapshot needs physical power, not a claim that firmware requests are
++	// owned by this driver. Do not read banked PHY registers here.
++	const unsigned pipeNumber = pipe - INTEL_PIPE_A;
++	const uint32 mainStates = 1U | (1U << 2) | (1U << (2 * (pipeNumber + 5)));
++	if (dc == 0xffffffffU || (dc & 0x2000000bU) != 0 || main == 0xffffffffU
++		|| (main & mainStates) != mainStates) {
++		TRACE("ADL HDMI preflight: plane snapshot skipped; pipe power unavailable\n");
++		return;
++	}
++	const uint32 offsets[] = {0x70180U, 0x701ccU, 0x70188U, 0x701a4U,
++		0x7019cU, 0x7027cU, 0x70240U};
++	uint32 values[B_COUNT_OF(offsets)];
++	for (unsigned i = 0; i < B_COUNT_OF(offsets); i++) {
++		if (io.read(io.cookie, offsets[i] + pipeNumber * 0x1000U, &values[i]) != B_OK
++			|| values[i] == 0xffffffffU) {
++			TRACE("ADL HDMI preflight: plane snapshot unavailable\n");
++			return;
++		}
++	}
++	TRACE("ADL HDMI plane: CTL=%08" B_PRIx32 " COLOR=%08" B_PRIx32
++		" STRIDE=%08" B_PRIx32 " OFFSET=%08" B_PRIx32 " SURF=%08" B_PRIx32
++		" DDB=%08" B_PRIx32 " WM0=%08" B_PRIx32 "\n", values[0], values[1],
++		values[2], values[3], values[4], values[5], values[6]);
++
+ }
+ 
+ 
+-- 
+2.43.0
+
