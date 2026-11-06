@@ -81,3 +81,16 @@ the nominal mode clock is exact would be incorrect. Desktop watermark planning
 remains under development. A later NanoKVM sample still reported VIFPS 60,
 VIDropCnt 0 and CSI overflow 0; this is a limited raster test, not a long-term
 stability or desktop validation.
+
+Build 054 included the guarded desktop-clone stage and framebuffer lifetime
+checks. It compiled natively and booted on the test USB with both test markers.
+The desktop stage returned B_OK with zero underrun flags, but NanoKVM captured
+vertical color stripes rather than a desktop. A software screenshot showed a
+normal Renku desktop, so successful plane enable was not sufficient evidence
+of correct output. The test was recorded as failed desktop display.
+
+Read-only live-surface and pipe-format inspection found A/B surface offsets
+both zero, but PIPE_MISC A=0x01000000 and B=0x01000080. The documented ADLP
+bits 7:5 encode output BPC; B was still set to 12 BPC while its transcoder was
+configured for 8 BPC. A scoped pipe-format correction is under development.
+No speculative GGTT or framebuffer-backing changes were made.

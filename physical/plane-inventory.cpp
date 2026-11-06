@@ -43,6 +43,7 @@ static int Inventory(const intel_shared_info& info,const RegisterView& regs) {
   if((main&need)!=need){printf("pipe%u skipped: unpowered\n",pipe);continue;}
   printf("pipe%u\n",pipe);uint32 delta=pipe*0x1000;
   regs.Print("PIPECONF",0x70008+delta);
+  regs.Print("PIPE_MISC",0x70030+delta);
   regs.Print("UNDERRUN_DBG1",0x70064+delta);
   regs.Print("MBUS_DBOX",0x7003c+delta);
   for(unsigned scaler=0;scaler<2;scaler++) {
@@ -63,7 +64,7 @@ static int Inventory(const intel_shared_info& info,const RegisterView& regs) {
    regs.Print("CTL",0x70180+base);regs.Print("COLOR",0x701cc+base);
    regs.Print("STRIDE",0x70188+base);regs.Print("POS",0x7018c+base);
    regs.Print("SIZE",0x70190+base);regs.Print("OFFSET",0x701a4+base);
-   regs.Print("SURF",0x7019c+base);regs.Print("DDB",0x7027c+base);
+   regs.Print("SURF",0x7019c+base);regs.Print("SURFLIVE",0x701ac+base);regs.Print("DDB",0x7027c+base);
    for(unsigned level=0;level<6;level++)regs.Print("WM",0x70240+base+level*4);
    regs.Print("SAGV",0x70258+base);regs.Print("SAGV_TRANS",0x7025c+base);
    regs.Print("WM_TRANS",0x70268+base);
