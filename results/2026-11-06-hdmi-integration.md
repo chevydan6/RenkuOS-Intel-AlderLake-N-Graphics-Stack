@@ -94,3 +94,37 @@ both zero, but PIPE_MISC A=0x01000000 and B=0x01000080. The documented ADLP
 bits 7:5 encode output BPC; B was still set to 12 BPC while its transcoder was
 configured for 8 BPC. A scoped pipe-format correction is under development.
 No speculative GGTT or framebuffer-backing changes were made.
+
+## Verified desktop output on metal
+
+Build 055 corrected the pipe B color-depth mismatch, with readback confirming
+RGB8 on both pipes. Stripes remained. The user confirmed the internal physical
+panel displayed a normal desktop. A guarded read of the driver's existing CPU
+aperture confirmed desktop pixel content; no new physical mapping or GGTT
+write was performed. Later NanoKVM frames also showed stripes, excluding a
+stale first-frame interpretation.
+
+Linux's DDB allocation chain established that plane registers use coordinates
+local to their MBUS slice set. The initial clone programmed a global offset.
+Patch 63 corrects pipe B's register value to `0x07ff0000`: the same local range
+as A, but routed to physical blocks [2048,4096), while A retains [0,2048).
+
+Build `renku-056`, source `2580448c`, passed native compilation and artifact
+finalization, was installed on both Intel kernel-driver override paths plus
+the accelerant path of the isolated USB, and booted on the laptop. NanoKVM's
+51st MJPEG frame after two seconds showed the normal 1920×1080 Renku desktop,
+including icons, Deskbar and pointer. A separately compiled native test app
+then opened a temporary window with text and RGB/white blocks. A fresh live
+capture showed that window correctly; it closed automatically after 30 seconds.
+
+The desktop stage reported B_OK. Subsequent A/B/C underrun registers were all
+zero; NanoKVM reported VIFPS 60, no dropped frames and no CSI overflow in the
+sample. The observation window was a few minutes, not a long-term stress test.
+
+This demonstrates native HDMI desktop scanout on the verified N100. It does
+not demonstrate GPU-accelerated rendering. The path remains an opt-in,
+matching-mode RGB8/DVI-compatible mirror; audio, arbitrary display layouts,
+hotplug and repeated sleep/recovery are not validated. The internal installed
+operating systems and boot configuration were not modified for these tests.
+
+![Live HDMI validation window captured by NanoKVM](2026-11-06-hdmi-desktop.jpg)

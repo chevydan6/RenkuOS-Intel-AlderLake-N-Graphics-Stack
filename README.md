@@ -2,7 +2,15 @@
 
 Astra High #2: private Intel N100 / Alder Lake-N graphics development for RenkuOS.
 Haiku research, patches and tests are preserved on `gpu/alderlake-n`.
-**No native GPU execution or acceleration has been demonstrated.**
+**Native 1920×1080 HDMI desktop mirroring is demonstrated on the N100.**
+Build `renku-056` booted on the physical laptop from an isolated RenkuTest USB.
+NanoKVM captured the desktop and a live RGB/text validation window; the display
+underrun flags remained zero. This is native display scanout, not accelerated
+2D/3D rendering. The path is experimental and requires explicit test markers.
+See the [hardware report](results/2026-11-06-hdmi-integration.md).
+
+The following early milestones describe the investigation before that result;
+their former hardware-validation restrictions are historical.
 
 Verified hardware: Intel N100, host bridge `8086:461c`, GPU `8086:46d1`
 revision 00, Fedora 44 / i915. The Haiku beta6 x86_64 VM has QEMU VGA / VESA,
