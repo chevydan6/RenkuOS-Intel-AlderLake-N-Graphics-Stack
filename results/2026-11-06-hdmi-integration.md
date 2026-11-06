@@ -26,3 +26,11 @@ reproduced 26 failures. Build 045 passed native compilation. Patch 51 adds
 bounded, power-gated read-only plane/DDB/watermark diagnostics; build 046 is
 being validated before the next physical boot. It has not been tested on the
 laptop at this checkpoint.
+
+Build 046 subsequently passed native compilation and finalization and was
+installed on the test USB's two Intel kernel-driver override paths plus the
+accelerant path. The laptop rebooted successfully. Its initial external pipe
+diagnostic read CTL=0x00000008, COLOR=0, STRIDE=0, OFFSET=0, SURF=0, DDB=0 and
+WM0=0x00004007. This is a disabled primary plane with no DDB allocation and no
+enabled watermark. The required TC2 DDI_IO domain remained off. NanoKVM still
+reported VIDevFPS=0 and VIFPS=0. No HDMI output or acceleration was demonstrated.
