@@ -91,6 +91,25 @@ caller in `mode.cpp` currently logs port-mode errors and continues, and the
 partially modified PLL state is not rolled back. Those issues require separate
 design and validation before treating failure handling as safe.
 
+## Power and ownership investigation
+
+The existing RenkuOS accelerant has an AUX power-well helper, but it requests
+only the fixed index zero and logs a timeout while still reporting success. It
+does not provide a per-Type-C-port power-domain lifecycle or ownership
+accounting. It cannot be reused as a complete TC2 power implementation.
+
+The pinned Linux ADL-P path treats display-core power, the matching Type-C AUX
+power domain, PHY readiness and display ownership as connected requirements.
+It uses the TCSS DDI status readiness flag and an ownership bit in the port's
+DDI buffer control; the AUX power path also checks PHY microcontroller health.
+The precise AUX channel and register mapping must be confirmed from the
+machine's VBT and compatible Renku register blocks. Failure and disconnect
+must release only resources acquired by this driver, without disrupting the
+internal display or another user of a shared power domain. See Linux
+[Type-C handling](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_tc.c)
+and [power-well handling](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_display_power_well.c).
+No Type-C power or ownership writes were added or executed in this step.
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),
