@@ -1,0 +1,9 @@
+{
+  "entries": 6204,
+  "changed_entries": [
+    "kernel_x86_64"
+  ],
+  "candidate_package_sha256": "2d78c8619c102e83d60eb2228fe0ea71baec84192649e092b56521b241ea9b31",
+  "candidate_kernel_sha256": "5526b170b0dff3ecc3c73e8a2109a6a30f099a45d7977be8aeeb57e8f9c400f4",
+  "scope": "files, modes, symlinks; not every attribute byte"
+}

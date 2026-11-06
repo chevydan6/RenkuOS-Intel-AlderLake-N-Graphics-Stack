@@ -1,0 +1,35 @@
+{
+  "source_commit": "d9507b4da6564b476826c075351037abf407e44f",
+  "revision_label": "git-d9507b4d-irq-fixture-test",
+  "cross_compilation_passed": true,
+  "instrumented_exports": 10,
+  "disabled_build": {
+    "compiled": true,
+    "forced_interrupt_and_fixture_rebuild": true,
+    "exports": 0,
+    "sha256": "9b07a51b78f0805d143c8ba72453681f5a47258f6ea936cf1bfcc8dd5d0467c3",
+    "booted": false
+  },
+  "artifacts": {
+    "kernel": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/system/kernel/revisioned/kernel_x86_64",
+      "sha256": "5526b170b0dff3ecc3c73e8a2109a6a30f099a45d7977be8aeeb57e8f9c400f4"
+    },
+    "bridge": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/tests/system/kernel/irq_drain/irq_drain_bridge",
+      "sha256": "c9b9185a96bbd9cc3e139a7cef7181e7b49bfabef97853413fc9a84cd9008c71"
+    },
+    "client": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/tests/system/kernel/irq_drain/irq_drain_client",
+      "sha256": "cf9ce253d7c37c51022ac2e25517821a396315f96fb030795b838425fad1784e"
+    }
+  },
+  "booted": false,
+  "host_simulation": false,
+  "physical_test": false,
+  "physical_gpu_execution": false,
+  "review": "Terra reviewed resident lifecycle, ordinary bridge refs, CPU observations, cancellation and vector gates. Runtime pending.",
+  "evidence_directory": "/home/dan/renkuos-development/testing/kernel-irq-fixture-build-002",
+  "revision_cache_regenerated": true,
+  "binary_revision_stamp_verified": true
+}

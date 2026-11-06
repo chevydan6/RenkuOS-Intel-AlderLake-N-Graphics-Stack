@@ -1,0 +1,8 @@
+{
+  "rounds": 11,
+  "sequential_controls": 1,
+  "observed_contention_rounds": 10,
+  "all_event_orders_verified": true,
+  "physical_gpu_execution": false,
+  "client_log_sha256": "80404b9edf8c5672b0bfdbade50080f6f233ba9ffe9821a291f7611ae28da722"
+}

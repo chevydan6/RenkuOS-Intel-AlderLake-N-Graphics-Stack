@@ -1,0 +1,29 @@
+{
+  "source_commit": "d9507b4da6564b476826c075351037abf407e44f",
+  "build_evidence": "tests/evidence/kernel-irq-fixture-build-002.json",
+  "vm_boots_tested": 2,
+  "sequential_controls_passed": 2,
+  "overlap_rounds_passed": 20,
+  "physical_gpu_execution": false,
+  "scope": "instrumented native kernel software dispatch/removal; not hardware IRQ masking, team exit or GPU execution",
+  "private_evidence": "/home/dan/renkuos-development/installation/private/kernel-irq-002",
+  "files": {
+    "client.log": "80404b9edf8c5672b0bfdbade50080f6f233ba9ffe9821a291f7611ae28da722",
+    "repeat-client.log": "80404b9edf8c5672b0bfdbade50080f6f233ba9ffe9821a291f7611ae28da722",
+    "result.json": "c4f6cde77c2db11c2ca0f604f01507963bcb2f115e65cf39d180fe4b5183c93f",
+    "repeat-result.json": "dd565a510bcbba13a2f613a3d5ad7c70183a1076222ee24eb0d51e8fb50a46cf",
+    "round-verification.json": "179d971dc55375edeff209209631e82fd715a824824cb6766509e1abe7128c54",
+    "repeat-round-verification.json": "179d971dc55375edeff209209631e82fd715a824824cb6766509e1abe7128c54",
+    "repeat-qmp-events.json": "c0359e9ce2b1143884dd4674fc08cf9c3bac0cbe56762db9159f257c35caa192",
+    "verify-rounds.py": "43b2d85a8514e8daf03592aa42baa049f4428a733f38ddfe48d9005dc720c1f5",
+    "verify-repeat-rounds.py": "b3826f76c362f80f21a74398906e35d3991c8e3e4600cc0d03388bbd8306fd24",
+    "package-comparison.json": "309c35364b0530b8bb57ce95f7a3ca2c36a4fed58aec6a5538145032c13155c6",
+    "run.py": "604ae0a0fc03ca0190a7356eb1d227bdb17ebab04fe80c6905d49f8dc26989eb",
+    "repeat.py": "3e029140f4d2d91145b4c80a4325053b865c2fe2957d94c486b373e353877f3b",
+    "serial.log": "bd6507c575f20eb3ee2266bbfec8a168ec882c4d77379d1c3bb32fd14835bc88",
+    "repeat-serial.log": "d9c7bce31c5bc7d892af9113ca3b5e8804d66d028edd088f96dc610b9386aa68",
+    "run.log": "664b712ec5b124f524655993dbb30154f024e6bc297dfcc64e75020ac1a3b062",
+    "repeat.log": "f30f239010efd56ca596820d721dbc2b66ec5932c284b383088f6bf29dfd582d"
+  },
+  "shutdown": "first run process exit0 after shutdown request only; repeat corroborated by QMP guest-shutdown event"
+}

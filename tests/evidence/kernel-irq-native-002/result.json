@@ -1,0 +1,25 @@
+{
+  "source_commit": "d9507b4da6564b476826c075351037abf407e44f",
+  "physical_gpu_execution": false,
+  "native_irq_test_started": true,
+  "native_irq_test_passed": true,
+  "clean_shutdown": false,
+  "uname": "Haiku shredder R1~beta6+development hrev60072+518 Nov  6 2026 22:34 x86_64 x86_64 Haiku\n",
+  "runtime_identity_verified": true,
+  "client_exit": 0,
+  "rounds": [
+    "round run=1 control=1 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,0,2,3 debug=1,0,1",
+    "round run=2 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=3 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=4 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=5 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=6 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=7 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=8 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=9 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=10 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1",
+    "round run=11 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1"
+  ],
+  "process_exit_zero_after_shutdown_request": true,
+  "shutdown_evidence_note": "QEMU exit 0 after shutdown request; no QMP event captured, so guest-initiated clean shutdown not independently verified."
+}

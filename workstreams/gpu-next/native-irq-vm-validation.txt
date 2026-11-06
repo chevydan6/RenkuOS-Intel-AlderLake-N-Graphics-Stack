@@ -1,0 +1,49 @@
+Native interrupt drain validation, 2026-11-07
+
+Source: d9507b4d (isolated kernel validation branch). Production Intel display
+worktree was not changed or installed. No physical target or GPU workload.
+
+Result: two separate four-vCPU VM boots, each with one sequential control and ten
+overlap rounds. All22 rounds passed, vector24, dispatch CPU0/removal CPU1/hook CPU1,
+callback count1, timeout0. Controls: events1,0,2,3. Overlaps: events1,2,3,4.
+Host numeric parsers independently checked every row; client returned0 both times.
+Terra independently parsed both runs and verified repeat QMP shutdown evidence.
+SSH shutdown returned255 on disconnect; QMP corroborates guest origin, not every
+userspace flush. Terra did not independently rerun the VM.
+
+Each boot verified the kernel-owned serial revision plus guest-visible kernel,
+package, bridge and client hashes. Fresh source040 image copied for initial run;
+only boot kernel changed in the candidate package. Full6204 path comparison and
+stopped-image BFS readback matched. Canonical host/VM/build locks held throughout.
+External host client deadline35s, bounded boot deadline, QMP/kill cleanup retained.
+No user-mode simulation or CPU-rendering substitute is being called GPU execution.
+
+Shutdown scope: first run exited0 after shutdown request but did not capture a
+QMP event. Its original overstrong clean_shutdown flag was preserved in the raw
+result and corrected in the published result. Repeat records SHUTDOWN guest:true,
+reason:guest-shutdown and process exit0, corroborating guest-initiated shutdown.
+
+Initial rejected attempt kernel-irq-001 reached SSH but had an old revision stamp;
+the identity gate stopped before driver installation/fixture execution. Fix:
+build/jam/UserBuildConfig.ReadMe:90-93 documents cached build/haiku-revision.
+Preserve/remove that cache when changing HAIKU_REVISION, pass explicit Jam override,
+rebuild the revisioned target, and verify the stamp in the binary before packaging.
+Updated build evidence is kernel-irq-fixture-build-002.json;001 remains historical.
+Jam also needs forced object rebuild when toggling the instrumentation define.
+
+Private reproducible runners and all logs:
+installation/private/kernel-irq-002/{run.py,repeat.py,verify-rounds.py,
+verify-repeat-rounds.py}. Repeat retains timeout partial stdout/stderr and QMP
+shutdown evidence. First run lacks timeout partial-output capture; it did not
+expire. Assertions require Python without -O. The copied project evidence and
+hash manifest are tests/evidence/kernel-irq-native-002/.
+
+What this establishes: for the explicitly checked allocated locking vector and
+resident exact callback/data, the observed native removal contended while the
+callback was active and returned after callback exit. Entire dispatcher returned
+before vector free. This is instrumented path evidence for the observed schedules.
+
+Still incomplete: close/team-exit runtime controls, semaphore owner-exit lifetime,
+legacy driver failed-removal containment and general no-lock vector reuse policy.
+Physical MMIO/memory/desktop/reopen/recovery validation remains a gate before GPU
+submission. N100 GPU command execution and hardware acceleration remain unproven.

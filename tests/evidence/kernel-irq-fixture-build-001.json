@@ -29,5 +29,6 @@
   "physical_test": false,
   "physical_gpu_execution": false,
   "review": "Terra reviewed resident lifecycle, ordinary bridge refs, CPU observations, cancellation and vector gates. Runtime pending.",
-  "evidence_directory": "/home/dan/renkuos-development/testing/kernel-irq-fixture-build-001"
+  "evidence_directory": "/home/dan/renkuos-development/testing/kernel-irq-fixture-build-001",
+  "revision_label_verification": "Intended label only at build001. Runtime attempt kernel-irq-001 found the cached old stamp; corrected and verified by kernel-irq-fixture-build-002.json."
 }
