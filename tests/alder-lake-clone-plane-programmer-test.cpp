@@ -8,7 +8,7 @@ struct Mock {
  static status_t Read(void* p,uint32 o,uint32* v){Mock& m=*(Mock*)p;if(o==0x71040){*v=m.stuck?m.frame:++m.frame;return B_OK;}
   if(o==0x71064&&m.underrun&&(m.r[0x71180]&0x80000000U)){*v=0x100;return B_OK;}*v=m.r[o];return B_OK;}
  static status_t Write(void* p,uint32 o,uint32 v){Mock& m=*(Mock*)p;if(++m.writes==m.fail)return B_ERROR;
-  if(o==0x71180&&(v&0x80000000U)&&m.r[0x7127c]!=0x0fff0800)m.bad=true;
+  if(o==0x71180&&(v&0x80000000U)&&m.r[0x7127c]!=0x07ff0000)m.bad=true;
   if(o==0x7127c&&v==0&&(m.r[0x71180]&0x80000000U))m.bad=true;
   if(o>=0x70000&&o<0x71000)m.bad=true;
   m.r[o]=v;return B_OK;}
@@ -16,7 +16,7 @@ struct Mock {
  AlderLakeTypeCIO IO(){return {this,Read,Write,Pause};}
  bool Restored(){Mock old;for(auto x:r){if(x.first==0x71064)continue;if(x.second!=old.r[x.first])return false;}return !bad;}
 };
-static AlderLakeClonePlan Plan(){AlderLakeClonePlan p={};p.control=0x94000008;p.color=0x2000;p.stride=120;p.size=0x0437077f;p.pipeSize=0x077f0437;p.ddb=0x0fff0800;p.wm0=0x80008021;p.sagv=0x80010041;p.minimumBlocks=73;return p;}
+static AlderLakeClonePlan Plan(){AlderLakeClonePlan p={};p.control=0x94000008;p.color=0x2000;p.stride=120;p.size=0x0437077f;p.pipeSize=0x077f0437;p.ddb=0x07ff0000;p.wm0=0x80008021;p.sagv=0x80010041;p.minimumBlocks=73;return p;}
 int main(){unsigned errors=0;
  for(unsigned failure=0;failure<=22;failure++){
   Mock m;m.fail=failure;AlderLakeClonePlaneProgrammer p(m.IO(),3);status_t s=p.Apply(Plan());
@@ -38,6 +38,10 @@ int main(){unsigned errors=0;
  {Mock m;m.r[0x71064]=0x100;AlderLakeClonePlaneProgrammer p(m.IO(),3);
   if(p.Apply(Plan())!=B_BUSY||m.writes||p.NeedsCleanup()||p.UnderrunBefore()!=0x100)errors++;
  }
+ {Mock m;AlderLakeClonePlan invalid=Plan();invalid.ddb=0x0fff0800;
+  AlderLakeClonePlaneProgrammer p(m.IO(),3);
+  if(p.Apply(invalid)!=B_BAD_VALUE||m.writes||p.NeedsCleanup())errors++;
+ }
  if(errors){fprintf(stderr,"%u clone programming failures\n",errors);return 1;}
- puts("27 clone plane programming, ordering, fault rollback and latch/underrun cases passed");return 0;
+ puts("28 clone plane programming, ordering, fault rollback and latch/underrun cases passed");return 0;
 }

@@ -25,8 +25,16 @@ int main(){unsigned errors=0,cases=0;uint32 floor=0;
  in.sourcePipeSize=0x077f0437;in.sourcePixelFloorKHz=floor;in.targetPixelCeilKHz=138781;
  in.allocationBytes=7680*1080;in.apertureBytes=256*1024*1024;in.width=1920;in.height=1080;in.bytesPerRow=7680;
  in.mbusControl=0x1c000700;in.poweredSlices=15;in.activePipes=3;in.ddbCount=32;in.ddb[0]=0x07ff0000;
- AlderLakeClonePlan p={};if(BuildAlderLakeClonePlan(in,&p)!=B_OK||p.ddb!=0x0fff0800||p.wm0!=0x80008021||p.sagv!=0x80010041||p.minimumBlocks!=73)errors++;
- in.ddb[8]=0x0fff0800;if(BuildAlderLakeClonePlan(in,&p)!=B_BUSY)errors++;in.ddb[8]=0;
+ AlderLakeClonePlan p={};if(BuildAlderLakeClonePlan(in,&p)!=B_OK||p.ddb!=0x07ff0000||p.wm0!=0x80008021||p.sagv!=0x80010041||p.minimumBlocks!=73)errors++;
+ // Linux's physical DBUF slice union is global, while PLANE_BUF_CFG is
+ // local to the selected MBUS. Decode plan as B's S3/S4 physical allocation.
+ unsigned localStart=p.ddb&0xffff,localEnd=(p.ddb>>16)+1;
+ unsigned physicalBase=2*1024;
+ if(localStart!=0||localEnd!=2048||localStart+physicalBase!=2048
+  ||localEnd+physicalBase!=4096||localStart+physicalBase<2048)errors++;
+ // Identical A/B local fields are safe only with distinct, guarded routing.
+ if(p.ddb!=in.ddb[0])errors++;
+ in.ddb[8]=0x07ff0000;if(BuildAlderLakeClonePlan(in,&p)!=B_BUSY)errors++;in.ddb[8]=0;
  in.mbusControl|=0x80000000;if(BuildAlderLakeClonePlan(in,&p)!=B_BAD_VALUE)errors++;in.mbusControl&=~0x80000000;
  in.allocationBytes--;if(BuildAlderLakeClonePlan(in,&p)!=B_BAD_VALUE)errors++;
  if(errors){fprintf(stderr,"%u clone plan failures across %u latency/rate fixtures\n",errors,cases);return 1;}

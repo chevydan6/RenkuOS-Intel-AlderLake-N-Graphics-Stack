@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include "aperture-pixels.h"
 
 struct RegisterView {
  volatile uint8* base;
@@ -44,6 +45,10 @@ static int Inventory(const intel_shared_info& info,const RegisterView& regs) {
   printf("pipe%u\n",pipe);uint32 delta=pipe*0x1000;
   regs.Print("PIPECONF",0x70008+delta);
   regs.Print("PIPE_MISC",0x70030+delta);
+  regs.Print("PIPE_MISC2",0x7002c+delta);
+  // Pinned Linux intel_display_regs.h2170/2215: powered transcoder.
+  regs.Print("VIDEO_DIP_CTL",0x60200+delta);
+  regs.Print("VIDEO_DIP_GCP",0x60210+delta);
   regs.Print("UNDERRUN_DBG1",0x70064+delta);
   regs.Print("MBUS_DBOX",0x7003c+delta);
   for(unsigned scaler=0;scaler<2;scaler++) {
@@ -101,7 +106,7 @@ int main() {
  int result=1;
  {
   Autolock locker(shared->accelerant_lock);
-  if(locker.IsLocked()) {RegisterView regs={base,(size_t)registerArea.size};result=Inventory(*shared,regs);}
+  if(locker.IsLocked()) {RegisterView regs={base,(size_t)registerArea.size};result=Inventory(*shared,regs);if(result==0)result=ReadAperturePixels(*shared, NULL, true);}
   else fprintf(stderr,"Modesetting lock unavailable\n");
  }
  delete_area(registerClone);delete_area(sharedClone);close(fd);return result;

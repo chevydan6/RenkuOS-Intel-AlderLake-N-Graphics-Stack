@@ -1,0 +1,54 @@
+From 2580448c1baef938011803d99895e03c2057ef1f Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 20:35:22 +0900
+Subject: [PATCH] intel_extreme: address clone DDB within its MBUS slice set
+
+ADLP unjoined A+B routing assigns physical slices S1/S2 to A and S3/S4 to B. Linux mbus_ddb_offset and skl_crtc_allocate_ddb subtract the physical slice-set base before per-plane allocation; skl_plane_ddb_reg_val writes those local coordinates. Program B local [0,2048), encoding 07ff0000, rather than the incorrect physical/global [2048,4096) encoding 0fff0800. Preserve A, routing guards and all allocation prerequisites. Physical desktop output remains pending verification.
+---
+ .../intel_extreme/AlderLakeClonePlaneProgrammer.h        | 2 +-
+ .../accelerants/intel_extreme/AlderLakePlaneClone.h      | 9 ++++++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h b/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
+index f8a072e0..b9ac2d55 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeClonePlaneProgrammer.h
+@@ -24,7 +24,7 @@ public:
+ 	{
+ 		if (NeedsCleanup())
+ 			return B_BUSY;
+-		if (!fIO.read || !fIO.write || !fIO.pause || !fAttempts || p.ddb != 0x0fff0800U
++		if (!fIO.read || !fIO.write || !fIO.pause || !fAttempts || p.ddb != 0x07ff0000U
+ 			|| p.minimumBlocks > 2048 || p.stride != 120 || p.size != 0x0437077f
+ 			|| p.pipeSize != 0x077f0437 || p.color != 0x2000 || (p.surface & 4095)
+ 			|| p.control != 0x94000008U)
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h b/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
+index fd629e5a..3f6accd8 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakePlaneClone.h
+@@ -141,6 +141,11 @@ static inline status_t BuildAlderLakeClonePlan(
+ 		return B_BAD_VALUE;
+ 	// ADLP descriptor4096 blocks/four1024-block slices; A+B routing reserves
+ 	// S1/S2 to A and S3/S4 to B. Preserve the complete existing A allocation.
++	// Plane DDB register coordinates are local to each MBUS, not global
++	// physical slice indices. Linux skl_watermark.c mbus_ddb_offset() and
++	// skl_crtc_allocate_ddb() subtract S3/S4 base2048 before allocating B
++	// planes. Thus A and B may have identical local register ranges without
++	// sharing physical DBUF blocks under the guarded unjoined A+B routing.
+ 	unsigned existing = 0;
+ 	for (unsigned i = 0; i < in.ddbCount; i++) {
+ 		if (in.ddb[i] == 0)
+@@ -169,7 +174,9 @@ static inline status_t BuildAlderLakeClonePlan(
+ 	plan.offset = 0;
+ 	plan.surface = in.frameBufferOffset;
+ 	plan.pipeSize = pipeSize;
+-	plan.ddb = 0x0fff0800U;
++	// B physical [2048,4096) minus MBUS base2048 -> local [0,2048).
++	// PLANE_BUF_CFG encodes the inclusive local end and local start.
++	plan.ddb = 0x07ff0000U;
+ 	*out = plan;
+ 	return B_OK;
+ }
+-- 
+2.43.0
+
