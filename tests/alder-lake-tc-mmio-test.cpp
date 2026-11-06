@@ -56,7 +56,13 @@ int main() {
 		|| io.write(io.cookie,0x71080,0)!=B_BAD_VALUE
 		|| io.read(io.cookie,0x71780,&value)!=B_OK
 		|| io.write(io.cookie,0x71780,0)!=B_BAD_VALUE)errors++;
+	words[0x71030/4]=0x01000080;
+	if(io.write(io.cookie,0x71030,0x01000000)!=B_OK
+		|| words[0x71030/4]!=0x01000000
+		|| io.write(io.cookie,0x71030,0)!=B_BAD_VALUE
+		|| io.write(io.cookie,0x70030,0)!=B_BAD_VALUE
+		|| io.read(io.cookie,0x70030,&value)!=B_BAD_VALUE)errors++;
 	if (errors) { fprintf(stderr, "%u MMIO adapter cases failed\n", errors); return 1; }
-	puts("19 MMIO range, bank, device and access-control cases passed; RAM only");
+	puts("20 MMIO range, bank, device and access-control cases passed; RAM only");
 	return 0;
 }

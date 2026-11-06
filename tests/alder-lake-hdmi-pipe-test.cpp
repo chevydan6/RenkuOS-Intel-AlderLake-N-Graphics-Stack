@@ -3,9 +3,10 @@
 #include <map>
 #include <stdio.h>
 struct Mock {
- std::map<uint32,uint32> regs;unsigned writes=0,fail=0;bool stuck=false;
+ std::map<uint32,uint32> regs;unsigned writes=0,fail=0;bool stuck=false,ignoreMiscOnce=false;
  static status_t Read(void* p,uint32 o,uint32* v){*v=((Mock*)p)->regs[o];return B_OK;}
  static status_t Write(void* p,uint32 o,uint32 v){Mock& m=*(Mock*)p;if(++m.writes==m.fail)return B_ERROR;
+  if(o==0x71030 && m.ignoreMiscOnce){m.ignoreMiscOnce=false;return B_OK;}
   if(o==0x71008 && !m.stuck) v=(v&~0x40000000U)|((v&0x80000000U)>>1);
   if(o==0x71008 && m.stuck) v=(v&~0x40000000U)|(m.regs[o]&0x40000000U);
   m.regs[o]=v;return B_OK;}
@@ -13,11 +14,11 @@ struct Mock {
  AlderLakeTypeCIO Ops(){return {this,Read,Write,Pause};}
 };
 int main(){unsigned errors=0;AlderLakeHdmiTiming t={1920,2008,2052,2200,1080,1084,1089,1125};
- for(unsigned fail=0;fail<=8;fail++) {
+ for(unsigned fail=0;fail<=9;fail++) {
   Mock m;m.fail=fail;AlderLakeHdmiPipe pipe(m.Ops(),1,3);
   status_t s=pipe.Prepare(t);
-  if(fail>0&&fail<=7){if(s==B_OK||pipe.NeedsCleanup())errors++;}
-  else {if(s!=B_OK)errors++;if(fail==8){if(pipe.Enable()==B_OK)errors++;}else if(pipe.Enable()!=B_OK)errors++;
+  if(fail>0&&fail<=8){if(s==B_OK||pipe.NeedsCleanup())errors++;}
+  else {if(s!=B_OK)errors++;if(fail==9){if(pipe.Enable()==B_OK)errors++;}else if(pipe.Enable()!=B_OK)errors++;
    if(pipe.Release()!=B_OK||pipe.NeedsCleanup())errors++;}
   for(auto pair:m.regs)if(pair.second!=0)errors++;
  }
@@ -32,5 +33,18 @@ int main(){unsigned errors=0;AlderLakeHdmiTiming t={1920,2008,2052,2200,1080,108
  {Mock m;AlderLakeHdmiPipe p(m.Ops(),1,3);if(p.Prepare(t)!=B_OK||p.Enable()!=B_OK)errors++;
   m.fail=m.writes+1;if(p.Release()!=B_ERROR||!p.NeedsCleanup())errors++;
   m.fail=0;if(p.Release()!=B_OK||p.NeedsCleanup())errors++;}
- if(errors){fprintf(stderr,"%u pipe failures\n",errors);return 1;}puts("15 staged HDMI pipe validation, ownership and rollback cases passed; simulated registers only");return 0;
+ {Mock m;m.regs[0x71030]=0x01000080;AlderLakeHdmiPipe p(m.Ops(),1,3);
+  if(p.Prepare(t)!=B_OK||m.regs[0x71030]!=0x01000000||p.Enable()!=B_OK)errors++;
+  // A peer-owned, unmasked bit changing while active must survive cleanup.
+  m.regs[0x71030]|=0x100;
+  if(p.Release()!=B_OK||m.regs[0x71030]!=0x01000180||p.NeedsCleanup())errors++;}
+ {Mock m;m.regs[0x71030]=0x0d0008fc;AlderLakeHdmiPipe p(m.Ops(),1,3);
+  if(p.Prepare(t)!=B_OK||m.regs[0x71030]!=0x01000000)errors++;
+  m.fail=m.writes+2; // control restore succeeds, masked misc restore fails
+  if(p.Release()!=B_ERROR||!p.NeedsCleanup())errors++;
+  m.fail=0;if(p.Release()!=B_OK||p.NeedsCleanup()||m.regs[0x71030]!=0x0d0008fc)errors++;}
+ {Mock m;m.regs[0x71030]=0x01000080;m.ignoreMiscOnce=true;
+  AlderLakeHdmiPipe p(m.Ops(),1,3);
+  if(p.Prepare(t)!=B_ERROR||p.NeedsCleanup()||m.regs[0x71030]!=0x01000080)errors++;}
+ if(errors){fprintf(stderr,"%u pipe failures\n",errors);return 1;}puts("19 staged HDMI pipe validation, ownership and rollback cases passed; simulated registers only");return 0;
 }
