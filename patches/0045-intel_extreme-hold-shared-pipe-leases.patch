@@ -1,0 +1,181 @@
+From bf916401d9eebe093fceb6fb52a48f96b19f3696 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 18:53:23 +0900
+Subject: [PATCH] intel_extreme: hold shared pipe leases through HDMI cleanup
+
+---
+ .../graphics/intel_extreme/intel_extreme.h    |  3 +-
+ .../intel_extreme/AlderLakeHdmiSequence.h     | 27 +++++++--
+ .../intel_extreme/DisplayPipeLease.h          | 58 +++++++++++++++++++
+ 3 files changed, 83 insertions(+), 5 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/DisplayPipeLease.h
+
+diff --git a/headers/private/graphics/intel_extreme/intel_extreme.h b/headers/private/graphics/intel_extreme/intel_extreme.h
+index 461ced4f..ce5c5c23 100644
+--- a/headers/private/graphics/intel_extreme/intel_extreme.h
++++ b/headers/private/graphics/intel_extreme/intel_extreme.h
+@@ -495,6 +495,7 @@ struct intel_shared_info {
+ 	uint32			gpu_pci_vendor;
+ 	uint32			gpu_pci_device;
+ 	uint32			gpu_pci_revision;
++	uint32			display_pipe_leases;
+ };
+ 
+ enum pipe_index {
+@@ -556,7 +557,7 @@ enum {
+ 	INTEL_GET_SHARED_INFO_LAYOUT
+ };
+ 
+-#define INTEL_SHARED_INFO_LAYOUT_VERSION 2
++#define INTEL_SHARED_INFO_LAYOUT_VERSION 3
+ 
+ struct intel_get_shared_info_layout {
+ 	uint32 magic;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 322ae420..416abd5a 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -12,6 +12,7 @@
+ #include "TypeCHdmiTranscoderProgrammer.h"
+ #include "TypeCPortLease.h"
+ #include "AlderLakeHdmiPipe.h"
++#include "DisplayPipeLease.h"
+ #include "AlderLakeHdmiPowerPrerequisites.h"
+ 
+ // Experimental orchestration. The caller must validate the device, firmware
+@@ -25,7 +26,7 @@ public:
+ 		: fWell(well), fLease(lease), fBackend(io, well, tcPort, attempts),
+ 		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts), fClock(io, tcPort),
+ 		  fTranscoder(io, pipe), fSignal(io, tcPort),
+-		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false), fIO(io), fPipeStage(NULL)
++		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false), fIO(io), fPipeStage(NULL), fPipeLease(NULL)
+ 	{
+ 	}
+ 
+@@ -33,7 +34,8 @@ public:
+ 		unsigned preset, bool loadgenWorkaround, bool positiveHSync,
+ 		bool positiveVSync, bool laneReversal,
+ 		AlderLakeHdmiPipe* pipeStage = NULL,
+-		const AlderLakeHdmiTiming* timing = NULL)
++		const AlderLakeHdmiTiming* timing = NULL,
++		DisplayPipeLease* pipeLease = NULL)
+ 	{
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+ 			|| fClock.NeedsCleanup()
+@@ -42,9 +44,11 @@ public:
+ 		if (fPort < 1 || fPort > 4 || fWell.Port() != fPort
+ 			|| fLease.Port() != fPort || fPipe > 2)
+ 			return B_BAD_VALUE;
+-		if ((pipeStage == NULL) != (timing == NULL)) return B_BAD_VALUE;
++		if ((pipeStage == NULL) != (timing == NULL)
++			|| (pipeStage == NULL) != (pipeLease == NULL)) return B_BAD_VALUE;
+ 		if (pipeStage != NULL) {
+-			if (pipeStage->PipeIndex() != fPipe || pipeStage->NeedsCleanup())
++			if (pipeStage->PipeIndex() != fPipe || pipeStage->NeedsCleanup()
++				|| pipeLease->PipeIndex() != fPipe || pipeLease->IsHeld())
+ 				return B_BUSY;
+ 			status_t power = CheckAlderLakeHdmiPowerPrerequisites(fIO, fPort, fPipe);
+ 			if (power != B_OK) return power;
+@@ -66,6 +70,15 @@ public:
+ 		if (status != B_OK) return status;
+ 		fStarted = true;
+ 		fPipeStage = pipeStage;
++		fPipeLease = pipeLease;
++		if (fPipeLease != NULL) {
++			status = fPipeLease->Acquire();
++			if (status != B_OK) {
++				fPipeStage = NULL;
++				fPipeLease = NULL;
++				return Fail(status);
++			}
++		}
+ 		status = fPower.Acquire();
+ 		if (status != B_OK) return Fail(status);
+ 		status = fPll.Program(pllPlan);
+@@ -113,6 +126,11 @@ public:
+ 		if (status != B_OK) return status;
+ 		status = fPower.Release();
+ 		if (status != B_OK) return status;
++		if (fPipeLease != NULL) {
++			status = fPipeLease->Release();
++			if (status != B_OK) return status;
++			fPipeLease = NULL;
++		}
+ 		status = fLease.Release();
+ 		if (status != B_OK) return status;
+ 		fStarted = false;
+@@ -140,6 +158,7 @@ private:
+ 	bool fStarted;
+ 	AlderLakeTypeCIO fIO;
+ 	AlderLakeHdmiPipe* fPipeStage;
++	DisplayPipeLease* fPipeLease;
+ };
+ 
+ #endif
+diff --git a/src/add-ons/accelerants/intel_extreme/DisplayPipeLease.h b/src/add-ons/accelerants/intel_extreme/DisplayPipeLease.h
+new file mode 100644
+index 00000000..b368653f
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/DisplayPipeLease.h
+@@ -0,0 +1,58 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_DISPLAY_PIPE_LEASE_H
++#define INTEL_EXTREME_DISPLAY_PIPE_LEASE_H
++#include <SupportDefs.h>
++#include <stddef.h>
++
++// Shared mask requires the same accelerant lock for every operation. The
++// caller must validate the shared-info layout before constructing this lease.
++// A crashed owner is not reclaimed automatically: reset/recovery is required.
++class DisplayPipeLease {
++public:
++	DisplayPipeLease(uint32* mask, unsigned pipe)
++		: fMask(mask)
++		, fPipe(pipe)
++		, fHeld(false)
++	{
++	}
++	status_t Acquire()
++	{
++		if (fHeld)
++			return B_BUSY;
++		if (fMask == NULL || fPipe > 2)
++			return B_BAD_VALUE;
++		uint32 bit = 1U << fPipe;
++		if ((*fMask & bit) != 0)
++			return B_BUSY;
++		*fMask |= bit;
++		fHeld = true;
++		return B_OK;
++	}
++	status_t Release()
++	{
++		if (!fHeld)
++			return B_OK;
++		uint32 bit = 1U << fPipe;
++		if ((*fMask & bit) == 0)
++			return B_ERROR;
++		*fMask &= ~bit;
++		fHeld = false;
++		return B_OK;
++	}
++	bool IsHeld() const
++	{
++		return fHeld;
++	}
++	unsigned PipeIndex() const
++	{
++		return fPipe;
++	}
++
++private:
++	DisplayPipeLease(const DisplayPipeLease&);
++	DisplayPipeLease& operator=(const DisplayPipeLease&);
++	uint32* fMask;
++	unsigned fPipe;
++	bool fHeld;
++};
++#endif
+-- 
+2.43.0
+

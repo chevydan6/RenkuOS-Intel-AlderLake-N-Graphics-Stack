@@ -1,0 +1,65 @@
+From 066ade5ab7b844cccfb3caf6b8dc8642440a9ba7 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 18:53:23 +0900
+Subject: [PATCH] intel_extreme: serialize DPMS with modesetting
+
+---
+ src/add-ons/accelerants/intel_extreme/dpms.cpp | 10 ++++++++++
+ src/add-ons/accelerants/intel_extreme/mode.cpp |  6 ++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/dpms.cpp b/src/add-ons/accelerants/intel_extreme/dpms.cpp
+index 05aa7c1f..adb33bda 100644
+--- a/src/add-ons/accelerants/intel_extreme/dpms.cpp
++++ b/src/add-ons/accelerants/intel_extreme/dpms.cpp
+@@ -202,6 +202,16 @@ status_t
+ intel_set_dpms_mode(uint32 mode)
+ {
+ 	CALLED();
++	if (mode != B_DPMS_ON && mode != B_DPMS_STAND_BY
++		&& mode != B_DPMS_SUSPEND && mode != B_DPMS_OFF)
++		return B_BAD_VALUE;
++
++	// Modesetting calls set_display_power_mode() while holding this same lock.
++	// Lock only the public entry point to avoid recursively acquiring it.
++	Autolock locker(gInfo->shared_info->accelerant_lock);
++	if (!locker.IsLocked())
++		return B_ERROR;
++
+ 	gInfo->shared_info->dpms_mode = mode;
+ 	set_display_power_mode(mode);
+ 
+diff --git a/src/add-ons/accelerants/intel_extreme/mode.cpp b/src/add-ons/accelerants/intel_extreme/mode.cpp
+index 86d364a4..30f905f3 100644
+--- a/src/add-ons/accelerants/intel_extreme/mode.cpp
++++ b/src/add-ons/accelerants/intel_extreme/mode.cpp
+@@ -366,6 +366,8 @@ intel_set_display_mode(display_mode* mode)
+ 
+ 	intel_shared_info &sharedInfo = *gInfo->shared_info;
+ 	Autolock locker(sharedInfo.accelerant_lock);
++	if (!locker.IsLocked())
++		return B_ERROR;
+ 
+ 	// First register dump
+ 	//dump_registers();
+@@ -789,6 +791,8 @@ intel_move_display(uint16 horizontalStart, uint16 verticalStart)
+ {
+ 	intel_shared_info &sharedInfo = *gInfo->shared_info;
+ 	Autolock locker(sharedInfo.accelerant_lock);
++	if (!locker.IsLocked())
++		return B_ERROR;
+ 
+ 	display_mode &mode = sharedInfo.current_mode;
+ 
+@@ -822,6 +826,8 @@ intel_set_indexed_colors(uint count, uint8 first, uint8* colors, uint32 flags)
+ 		return;
+ 
+ 	Autolock locker(gInfo->shared_info->accelerant_lock);
++	if (!locker.IsLocked())
++		return;
+ 
+ 	for (; count-- > 0; first++) {
+ 		uint32 color = colors[0] << 16 | colors[1] << 8 | colors[2];
+-- 
+2.43.0
+

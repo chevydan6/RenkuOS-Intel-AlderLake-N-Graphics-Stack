@@ -5,10 +5,16 @@
 struct Mock {
 	uint32 power, buffer, status, hip, pll, portClock, clockGates, clock, function, phy[16384];
 	unsigned writes, failAt, pauses;
+	uint32 pipeControl, timings[6]; bool orderError;
 };
 static status_t Read(void* p, uint32 offset, uint32* value) {
 	Mock& m = *(Mock*)p;
-	if (offset == 0x45444) *value = m.power;
+	if (offset == 0x45504) *value = 0;
+	else if (offset == 0x45404) *value = 0x300f;
+	else if (offset == 0x45454) *value = 0x300;
+	else if (offset == 0x71008) *value = m.pipeControl;
+	else if (offset >= 0x61000 && offset <= 0x61014) *value=m.timings[(offset-0x61000)/4];
+	else if (offset == 0x45444) *value = m.power;
 	else if (offset == 0x64400) *value = m.buffer;
 	else if (offset == 0x161504) *value = m.status;
 	else if (offset == 0x46040) *value = m.pll;
@@ -26,7 +32,11 @@ static status_t Write(void* p, uint32 offset, uint32 value) {
 	Mock& m = *(Mock*)p;
 	m.writes++;
 	if (m.failAt && m.writes == m.failAt) return B_ERROR;
-	if (offset == 0x45444) {
+	if (offset == 0x71008) {
+		if ((value & 0x80000000U) && !(m.function & 0x80000000U)) m.orderError=true;
+		m.pipeControl=(value&~0x40000000U)|((value&0x80000000U)>>1);
+	} else if (offset >= 0x61000 && offset <= 0x61014) m.timings[(offset-0x61000)/4]=value;
+	else if (offset == 0x45444) {
 		m.power = value;
 		if (value & (1U << 9)) m.power |= 1U << 8; else m.power &= ~(1U << 8);
 	} else if (offset == 0x64400) {
@@ -59,6 +69,8 @@ static void Reset(Mock& m) {
 	m.phy[0x236c / 4] |= 1U << 15;
 }
 static bool Restored(const Mock& m) {
+	if (m.pipeControl || m.orderError) return false;
+	for (unsigned i=0;i<6;i++) if(m.timings[i]) return false;
 	if (m.power || m.buffer != (1U << 7) || m.pll || m.clock || m.function != 0x30000
 		|| m.portClock != 0x123 || m.clockGates != 0x40002000) return false;
 	for (unsigned i = 0; i < 16384; i++) {
@@ -71,6 +83,10 @@ static bool Restored(const Mock& m) {
 static status_t Begin(AlderLakeHdmiSequence& s) {
 	return s.Begin(148500, 19200, 9, false, true, true, false);
 }
+static status_t StagedBegin(AlderLakeHdmiSequence& s,AlderLakeHdmiPipe& pipe,DisplayPipeLease& lease) {
+ AlderLakeHdmiTiming t={1920,2008,2052,2200,1080,1084,1089,1125};
+ return s.Begin(148500,19200,9,false,true,true,false,&pipe,&t,&lease);
+}
 int main() {
 	unsigned errors = 0, beginWrites = 0; Mock m; uint32 leases = 0; Reset(m);
 	{
@@ -81,6 +97,21 @@ int main() {
 			|| (m.clockGates & 0x2000) != 0 || Begin(s) != B_BUSY || leases != 2) errors++;
 		beginWrites = m.writes;
 		if (s.End() != B_OK || !Restored(m) || s.End() != B_OK || leases != 0) errors++;
+	}
+	unsigned stagedWrites=0;
+	Reset(m); leases=0;
+	{
+	 TypeCPowerWell well(WellOps(m),2,3);TypeCPortLease lease(&leases,2);
+	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);AlderLakeHdmiPipe pipe(IO(m),1,3);uint32 pipeMask=0;DisplayPipeLease pipeLease(&pipeMask,1);
+	 if(StagedBegin(s,pipe,pipeLease)!=B_OK || !(m.pipeControl&0x40000000U))errors++;
+	 stagedWrites=m.writes;
+	 if(s.End()!=B_OK || !Restored(m) || pipeMask)errors++;
+	}
+	for(unsigned failure=1;failure<=stagedWrites;failure++) {
+	 Reset(m);leases=0;m.failAt=failure;
+	 TypeCPowerWell well(WellOps(m),2,3);TypeCPortLease lease(&leases,2);
+	 AlderLakeHdmiSequence s(IO(m),well,lease,2,1,3);AlderLakeHdmiPipe pipe(IO(m),1,3);uint32 pipeMask=0;DisplayPipeLease pipeLease(&pipeMask,1);
+	 if(StagedBegin(s,pipe,pipeLease)==B_OK || !Restored(m) || leases || pipeMask || pipe.NeedsCleanup()) {fprintf(stderr,"staged failure %u\n",failure);errors++;}
 	}
 	for (unsigned failure = 1; failure <= beginWrites; failure++) {
 		Reset(m); leases = 0; m.failAt = failure;

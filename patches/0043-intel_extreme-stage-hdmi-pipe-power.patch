@@ -1,0 +1,327 @@
+From 4058f48266d2f22155b56bd7b52e1cc3607bae90 Mon Sep 17 00:00:00 2001
+From: chevydan6 <339888127+chevydan6@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 18:50:31 +0900
+Subject: [PATCH] intel_extreme: stage HDMI pipe with power prerequisites
+
+---
+ .../intel_extreme/AlderLakeHdmiPipe.h         | 153 ++++++++++++++++++
+ .../AlderLakeHdmiPowerPrerequisites.h         |  36 +++++
+ .../intel_extreme/AlderLakeHdmiSequence.h     |  31 +++-
+ .../intel_extreme/AlderLakeTypeCMmio.h        |   6 +
+ 4 files changed, 224 insertions(+), 2 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h
+new file mode 100644
+index 00000000..f6f2ca5d
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPipe.h
+@@ -0,0 +1,153 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_PIPE_H
++#define INTEL_EXTREME_ALDER_LAKE_HDMI_PIPE_H
++#include "AlderLakeTypeCBackend.h"
++
++struct AlderLakeHdmiTiming {
++	uint32 hDisplay, hSyncStart, hSyncEnd, hTotal;
++	uint32 vDisplay, vSyncStart, vSyncEnd, vTotal;
++};
++// Injected-I/O pipe stage. Caller owns the pipe, power domains and global
++// modesetting lock. Refuses active firmware pipes; never disables an unowned
++// pipe. Transcoder function and port clocks must precede Enable(), while the
++// DDI buffer must be disabled before Release(). No live modesetting hook.
++class AlderLakeHdmiPipe {
++public:
++	AlderLakeHdmiPipe(const AlderLakeTypeCIO& io, unsigned pipe, unsigned attempts)
++		: fIO(io)
++		, fPipe(pipe)
++		, fAttempts(attempts)
++		, fSavedControl(0)
++		, fWritten(0)
++		, fPrepared(false)
++		, fEnabled(false)
++	{
++	}
++	status_t Prepare(const AlderLakeHdmiTiming& t)
++	{
++		if (NeedsCleanup())
++			return B_BUSY;
++		if (fPipe > 2 || fAttempts == 0 || !fIO.read || !fIO.write || !fIO.pause
++			|| !Valid(t.hDisplay, t.hSyncStart, t.hSyncEnd, t.hTotal)
++			|| !Valid(t.vDisplay, t.vSyncStart, t.vSyncEnd, t.vTotal))
++			return B_BAD_VALUE;
++		status_t s = Read(Control(), &fSavedControl);
++		if (s != B_OK)
++			return s;
++		if (fSavedControl & 0xc0000000U)
++			return B_BUSY;
++		for (unsigned i = 0; i < 6; i++) {
++			s = Read(Timing(i), &fSaved[i]);
++			if (s != B_OK)
++				return s;
++		}
++		uint32 values[6] = { Pack(t.hDisplay, t.hTotal), Pack(t.hDisplay, t.hTotal),
++			Pack(t.hSyncStart, t.hSyncEnd), Pack(t.vDisplay, t.vTotal), Pack(t.vDisplay, t.vTotal),
++			Pack(t.vSyncStart, t.vSyncEnd) };
++		for (unsigned i = 0; i < 6; i++) {
++			s = fIO.write(fIO.cookie, Timing(i), values[i]);
++			if (s != B_OK)
++				return Fail(s);
++			fWritten++;
++		}
++		s = fIO.write(fIO.cookie, Control(), fSavedControl & ~(7U << 21));
++		if (s != B_OK)
++			return Fail(s);
++		fPrepared = true;
++		return B_OK;
++	}
++	status_t Enable()
++	{
++		if (!fPrepared || fEnabled)
++			return B_BAD_VALUE;
++		status_t s = fIO.write(fIO.cookie, Control(), (fSavedControl & ~(7U << 21)) | 0x80000000U);
++		if (s != B_OK)
++			return s;
++		fEnabled = true;
++		s = Wait(true);
++		return s == B_OK ? s : Fail(s);
++	}
++	status_t Release()
++	{
++		if (fEnabled) {
++			status_t s = fIO.write(fIO.cookie, Control(), fSavedControl & ~(7U << 21));
++			if (s != B_OK)
++				return s;
++			s = Wait(false);
++			if (s != B_OK)
++				return s;
++			fEnabled = false;
++		}
++		if (fPrepared) {
++			status_t s = fIO.write(fIO.cookie, Control(), fSavedControl);
++			if (s != B_OK)
++				return s;
++			fPrepared = false;
++		}
++		while (fWritten) {
++			unsigned i = fWritten - 1;
++			status_t s = fIO.write(fIO.cookie, Timing(i), fSaved[i]);
++			if (s != B_OK)
++				return s;
++			fWritten--;
++		}
++		return B_OK;
++	}
++	unsigned PipeIndex() const
++	{
++		return fPipe;
++	}
++	bool NeedsCleanup() const
++	{
++		return fPrepared || fEnabled || fWritten;
++	}
++
++private:
++	static bool Valid(uint32 a, uint32 b, uint32 c, uint32 d)
++	{
++		return a > 0 && a <= b && b < c && c <= d && d <= 65536;
++	}
++	static uint32 Pack(uint32 low, uint32 high)
++	{
++		return ((high - 1) << 16) | (low - 1);
++	}
++	uint32 Timing(unsigned i) const
++	{
++		return 0x60000U + fPipe * 0x1000U + i * 4;
++	}
++	uint32 Control() const
++	{
++		return 0x70008U + fPipe * 0x1000U;
++	}
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t s = fIO.read(fIO.cookie, offset, value);
++		return s == B_OK && *value == 0xffffffffU ? B_ERROR : s;
++	}
++	status_t Wait(bool enabled)
++	{
++		for (unsigned i = 0; i < fAttempts; i++) {
++			uint32 value;
++			status_t s = Read(Control(), &value);
++			if (s != B_OK)
++				return s;
++			if (bool(value & 0x40000000U) == enabled)
++				return B_OK;
++			fIO.pause(fIO.cookie);
++		}
++		return B_TIMED_OUT;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t s = Release();
++		return s == B_OK ? cause : s;
++	}
++	AlderLakeHdmiPipe(const AlderLakeHdmiPipe&);
++	AlderLakeHdmiPipe& operator=(const AlderLakeHdmiPipe&);
++	AlderLakeTypeCIO fIO;
++	unsigned fPipe, fAttempts;
++	uint32 fSavedControl, fSaved[6];
++	unsigned fWritten;
++	bool fPrepared, fEnabled;
++};
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h
+new file mode 100644
+index 00000000..7c1b2675
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiPowerPrerequisites.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: MIT */
++#ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_POWER_PREREQUISITES_H
++#define INTEL_EXTREME_ALDER_LAKE_HDMI_POWER_PREREQUISITES_H
++#include "AlderLakeTypeCBackend.h"
++
++// Conservative read-only gate, not a power-domain ownership implementation.
++// Caller must serialize display-power users and keep the existing driver's
++// power requests alive for the complete output lifetime. BIOS-only requests
++// are deliberately insufficient. No register writes or implicit acquisition.
++static inline status_t CheckAlderLakeHdmiPowerPrerequisites(
++	const AlderLakeTypeCIO& io, unsigned tcPort, unsigned pipe)
++{
++	if (tcPort < 1 || tcPort > 4 || pipe > 2 || io.read == NULL)
++		return B_BAD_VALUE;
++	uint32 dc, main, ddi;
++	status_t s = io.read(io.cookie, 0x45504U, &dc);
++	if (s != B_OK)
++		return s;
++	s = io.read(io.cookie, 0x45404U, &main);
++	if (s != B_OK)
++		return s;
++	s = io.read(io.cookie, 0x45454U, &ddi);
++	if (s != B_OK)
++		return s;
++	if (dc == 0xffffffffU || main == 0xffffffffU || ddi == 0xffffffffU)
++		return B_ERROR;
++	// DC_STATE_EN: DC3CO/DC5/DC6 selection bits 1:0 and DC9 bit 3.
++	if ((dc & 0x2000000bU) != 0)
++		return B_BUSY;
++	// Display ver 13: PW1 idx0, PW2 idx1, pipe A/B/C idx5/6/7.
++	// Require both driver request and physical state for every dependency.
++	uint32 mainMask = 3U | (3U << 2) | (3U << (2 * (pipe + 5)));
++	uint32 ddiMask = 3U << (2 * (tcPort + 2));
++	return (main & mainMask) == mainMask && (ddi & ddiMask) == ddiMask ? B_OK : B_BUSY;
++}
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 0e0ac44f..322ae420 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -11,6 +11,8 @@
+ #include "TypeCHdmiClock.h"
+ #include "TypeCHdmiTranscoderProgrammer.h"
+ #include "TypeCPortLease.h"
++#include "AlderLakeHdmiPipe.h"
++#include "AlderLakeHdmiPowerPrerequisites.h"
+ 
+ // Experimental orchestration. The caller must validate the device, firmware
+ // port mapping and signal preset; prepare pipe timings; hold display-core
+@@ -23,13 +25,15 @@ public:
+ 		: fWell(well), fLease(lease), fBackend(io, well, tcPort, attempts),
+ 		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts), fClock(io, tcPort),
+ 		  fTranscoder(io, pipe), fSignal(io, tcPort),
+-		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false)
++		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false), fIO(io), fPipeStage(NULL)
+ 	{
+ 	}
+ 
+ 	status_t Begin(uint32 pixelClockKHz, uint32 referenceKHz,
+ 		unsigned preset, bool loadgenWorkaround, bool positiveHSync,
+-		bool positiveVSync, bool laneReversal)
++		bool positiveVSync, bool laneReversal,
++		AlderLakeHdmiPipe* pipeStage = NULL,
++		const AlderLakeHdmiTiming* timing = NULL)
+ 	{
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+ 			|| fClock.NeedsCleanup()
+@@ -38,6 +42,13 @@ public:
+ 		if (fPort < 1 || fPort > 4 || fWell.Port() != fPort
+ 			|| fLease.Port() != fPort || fPipe > 2)
+ 			return B_BAD_VALUE;
++		if ((pipeStage == NULL) != (timing == NULL)) return B_BAD_VALUE;
++		if (pipeStage != NULL) {
++			if (pipeStage->PipeIndex() != fPipe || pipeStage->NeedsCleanup())
++				return B_BUSY;
++			status_t power = CheckAlderLakeHdmiPowerPrerequisites(fIO, fPort, fPipe);
++			if (power != B_OK) return power;
++		}
+ 		DekelHdmiPllPlan pllPlan;
+ 		TypeCHdmiTranscoderPlan transPlan;
+ 		DekelHdmiSignalPlan signalPlan;
+@@ -54,16 +65,25 @@ public:
+ 		status = fLease.Acquire();
+ 		if (status != B_OK) return status;
+ 		fStarted = true;
++		fPipeStage = pipeStage;
+ 		status = fPower.Acquire();
+ 		if (status != B_OK) return Fail(status);
+ 		status = fPll.Program(pllPlan);
+ 		if (status != B_OK) return Fail(status);
+ 		status = fClock.Enable();
+ 		if (status != B_OK) return Fail(status);
++		if (fPipeStage != NULL) {
++			status = fPipeStage->Prepare(*timing);
++			if (status != B_OK) return Fail(status);
++		}
+ 		status = fTranscoder.Configure(transPlan);
+ 		if (status != B_OK) return Fail(status);
+ 		status = fTranscoder.Enable();
+ 		if (status != B_OK) return Fail(status);
++		if (fPipeStage != NULL) {
++			status = fPipeStage->Enable();
++			if (status != B_OK) return Fail(status);
++		}
+ 		status = fSignal.Apply(preset, pixelClockKHz, loadgenWorkaround);
+ 		if (status != B_OK) return Fail(status);
+ 		status = fBuffer.Enable(laneReversal);
+@@ -80,6 +100,11 @@ public:
+ 		if (status != B_OK) return status;
+ 		status = fSignal.Restore();
+ 		if (status != B_OK) return status;
++		if (fPipeStage != NULL) {
++			status = fPipeStage->Release();
++			if (status != B_OK) return status;
++			fPipeStage = NULL;
++		}
+ 		status = fTranscoder.Release();
+ 		if (status != B_OK) return status;
+ 		status = fClock.Release();
+@@ -113,6 +138,8 @@ private:
+ 	TypeCHdmiBuffer fBuffer;
+ 	unsigned fPort, fPipe;
+ 	bool fStarted;
++	AlderLakeTypeCIO fIO;
++	AlderLakeHdmiPipe* fPipeStage;
+ };
+ 
+ #endif
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+index c0dca889..e6636f42 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+@@ -58,6 +58,12 @@ private:
+ 	bool Allowed(uint32 offset, bool write) const
+ 	{
+ 		if (!Valid(offset)) return false;
++		if ((offset >= 0x60000U + fPipe * 0x1000U
++			&& offset <= 0x60014U + fPipe * 0x1000U)
++			|| offset == 0x70008U + fPipe * 0x1000U)
++			return true;
++		if (offset == 0x45504U || offset == 0x45404U || offset == 0x45454U)
++			return !write;
+ 		if (offset == 0x161500U + (fPort - 1) * 4U)
+ 			return !write;
+ 		if (offset == 0x45444U || offset == 0x1010a0U
+-- 
+2.43.0
+
