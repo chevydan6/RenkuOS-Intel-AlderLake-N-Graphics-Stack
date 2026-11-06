@@ -1,0 +1,1 @@
+PASS: 100 actual initial-bucket allocation failures, preserved list/ownership, successful retry and cleanup

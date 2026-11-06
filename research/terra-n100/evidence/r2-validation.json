@@ -1,0 +1,5 @@
+{
+  "source": "/home/dan/renkuos-development/source/gpu-next-worktree/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp",
+  "sha256": "920aaa9742e478877ffb37f739c7e1fa65b0eef8b9d10dd00d014ac793f41679",
+  "recovery_fixture_sha256": "30dede88d686adb7a48853ec7fddfee19a1548cfff556d1abf36b58e5abd0f48"
+}

@@ -1,0 +1,9 @@
+{
+  "src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp": "9fd6eda2d0217c2abe9873f9ee5dbf2b5e04b55ee3ea6ff803d6a1e35dc35128",
+  "src/add-ons/kernel/busses/agp_gart/intel_gart.cpp": "d61ec6ec2e9e487f1444ee00bfe103b1ef2555908b89a0fa6293a304dba194d6",
+  "src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp": "6e6a3101872fcd9aac4351913cebbb42807bbb74c6e4b5a86fe7a00d0a6ce7da",
+  "headers/private/kernel/lock.h": "ff7d1042ce82667a45fb45bf431e84ada33fe5cf924971f1c975d06d7b3b98d7",
+  "headers/private/graphics/intel_extreme/lock.h": "a2debb062585608d6fd553bb2bd349083de0f4468f895a9368b607f1adc9b5e5",
+  "headers/private/util/OpenHashTable.h": "5c9e3027b808d09ae7e2bf04881fac40189ce9ccf5ea0e36013bf68614cfd881",
+  "src/add-ons/kernel/bus_managers/agp_gart/Jamfile": "7b12c720a58fc58ca7ef9dfcaa0c9e69dd8ea511dba798786a8507552e33fc9e"
+}

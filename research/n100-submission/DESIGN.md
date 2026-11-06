@@ -182,3 +182,15 @@ then measured GPU/software baselines including submission/coherence overhead.
 Only then choose a desktop hook integration point. Mesa/Iris support needs a real
 buffer/context/sync kernel interface and substantial OS adaptation; linking Mesa
 or advertising old hooks is not that implementation.
+
+## Reviewed research update, 2026-11-07
+
+Astra accepts Terra T-F1: first payload is two direct-ring MI stores (nonce and
+complement), not a separate batch. This supersedes separate-batch wording above
+for the first proof only; context, valid PPGTT root/scratch, completion and reset
+remain required. See ../../GPU_FIRST_EXECUTION_PLAN.md and
+EXECUTION-OWNERSHIP.md (ownership proposal awaiting Terra review).
+Terra T-F2 supplies the missing MOCS reference; register/stepping and visibility
+review remains open. T-F3 independently verifies the retained-module mechanism,
+not automatic backing/aperture retention. Imported reports are source research,
+not a hardware-ready programming recipe.

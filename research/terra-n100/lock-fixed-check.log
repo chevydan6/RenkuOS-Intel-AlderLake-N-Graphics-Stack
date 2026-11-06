@@ -1,0 +1,3 @@
+production: exit=0, expected=0; 
+control-single-acquisition: exit=0, expected=0; 
+PASS: expected production lock behavior and single-acquisition control verified. Host model only.

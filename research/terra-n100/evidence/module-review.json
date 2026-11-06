@@ -1,0 +1,7 @@
+{
+  "commit": "f01e0b782747076cb18d6c9f7952bcc358ee87e8",
+  "sha256": {
+    "src/system/kernel/module.cpp": "5d0a8dccbfbf118eacb96e68bb44191e07e2a798ac445f357de80287ab14ff4e",
+    "src/system/kernel/device_manager/legacy_drivers.cpp": "e1e72821eacd9fb7639af6926bcc3beff27cc3e371d62723dc5f7f9b8c8d066c"
+  }
+}

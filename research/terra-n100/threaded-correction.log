@@ -1,0 +1,2 @@
+100 threaded production query/unmap lifetime rounds passed
+All seven corrected helper callers retain outer manager guard; baseline actual-helper threaded negative control fails boundedly as expected.

@@ -1,0 +1,6 @@
+# Raw pinned research/snapshot sources are preserved in evidence-sources.tar.gz.
+evidence/*.c
+evidence/*.cpp
+evidence/*.h
+evidence/*.py
+__pycache__/

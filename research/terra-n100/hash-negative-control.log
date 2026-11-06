@@ -1,0 +1,8 @@
+Expected nonzero exit, got 1
+test: /tmp/tmpky784lbl/test.cpp:69: int main(): Assertion `a.CreateMemory(4096,0,7)==nullptr' failed.
+Traceback (most recent call last):
+  File "/home/dan/renkuos-terra-n100/research/terra-n100/check_hash_publication.py", line 49, in <module>
+    subprocess.run([str(d/'test')],check=True,timeout=5)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/tmp/tmpky784lbl/test']' died with <Signals.SIGABRT: 6>.
