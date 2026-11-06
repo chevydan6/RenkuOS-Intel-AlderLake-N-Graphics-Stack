@@ -1,0 +1,106 @@
+Intel N100: interrupt teardown prerequisite (2026-11-07)
+
+Disposition
+The proposed normal-close vblank semaphore deletion is withheld. Clearing
+interrupt_handler_installed after successful removal is not a general callback
+drain guarantee. Production source remains unchanged by this checkpoint.
+
+Evidence and scope
+tests/irq-remove-contract-host.py extracts io_interrupt_handler and
+remove_io_interrupt_handler from source/gpu-kernel-validation's interrupts.cpp.
+It compiles those functions with GCC 13.3, warnings as errors and AddressSanitizer.
+Mutexes, interrupt state, CPU accounting and time are host models; DEBUG_INTERRUPTS
+is disabled, the vector has UNKNOWN type, and registration is prepared directly.
+No PCI, MMIO, native kernel dispatch or physical hardware is used.
+
+Locked case: callback exits before removal returns B_OK. The attempt marker is
+before mutex acquisition, so this case does not prove actual lock contention.
+The separate native IRQ fixture established contention for its locked vectors.
+No-lock case: callback waits for removal to return B_OK; removal frees its handler
+node; callback then returns and the real dispatch loop reads the freed next link.
+ASan reports heap-use-after-free. This is expected-defect characterization, not a
+safety pass. It does not establish that the N100 currently receives such a vector.
+
+Evidence: tests/evidence/irq-remove-contract-002/ contains source/harness/generated
+hashes, compiler command/version, complete logs and attributed generated source.
+Terra independently reproduced the initial identical schedules in
+/tmp/terra-irq-contract-independent-001. The second local run adds source license
+and compiler provenance; it does not change the tested schedules.
+
+Source findings
+interrupts.cpp: io_interrupt_handler conditionally skips vector_lock, invokes
+io->func, and accesses the node after callback return. Removal takes vector_lock,
+unlinks the matching node and frees it. With no-lock dispatch that lock provides
+no exclusion. Keeping just the driver's semaphore cannot protect the kernel node.
+install_io_interrupt_handler sets no_lock_vector for B_NO_LOCK_VECTOR. Boot init
+clears it; removal and allocator free/reuse do not reset it. A driver-side snapshot
+does not prevent another registration from changing the mode.
+
+intel_extreme.cpp: gen8/gen11 handlers re-enable global interrupts before return.
+Masking once before removal can therefore be undone by a concurrent callback.
+uninit continues area/aperture release after removal failure. device_free calls
+uninit on last release; uninit_driver frees intel_info and legacy image unloading
+is not vetoed by a returned cleanup error. These remain unresolved defects.
+
+Required ownership boundary
+Before deleting the semaphore or shared state, prove no callback can newly enter
+and every admitted callback has returned. Before unloading code or freeing
+intel_info, apply the same guarantee to every pointer reachable by the dispatcher.
+Before freeing/reusing MSI/vector resources, also cover the dispatcher tail:
+load and CPU accounting continue after vector_lock is released. A callback-local
+counter is too late to protect the dispatcher's fetched node or function pointer.
+Timeout must retain registration, vector/MSI, callback code, intel_info, mappings,
+shared data, semaphore and owner lease together, and block reinitialization.
+The current unloadable driver does not provide that retained boundary.
+
+Design options, not implemented or approved
+1. General dispatch admission/drain: establish an admission gate before reading
+   handler_list, keep traversal and accounting covered, close admission before
+   unlink/free and bound drain. Must preserve concurrent APIC/ICI no-lock use,
+   interrupt-context constraints, shared IRQs and all lock orders. This is a
+   kernel change, not a semaphore fix; broad review and native validation required.
+2. Narrow opt-in locked registration: atomically reject an already no-lock vector,
+   latch a permanent requires-lock policy before publishing an opted-in handler,
+   and reject later no-lock registrations on that vector. Never reset that latch
+   on free/reuse without a stronger lifetime proof. Internal vectors are not opted
+   in. This could establish callback removal semantics for an admitted GPU handler
+   without fixing arbitrary no-lock removal. Permanent policy consumes future
+   allocation flexibility; ABI/version handling, accounting-tail retirement and
+   mask ordering remain open. This option is under independent design review.
+3. Retained IRQ owner: move callback code and all reachable state into a retained
+   module. This can support fail-closed retention but cannot make removal safe on
+   its own: do not unlink a no-lock node while it may be executing. It also requires
+   display ABI and ownership integration, so it is not a small close-path patch.
+
+Terra's preliminary review considers the latch plausible, not approved. Reject
+combined/conflicting flags without leaks or side effects: current registration
+calls arch_debug_remove_interrupt_handler before taking vector_lock, so placing
+the check after that call is insufficient. Audit future fixed reservations and
+no-lock consumers for failure/starvation under the permanent policy. Unknown
+flags are silently ignored by old kernels; a feature/version/export handshake
+must fail closed, rather than trusting the new flag alone. Test publication and
+shared-vector races independently. Callback drain still excludes dispatcher-tail
+retirement and hardware masking. No implementation selected yet.
+
+Existing call_all_cpus_sync is not assumed to solve this. Its source routes to
+the synchronous ICI mechanism; pending/new dispatch, interrupt nesting, CPU state,
+lock ordering and bounded failure behavior require proof. Do not add it as an
+unexamined grace period after an already unsafe removal.
+
+Acceptance before integration
+- Review the selected contract and every caller/mode transition.
+- Deterministic tests: removal overlaps callback and dispatcher tail, competing
+  registrations, stale no-lock state after reuse, timeout, failed removal and
+  retry/reopen; preserve shared-IRQ and internal-vector behavior.
+- Prove last callback cannot re-enable the source after final masking; hardware
+  mask/readback requirements remain device-specific and physically unverified.
+- Native build and bounded disposable VM tests, independent review, then controlled
+  physical memory/display validation with known recovery and captured logs.
+
+Relation to first GPU execution
+This work is required to avoid claiming existing memory/display teardown is safe.
+It does not justify a new GT interrupt path. The minimum execution design still
+uses retained kernel ownership and bounded status/CSB polling, subject to verified
+hardware semantics. Physical memory validation, command/context initialization,
+cache/TLB rules, retirement and reset are still prerequisites. No GPU workload
+has been submitted or independently verified by this checkpoint.

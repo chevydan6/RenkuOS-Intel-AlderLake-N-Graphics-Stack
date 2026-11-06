@@ -1,0 +1,74 @@
+mode=no-lock removal=0 callback_exited_at_return=0
+=================================================================
+==67978==ERROR: AddressSanitizer: heap-use-after-free on address 0x503000000050 at pc 0x0000004035a9 bp 0x737b781fec60 sp 0x737b781fec50
+READ of size 8 at 0x503000000050 thread T1
+    #0 0x4035a8 in io_interrupt_handler(int, interrupt_trigger_mode) /tmp/renku-irq-contract-_fhdbnf_/test.cpp:139
+    #1 0x40368e in operator() /tmp/renku-irq-contract-_fhdbnf_/test.cpp:314
+    #2 0x40368e in __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #3 0x40368e in __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #4 0x40368e in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #5 0x40368e in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #6 0x40368e in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #7 0x737b7b0ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #8 0x737b7b45ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #9 0x737b7ac9cb83 in start_thread nptl/pthread_create.c:447
+    #10 0x737b7ad29ecb in clone3 ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+0x503000000050 is located 16 bytes inside of 32-byte region [0x503000000040,0x503000000060)
+freed by thread T0 here:
+    #0 0x737b7b4fc4d8 in free ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:52
+    #1 0x4038a3 in remove_io_interrupt_handler(int, int (*)(void*), void*) /tmp/renku-irq-contract-_fhdbnf_/test.cpp:302
+    #2 0x403ee8 in main /tmp/renku-irq-contract-_fhdbnf_/test.cpp:317
+    #3 0x737b7ac2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #4 0x737b7ac2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #5 0x402474 in _start (/tmp/renku-irq-contract-_fhdbnf_/test+0x402474) (BuildId: 656e6c3ce2128006bca89475fb03ad41392f235a)
+
+previously allocated by thread T0 here:
+    #0 0x737b7b4fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x403d36 in main /tmp/renku-irq-contract-_fhdbnf_/test.cpp:310
+    #2 0x737b7ac2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #3 0x737b7ac2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #4 0x402474 in _start (/tmp/renku-irq-contract-_fhdbnf_/test+0x402474) (BuildId: 656e6c3ce2128006bca89475fb03ad41392f235a)
+
+Thread T1 created by T0 here:
+    #0 0x737b7b4f51f9 in pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:245
+    #1 0x737b7b0eceb0 in std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 0x403e84 in thread<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/std_thread.h:164
+    #3 0x403e84 in main /tmp/renku-irq-contract-_fhdbnf_/test.cpp:314
+    #4 0x737b7ac2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x737b7ac2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x402474 in _start (/tmp/renku-irq-contract-_fhdbnf_/test+0x402474) (BuildId: 656e6c3ce2128006bca89475fb03ad41392f235a)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /tmp/renku-irq-contract-_fhdbnf_/test.cpp:139 in io_interrupt_handler(int, interrupt_trigger_mode)
+Shadow bytes around the buggy address:
+  0x502ffffffd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502ffffffe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502ffffffe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x502fffffff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x503000000000: fa fa 00 00 00 fa fa fa fd fd[fd]fd fa fa fa fa
+  0x503000000080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x503000000280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==67978==ABORTING
