@@ -80,6 +80,17 @@ implementation still needs correct register-region mapping, serialization
 across index selection and access, power and ownership handling, validated PLL
 parameters and lock timeouts, and a complete transcoder and PHY sequence.
 
+Patch 17 bounds the existing combo-PLL unlock, power-on and lock waits, and
+returns `B_TIMED_OUT` to the port mode-setting function rather than spinning
+forever. A host test exercises the actual PLL function with simulated success,
+each timeout, and an invalid PLL. The 17-patch `renku-027` bundle compiled and
+passed component tests in a disposable RenkuOS VM, and passed host
+finalization. No physical driver installation or GPU execution was performed.
+This is a bounded-wait safeguard, not a complete recovery mechanism: the
+caller in `mode.cpp` currently logs port-mode errors and continues, and the
+partially modified PLL state is not rolled back. Those issues require separate
+design and validation before treating failure handling as safe.
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),
