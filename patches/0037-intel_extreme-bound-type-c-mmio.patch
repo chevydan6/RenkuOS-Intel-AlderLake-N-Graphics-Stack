@@ -1,0 +1,123 @@
+From 7939dbe3a59f18882f74f89b5b22742b566aebfb Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:56:03 +0900
+Subject: [PATCH] intel_extreme: add bounded Type-C MMIO adapter
+
+---
+ .../intel_extreme/AlderLakeTypeCMmio.h        | 104 ++++++++++++++++++
+ 1 file changed, 104 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+new file mode 100644
+index 00000000..c0dca889
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCMmio.h
+@@ -0,0 +1,104 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_ALDER_LAKE_TYPE_C_MMIO_H
++#define INTEL_EXTREME_ALDER_LAKE_TYPE_C_MMIO_H
++
++#include "AlderLakeTypeCBackend.h"
++#include <OS.h>
++
++// Adapter for an existing, validated BAR mapping; it never creates a mapping.
++// Callers must verify the PCI device and shared-info layout, and hold the
++// cross-team register lock across all sequences and banked accesses.
++class AlderLakeTypeCMmio {
++public:
++	AlderLakeTypeCMmio(volatile uint8* base, size_t size, unsigned tcPort,
++		unsigned pipe, bool verifiedDeviceAndLayout)
++		: fBase(base), fSize(size), fPort(tcPort), fPipe(pipe),
++		  fVerified(verifiedDeviceAndLayout), fBankValid(false), fBank(0)
++	{
++	}
++
++	AlderLakeTypeCIO Ops()
++	{
++		AlderLakeTypeCIO ops = {this, Read, Write, Pause};
++		return ops;
++	}
++
++private:
++	bool Valid(uint32 offset) const
++	{
++		return fVerified && fBase != NULL && fPort >= 1 && fPort <= 4
++			&& fPipe <= 2 && (offset & 3) == 0 && fSize >= sizeof(uint32)
++			&& offset <= fSize - sizeof(uint32);
++	}
++	bool PhyAllowed(uint32 offset, bool write) const
++	{
++		uint32 base = 0x168000U + (fPort - 1) * 0x1000U;
++		if (!fBankValid || offset < base || offset >= base + 0x1000U)
++			return false;
++		uint32 internal = (fBank << 12) | (offset - base);
++		if (fBank == 2) {
++			switch (internal) {
++				case 0x20d4: case 0x20d8: case 0x212c: case 0x2200:
++				case 0x2204: case 0x2210: case 0x2214: case 0x2218:
++					return true;
++				case 0x236c:
++					return !write;
++			}
++		}
++		if (fBank == 0 || fBank == 1) {
++			uint32 laneOffset = internal & 0xfffU;
++			return laneOffset == 0x2c0 || laneOffset == 0x2c4
++				|| laneOffset == 0x2c8 || laneOffset == 0xd00;
++		}
++		return false;
++	}
++	bool Allowed(uint32 offset, bool write) const
++	{
++		if (!Valid(offset)) return false;
++		if (offset == 0x161500U + (fPort - 1) * 4U)
++			return !write;
++		if (offset == 0x45444U || offset == 0x1010a0U
++			|| offset == 0x64300U + (fPort - 1) * 0x100U
++			|| offset == 0x46038U + (fPort - 1) * 8U
++			|| offset == 0x4610cU + (fPort - 1) * 4U
++			|| offset == 0x164280U
++			|| offset == 0x46140U + fPipe * 4U
++			|| offset == 0x60400U + fPipe * 0x1000U)
++			return true;
++		return PhyAllowed(offset, write);
++	}
++	static status_t Read(void* cookie, uint32 offset, uint32* value)
++	{
++		AlderLakeTypeCMmio& self = *(AlderLakeTypeCMmio*)cookie;
++		if (value == NULL || !self.Allowed(offset, false)) return B_BAD_VALUE;
++		*value = *(volatile uint32*)(self.fBase + offset);
++		return B_OK;
++	}
++	static status_t Write(void* cookie, uint32 offset, uint32 value)
++	{
++		AlderLakeTypeCMmio& self = *(AlderLakeTypeCMmio*)cookie;
++		if (!self.Allowed(offset, true)) return B_BAD_VALUE;
++		if (offset == 0x1010a0U) {
++			unsigned shift = (self.fPort - 1) * 8;
++			if ((value & ~(0xfU << shift)) != 0 || (value >> shift) > 2)
++				return B_BAD_VALUE;
++			self.fBank = value >> shift;
++			self.fBankValid = true;
++		}
++		*(volatile uint32*)(self.fBase + offset) = value;
++		return B_OK;
++	}
++	static void Pause(void*) { snooze(10); }
++	AlderLakeTypeCMmio(const AlderLakeTypeCMmio&);
++	AlderLakeTypeCMmio& operator=(const AlderLakeTypeCMmio&);
++	volatile uint8* fBase;
++	size_t fSize;
++	unsigned fPort, fPipe;
++	bool fVerified, fBankValid;
++	uint32 fBank;
++};
++
++#endif
+-- 
+2.43.0
+

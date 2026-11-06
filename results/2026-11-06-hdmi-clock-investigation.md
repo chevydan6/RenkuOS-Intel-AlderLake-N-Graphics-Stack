@@ -189,6 +189,17 @@ path. A display-core power implementation, cross-team shared lock and port
 lease, validated VBT preset/lane reversal, pipe configuration and real device
 I/O adapter remain necessary before a hardware test.
 
+The running test image's existing Intel driver was queried through its normal
+private-data ioctl and a read-only clone of its shared information area. This
+did not map or write GPU MMIO. The query reported three VBT child entries; the
+HDMI entry is DVO value 16 (HDMI G), DDC value 4, AUX value `0x70`, lane
+reversal 0, and raw HDMI level-shifter value 0. The same boot's log reports BDB
+version 251, for which Linux interprets the low five bits of `device_id[3]` as
+the HDMI level-shifter index. This supports using preset 0 and no lane reversal
+for this test device, subject to checking the full child-record length and
+firmware data provenance before connecting the hardware path. No display
+register writes or mode change were performed by the query.
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),

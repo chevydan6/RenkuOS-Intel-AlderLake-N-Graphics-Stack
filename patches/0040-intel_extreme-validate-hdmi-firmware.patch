@@ -1,0 +1,95 @@
+From 7fa61a5d6c1555c0b2336dffe50d5fe4f62a517e Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 18:00:42 +0900
+Subject: [PATCH] intel_extreme: validate Alder Lake HDMI firmware inputs
+
+---
+ .../intel_extreme/AlderLakeHdmiFirmware.h     | 76 +++++++++++++++++++
+ 1 file changed, 76 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
+new file mode 100644
+index 00000000..0963f73c
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
+@@ -0,0 +1,76 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_FIRMWARE_H
++#define INTEL_EXTREME_ALDER_LAKE_HDMI_FIRMWARE_H
++
++#include "intel_extreme.h"
++#include <stddef.h>
++
++struct AlderLakeHdmiFirmware {
++	unsigned tcPort;
++	unsigned preset;
++	uint32 pixelClockKHz;
++	uint32 referenceKHz;
++	bool laneReversal;
++	bool loadgenWorkaround;
++};
++
++// Extract only metadata needed by the HDMI sequence. The caller must have
++// verified INTEL_GET_SHARED_INFO_LAYOUT before passing layoutCompatible and
++// must independently determine whether the stepping workaround is required.
++static inline status_t
++ReadAlderLakeHdmiFirmware(const intel_shared_info* info, bool layoutCompatible,
++	port_index port, uint32 pixelClockKHz, bool steppingKnown,
++	bool loadgenWorkaround, AlderLakeHdmiFirmware* result)
++{
++	if (!layoutCompatible || info == NULL || result == NULL || !steppingKnown)
++		return B_BAD_VALUE;
++	if (!info->device_type.IsModel(INTEL_MODEL_ALDM) || !info->got_vbt
++		|| info->vbt_bdb_version < 184
++		|| info->vbt_child_device_size < offsetof(child_device_config, dvo_cfg) + 2
++		|| info->device_config_count > B_COUNT_OF(info->device_configs)
++		|| pixelClockKHz == 0 || pixelClockKHz > 340000)
++		return B_BAD_VALUE;
++	if (info->pll_info.reference_frequency != 19200
++		&& info->pll_info.reference_frequency != 24000
++		&& info->pll_info.reference_frequency != 38400)
++		return B_BAD_VALUE;
++
++	unsigned tcPort;
++	uint8 dvo;
++	if (port == INTEL_PORT_F) {
++		tcPort = 1;
++		dvo = DVO_PORT_HDMIF;
++	} else if (port == INTEL_PORT_G) {
++		tcPort = 2;
++		dvo = DVO_PORT_HDMIG;
++	} else
++		return B_BAD_VALUE;
++
++	const child_device_config* found = NULL;
++	for (uint32 i = 0; i < info->device_config_count; i++) {
++		const child_device_config& config = info->device_configs[i];
++		if (config.dvo_port != dvo)
++			continue;
++		if (found != NULL)
++			return B_BAD_VALUE;
++		found = &config;
++	}
++	if (found == NULL || (found->device_type & DEVICE_TYPE_TMDS_DVI_SIGNALING) == 0)
++		return B_BAD_VALUE;
++	unsigned preset = found->device_id[3] & 0x1fU;
++	if (preset >= 10)
++		return B_BAD_VALUE;
++
++	result->tcPort = tcPort;
++	result->preset = preset;
++	result->pixelClockKHz = pixelClockKHz;
++	result->referenceKHz = info->pll_info.reference_frequency;
++	result->laneReversal = found->lane_reversal;
++	result->loadgenWorkaround = loadgenWorkaround;
++	return B_OK;
++}
++
++#endif
+-- 
+2.43.0
+

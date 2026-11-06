@@ -1,0 +1,178 @@
+From 318aa00b1609f585fdeebf2372a00661aa9d52f5 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:56:03 +0900
+Subject: [PATCH] intel_extreme: select Type-C HDMI port clock
+
+---
+ .../intel_extreme/AlderLakeHdmiSequence.h     |   9 +-
+ .../intel_extreme/TypeCHdmiClock.h            | 103 ++++++++++++++++++
+ 2 files changed, 111 insertions(+), 1 deletion(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 89bdbced..0e0ac44f 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -8,6 +8,7 @@
+ #include "DekelHdmiPllProgrammer.h"
+ #include "DekelHdmiSignalProgrammer.h"
+ #include "TypeCHdmiBuffer.h"
++#include "TypeCHdmiClock.h"
+ #include "TypeCHdmiTranscoderProgrammer.h"
+ #include "TypeCPortLease.h"
+ 
+@@ -20,7 +21,7 @@ public:
+ 	AlderLakeHdmiSequence(const AlderLakeTypeCIO& io, TypeCPowerWell& well,
+ 		TypeCPortLease& lease, unsigned tcPort, unsigned pipe, unsigned attempts)
+ 		: fWell(well), fLease(lease), fBackend(io, well, tcPort, attempts),
+-		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts),
++		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts), fClock(io, tcPort),
+ 		  fTranscoder(io, pipe), fSignal(io, tcPort),
+ 		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false)
+ 	{
+@@ -31,6 +32,7 @@ public:
+ 		bool positiveVSync, bool laneReversal)
+ 	{
+ 		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
++			|| fClock.NeedsCleanup()
+ 			|| fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
+ 			|| fBuffer.NeedsCleanup()) return B_BUSY;
+ 		if (fPort < 1 || fPort > 4 || fWell.Port() != fPort
+@@ -56,6 +58,8 @@ public:
+ 		if (status != B_OK) return Fail(status);
+ 		status = fPll.Program(pllPlan);
+ 		if (status != B_OK) return Fail(status);
++		status = fClock.Enable();
++		if (status != B_OK) return Fail(status);
+ 		status = fTranscoder.Configure(transPlan);
+ 		if (status != B_OK) return Fail(status);
+ 		status = fTranscoder.Enable();
+@@ -78,6 +82,8 @@ public:
+ 		if (status != B_OK) return status;
+ 		status = fTranscoder.Release();
+ 		if (status != B_OK) return status;
++		status = fClock.Release();
++		if (status != B_OK) return status;
+ 		status = fPll.Release();
+ 		if (status != B_OK) return status;
+ 		status = fPower.Release();
+@@ -101,6 +107,7 @@ private:
+ 	AlderLakeTypeCBackend fBackend;
+ 	TypeCPowerLifecycle fPower;
+ 	DekelHdmiPllProgrammer fPll;
++	TypeCHdmiClock fClock;
+ 	TypeCHdmiTranscoderProgrammer fTranscoder;
+ 	DekelHdmiSignalProgrammer fSignal;
+ 	TypeCHdmiBuffer fBuffer;
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h
+new file mode 100644
+index 00000000..641419f0
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiClock.h
+@@ -0,0 +1,103 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_TYPE_C_HDMI_CLOCK_H
++#define INTEL_EXTREME_TYPE_C_HDMI_CLOCK_H
++
++#include "AlderLakeTypeCBackend.h"
++
++// Injected-I/O helper for the ADL-P/N Type-C clock. Caller holds the port,
++// PLL and display power, and serializes all users of the shared clock register.
++// Callbacks must leave a register unchanged on a failed write.
++class TypeCHdmiClock {
++public:
++	TypeCHdmiClock(const AlderLakeTypeCIO& io, unsigned tcPort)
++		: fIO(io), fPort(tcPort), fSelectionChanged(false), fGateChanged(false),
++		  fSavedSelection(0), fSavedGate(0) {}
++
++	status_t Enable()
++	{
++		if (NeedsCleanup()) return B_BUSY;
++		if (fPort < 1 || fPort > 4 || fIO.read == NULL || fIO.write == NULL)
++			return B_BAD_VALUE;
++		uint32 value;
++		status_t status = Read(BufferOffset(), &value);
++		if (status != B_OK) return status;
++		if ((value & (1U << 31)) != 0) return B_BUSY;
++		if ((value & (1U << 6)) == 0) return B_ERROR;
++		status = Read(PllOffset(), &value);
++		if (status != B_OK) return status;
++		if ((value & ((1U << 31) | (1U << 30))) != ((1U << 31) | (1U << 30)))
++			return B_ERROR;
++		status = Read(ClockOffset(), &value);
++		if (status != B_OK) return status;
++		if ((value & kSelectionMask) != 0) return B_BUSY;
++		fSavedSelection = value & kSelectionMask;
++		status = fIO.write(fIO.cookie, ClockOffset(),
++			(value & ~kSelectionMask) | kMgSelection);
++		if (status != B_OK) return status;
++		fSelectionChanged = true;
++		status = Read(kGateOffset, &value);
++		if (status != B_OK) return Fail(status);
++		fSavedGate = value & GateMask();
++		status = fIO.write(fIO.cookie, kGateOffset, value & ~GateMask());
++		if (status != B_OK) return Fail(status);
++		fGateChanged = true;
++		status = Read(kGateOffset, &value);
++		if (status != B_OK || (value & GateMask()) != 0)
++			return Fail(status == B_OK ? B_ERROR : status);
++		return B_OK;
++	}
++
++	status_t Release()
++	{
++		uint32 value;
++		status_t status;
++		if (fGateChanged) {
++			status = Read(kGateOffset, &value);
++			if (status != B_OK) return status;
++			status = fIO.write(fIO.cookie, kGateOffset,
++				(value & ~GateMask()) | fSavedGate);
++			if (status != B_OK) return status;
++			fGateChanged = false;
++		}
++		if (fSelectionChanged) {
++			status = Read(ClockOffset(), &value);
++			if (status != B_OK) return status;
++			status = fIO.write(fIO.cookie, ClockOffset(),
++				(value & ~kSelectionMask) | fSavedSelection);
++			if (status != B_OK) return status;
++			fSelectionChanged = false;
++		}
++		return B_OK;
++	}
++
++	bool NeedsCleanup() const { return fSelectionChanged || fGateChanged; }
++
++private:
++	enum { kSelectionMask = 0xfU << 28, kMgSelection = 8U << 28,
++		kGateOffset = 0x164280 };
++	uint32 GateMask() const { return 1U << (fPort + 11); }
++	uint32 ClockOffset() const { return 0x4610cU + (fPort - 1) * 4U; }
++	uint32 BufferOffset() const { return 0x64300U + (fPort - 1) * 0x100U; }
++	uint32 PllOffset() const { return 0x46038U + (fPort - 1) * 8U; }
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t status = fIO.read(fIO.cookie, offset, value);
++		return status == B_OK && *value == 0xffffffffU ? B_ERROR : status;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t cleanup = Release();
++		return cleanup == B_OK ? cause : cleanup;
++	}
++	TypeCHdmiClock(const TypeCHdmiClock&);
++	TypeCHdmiClock& operator=(const TypeCHdmiClock&);
++	AlderLakeTypeCIO fIO;
++	unsigned fPort;
++	bool fSelectionChanged, fGateChanged;
++	uint32 fSavedSelection, fSavedGate;
++};
++
++#endif
+-- 
+2.43.0
+

@@ -1,0 +1,89 @@
+From e543362c9bc32aca4e4683a3a669d06dd8247199 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 18:02:13 +0900
+Subject: [PATCH] intel_extreme: gate HDMI inputs on verified N100 stepping
+
+---
+ .../graphics/intel_extreme/intel_extreme.h        |  5 ++++-
+ .../intel_extreme/AlderLakeHdmiFirmware.h         | 15 +++++++++------
+ .../graphics/intel_extreme/intel_extreme.cpp      |  3 +++
+ 3 files changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/headers/private/graphics/intel_extreme/intel_extreme.h b/headers/private/graphics/intel_extreme/intel_extreme.h
+index afd1c61a..461ced4f 100644
+--- a/headers/private/graphics/intel_extreme/intel_extreme.h
++++ b/headers/private/graphics/intel_extreme/intel_extreme.h
+@@ -492,6 +492,9 @@ struct intel_shared_info {
+ 	uint32			type_c_port_leases;
+ 	uint32			vbt_bdb_version;
+ 	uint32			vbt_child_device_size;
++	uint32			gpu_pci_vendor;
++	uint32			gpu_pci_device;
++	uint32			gpu_pci_revision;
+ };
+ 
+ enum pipe_index {
+@@ -553,7 +556,7 @@ enum {
+ 	INTEL_GET_SHARED_INFO_LAYOUT
+ };
+ 
+-#define INTEL_SHARED_INFO_LAYOUT_VERSION 1
++#define INTEL_SHARED_INFO_LAYOUT_VERSION 2
+ 
+ struct intel_get_shared_info_layout {
+ 	uint32 magic;
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
+index 0963f73c..5b27d39a 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiFirmware.h
+@@ -18,16 +18,17 @@ struct AlderLakeHdmiFirmware {
+ };
+ 
+ // Extract only metadata needed by the HDMI sequence. The caller must have
+-// verified INTEL_GET_SHARED_INFO_LAYOUT before passing layoutCompatible and
+-// must independently determine whether the stepping workaround is required.
++// verified INTEL_GET_SHARED_INFO_LAYOUT before passing layoutCompatible.
++// This first hardware path is restricted to the observed N100 revision.
+ static inline status_t
+ ReadAlderLakeHdmiFirmware(const intel_shared_info* info, bool layoutCompatible,
+-	port_index port, uint32 pixelClockKHz, bool steppingKnown,
+-	bool loadgenWorkaround, AlderLakeHdmiFirmware* result)
++	port_index port, uint32 pixelClockKHz, AlderLakeHdmiFirmware* result)
+ {
+-	if (!layoutCompatible || info == NULL || result == NULL || !steppingKnown)
++	if (!layoutCompatible || info == NULL || result == NULL)
+ 		return B_BAD_VALUE;
+ 	if (!info->device_type.IsModel(INTEL_MODEL_ALDM) || !info->got_vbt
++		|| info->gpu_pci_vendor != 0x8086 || info->gpu_pci_device != 0x46d1
++		|| info->gpu_pci_revision != 0
+ 		|| info->vbt_bdb_version < 184
+ 		|| info->vbt_child_device_size < offsetof(child_device_config, dvo_cfg) + 2
+ 		|| info->device_config_count > B_COUNT_OF(info->device_configs)
+@@ -69,7 +70,9 @@ ReadAlderLakeHdmiFirmware(const intel_shared_info* info, bool layoutCompatible,
+ 	result->pixelClockKHz = pixelClockKHz;
+ 	result->referenceKHz = info->pll_info.reference_frequency;
+ 	result->laneReversal = found->lane_reversal;
+-	result->loadgenWorkaround = loadgenWorkaround;
++	// Linux identifies ADL-N revision 0 as display stepping D0; the loadgen
++	// workaround applies to steppings A0 through C0, not D0.
++	result->loadgenWorkaround = false;
+ 	return B_OK;
+ }
+ 
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+index 0488e0e7..386f2908 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/intel_extreme.cpp
+@@ -769,6 +769,9 @@ intel_extreme_init(intel_info &info)
+ 	info.shared_info->internal_crt_support = true;
+ 	info.shared_info->pch_info = info.pch_info;
+ 	info.shared_info->device_type = info.device_type;
++	info.shared_info->gpu_pci_vendor = info.pci->vendor_id;
++	info.shared_info->gpu_pci_device = info.pci->device_id;
++	info.shared_info->gpu_pci_revision = info.pci->revision;
+ 
+ 	// Pull VBIOS info for later use
+ 	info.shared_info->got_vbt = parse_vbt_from_bios(info.shared_info);
+-- 
+2.43.0
+

@@ -1,0 +1,153 @@
+From 0071597821843daee34504c559c0fe330352e686 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:51:27 +0900
+Subject: [PATCH] intel_extreme: version shared Type-C state
+
+---
+ .../graphics/intel_extreme/intel_extreme.h      | 17 ++++++++++++++++-
+ .../accelerants/intel_extreme/accelerant.cpp    | 17 +++++++++++++++++
+ .../accelerants/intel_extreme/accelerant.h      |  1 +
+ .../drivers/graphics/intel_extreme/bios.cpp     |  5 +++++
+ .../drivers/graphics/intel_extreme/device.cpp   | 14 ++++++++++++++
+ 5 files changed, 53 insertions(+), 1 deletion(-)
+
+diff --git a/headers/private/graphics/intel_extreme/intel_extreme.h b/headers/private/graphics/intel_extreme/intel_extreme.h
+index 7ddcce64..afd1c61a 100644
+--- a/headers/private/graphics/intel_extreme/intel_extreme.h
++++ b/headers/private/graphics/intel_extreme/intel_extreme.h
+@@ -486,6 +486,12 @@ struct intel_shared_info {
+ 	bool			internal_crt_support;
+ 	uint32			device_config_count;
+ 	child_device_config device_configs[10];
++
++	// Only access this extension after INTEL_GET_SHARED_INFO_LAYOUT reports
++	// the required version and size. Protected by accelerant_lock.
++	uint32			type_c_port_leases;
++	uint32			vbt_bdb_version;
++	uint32			vbt_child_device_size;
+ };
+ 
+ enum pipe_index {
+@@ -543,7 +549,16 @@ enum {
+ 	INTEL_ALLOCATE_GRAPHICS_MEMORY,
+ 	INTEL_FREE_GRAPHICS_MEMORY,
+ 	INTEL_GET_BRIGHTNESS_LEGACY,
+-	INTEL_SET_BRIGHTNESS_LEGACY
++	INTEL_SET_BRIGHTNESS_LEGACY,
++	INTEL_GET_SHARED_INFO_LAYOUT
++};
++
++#define INTEL_SHARED_INFO_LAYOUT_VERSION 1
++
++struct intel_get_shared_info_layout {
++	uint32 magic;
++	uint32 version;
++	uint32 shared_info_size;
+ };
+ 
+ // retrieve the area_id of the kernel/accelerant shared info
+diff --git a/src/add-ons/accelerants/intel_extreme/accelerant.cpp b/src/add-ons/accelerants/intel_extreme/accelerant.cpp
+index ed6b202c..01d3c7b9 100644
+--- a/src/add-ons/accelerants/intel_extreme/accelerant.cpp
++++ b/src/add-ons/accelerants/intel_extreme/accelerant.cpp
+@@ -77,6 +77,15 @@ dump_registers()
+ }
+ 
+ 
++static bool
++shared_layout_compatible(int result, const intel_get_shared_info_layout& layout)
++{
++	return result == 0 && layout.magic == INTEL_PRIVATE_DATA_MAGIC
++		&& layout.version == INTEL_SHARED_INFO_LAYOUT_VERSION
++		&& layout.shared_info_size >= sizeof(intel_shared_info);
++}
++
++
+ /*! This is the common accelerant_info initializer. It is called by
+ 	both, the first accelerant and all clones.
+ */
+@@ -107,6 +116,14 @@ init_common(int device, bool isClone)
+ 			sizeof(intel_get_private_data)) != 0)
+ 		return B_ERROR;
+ 
++	// Older kernel drivers do not support the layout query. Their existing
++	// accelerant functionality remains available, but extensions stay off.
++	intel_get_shared_info_layout layout = {};
++	layout.magic = INTEL_PRIVATE_DATA_MAGIC;
++	int layoutResult = ioctl(device, INTEL_GET_SHARED_INFO_LAYOUT, &layout,
++		sizeof(layout));
++	gInfo->has_shared_layout = shared_layout_compatible(layoutResult, layout);
++
+ 	AreaDeleter sharedDeleter(clone_area("intel extreme shared info",
+ 		(void**)&gInfo->shared_info, B_ANY_ADDRESS, B_READ_AREA | B_WRITE_AREA,
+ 		data.shared_info_area));
+diff --git a/src/add-ons/accelerants/intel_extreme/accelerant.h b/src/add-ons/accelerants/intel_extreme/accelerant.h
+index 1a05f8f4..455aad45 100644
+--- a/src/add-ons/accelerants/intel_extreme/accelerant.h
++++ b/src/add-ons/accelerants/intel_extreme/accelerant.h
+@@ -70,6 +70,7 @@ struct accelerant_info {
+ 	int				device;
+ 	uint8			head_mode;
+ 	bool			is_clone;
++	bool			has_shared_layout;
+ };
+ 
+ 
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp
+index 7303da46..1fbe0dbc 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp
+@@ -517,6 +517,9 @@ sanitize_panel_timing(display_timing& timing)
+ bool
+ parse_vbt_from_bios(struct intel_shared_info* info)
+ {
++	info->vbt_bdb_version = 0;
++	info->vbt_child_device_size = 0;
++	info->device_config_count = 0;
+ 	display_timing* panelTiming = &info->panel_timing;
+ 	uint16* minBrightness = &info->min_brightness;
+ 
+@@ -548,6 +551,7 @@ parse_vbt_from_bios(struct intel_shared_info* info)
+ 		delete_area(vbios.area);
+ 		return false;
+ 	}
++	info->vbt_bdb_version = bdb->version;
+ 	TRACE((DEVICE_NAME ": VBT signature \"%.*s\", BDB version %d\n",
+ 			(int)sizeof(vbt->signature), vbt->signature, bdb->version));
+ 
+@@ -588,6 +592,7 @@ parse_vbt_from_bios(struct intel_shared_info* info)
+ 				if ((size_t)blockSize < sizeof(*defs))
+ 					break;
+ 				defs = (struct bdb_general_definitions*)(vbios.memory + start);
++				info->vbt_child_device_size = defs->child_device_size;
+ 				copy_vbt_child_configs(info, defs->devices,
+ 					blockSize - sizeof(*defs), defs->child_device_size);
+ 				break;
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp
+index a906483b..404f00ea 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/device.cpp
+@@ -295,6 +295,20 @@ device_ioctl(void* data, uint32 op, void* buffer, size_t bufferLength)
+ 			break;
+ 		}
+ 
++		case INTEL_GET_SHARED_INFO_LAYOUT:
++		{
++			if (bufferLength < sizeof(intel_get_shared_info_layout))
++				return B_BAD_VALUE;
++			intel_get_shared_info_layout layout;
++			if (user_memcpy(&layout, buffer, sizeof(layout)) < B_OK)
++				return B_BAD_ADDRESS;
++			if (layout.magic != INTEL_PRIVATE_DATA_MAGIC)
++				return B_BAD_VALUE;
++			layout.version = INTEL_SHARED_INFO_LAYOUT_VERSION;
++			layout.shared_info_size = sizeof(intel_shared_info);
++			return user_memcpy(buffer, &layout, sizeof(layout));
++		}
++
+ 		// needed for cloning
+ 		case INTEL_GET_DEVICE_NAME:
+ 			if (user_strlcpy((char* )buffer, gDeviceNames[info->id],
+-- 
+2.43.0
+

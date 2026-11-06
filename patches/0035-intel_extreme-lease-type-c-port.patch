@@ -1,0 +1,135 @@
+From 7244c153c5c020e9c17af4adf55d00725b8a70a3 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:48:39 +0900
+Subject: [PATCH] intel_extreme: guard Type-C HDMI sequence with port lease
+
+---
+ .../intel_extreme/AlderLakeHdmiSequence.h     | 15 ++++--
+ .../intel_extreme/TypeCPortLease.h            | 52 +++++++++++++++++++
+ 2 files changed, 63 insertions(+), 4 deletions(-)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/TypeCPortLease.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+index 68666c63..89bdbced 100644
+--- a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -9,6 +9,7 @@
+ #include "DekelHdmiSignalProgrammer.h"
+ #include "TypeCHdmiBuffer.h"
+ #include "TypeCHdmiTranscoderProgrammer.h"
++#include "TypeCPortLease.h"
+ 
+ // Experimental orchestration. The caller must validate the device, firmware
+ // port mapping and signal preset; prepare pipe timings; hold display-core
+@@ -17,8 +18,8 @@
+ class AlderLakeHdmiSequence {
+ public:
+ 	AlderLakeHdmiSequence(const AlderLakeTypeCIO& io, TypeCPowerWell& well,
+-		unsigned tcPort, unsigned pipe, unsigned attempts)
+-		: fWell(well), fBackend(io, well, tcPort, attempts),
++		TypeCPortLease& lease, unsigned tcPort, unsigned pipe, unsigned attempts)
++		: fWell(well), fLease(lease), fBackend(io, well, tcPort, attempts),
+ 		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts),
+ 		  fTranscoder(io, pipe), fSignal(io, tcPort),
+ 		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false)
+@@ -29,10 +30,11 @@ public:
+ 		unsigned preset, bool loadgenWorkaround, bool positiveHSync,
+ 		bool positiveVSync, bool laneReversal)
+ 	{
+-		if (fStarted || fPower.NeedsCleanup() || fPll.NeedsCleanup()
++		if (fStarted || fLease.IsHeld() || fPower.NeedsCleanup() || fPll.NeedsCleanup()
+ 			|| fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
+ 			|| fBuffer.NeedsCleanup()) return B_BUSY;
+-		if (fPort < 1 || fPort > 4 || fWell.Port() != fPort || fPipe > 2)
++		if (fPort < 1 || fPort > 4 || fWell.Port() != fPort
++			|| fLease.Port() != fPort || fPipe > 2)
+ 			return B_BAD_VALUE;
+ 		DekelHdmiPllPlan pllPlan;
+ 		TypeCHdmiTranscoderPlan transPlan;
+@@ -47,6 +49,8 @@ public:
+ 			loadgenWorkaround, &signalPlan);
+ 		if (status != B_OK) return status;
+ 
++		status = fLease.Acquire();
++		if (status != B_OK) return status;
+ 		fStarted = true;
+ 		status = fPower.Acquire();
+ 		if (status != B_OK) return Fail(status);
+@@ -78,6 +82,8 @@ public:
+ 		if (status != B_OK) return status;
+ 		status = fPower.Release();
+ 		if (status != B_OK) return status;
++		status = fLease.Release();
++		if (status != B_OK) return status;
+ 		fStarted = false;
+ 		return B_OK;
+ 	}
+@@ -91,6 +97,7 @@ private:
+ 	AlderLakeHdmiSequence(const AlderLakeHdmiSequence&);
+ 	AlderLakeHdmiSequence& operator=(const AlderLakeHdmiSequence&);
+ 	TypeCPowerWell& fWell;
++	TypeCPortLease& fLease;
+ 	AlderLakeTypeCBackend fBackend;
+ 	TypeCPowerLifecycle fPower;
+ 	DekelHdmiPllProgrammer fPll;
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPortLease.h b/src/add-ons/accelerants/intel_extreme/TypeCPortLease.h
+new file mode 100644
+index 00000000..31338434
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPortLease.h
+@@ -0,0 +1,52 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_TYPE_C_PORT_LEASE_H
++#define INTEL_EXTREME_TYPE_C_PORT_LEASE_H
++
++#include <SupportDefs.h>
++#include <stddef.h>
++
++// The mask must live in memory shared by all accelerant teams. Callers must
++// hold the same cross-team lock for Acquire/Release and all port transitions.
++// A crashed lease holder needs a separate recovery policy; no automatic
++// reclamation is attempted here.
++class TypeCPortLease {
++public:
++	TypeCPortLease(uint32* sharedMask, unsigned tcPort)
++		: fMask(sharedMask), fPort(tcPort), fHeld(false) {}
++
++	status_t Acquire()
++	{
++		if (fHeld) return B_BUSY;
++		if (fMask == NULL || fPort < 1 || fPort > 4) return B_BAD_VALUE;
++		uint32 bit = 1U << (fPort - 1);
++		if ((*fMask & bit) != 0) return B_BUSY;
++		*fMask |= bit;
++		fHeld = true;
++		return B_OK;
++	}
++
++	status_t Release()
++	{
++		if (!fHeld) return B_OK;
++		uint32 bit = 1U << (fPort - 1);
++		if ((*fMask & bit) == 0) return B_ERROR;
++		*fMask &= ~bit;
++		fHeld = false;
++		return B_OK;
++	}
++
++	bool IsHeld() const { return fHeld; }
++	unsigned Port() const { return fPort; }
++
++private:
++	TypeCPortLease(const TypeCPortLease&);
++	TypeCPortLease& operator=(const TypeCPortLease&);
++	uint32* fMask;
++	unsigned fPort;
++	bool fHeld;
++};
++
++#endif
+-- 
+2.43.0
+
