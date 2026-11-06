@@ -233,3 +233,59 @@ publication racing client death; concurrent final release; unmap failure followe
 by rejected new work; stale lease use; unload of legacy image with retained
 worker/MMIO/backing. No production implementation until Terra reviews this
 protocol and resolves significant objections.
+
+## Resolution proposal for Terra's second T3 review
+
+All five objections are accepted. The following is the intended contract for
+implementation review, superseding any ambiguous earlier description:
+
+1. Every owned-allocation error conservatively disables diagnostic publication
+   for this device before releasing its operation pin. GART does not distinguish
+   hidden rollback failure reliably enough to do otherwise. Known allocations
+   may be freed through their recorded handles only while unpublished or proven
+   quiescent. Unknown partial allocations retain the aperture lease. Only one
+   diagnostic preparation/request is admitted at a time. The actual publication
+   transition checks device state under the same mutex that records failures;
+   publication reserves an in-flight reference before releasing it. Already
+   published requests retain their resources through retirement/reset. Display
+   allocation errors block diagnostic publication too, without inventing a
+   successful display allocation or forcibly tearing down the existing display.
+2. Keep one module-owned N100 device record for this boot. It is a permanent
+   tombstone after teardown, not recycled heap storage. Public kernel cookies
+   are numeric lease IDs, validated under the device mutex against live lease
+   entries before any resource dereference; duplicate release fails. IDs never
+   wrap/reuse (exhaustion rejects acquisition). The fixed device record removes
+   registry/device lock nesting for this single-device implementation. A later
+   multi-device extension needs a separate reviewed registry protocol. Lease
+   entries are allocated before incrementing counts and published only after
+   successful admission; no dangling caller-supplied pointers enter the module.
+3. For the initial implementation, last-display-close without explicit proven
+   scanout stop enters RetainedDisplay. Keep all aperture, scanout allocation,
+   mapping and module state. Reject new display acquisition and diagnostic work
+   with B_BUSY until controlled reboot; do not attempt same-boot reconstruction
+   of legacy shared_info or framebuffer ownership. This deliberate limitation
+   is not reliable reopen support. Supporting transparent reopen later requires
+   a reviewed persistent display-state handoff. Initialization failure after
+   acquiring a lease follows the same conservative retention when scanout state
+   is unknown, including inherited firmware scanout. No teardown by inference.
+4. The module must become the sole owner of the N100 MMIO mapping as well as the
+   aperture. Copy PCI BDF/BAR sizes and device identity into module-owned values;
+   hold module references directly, never pointers into intel_info or gPCI.
+   Forward the existing MMIO area ID/address to the display driver with a lease;
+   remove N100 driver-owned AreaKeeper/delete_area cleanup of that mapping.
+   Preserve its existing attributes and shared-info ABI. There must be one
+   physical MMIO mapping owner, not two independently destroyed aliases. Review
+   driver-init error paths and all shared-info clone consumers before coding;
+   compatibility with accelerant clones must be tested. Other GPUs are unchanged.
+5. For the first implementation, failed cleanup and RetainedDisplay have no
+   in-place recovery API. Preserve ownership and diagnostics until controlled
+   reboot. Bounded engine reset may retire a published request only when the
+   reviewed reset protocol proves quiescence; it cannot clear unknown display
+   state or hidden allocation ownership. In-place quarantine reclamation is
+   deferred until exclusive display/GT stop can be demonstrated. Do not expose
+   a nominal retry operation whose preconditions cannot yet be established.
+
+These restrictions make the initial safety behavior explicit, but do not meet
+long-term stable-desktop/reopen or full recovery objectives. They must appear in
+diagnostics and physical test admission. A memory-only owner implementation can
+be reviewed/tested first; it must not enable GPU workloads before Phase 1 gates.
