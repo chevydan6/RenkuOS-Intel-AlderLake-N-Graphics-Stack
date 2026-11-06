@@ -1,0 +1,69 @@
+From c0428e267fd1eb81a3e9721fa9e8f60f2b02a064 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:15:25 +0900
+Subject: [PATCH] intel_extreme: add Type-C HDMI transcoder plan
+
+---
+ .../intel_extreme/TypeCHdmiTranscoder.h       | 50 +++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
+new file mode 100644
+index 00000000..fba63d23
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_TYPE_C_HDMI_TRANSCODER_H
++#define INTEL_EXTREME_TYPE_C_HDMI_TRANSCODER_H
++
++#include <SupportDefs.h>
++#include <stddef.h>
++
++// Register values only. Callers must validate the port-to-PHY mapping and
++// power, clock and ownership state before any register access.
++struct TypeCHdmiTranscoderPlan {
++	uint32 clockSelect;
++	uint32 functionDisabled;
++	uint32 functionEnabled;
++};
++
++static inline status_t
++BuildTypeCHdmiTranscoderPlan(unsigned ddiSelection, unsigned phySelection,
++	unsigned bitsPerColor, bool positiveHSync, bool positiveVSync,
++	TypeCHdmiTranscoderPlan* plan)
++{
++	// The selections are one-based hardware encodings, not firmware DVO
++	// identifiers. Zero means disconnected and must not be enabled.
++	if (plan == NULL || ddiSelection < 1 || ddiSelection > 9
++		|| phySelection < 1 || phySelection > 15)
++		return B_BAD_VALUE;
++
++	uint32 bpc;
++	switch (bitsPerColor) {
++		case 6: bpc = 2; break;
++		case 8: bpc = 0; break;
++		case 10: bpc = 1; break;
++		case 12: bpc = 3; break;
++		default: return B_BAD_VALUE;
++	}
++
++	uint32 function = (ddiSelection << 27) | (bpc << 20);
++	if (positiveHSync)
++		function |= 1U << 16;
++	if (positiveVSync)
++		function |= 1U << 17;
++	plan->clockSelect = phySelection << 28;
++	plan->functionDisabled = function; // HDMI mode has a zero mode field.
++	plan->functionEnabled = function | (1U << 31);
++	return B_OK;
++}
++
++#endif
+-- 
+2.43.0
+

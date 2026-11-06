@@ -1,0 +1,158 @@
+From d80d817da82021df7294929449a6100a9bf7baae Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:19:07 +0900
+Subject: [PATCH] intel_extreme: add mockable Alder Lake Type-C backend
+
+---
+ .../intel_extreme/AlderLakeTypeCBackend.h     | 126 ++++++++++++++++++
+ .../intel_extreme/TypeCPowerWell.h            |   1 +
+ 2 files changed, 127 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h
+new file mode 100644
+index 00000000..6686a1a9
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeTypeCBackend.h
+@@ -0,0 +1,126 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_ALDER_LAKE_TYPE_C_BACKEND_H
++#define INTEL_EXTREME_ALDER_LAKE_TYPE_C_BACKEND_H
++
++#include "TypeCPowerLifecycle.h"
++#include "TypeCPowerWell.h"
++
++// Register I/O is supplied by the caller. This backend must only be used for
++// a verified Alder Lake-P/N Type-C port after display-core power is held.
++// All users must share the power-well object, hold an exclusive port lease,
++// and serialize register access across teams. No mapping is made here.
++struct AlderLakeTypeCIO {
++	void* cookie;
++	status_t (*read)(void* cookie, uint32 offset, uint32* value);
++	status_t (*write)(void* cookie, uint32 offset, uint32 value);
++	void (*pause)(void* cookie);
++};
++
++class AlderLakeTypeCBackend {
++public:
++	AlderLakeTypeCBackend(const AlderLakeTypeCIO& io, TypeCPowerWell& well,
++		unsigned tcPort, unsigned attempts)
++		: fIO(io), fWell(well), fPort(tcPort), fAttempts(attempts)
++	{
++	}
++
++	TypeCPowerOps LifecycleOps()
++	{
++		TypeCPowerOps ops = {this, AcquirePower, ReleasePower, IsOwned,
++			SetOwned, IsReady};
++		return ops;
++	}
++
++private:
++	bool Valid() const
++	{
++		return fPort >= 1 && fPort <= 4 && fWell.Port() == fPort && fAttempts > 0
++			&& fIO.read != NULL && fIO.write != NULL && fIO.pause != NULL;
++	}
++
++	uint32 BufferOffset() const { return 0x64300U + (fPort - 1) * 0x100U; }
++	uint32 StatusOffset() const { return 0x161500U + (fPort - 1) * 4U; }
++
++	status_t Read(uint32 offset, uint32* value)
++	{
++		if (!Valid() || value == NULL)
++			return B_BAD_VALUE;
++		status_t status = fIO.read(fIO.cookie, offset, value);
++		if (status == B_OK && *value == 0xffffffffU)
++			return B_ERROR;
++		return status;
++	}
++
++	static status_t AcquirePower(void* cookie, bool* held)
++	{
++		AlderLakeTypeCBackend& self = *(AlderLakeTypeCBackend*)cookie;
++		if (!self.Valid() || held == NULL)
++			return B_BAD_VALUE;
++		bool wasHeld = self.fWell.IsHeld();
++		status_t status = self.fWell.Acquire();
++		*held = status == B_OK || (!wasHeld && self.fWell.IsHeld());
++		return status;
++	}
++
++	static status_t ReleasePower(void* cookie)
++	{
++		return ((AlderLakeTypeCBackend*)cookie)->fWell.Release();
++	}
++
++	static status_t IsOwned(void* cookie, bool* owned)
++	{
++		AlderLakeTypeCBackend& self = *(AlderLakeTypeCBackend*)cookie;
++		if (owned == NULL)
++			return B_BAD_VALUE;
++		uint32 value;
++		status_t status = self.Read(self.BufferOffset(), &value);
++		if (status == B_OK)
++			*owned = (value & (1U << 6)) != 0;
++		return status;
++	}
++
++	static status_t SetOwned(void* cookie, bool owned)
++	{
++		AlderLakeTypeCBackend& self = *(AlderLakeTypeCBackend*)cookie;
++		uint32 value;
++		status_t status = self.Read(self.BufferOffset(), &value);
++		if (status != B_OK)
++			return status;
++		uint32 next = owned ? value | (1U << 6) : value & ~(1U << 6);
++		return next == value ? B_OK : self.fIO.write(self.fIO.cookie,
++			self.BufferOffset(), next);
++	}
++
++	static status_t IsReady(void* cookie, bool* ready)
++	{
++		AlderLakeTypeCBackend& self = *(AlderLakeTypeCBackend*)cookie;
++		if (!self.Valid() || ready == NULL)
++			return B_BAD_VALUE;
++		*ready = false;
++		for (unsigned i = 0; i < self.fAttempts; i++) {
++			uint32 value;
++			status_t status = self.Read(self.StatusOffset(), &value);
++			if (status != B_OK)
++				return status;
++			if ((value & (1U << 2)) != 0) {
++				*ready = true;
++				return B_OK;
++			}
++			self.fIO.pause(self.fIO.cookie);
++		}
++		return B_TIMED_OUT;
++	}
++
++	AlderLakeTypeCBackend(const AlderLakeTypeCBackend&);
++	AlderLakeTypeCBackend& operator=(const AlderLakeTypeCBackend&);
++
++	AlderLakeTypeCIO fIO;
++	TypeCPowerWell& fWell;
++	unsigned fPort;
++	unsigned fAttempts;
++};
++
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h b/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
+index 2fdd6981..c5ecdd76 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPowerWell.h
+@@ -104,6 +104,7 @@ public:
+ 	}
+ 
+ 	bool IsHeld() const { return fHeld; }
++	unsigned Port() const { return fPort; }
+ 
+ private:
+ 	uint32 StateMask() const { return 1U << (2 * (fPort + 2)); }
+-- 
+2.43.0
+

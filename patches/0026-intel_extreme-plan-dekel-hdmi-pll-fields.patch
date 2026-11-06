@@ -1,0 +1,132 @@
+From 90faf2b014c69262da52ccb193593db92b0fdc52 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:23:00 +0900
+Subject: [PATCH] intel_extreme: calculate Dekel HDMI PLL register fields
+
+---
+ .../accelerants/intel_extreme/DekelHdmiPll.h  | 85 +++++++++++++++++++
+ .../intel_extreme/DekelIntelLicense.txt       | 20 +++++
+ 2 files changed, 105 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/DekelHdmiPll.h
+ create mode 100644 src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt
+
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiPll.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiPll.h
+new file mode 100644
+index 00000000..809dbac4
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiPll.h
+@@ -0,0 +1,85 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Copyright 2006-2016 Intel Corporation.
++ * Distributed under the terms of the MIT License.
++ *
++ * Derived from the Intel i915 Dekel PLL calculations. Intel's original
++ * copyright and MIT permission notice are in DekelIntelLicense.txt.
++ */
++#ifndef INTEL_EXTREME_DEKEL_HDMI_PLL_H
++#define INTEL_EXTREME_DEKEL_HDMI_PLL_H
++
++#include <SupportDefs.h>
++#include <stddef.h>
++
++struct DekelPllUpdate {
++	uint32 internalOffset;
++	uint32 mask;
++	uint32 value;
++};
++
++struct DekelHdmiPllPlan {
++	uint32 dcoKHz;
++	uint32 highSpeedDivider;
++	uint32 secondaryDivider;
++	DekelPllUpdate updates[8];
++};
++
++// HDMI, 8 bits per color, no spread-spectrum clocking or AFC override.
++// Produces register field updates only: it performs no register access.
++static inline status_t
++BuildDekelHdmiPllPlan(uint32 pixelClockKHz, uint32 referenceKHz,
++	DekelHdmiPllPlan* plan)
++{
++	if (plan == NULL || pixelClockKHz == 0 || (referenceKHz != 19200
++		&& referenceKHz != 24000 && referenceKHz != 38400))
++		return B_BAD_VALUE;
++
++	const uint32 dividers[] = {7, 5, 3, 2};
++	for (unsigned i = 0; i < sizeof(dividers) / sizeof(dividers[0]); i++) {
++		for (int secondary = 10; secondary >= 1; secondary--) {
++			uint64 dco = uint64(pixelClockKHz) * 5 * dividers[i]
++				* uint32(secondary);
++			if (dco < 7992000 || dco > 10000000)
++				continue;
++
++			uint32 denominator = referenceKHz * 2;
++			uint32 integer = uint32(dco / denominator);
++			if (integer > 255)
++				return B_BAD_VALUE;
++			uint32 remainder = uint32(dco % denominator);
++			uint32 fraction = uint32((uint64(remainder) << 22) / denominator);
++			uint32 tdc = uint32((uint64(2000000000) / (132 * referenceKHz)
++				+ 5) / 10);
++			uint32 gain = remainder == 0 ? 0 : uint32(uint64(200000000)
++				/ (dco * 3 / 10));
++			uint32 proportional = dco >= 9000000 ? 5 : 4;
++			uint32 integral = dco >= 9000000 ? 10 : 8;
++			uint32 trim = referenceKHz == 24000 ? 25 : 28;
++			uint32 refDivider = referenceKHz == 38400 ? 2 : 1;
++			uint32 highSpeedEncoding = dividers[i] == 7 ? 3
++				: dividers[i] == 5 ? 2 : dividers[i] == 3 ? 1 : 0;
++
++			plan->dcoKHz = uint32(dco);
++			plan->highSpeedDivider = dividers[i];
++			plan->secondaryDivider = uint32(secondary);
++			plan->updates[0] = {0x212c, 0x00000700U, 0x00000100U};
++			plan->updates[1] = {0x20d8, 0x0000ff00U, 0x00000500U};
++			plan->updates[2] = {0x20d4, 0x0001ff00U,
++				(1U << 16) | (secondary >= 2 ? (1U << 14) : 0)
++				| (highSpeedEncoding << 12) | (uint32(secondary) << 8)};
++			plan->updates[3] = {0x2200, 0x001fffffU,
++				(integral << 16) | (proportional << 12) | (2U << 8) | integer};
++			plan->updates[4] = {0x2204, 0x001f00ffU, (trim << 16) | tdc};
++			plan->updates[5] = {0x2210, 0xe0ff3a00U,
++				(refDivider << 29) | (4U << 11)};
++			plan->updates[6] = {0x2214, 0x7fffff00U,
++				(fraction ? (1U << 30) : 0) | (fraction << 8)};
++			plan->updates[7] = {0x2218, 0x0000ffffU, gain};
++			return B_OK;
++		}
++	}
++	return B_BAD_VALUE;
++}
++
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt b/src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt
+new file mode 100644
+index 00000000..d3478b53
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt
+@@ -0,0 +1,20 @@
++Copyright © 2006-2016 Intel Corporation
++
++Permission is hereby granted, free of charge, to any person obtaining a
++copy of this software and associated documentation files (the "Software"),
++to deal in the Software without restriction, including without limitation
++the rights to use, copy, modify, merge, publish, distribute, sublicense,
++and/or sell copies of the Software, and to permit persons to whom the
++Software is furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice (including the next
++paragraph) shall be included in all copies or substantial portions of the
++Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++DEALINGS IN THE SOFTWARE.
+-- 
+2.43.0
+

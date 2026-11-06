@@ -1,0 +1,80 @@
+From b32c01086eecc5b360172f44d5a90dcecf76ed69 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:38:31 +0900
+Subject: [PATCH] intel_extreme: plan Dekel HDMI signal levels
+
+---
+ .../intel_extreme/DekelHdmiSignal.h           | 50 +++++++++++++++++++
+ .../intel_extreme/DekelIntelLicense.txt       |  1 +
+ 2 files changed, 51 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/DekelHdmiSignal.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiSignal.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignal.h
+new file mode 100644
+index 00000000..656d6b28
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignal.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Copyright 2020 Intel Corporation.
++ * Distributed under the terms of the MIT License.
++ * Intel's copyright and permission notice are in DekelIntelLicense.txt.
++ */
++#ifndef INTEL_EXTREME_DEKEL_HDMI_SIGNAL_H
++#define INTEL_EXTREME_DEKEL_HDMI_SIGNAL_H
++
++#include <SupportDefs.h>
++#include <stddef.h>
++
++struct DekelSignalUpdate {
++	uint32 internalOffset;
++	uint32 mask;
++	uint32 value;
++};
++
++struct DekelHdmiSignalPlan {
++	DekelSignalUpdate updates[8];
++};
++
++// Alder Lake-P/N HDMI through a Dekel PHY, 8 bpc and <= 340 MHz. The caller
++// must derive and validate the zero-based preset from firmware, or explicitly
++// choose the platform's documented default. No register I/O is performed.
++static inline status_t
++BuildDekelHdmiSignalPlan(unsigned preset, uint32 pixelClockKHz,
++	bool applyLoadgenWorkaround, DekelHdmiSignalPlan* plan)
++{
++	if (plan == NULL || preset >= 10 || pixelClockKHz == 0
++		|| pixelClockKHz > 340000)
++		return B_BAD_VALUE;
++
++	const uint8 swing[] = {7, 6, 4, 2, 0, 0, 0, 0, 0, 0};
++	const uint8 emphasis[] = {0, 0, 0, 0, 0, 5, 6, 7, 8, 10};
++	uint32 signal = uint32(swing[preset]) | (uint32(emphasis[preset]) << 8);
++	for (unsigned lane = 0; lane < 2; lane++) {
++		uint32 offset = lane * 0x1000;
++		unsigned i = lane * 4;
++		plan->updates[i] = {offset + 0x0d00, 0xffffffffU, 0};
++		plan->updates[i + 1] = {offset + 0x02c0, 0x0003ff07U, signal};
++		plan->updates[i + 2] = {offset + 0x02c4, 0x0003ff07U, signal};
++		uint32 mask = 0x7cU | (applyLoadgenWorkaround ? (1U << 12) : 0);
++		uint32 value = lane == 0 ? 0x40U : 0x78U;
++		plan->updates[i + 3] = {offset + 0x02c8, mask, value};
++	}
++	return B_OK;
++}
++
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt b/src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt
+index d3478b53..edb19432 100644
+--- a/src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt
++++ b/src/add-ons/accelerants/intel_extreme/DekelIntelLicense.txt
+@@ -1,4 +1,5 @@
+ Copyright © 2006-2016 Intel Corporation
++Copyright © 2020 Intel Corporation
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+-- 
+2.43.0
+

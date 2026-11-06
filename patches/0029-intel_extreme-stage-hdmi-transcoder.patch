@@ -1,0 +1,134 @@
+From 1f677443d0168c4e9bae8b1b165a904f981f3fc6 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:29:44 +0900
+Subject: [PATCH] intel_extreme: add staged HDMI transcoder programmer
+
+---
+ .../TypeCHdmiTranscoderProgrammer.h           | 115 ++++++++++++++++++
+ 1 file changed, 115 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
+new file mode 100644
+index 00000000..c329d61f
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
+@@ -0,0 +1,115 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_TYPE_C_HDMI_TRANSCODER_PROGRAMMER_H
++#define INTEL_EXTREME_TYPE_C_HDMI_TRANSCODER_PROGRAMMER_H
++
++#include "AlderLakeTypeCBackend.h"
++#include "TypeCHdmiTranscoder.h"
++
++// Experimental injected-I/O helper. Caller must hold the validated port and
++// transcoder lease, all required power and clocks, and a lock spanning the
++// transaction. Before Release(), caller must disable the HDMI buffer and any
++// other consumer. Failed write callbacks must not alter their registers.
++class TypeCHdmiTranscoderProgrammer {
++public:
++	TypeCHdmiTranscoderProgrammer(const AlderLakeTypeCIO& io, unsigned pipe)
++		: fIO(io), fPipe(pipe), fClockWritten(false), fFunctionWritten(false),
++		  fEnabled(false), fSavedClock(0), fSavedFunction(0)
++	{
++	}
++
++	status_t Configure(const TypeCHdmiTranscoderPlan& plan)
++	{
++		if (fClockWritten || fFunctionWritten || fEnabled)
++			return B_BUSY;
++		const uint32 allowed = 0x78000000U | 0x00700000U | 0x00030000U;
++		uint32 ddi = (plan.functionDisabled >> 27) & 0xfU;
++		uint32 bpc = (plan.functionDisabled >> 20) & 7U;
++		if (fPipe > 2 || fIO.read == NULL || fIO.write == NULL
++			|| ddi < 1 || ddi > 9 || bpc > 3
++			|| (plan.functionDisabled & ~allowed) != 0
++			|| plan.functionEnabled != (plan.functionDisabled | 0x80000000U)
++			|| (plan.clockSelect & 0x0fffffffU) != 0
++			|| (plan.clockSelect & 0xf0000000U) == 0)
++			return B_BAD_VALUE;
++		status_t status = Read(ClockOffset(), &fSavedClock);
++		if (status != B_OK) return status;
++		status = Read(FunctionOffset(), &fSavedFunction);
++		if (status != B_OK) return status;
++		// Don't overwrite an active transcoder or an assigned clock.
++		if ((fSavedClock & 0xf0000000U) != 0
++			|| (fSavedFunction & 0x80000000U) != 0)
++			return B_BUSY;
++		status = fIO.write(fIO.cookie, ClockOffset(), plan.clockSelect);
++		if (status != B_OK) return status;
++		fClockWritten = true;
++		status = fIO.write(fIO.cookie, FunctionOffset(), plan.functionDisabled);
++		if (status != B_OK) return Fail(status);
++		fFunctionWritten = true;
++		fPlan = plan;
++		return B_OK;
++	}
++
++	status_t Enable()
++	{
++		if (!fClockWritten || !fFunctionWritten || fEnabled)
++			return B_BAD_VALUE;
++		status_t status = fIO.write(fIO.cookie, FunctionOffset(), fPlan.functionEnabled);
++		if (status != B_OK) return Fail(status);
++		fEnabled = true;
++		uint32 readback;
++		status = Read(FunctionOffset(), &readback);
++		if (status != B_OK) return Fail(status);
++		const uint32 checkMask = 0x80000000U | 0x78000000U | 0x07000000U
++			| 0x00700000U | 0x00030000U;
++		if ((readback & checkMask) != (fPlan.functionEnabled & checkMask))
++			return Fail(B_ERROR);
++		return B_OK;
++	}
++
++	status_t Release()
++	{
++		if (fFunctionWritten) {
++			status_t status = fIO.write(fIO.cookie, FunctionOffset(), fSavedFunction);
++			if (status != B_OK) return status;
++			uint32 readback;
++			status = Read(FunctionOffset(), &readback);
++			if (status != B_OK) return status;
++			if ((readback & 0x80000000U) != 0) return B_ERROR;
++			fFunctionWritten = false;
++			fEnabled = false;
++		}
++		if (fClockWritten) {
++			status_t status = fIO.write(fIO.cookie, ClockOffset(), fSavedClock);
++			if (status != B_OK) return status;
++			fClockWritten = false;
++		}
++		return B_OK;
++	}
++
++private:
++	uint32 ClockOffset() const { return 0x46140U + fPipe * 4U; }
++	uint32 FunctionOffset() const { return 0x60400U + fPipe * 0x1000U; }
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t status = fIO.read(fIO.cookie, offset, value);
++		return status == B_OK && *value == 0xffffffffU ? B_ERROR : status;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t cleanup = Release();
++		return cleanup == B_OK ? cause : cleanup;
++	}
++
++	TypeCHdmiTranscoderProgrammer(const TypeCHdmiTranscoderProgrammer&);
++	TypeCHdmiTranscoderProgrammer& operator=(const TypeCHdmiTranscoderProgrammer&);
++	AlderLakeTypeCIO fIO;
++	unsigned fPipe;
++	bool fClockWritten, fFunctionWritten, fEnabled;
++	uint32 fSavedClock, fSavedFunction;
++	TypeCHdmiTranscoderPlan fPlan;
++};
++
++#endif
+-- 
+2.43.0
+

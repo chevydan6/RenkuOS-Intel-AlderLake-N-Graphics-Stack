@@ -1,0 +1,129 @@
+From 7ee6a9e7db6233a3a72a47ff22dad0d9d14491df Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:40:24 +0900
+Subject: [PATCH] intel_extreme: add guarded Dekel signal programming
+
+---
+ .../intel_extreme/DekelHdmiSignalProgrammer.h | 110 ++++++++++++++++++
+ 1 file changed, 110 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
+new file mode 100644
+index 00000000..b9ba4afc
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
+@@ -0,0 +1,110 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_DEKEL_HDMI_SIGNAL_PROGRAMMER_H
++#define INTEL_EXTREME_DEKEL_HDMI_SIGNAL_PROGRAMMER_H
++
++#include "AlderLakeTypeCBackend.h"
++#include "DekelHdmiSignal.h"
++
++// Experimental injected-I/O helper. The caller must hold display-core and
++// Type-C power, an exclusive port lease and a lock spanning HIP index and
++// aperture access. The buffer must stay disabled while applying or restoring
++// signal settings. Failed writes must leave the addressed register unchanged.
++class DekelHdmiSignalProgrammer {
++public:
++	DekelHdmiSignalProgrammer(const AlderLakeTypeCIO& io, unsigned tcPort)
++		: fIO(io), fPort(tcPort), fApplied(0)
++	{
++	}
++
++	status_t Apply(unsigned preset, uint32 clockKHz, bool loadgenWorkaround)
++	{
++		if (fApplied != 0) return B_BUSY;
++		if (fPort < 1 || fPort > 4 || fIO.read == NULL || fIO.write == NULL)
++			return B_BAD_VALUE;
++		status_t status = BuildDekelHdmiSignalPlan(preset, clockKHz,
++			loadgenWorkaround, &fPlan);
++		if (status != B_OK) return status;
++		status = CheckPort();
++		if (status != B_OK) return status;
++		for (unsigned i = 0; i < 8; i++) {
++			uint32 value;
++			status = ReadPhy(fPlan.updates[i].internalOffset, &value);
++			if (status != B_OK) return Fail(status);
++			fSaved[i] = value & fPlan.updates[i].mask;
++			value = (value & ~fPlan.updates[i].mask) | fPlan.updates[i].value;
++			status = WritePhy(fPlan.updates[i].internalOffset, value);
++			if (status != B_OK) return Fail(status);
++			fApplied++;
++		}
++		return B_OK;
++	}
++
++	status_t Restore()
++	{
++		if (fApplied == 0) return B_OK;
++		status_t status = CheckPort();
++		if (status != B_OK) return status;
++		while (fApplied != 0) {
++			unsigned i = fApplied - 1;
++			uint32 value;
++			status = ReadPhy(fPlan.updates[i].internalOffset, &value);
++			if (status != B_OK) return status;
++			value = (value & ~fPlan.updates[i].mask) | fSaved[i];
++			status = WritePhy(fPlan.updates[i].internalOffset, value);
++			if (status != B_OK) return status;
++			fApplied--;
++		}
++		return B_OK;
++	}
++
++private:
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t status = fIO.read(fIO.cookie, offset, value);
++		return status == B_OK && *value == 0xffffffffU ? B_ERROR : status;
++	}
++	status_t CheckPort()
++	{
++		uint32 value;
++		status_t status = Read(0x161500U + (fPort - 1) * 4U, &value);
++		if (status != B_OK) return status;
++		if ((value & (1U << 2)) == 0) return B_ERROR;
++		status = Read(0x64300U + (fPort - 1) * 0x100U, &value);
++		if (status != B_OK) return status;
++		if ((value & (1U << 31)) != 0) return B_BUSY;
++		return (value & (1U << 6)) != 0 ? B_OK : B_ERROR;
++	}
++	uint32 PhyOffset(uint32 offset) const
++		{ return 0x168000U + (fPort - 1) * 0x1000U + (offset & 0xfffU); }
++	status_t Select(uint32 offset)
++	{
++		return fIO.write(fIO.cookie, 0x1010a0U,
++			((offset >> 12) & 0xfU) << ((fPort - 1) * 8));
++	}
++	status_t ReadPhy(uint32 offset, uint32* value)
++	{
++		status_t status = Select(offset);
++		return status == B_OK ? Read(PhyOffset(offset), value) : status;
++	}
++	status_t WritePhy(uint32 offset, uint32 value)
++	{
++		status_t status = Select(offset);
++		return status == B_OK ? fIO.write(fIO.cookie, PhyOffset(offset), value) : status;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t cleanup = Restore();
++		return cleanup == B_OK ? cause : cleanup;
++	}
++	DekelHdmiSignalProgrammer(const DekelHdmiSignalProgrammer&);
++	DekelHdmiSignalProgrammer& operator=(const DekelHdmiSignalProgrammer&);
++	AlderLakeTypeCIO fIO;
++	unsigned fPort, fApplied;
++	DekelHdmiSignalPlan fPlan;
++	uint32 fSaved[8];
++};
++
++#endif
+-- 
+2.43.0
+

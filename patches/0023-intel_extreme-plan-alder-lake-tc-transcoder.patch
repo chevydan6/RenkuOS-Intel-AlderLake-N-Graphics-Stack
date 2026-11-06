@@ -1,0 +1,33 @@
+From 2627bb70124ad91122c3f5e2d8ddce6e523a5a7f Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:17:20 +0900
+Subject: [PATCH] intel_extreme: plan Alder Lake Type-C transcoder routing
+
+---
+ .../accelerants/intel_extreme/TypeCHdmiTranscoder.h  | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
+index fba63d23..87b4977d 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoder.h
+@@ -47,4 +47,16 @@ BuildTypeCHdmiTranscoderPlan(unsigned ddiSelection, unsigned phySelection,
+ 	return B_OK;
+ }
+ 
++
++static inline status_t
++BuildAlderLakeMobileTypeCHdmiPlan(unsigned tcPort, unsigned bitsPerColor,
++	bool positiveHSync, bool positiveVSync, TypeCHdmiTranscoderPlan* plan)
++{
++	if (tcPort < 1 || tcPort > 4)
++		return B_BAD_VALUE;
++	// On display version 13, TC1..4 are logical DDI D..G and PHY F..I.
++	return BuildTypeCHdmiTranscoderPlan(tcPort + 3, tcPort + 5,
++		bitsPerColor, positiveHSync, positiveVSync, plan);
++}
++
+ #endif
+-- 
+2.43.0
+

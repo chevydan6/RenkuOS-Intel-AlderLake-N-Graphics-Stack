@@ -148,6 +148,47 @@ power-domain, or transcoder initialization. References: Linux
 [VBT mapping](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_bios.c)
 and [port numbering](https://github.com/torvalds/linux/blob/f66469d9905b39d2c260a15d7d6db450f4db67c1/drivers/gpu/drm/i915/display/intel_display_limits.h).
 
+Follow-on development adds a mock-only HDMI transcoder value planner (patches
+22–23), an injected-I/O ADL-P Type-C power/ownership backend (24–25), a Dekel
+HDMI PLL field calculator (26), and a rollback-aware PLL programmer (27).
+The programmer rejects a PLL already enabled or powered, bounds polling, and
+restores masked PLL fields in reverse order on failure. The backend polls PHY
+health before claiming ownership. These components have mock tests; they are
+not instantiated by the modesetting path and have never accessed hardware.
+They still require a shared inter-team lock, port lease, display-core power
+management, complete signal-level/PHY programming, correct sequencing with
+pipe and transcoder setup, and validated output teardown before integration.
+
+Bundle `renku-034` compiled and passed native component checks and the
+mock-only Type-C power, PHY backend, transcoder-plan and PLL-programmer tests
+in a disposable RenkuOS VM; host finalization passed and the VM shut down
+cleanly. Tests covered 17,253 PLL frequency inputs and failures at each of
+the eight simulated PLL register writes. No physical GPU was exercised.
+
+Subsequent patches add a staged transcoder programmer and Type-C HDMI buffer
+control with mocked conflict, timeout, and rollback tests. These remain
+disconnected from the live modesetting path; PHY signal levels, shared
+resource coordination and complete sequencing are still required. No HDMI
+picture or hardware acceleration has been demonstrated by these changes.
+
+Further patches add signal-level planning/programming, scoped VBT child-table
+boundary checks, and an injected-I/O ADL-P HDMI sequence. The sequence plans
+PLL and transcoder values, acquires the Type-C lifecycle, programs the PLL,
+stages and enables the transcoder, applies PHY signal levels, and enables the
+buffer. Its cleanup reverses these stages and stops if cleanup fails. A mock
+test injects one failure at each of 57 write operations and checks restored
+state; it does not establish hardware timing or sequencing correctness. The
+VBT child-copy test covers 1,041 malformed/truncated/capacity cases. Other VBT
+block types are not fully audited by this change.
+
+Bundle `renku-036` compiled the VBT parser change in a disposable RenkuOS VM,
+passed the component tests and host finalization, and shut down cleanly. The
+later signal programmer and complete sequence have so far been tested only on
+mock registers. None of the new helpers is wired into the real mode-setting
+path. A display-core power implementation, cross-team shared lock and port
+lease, validated VBT preset/lane reversal, pipe configuration and real device
+I/O adapter remain necessary before a hardware test.
+
 References: Linux [display-device classification](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_device.c),
 [VBT-to-port mapping](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_bios.c),
 [display register definitions](https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/i915/display/intel_display_regs.h),

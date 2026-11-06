@@ -1,0 +1,111 @@
+From f5294b05916a67f4a5f8d81aa7556115ab56bde2 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:31:52 +0900
+Subject: [PATCH] intel_extreme: add bounded Type-C HDMI buffer control
+
+---
+ .../intel_extreme/TypeCHdmiBuffer.h           | 92 +++++++++++++++++++
+ 1 file changed, 92 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
+new file mode 100644
+index 00000000..af0a2828
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
+@@ -0,0 +1,92 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_TYPE_C_HDMI_BUFFER_H
++#define INTEL_EXTREME_TYPE_C_HDMI_BUFFER_H
++
++#include "AlderLakeTypeCBackend.h"
++
++// Injected-I/O helper. The caller must hold the port lease, power and PHY
++// ownership, and must have configured signal levels and lane power. It must
++// serialize all port users through Enable() and Release(). The backend must
++// leave registers unchanged when a write reports failure.
++class TypeCHdmiBuffer {
++public:
++	TypeCHdmiBuffer(const AlderLakeTypeCIO& io, unsigned tcPort, unsigned attempts)
++		: fIO(io), fPort(tcPort), fAttempts(attempts), fHeld(false), fSaved(0)
++	{
++	}
++
++	status_t Enable(bool laneReversal)
++	{
++		if (fHeld) return B_BUSY;
++		if (fPort < 1 || fPort > 4 || fAttempts == 0 || fIO.read == NULL
++			|| fIO.write == NULL || fIO.pause == NULL) return B_BAD_VALUE;
++		uint32 value;
++		status_t status = Read(&value);
++		if (status != B_OK) return status;
++		if ((value & kEnable) != 0) return B_BUSY;
++		if ((value & kOwned) == 0) return B_ERROR;
++		fSaved = value & kTouched;
++		uint32 next = value & ~(kRateMask | kWidthMask | kReverse);
++		next |= kEnable;
++		if (laneReversal)
++			next |= kReverse;
++		status = fIO.write(fIO.cookie, Offset(), next);
++		if (status != B_OK) return status;
++		fHeld = true;
++		status = WaitIdle(false);
++		if (status == B_OK) return B_OK;
++		status_t cleanup = Release();
++		return cleanup == B_OK ? status : cleanup;
++	}
++
++	status_t Release()
++	{
++		if (!fHeld) return B_OK;
++		uint32 value;
++		status_t status = Read(&value);
++		if (status != B_OK) return status;
++		status = fIO.write(fIO.cookie, Offset(), value & ~kEnable);
++		if (status != B_OK) return status;
++		status = WaitIdle(true);
++		if (status != B_OK) return status;
++		status = Read(&value);
++		if (status != B_OK) return status;
++		status = fIO.write(fIO.cookie, Offset(), (value & ~kTouched) | fSaved);
++		if (status != B_OK) return status;
++		fHeld = false;
++		return B_OK;
++	}
++
++private:
++	enum { kEnable = 1U << 31, kOwned = 1U << 6, kIdle = 1U << 7,
++		kReverse = 1U << 16, kRateMask = 0xfU << 20, kWidthMask = 7U << 1,
++		kTouched = kEnable | kReverse | kRateMask | kWidthMask };
++	uint32 Offset() const { return 0x64300U + (fPort - 1) * 0x100U; }
++	status_t Read(uint32* value)
++	{
++		status_t status = fIO.read(fIO.cookie, Offset(), value);
++		return status == B_OK && *value == 0xffffffffU ? B_ERROR : status;
++	}
++	status_t WaitIdle(bool idle)
++	{
++		for (unsigned i = 0; i < fAttempts; i++) {
++			uint32 value;
++			status_t status = Read(&value);
++			if (status != B_OK) return status;
++			if (((value & kIdle) != 0) == idle) return B_OK;
++			fIO.pause(fIO.cookie);
++		}
++		return B_TIMED_OUT;
++	}
++	TypeCHdmiBuffer(const TypeCHdmiBuffer&);
++	TypeCHdmiBuffer& operator=(const TypeCHdmiBuffer&);
++	AlderLakeTypeCIO fIO;
++	unsigned fPort, fAttempts;
++	bool fHeld;
++	uint32 fSaved;
++};
++
++#endif
+-- 
+2.43.0
+

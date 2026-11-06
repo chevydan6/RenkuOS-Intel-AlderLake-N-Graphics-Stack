@@ -1,0 +1,151 @@
+From fb00df69ef008a8968d383837c9e63444329d44d Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:36:05 +0900
+Subject: [PATCH] intel_extreme: bound VBT child device parsing
+
+---
+ .../drivers/graphics/intel_extreme/bios.cpp   | 76 +++++++++++++++----
+ 1 file changed, 60 insertions(+), 16 deletions(-)
+
+diff --git a/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp b/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp
+index a00992c9..7303da46 100644
+--- a/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp
++++ b/src/add-ons/kernel/drivers/graphics/intel_extreme/bios.cpp
+@@ -237,6 +237,7 @@ struct bdb_lfp_backlight_data {
+ static struct vbios {
+ 	area_id			area;
+ 	uint8*			memory;
++	size_t			size;
+ 	uint16_t ReadWord(off_t address)
+ 	{
+ 		return memory[address] | memory[address + 1] << 8;
+@@ -419,6 +420,12 @@ get_bios(int* vbtOffset)
+ 			}
+ 		}
+ 
++		// Offsets returned to the parser are signed integers.
++		if (kVBIOSSize > 0x7fffffffU) {
++			delete_area(vbios.area);
++			continue;
++		}
++
+ 		// dump ROM to file if selected in settings file
+ 		if (read_settings_dumpRom())
+ 			dumprom(vbios.memory, kVBIOSSize, info);
+@@ -444,6 +451,7 @@ get_bios(int* vbtOffset)
+ 			delete_area(vbios.area);
+ 			continue;
+ 		}
++		vbios.size = kVBIOSSize;
+ 		return true;
+ 	}
+ 
+@@ -451,6 +459,32 @@ get_bios(int* vbtOffset)
+ }
+ 
+ 
++static void
++copy_vbt_child_configs(intel_shared_info* info, const uint8* devices,
++	size_t available, uint8 childSize)
++{
++	info->device_config_count = 0;
++	// At least the handle and device_type must be present before reading it.
++	if (childSize < sizeof(uint16) * 2)
++		return;
++
++	size_t count = available / childSize;
++	for (size_t i = 0; i < count; i++) {
++		const child_device_config* config
++			= (const child_device_config*)(devices + i * childSize);
++		if (config->device_type == 0)
++			continue;
++		if (info->device_config_count >= B_COUNT_OF(info->device_configs))
++			break;
++		child_device_config* target = &info->device_configs[info->device_config_count];
++		memset(target, 0, sizeof(*target));
++		memcpy(target, config, min_c(sizeof(*target), childSize));
++		TRACE((DEVICE_NAME ": found child device type: 0x%x\n", config->device_type));
++		info->device_config_count++;
++	}
++}
++
++
+ static void
+ sanitize_panel_timing(display_timing& timing)
+ {
+@@ -490,13 +524,29 @@ parse_vbt_from_bios(struct intel_shared_info* info)
+ 	if (!get_bios(&vbtOffset))
+ 		return false;
+ 
++	if (vbtOffset < 0 || (size_t)vbtOffset > vbios.size
++		|| vbios.size - (size_t)vbtOffset < sizeof(vbt_header)) {
++		delete_area(vbios.area);
++		return false;
++	}
+ 	struct vbt_header* vbt = (struct vbt_header*)(vbios.memory + vbtOffset);
+-	int bdbOffset = vbtOffset + vbt->bdb_offset;
++	if (vbt->bdb_offset > vbios.size - (size_t)vbtOffset
++		|| vbios.size - (size_t)vbtOffset - vbt->bdb_offset < sizeof(bdb_header)) {
++		delete_area(vbios.area);
++		return false;
++	}
++	size_t bdbOffset = (size_t)vbtOffset + vbt->bdb_offset;
+ 
+ 	struct bdb_header* bdb = (struct bdb_header*)(vbios.memory + bdbOffset);
+ 	if (memcmp(bdb->signature, "BIOS_DATA_BLOCK ", 16) != 0) {
+ 		TRACE((DEVICE_NAME": bad BDB signature\n"));
+ 		delete_area(vbios.area);
++		return false;
++	}
++	if (bdb->header_size < sizeof(bdb_header) || bdb->bdb_size < bdb->header_size
++		|| bdb->bdb_size > vbios.size - bdbOffset) {
++		delete_area(vbios.area);
++		return false;
+ 	}
+ 	TRACE((DEVICE_NAME ": VBT signature \"%.*s\", BDB version %d\n",
+ 			(int)sizeof(vbt->signature), vbt->signature, bdb->version));
+@@ -507,10 +557,14 @@ parse_vbt_from_bios(struct intel_shared_info* info)
+ 
+ 	for (int bdbBlockOffset = bdb->header_size; bdbBlockOffset < bdb->bdb_size;
+ 			bdbBlockOffset += blockSize) {
+-		int start = bdbOffset + bdbBlockOffset;
++		if (bdb->bdb_size - bdbBlockOffset < 3)
++			break;
++		size_t start = bdbOffset + bdbBlockOffset;
+ 
+ 		int id = vbios.memory[start];
+ 		blockSize = vbios.ReadWord(start + 1) + 3;
++		if (blockSize > bdb->bdb_size - bdbBlockOffset)
++			break;
+ 		switch (id) {
+ 			case BDB_GENERAL_FEATURES:
+ 			{
+@@ -531,21 +585,11 @@ parse_vbt_from_bios(struct intel_shared_info* info)
+ 				struct bdb_general_definitions* defs;
+ 				if (bdb->version < 111)
+ 					break;
++				if ((size_t)blockSize < sizeof(*defs))
++					break;
+ 				defs = (struct bdb_general_definitions*)(vbios.memory + start);
+-				uint8 childDeviceSize = defs->child_device_size;
+-				uint32 device_config_count = (blockSize - sizeof(*defs)) / childDeviceSize;
+-				for (uint32 i = 0; i < device_config_count; i++) {
+-					child_device_config* config =
+-						(child_device_config*)(&defs->devices[i * childDeviceSize]);
+-					if (config->device_type == 0)
+-						continue;
+-					memcpy(&info->device_configs[info->device_config_count], config,
+-						min_c(sizeof(child_device_config), childDeviceSize));
+-					TRACE((DEVICE_NAME ": found child device type: 0x%x\n", config->device_type));
+-					info->device_config_count++;
+-					if (info->device_config_count > 10)
+-						break;
+-				}
++				copy_vbt_child_configs(info, defs->devices,
++					blockSize - sizeof(*defs), defs->child_device_size);
+ 				break;
+ 			}
+ 			case BDB_LVDS_OPTIONS:
+-- 
+2.43.0
+

@@ -1,0 +1,190 @@
+From 3312259888b829f61886757dea123839494b5df2 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:26:22 +0900
+Subject: [PATCH] intel_extreme: add rollback-aware Dekel PLL programmer
+
+---
+ .../intel_extreme/DekelHdmiPllProgrammer.h    | 171 ++++++++++++++++++
+ 1 file changed, 171 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+new file mode 100644
+index 00000000..c80a61eb
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+@@ -0,0 +1,171 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_DEKEL_HDMI_PLL_PROGRAMMER_H
++#define INTEL_EXTREME_DEKEL_HDMI_PLL_PROGRAMMER_H
++
++#include "AlderLakeTypeCBackend.h"
++#include "DekelHdmiPll.h"
++
++// Experimental: the caller must hold the validated TC port, display power,
++// and a shared lock covering all HIP-index operations for this entire
++// transaction. No display may be consuming the PLL during Program() or
++// Release(). Register callbacks must not mutate a register on failure. No
++// hardware mapping or caller is provided by this class.
++class DekelHdmiPllProgrammer {
++public:
++	DekelHdmiPllProgrammer(const AlderLakeTypeCIO& io, unsigned tcPort,
++		unsigned attempts)
++		: fIO(io), fPort(tcPort), fAttempts(attempts), fPowerHeld(false),
++		  fEnabled(false), fApplied(0)
++	{
++	}
++
++	status_t Program(const DekelHdmiPllPlan& plan)
++	{
++		if (fPowerHeld || fEnabled || fApplied != 0)
++			return B_BUSY;
++		if (fPort < 1 || fPort > 4 || fAttempts == 0 || fIO.read == NULL
++			|| fIO.write == NULL || fIO.pause == NULL)
++			return B_BAD_VALUE;
++		for (unsigned i = 0; i < 8; i++) {
++			if (plan.updates[i].internalOffset > 0xffff
++				|| (plan.updates[i].internalOffset & 3) != 0
++				|| plan.updates[i].mask == 0
++				|| (plan.updates[i].value & ~plan.updates[i].mask) != 0)
++				return B_BAD_VALUE;
++		}
++		fPlan = plan;
++		uint32 control;
++		status_t status = Read(ControlOffset(), &control);
++		if (status != B_OK)
++			return status;
++		// Never take over a PLL that firmware or another display is using.
++		if ((control & (kEnable | kLock | kPowerRequest | kPowerState)) != 0)
++			return B_BUSY;
++		status = fIO.write(fIO.cookie, ControlOffset(), control | kPowerRequest);
++		if (status != B_OK)
++			return status;
++		fPowerHeld = true;
++		status = Wait(kPowerState, true);
++		if (status != B_OK)
++			return Fail(status);
++
++		for (unsigned i = 0; i < 8; i++) {
++			uint32 oldValue;
++			status = ReadPhy(fPlan.updates[i].internalOffset, &oldValue);
++			if (status != B_OK)
++				return Fail(status);
++			fSaved[i] = oldValue & fPlan.updates[i].mask;
++			uint32 next = (oldValue & ~fPlan.updates[i].mask)
++				| fPlan.updates[i].value;
++			status = WritePhy(fPlan.updates[i].internalOffset, next);
++			if (status != B_OK)
++				return Fail(status);
++			fApplied++;
++		}
++
++		status = Read(ControlOffset(), &control);
++		if (status != B_OK)
++			return Fail(status);
++		status = fIO.write(fIO.cookie, ControlOffset(), control | kEnable);
++		if (status != B_OK)
++			return Fail(status);
++		fEnabled = true;
++		status = Wait(kLock, true);
++		return status == B_OK ? B_OK : Fail(status);
++	}
++
++	status_t Release()
++	{
++		status_t status;
++		uint32 control;
++		if (fEnabled) {
++			status = Read(ControlOffset(), &control);
++			if (status != B_OK) return status;
++			status = fIO.write(fIO.cookie, ControlOffset(), control & ~kEnable);
++			if (status != B_OK) return status;
++			status = Wait(kLock, false);
++			if (status != B_OK) return status;
++			fEnabled = false;
++		}
++		while (fApplied != 0) {
++			unsigned i = fApplied - 1;
++			uint32 value;
++			status = ReadPhy(fPlan.updates[i].internalOffset, &value);
++			if (status != B_OK) return status;
++			value = (value & ~fPlan.updates[i].mask) | fSaved[i];
++			status = WritePhy(fPlan.updates[i].internalOffset, value);
++			if (status != B_OK) return status;
++			fApplied--;
++		}
++		if (fPowerHeld) {
++			status = Read(ControlOffset(), &control);
++			if (status != B_OK) return status;
++			status = fIO.write(fIO.cookie, ControlOffset(), control & ~kPowerRequest);
++			if (status != B_OK) return status;
++			status = Wait(kPowerState, false);
++			if (status != B_OK) return status;
++			fPowerHeld = false;
++		}
++		return B_OK;
++	}
++
++private:
++	enum { kEnable = 1U << 31, kLock = 1U << 30,
++		kPowerRequest = 1U << 27, kPowerState = 1U << 26 };
++	uint32 ControlOffset() const { return 0x46038U + (fPort - 1) * 8U; }
++	uint32 PhyOffset(uint32 offset) const
++		{ return 0x168000U + (fPort - 1) * 0x1000U + (offset & 0xfffU); }
++
++	status_t Read(uint32 offset, uint32* value)
++	{
++		status_t status = fIO.read(fIO.cookie, offset, value);
++		return status == B_OK && *value == 0xffffffffU ? B_ERROR : status;
++	}
++	status_t Select(uint32 offset)
++	{
++		return fIO.write(fIO.cookie, 0x1010a0U,
++			((offset >> 12) & 0xfU) << ((fPort - 1) * 8));
++	}
++	status_t ReadPhy(uint32 offset, uint32* value)
++	{
++		status_t status = Select(offset);
++		return status == B_OK ? Read(PhyOffset(offset), value) : status;
++	}
++	status_t WritePhy(uint32 offset, uint32 value)
++	{
++		status_t status = Select(offset);
++		return status == B_OK ? fIO.write(fIO.cookie, PhyOffset(offset), value) : status;
++	}
++	status_t Wait(uint32 mask, bool set)
++	{
++		for (unsigned i = 0; i < fAttempts; i++) {
++			uint32 value;
++			status_t status = Read(ControlOffset(), &value);
++			if (status != B_OK) return status;
++			if (((value & mask) != 0) == set) return B_OK;
++			fIO.pause(fIO.cookie);
++		}
++		return B_TIMED_OUT;
++	}
++	status_t Fail(status_t cause)
++	{
++		status_t cleanup = Release();
++		return cleanup == B_OK ? cause : cleanup;
++	}
++
++	DekelHdmiPllProgrammer(const DekelHdmiPllProgrammer&);
++	DekelHdmiPllProgrammer& operator=(const DekelHdmiPllProgrammer&);
++	AlderLakeTypeCIO fIO;
++	unsigned fPort;
++	unsigned fAttempts;
++	bool fPowerHeld;
++	bool fEnabled;
++	unsigned fApplied;
++	DekelHdmiPllPlan fPlan;
++	uint32 fSaved[8];
++};
++
++#endif
+-- 
+2.43.0
+

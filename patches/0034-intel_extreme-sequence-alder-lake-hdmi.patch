@@ -1,0 +1,193 @@
+From 33f4d85f7a162dd6f2323293e1cc9f7743b19f8f Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:44:47 +0900
+Subject: [PATCH] intel_extreme: sequence Alder Lake HDMI setup and rollback
+
+---
+ .../intel_extreme/AlderLakeHdmiSequence.h     | 104 ++++++++++++++++++
+ .../intel_extreme/DekelHdmiPllProgrammer.h    |   2 +
+ .../intel_extreme/DekelHdmiSignalProgrammer.h |   2 +
+ .../intel_extreme/TypeCHdmiBuffer.h           |   2 +
+ .../TypeCHdmiTranscoderProgrammer.h           |   2 +
+ .../intel_extreme/TypeCPowerLifecycle.h       |   2 +
+ 6 files changed, 114 insertions(+)
+ create mode 100644 src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+
+diff --git a/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+new file mode 100644
+index 00000000..68666c63
+--- /dev/null
++++ b/src/add-ons/accelerants/intel_extreme/AlderLakeHdmiSequence.h
+@@ -0,0 +1,104 @@
++/*
++ * Copyright 2026 RenkuOS GPU Development.
++ * Distributed under the terms of the MIT License.
++ */
++#ifndef INTEL_EXTREME_ALDER_LAKE_HDMI_SEQUENCE_H
++#define INTEL_EXTREME_ALDER_LAKE_HDMI_SEQUENCE_H
++
++#include "DekelHdmiPllProgrammer.h"
++#include "DekelHdmiSignalProgrammer.h"
++#include "TypeCHdmiBuffer.h"
++#include "TypeCHdmiTranscoderProgrammer.h"
++
++// Experimental orchestration. The caller must validate the device, firmware
++// port mapping and signal preset; prepare pipe timings; hold display-core
++// power, the exclusive port and pipe leases, and a shared lock for all
++// register transactions. No MMIO backend or mode-setting hook is installed.
++class AlderLakeHdmiSequence {
++public:
++	AlderLakeHdmiSequence(const AlderLakeTypeCIO& io, TypeCPowerWell& well,
++		unsigned tcPort, unsigned pipe, unsigned attempts)
++		: fWell(well), fBackend(io, well, tcPort, attempts),
++		  fPower(fBackend.LifecycleOps()), fPll(io, tcPort, attempts),
++		  fTranscoder(io, pipe), fSignal(io, tcPort),
++		  fBuffer(io, tcPort, attempts), fPort(tcPort), fPipe(pipe), fStarted(false)
++	{
++	}
++
++	status_t Begin(uint32 pixelClockKHz, uint32 referenceKHz,
++		unsigned preset, bool loadgenWorkaround, bool positiveHSync,
++		bool positiveVSync, bool laneReversal)
++	{
++		if (fStarted || fPower.NeedsCleanup() || fPll.NeedsCleanup()
++			|| fTranscoder.NeedsCleanup() || fSignal.NeedsCleanup()
++			|| fBuffer.NeedsCleanup()) return B_BUSY;
++		if (fPort < 1 || fPort > 4 || fWell.Port() != fPort || fPipe > 2)
++			return B_BAD_VALUE;
++		DekelHdmiPllPlan pllPlan;
++		TypeCHdmiTranscoderPlan transPlan;
++		DekelHdmiSignalPlan signalPlan;
++		status_t status = BuildDekelHdmiPllPlan(pixelClockKHz, referenceKHz,
++			&pllPlan);
++		if (status != B_OK) return status;
++		status = BuildAlderLakeMobileTypeCHdmiPlan(fPort, 8, positiveHSync,
++			positiveVSync, &transPlan);
++		if (status != B_OK) return status;
++		status = BuildDekelHdmiSignalPlan(preset, pixelClockKHz,
++			loadgenWorkaround, &signalPlan);
++		if (status != B_OK) return status;
++
++		fStarted = true;
++		status = fPower.Acquire();
++		if (status != B_OK) return Fail(status);
++		status = fPll.Program(pllPlan);
++		if (status != B_OK) return Fail(status);
++		status = fTranscoder.Configure(transPlan);
++		if (status != B_OK) return Fail(status);
++		status = fTranscoder.Enable();
++		if (status != B_OK) return Fail(status);
++		status = fSignal.Apply(preset, pixelClockKHz, loadgenWorkaround);
++		if (status != B_OK) return Fail(status);
++		status = fBuffer.Enable(laneReversal);
++		if (status != B_OK) return Fail(status);
++		return B_OK;
++	}
++
++	status_t End()
++	{
++		if (!fStarted) return B_OK;
++		// Stop on cleanup failure so dependent power and clock resources
++		// stay held until the caller can retry the remaining cleanup.
++		status_t status = fBuffer.Release();
++		if (status != B_OK) return status;
++		status = fSignal.Restore();
++		if (status != B_OK) return status;
++		status = fTranscoder.Release();
++		if (status != B_OK) return status;
++		status = fPll.Release();
++		if (status != B_OK) return status;
++		status = fPower.Release();
++		if (status != B_OK) return status;
++		fStarted = false;
++		return B_OK;
++	}
++
++private:
++	status_t Fail(status_t cause)
++	{
++		status_t cleanup = End();
++		return cleanup == B_OK ? cause : cleanup;
++	}
++	AlderLakeHdmiSequence(const AlderLakeHdmiSequence&);
++	AlderLakeHdmiSequence& operator=(const AlderLakeHdmiSequence&);
++	TypeCPowerWell& fWell;
++	AlderLakeTypeCBackend fBackend;
++	TypeCPowerLifecycle fPower;
++	DekelHdmiPllProgrammer fPll;
++	TypeCHdmiTranscoderProgrammer fTranscoder;
++	DekelHdmiSignalProgrammer fSignal;
++	TypeCHdmiBuffer fBuffer;
++	unsigned fPort, fPipe;
++	bool fStarted;
++};
++
++#endif
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+index 83bd2f00..b7627e91 100644
+--- a/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+@@ -121,6 +121,8 @@ public:
+ 		return B_OK;
+ 	}
+ 
++	bool NeedsCleanup() const { return fPowerHeld || fEnabled || fApplied != 0; }
++
+ private:
+ 	enum { kEnable = 1U << 31, kLock = 1U << 30,
+ 		kPowerRequest = 1U << 27, kPowerState = 1U << 26 };
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
+index b9ba4afc..c0efa578 100644
+--- a/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiSignalProgrammer.h
+@@ -60,6 +60,8 @@ public:
+ 		return B_OK;
+ 	}
+ 
++	bool NeedsCleanup() const { return fApplied != 0; }
++
+ private:
+ 	status_t Read(uint32 offset, uint32* value)
+ 	{
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
+index af0a2828..014ea2f2 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiBuffer.h
+@@ -60,6 +60,8 @@ public:
+ 		return B_OK;
+ 	}
+ 
++	bool NeedsCleanup() const { return fHeld; }
++
+ private:
+ 	enum { kEnable = 1U << 31, kOwned = 1U << 6, kIdle = 1U << 7,
+ 		kReverse = 1U << 16, kRateMask = 0xfU << 20, kWidthMask = 7U << 1,
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
+index c329d61f..f27542db 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCHdmiTranscoderProgrammer.h
+@@ -89,6 +89,8 @@ public:
+ 		return B_OK;
+ 	}
+ 
++	bool NeedsCleanup() const { return fClockWritten || fFunctionWritten || fEnabled; }
++
+ private:
+ 	uint32 ClockOffset() const { return 0x46140U + fPipe * 4U; }
+ 	uint32 FunctionOffset() const { return 0x60400U + fPipe * 0x1000U; }
+diff --git a/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+index fa62850e..715d617f 100644
+--- a/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
++++ b/src/add-ons/accelerants/intel_extreme/TypeCPowerLifecycle.h
+@@ -87,6 +87,8 @@ public:
+ 		return B_OK;
+ 	}
+ 
++	bool NeedsCleanup() const { return fPowerHeld || fOwnershipTaken || fActive; }
++
+ private:
+ 	TypeCPowerLifecycle(const TypeCPowerLifecycle&);
+ 	TypeCPowerLifecycle& operator=(const TypeCPowerLifecycle&);
+-- 
+2.43.0
+

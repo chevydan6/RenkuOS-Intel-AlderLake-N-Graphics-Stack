@@ -1,0 +1,39 @@
+From 0bb9e26c108586f9d7629fa4ca3ece2280b54c04 Mon Sep 17 00:00:00 2001
+From: RenkuOS GPU Development <gpu-development@localhost>
+Date: Fri, 6 Nov 2026 17:27:21 +0900
+Subject: [PATCH] intel_extreme: validate Dekel PLL register plans
+
+---
+ .../intel_extreme/DekelHdmiPllProgrammer.h        | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+index c80a61eb..83bd2f00 100644
+--- a/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
++++ b/src/add-ons/accelerants/intel_extreme/DekelHdmiPllProgrammer.h
+@@ -29,10 +29,19 @@ public:
+ 		if (fPort < 1 || fPort > 4 || fAttempts == 0 || fIO.read == NULL
+ 			|| fIO.write == NULL || fIO.pause == NULL)
+ 			return B_BAD_VALUE;
++		if (plan.dcoKHz < 7992000 || plan.dcoKHz > 10000000
++			|| (plan.highSpeedDivider != 2 && plan.highSpeedDivider != 3
++				&& plan.highSpeedDivider != 5 && plan.highSpeedDivider != 7)
++			|| plan.secondaryDivider < 1 || plan.secondaryDivider > 10)
++			return B_BAD_VALUE;
++		const uint32 offsets[] = {0x212c, 0x20d8, 0x20d4, 0x2200,
++			0x2204, 0x2210, 0x2214, 0x2218};
++		const uint32 masks[] = {0x00000700U, 0x0000ff00U, 0x0001ff00U,
++			0x001fffffU, 0x001f00ffU, 0xe0ff3a00U, 0x7fffff00U,
++			0x0000ffffU};
+ 		for (unsigned i = 0; i < 8; i++) {
+-			if (plan.updates[i].internalOffset > 0xffff
+-				|| (plan.updates[i].internalOffset & 3) != 0
+-				|| plan.updates[i].mask == 0
++			if (plan.updates[i].internalOffset != offsets[i]
++				|| plan.updates[i].mask != masks[i]
+ 				|| (plan.updates[i].value & ~plan.updates[i].mask) != 0)
+ 				return B_BAD_VALUE;
+ 		}
+-- 
+2.43.0
+
