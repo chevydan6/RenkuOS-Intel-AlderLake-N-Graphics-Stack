@@ -1,0 +1,10 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+ 00:41:06  up   0:00,  0 users,  load average: 0.00, 0.00, 0.00
+  Volume Name: "RenkuTest"
+       Device: /dev/disk/usb/0/0/1
+  device 46d1: Alder Lake-N [UHD Graphics]
+ 7541 0xffffffff8283a000 0xffffffff82846000     0          0 /boot/home/config/non-packaged/add-ons/kernel/drivers/dev/graphics/intel_extreme
+ 7543 0xffffffff8289c000 0xffffffff828a3000     0          0 /boot/system/non-packaged/add-ons/kernel/bus_managers/agp_gart
+ 7563 0xffffffff82847000 0xffffffff8284a000     0          0 /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+ 7564 0xffffffff82707000 0xffffffff8270c000     0          0 /boot/system/non-packaged/add-ons/kernel/busses/agp_gart/intel
+/boot/system/servers/app_server                      127       25    0    0 

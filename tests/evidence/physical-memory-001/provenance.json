@@ -1,0 +1,18 @@
+{
+  "private_evidence": "/home/dan/renkuos-development/installation/private/gpu-memory-physical-001",
+  "physical_gpu_execution": false,
+  "physical_owned_allocation_free_cycles": 30,
+  "native_build_source_manifest": "7b146e7b646977d43e5b9686afc2923038b55c4a04c7f4bddfeeab2f533557c0",
+  "scope": "One physical boot; owned NON_RESERVED allocation/free only; no GPU publication, no fault injection, no leak-count proof.",
+  "files": {
+    "deploy.py": "f91670f3806fb0c63c247affa5bdf394e101c590ebab699e0a5b4629c68926e0",
+    "before.log": "119db1d80fa8293faca8ca007255b715adb0e4785295838004149d39138fd168",
+    "before.jpg": "152a6f2ccfdfe8faa0cc48033ddd820cfb4d01196b8f301337e2888f17db9bcb",
+    "after-boot.log": "9e343339d94126576315728476514adaa14f7bf29443ccea48d684ee666d623f",
+    "after-boot.jpg": "e47c4405276a8ab2d4ef61ec25943cad2ed001f269d3688dd2aa9773b93c79a4",
+    "after-test.log": "4022d04bfc28a61c0f26de3abc1a2761b300590701437c9504e90dfd59b64591",
+    "after-test.jpg": "c3bd908043f9379e5b917cc35a8c6636e62dab9b296be4dc253fde5c469a8918",
+    "memory-test.log": "0118835b80e2e3ab775b67fe4f62a54d9604151256ee4016e3e7f80d38b2ec9d",
+    "physical-validation/result.json": "fe99ef51b59df8caad6243584e8f979d8df5badf3c8f40432528dce0ee5da700"
+  }
+}

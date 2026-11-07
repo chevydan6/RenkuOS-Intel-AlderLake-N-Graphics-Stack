@@ -1,0 +1,5 @@
+Usage: memory-smoke --run /dev/graphics/DEVICE
+Requires reviewed artifacts and verified external recovery.
+30 private non-reserved allocations/frees; no GPU workload.
+ed85656071e8692c31fd1480a1e74d0dc7e9b26a23b4017ec05f82e0718efa30  memory-smoke
+a18e7b64c90889e63813ca5f5888cc7692ae38aa3fa0da827264a59a5746e187  tests/memory-smoke.cpp
