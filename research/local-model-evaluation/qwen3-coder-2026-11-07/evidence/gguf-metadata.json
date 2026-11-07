@@ -1,0 +1,23 @@
+{
+  "general.architecture": "qwen3moe",
+  "general.type": "model",
+  "general.sampling.top_k": 20,
+  "general.sampling.top_p": 0.800000011920929,
+  "general.sampling.temp": 0.699999988079071,
+  "general.sampling.penalty_repeat": 1.0499999523162842,
+  "general.name": "Qwen3-Coder-30B-A3B-Instruct",
+  "general.size_label": "128x1.8B",
+  "general.license": "apache-2.0",
+  "general.license.link": "https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct/blob/main/LICENSE",
+  "general.tags": {
+    "array_type": 8,
+    "length": 1
+  },
+  "qwen3moe.context_length": 262144,
+  "tokenizer.ggml.eos_token_id": 151645,
+  "tokenizer.ggml.bos_token_id": 151643,
+  "tokenizer.ggml.add_bos_token": false,
+  "tokenizer.ggml.add_eos_token": false,
+  "general.quantization_version": 2,
+  "general.file_type": 15
+}

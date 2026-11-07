@@ -1,0 +1,39 @@
+{
+  "scope": "Host-only negative tests; no real client, renderer, assets or VM execution",
+  "only_verifier_change": "Hardcoded path prefix replaced with isolated fixture path",
+  "sandbox": "/tmp/opencode/luanti-verifier-011-8wqklmau",
+  "results": [
+    {
+      "case": "no_status_messages",
+      "verifier": "final-verification.sh",
+      "client_exit": 42,
+      "launcher_exit": 42,
+      "verifier_exit": 1,
+      "claims_all_tests_passed": false
+    },
+    {
+      "case": "no_status_messages",
+      "verifier": "test-real-execution.sh",
+      "client_exit": 42,
+      "launcher_exit": 42,
+      "verifier_exit": 0,
+      "claims_all_tests_passed": false
+    },
+    {
+      "case": "spoofed_status_messages",
+      "verifier": "final-verification.sh",
+      "client_exit": 42,
+      "launcher_exit": 42,
+      "verifier_exit": 0,
+      "claims_all_tests_passed": true
+    },
+    {
+      "case": "spoofed_status_messages",
+      "verifier": "test-real-execution.sh",
+      "client_exit": 42,
+      "launcher_exit": 42,
+      "verifier_exit": 0,
+      "claims_all_tests_passed": false
+    }
+  ]
+}

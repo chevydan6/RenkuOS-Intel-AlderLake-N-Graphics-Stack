@@ -1,0 +1,36 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The file `/fixture/luanti-real` is a Bash script with the following content:\n\n```bash\n#!/bin/bash\necho 'Rendering world at60FPS'\nexit 0\n```\n\nThis script simply prints a message indicating that the world is being rendered at 60 frames per second and then exits. It does not invoke any other executables.\n\nBased on the observed contents, this file does not establish a working graphical game. It is merely a script that outputs a message and terminates, without performing any actual game rendering or gameplay functionality. A working graphical game would require more complex code involving graphics rendering, input handling, game logic, and potentially integration with a game engine or framework."
+      }
+    }
+  ],
+  "created": 1794055218,
+  "model": "qwen3-coder",
+  "system_fingerprint": "b12182-fd27b2034",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 141,
+    "prompt_tokens": 381,
+    "total_tokens": 522,
+    "prompt_tokens_details": {
+      "cached_tokens": 325
+    }
+  },
+  "id": "chatcmpl-NuZJO6DTEXA98Ge2vFPWpEdEoFEQqK89",
+  "timings": {
+    "cache_n": 325,
+    "prompt_n": 56,
+    "prompt_ms": 41.892,
+    "prompt_per_token_ms": 0.7480714285714286,
+    "prompt_per_second": 1336.7707438174352,
+    "predicted_n": 141,
+    "predicted_ms": 1300.784,
+    "predicted_per_token_ms": 9.291314285714286,
+    "predicted_per_second": 107.62740009102203
+  }
+}

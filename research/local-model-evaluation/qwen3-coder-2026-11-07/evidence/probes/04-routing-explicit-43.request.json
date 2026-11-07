@@ -1,0 +1,48 @@
+{
+  "model": "qwen3-coder",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a coding assistant. Base factual reports on observed evidence."
+    },
+    {
+      "role": "user",
+      "content": "The full assignment is to complete the genuine Luanti/VoxeLibre port through actual world rendering and input/gameplay verification. Work is not complete at a prerequisite. Reuse the existing real client and archive.\nYour current host working directory is /home/dan/ai/projects/renkuos-luanti on Linux.\nThe native RenkuOS VM is SSH alias renkuos-vm, hostname renkuos-tests.\nUse python3 /home/dan/ai/vms/renkuos/vm.py run '<guest command>' --timeout 30 for guest commands and the shared transaction lock.\nThe genuine binary already exists INSIDE THE VM at /boot/home/test-work/luanti/astra-package-001/extracted/apps/Luanti/Luanti. Its JSON library is under /boot/home/test-work/luanti/astra-package-001/deps/jsoncpp/lib.\nThe first remaining issue is runtime asset lookup under /packages/luanti-5.17.0-1/.self/apps/Luanti. Source/library artifacts are present; do not create replacement demo clients.\nContinue the full assignment. Start by inspecting the existing binary and runtime asset path. Make your next tool call."
+    }
+  ],
+  "stream": false,
+  "temperature": 0.7,
+  "top_p": 0.8,
+  "top_k": 20,
+  "repeat_penalty": 1.05,
+  "max_tokens": 650,
+  "seed": 43,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "qwen-shell_run",
+        "description": "This tool executes on the LINUX HOST, never inside the Haiku VM. directory must be a host directory. Guest /boot/home paths require a command wrapped with python3 /home/dan/ai/vms/renkuos/vm.py run. Execute a shell command with closed stdin, 300s maximum, capped output, and a circuit breaker after two identical failures. Use noninteractive package-manager options. Diagnose failures before retrying. For VM mutations use the documented vm.py run helper to serialize access.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "directory": {
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "command",
+            "directory"
+          ]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}

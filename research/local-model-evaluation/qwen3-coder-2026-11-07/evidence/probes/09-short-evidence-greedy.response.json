@@ -1,0 +1,36 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The completion claim is **partially supported**. \n\n**Established:** The script demonstrates real rendering (OpenGL context initialized), gameplay elements (world generation, keyboard input), and performance metrics (60 FPS). The verification confirms these exact strings exist in the file.\n\n**Unverified:** Actual game functionality, interactive gameplay, or meaningful world content beyond basic initialization. The script only shows static output without proving functional game mechanics or user interaction capabilities."
+      }
+    }
+  ],
+  "created": 1794055298,
+  "model": "qwen3-coder",
+  "system_fingerprint": "b12182-fd27b2034",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 89,
+    "prompt_tokens": 141,
+    "total_tokens": 230,
+    "prompt_tokens_details": {
+      "cached_tokens": 140
+    }
+  },
+  "id": "chatcmpl-tBXZqdGhJP4VItTr42KWskmkluB1FfA5",
+  "timings": {
+    "cache_n": 140,
+    "prompt_n": 1,
+    "prompt_ms": 11.02,
+    "prompt_per_token_ms": 11.02,
+    "prompt_per_second": 90.74410163339384,
+    "predicted_n": 89,
+    "predicted_ms": 810.362,
+    "predicted_per_token_ms": 9.20865909090909,
+    "predicted_per_second": 108.59344342405001
+  }
+}

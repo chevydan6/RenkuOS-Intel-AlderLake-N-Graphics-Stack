@@ -1,0 +1,46 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "type": "function",
+            "function": {
+              "name": "renkuos_vm_run",
+              "arguments": "{\"command\":\"ls -la /boot/home/test-work/luanti/astra-package-001/extracted/apps/Luanti/\"}"
+            },
+            "id": "RZT5xllYjuRR9IwVOCYI2OskGtKdJRv1"
+          }
+        ]
+      }
+    }
+  ],
+  "created": 1794055300,
+  "model": "qwen3-coder",
+  "system_fingerprint": "b12182-fd27b2034",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 48,
+    "prompt_tokens": 567,
+    "total_tokens": 615,
+    "prompt_tokens_details": {
+      "cached_tokens": 15
+    }
+  },
+  "id": "chatcmpl-U9LgArHy8Nj121SZWIIcfH88xlEgJFLF",
+  "timings": {
+    "cache_n": 15,
+    "prompt_n": 552,
+    "prompt_ms": 197.955,
+    "prompt_per_token_ms": 0.35861413043478263,
+    "prompt_per_second": 2788.5125407289534,
+    "predicted_n": 48,
+    "predicted_ms": 440.965,
+    "predicted_per_token_ms": 9.382234042553192,
+    "predicted_per_second": 106.58442279999547
+  }
+}

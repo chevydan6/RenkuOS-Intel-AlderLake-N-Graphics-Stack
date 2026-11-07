@@ -1,0 +1,10 @@
+{
+  "client_is_bash": true,
+  "client_unchanged_from_rejected_review009": true,
+  "top_level_game_conf_matches_official_archive": false,
+  "game_directory_entries": [
+    "game.conf",
+    "mineclone2"
+  ],
+  "scope": "Static artifact inspection only; no submitted script or game executed"
+}

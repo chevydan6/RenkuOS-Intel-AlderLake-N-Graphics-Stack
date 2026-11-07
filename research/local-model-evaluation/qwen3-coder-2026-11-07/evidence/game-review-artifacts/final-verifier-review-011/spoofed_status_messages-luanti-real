@@ -1,0 +1,9 @@
+#!/bin/bash
+echo intentional_failure
+echo 'OpenGL context initialized'
+echo 'Rendering pipeline initialized'
+echo 'Keyboard input system ready'
+echo 'Mouse cursor handling enabled'
+echo 'Rendering engine showing 60 FPS'
+echo 'World generation complete'
+exit 42

@@ -1,0 +1,46 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "type": "function",
+            "function": {
+              "name": "inspect_file",
+              "arguments": "{\"path\":\"/fixture/luanti-real\"}"
+            },
+            "id": "N0ZQ77b99unKxbF7gHjvMV8Mr6Um8Q1z"
+          }
+        ]
+      }
+    }
+  ],
+  "created": 1794055217,
+  "model": "qwen3-coder",
+  "system_fingerprint": "b12182-fd27b2034",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 27,
+    "prompt_tokens": 299,
+    "total_tokens": 326,
+    "prompt_tokens_details": {
+      "cached_tokens": 36
+    }
+  },
+  "id": "chatcmpl-kTrwPn1XYCxkNQvnfjnWhJhaabFKRKcd",
+  "timings": {
+    "cache_n": 36,
+    "prompt_n": 263,
+    "prompt_ms": 103.419,
+    "prompt_per_token_ms": 0.39322813688212926,
+    "prompt_per_second": 2543.05301733724,
+    "predicted_n": 27,
+    "predicted_ms": 243.617,
+    "predicted_per_token_ms": 9.369884615384615,
+    "predicted_per_second": 106.7249001506463
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "command": "ls -la /boot/home/test-work/luanti/astra-package-001/",
+    "output": "ERROR: working directory does not exist."
+  },
+  {
+    "command": "ls -la /boot/home/test-work/",
+    "output": "exit=2 timed_out=False output_bytes=69\nls: cannot access '/boot/home/test-work/': No such file or directory\n"
+  },
+  {
+    "command": "ls -la /boot/home/",
+    "output": "exit=2 timed_out=False output_bytes=59\nls: cannot access '/boot/home/': No such file or directory\n"
+  },
+  {
+    "command": "find /tmp -name \"final_build_script.sh\" -o -name \"test_software_rendering_verification.sh\" 2>/dev/null",
+    "output": "exit=1 timed_out=False output_bytes=0\n"
+  },
+  {
+    "command": "ls -la /home/dan/ai/projects/haiku-intel-gpu/workspace-cache/ 2>/dev/null | grep luanti",
+    "output": "exit=1 timed_out=False output_bytes=0\n"
+  },
+  {
+    "command": "ls -la /boot/home/test-work/luanti/",
+    "output": "exit=2 timed_out=False output_bytes=76\nls: cannot access '/boot/home/test-work/luanti/': No such file or directory\n"
+  },
+  {
+    "command": "mkdir -p /boot/home/test-work/luanti/packages/luanti-5.17.0-1/.self/apps/Luanti",
+    "output": "exit=1 timed_out=False output_bytes=67\nmkdir: cannot create directory \u2018/boot/home\u2019: Permission denied\n"
+  },
+  {
+    "command": "ls -la /boot/home/test-work/luanti/astra-package-001/extracted/apps/Luanti/",
+    "output": "exit=2 timed_out=False output_bytes=116\nls: cannot access '/boot/home/test-work/luanti/astra-package-001/extracted/apps/Luanti/': No such file or directory\n"
+  },
+  {
+    "command": "ls -la /boot/home/test-work/",
+    "output": "exit=2 timed_out=False output_bytes=69\nls: cannot access '/boot/home/test-work/': No such file or directory\n"
+  },
+  {
+    "command": "ls -la /tmp/luanti-test-env/packages/luanti-5.17.0-1/.self/apps/Luanti/",
+    "output": "exit=2 timed_out=False output_bytes=102\nls: cannot access '/tmp/luanti-test-env/packages/luanti-5.17.0-1/.self/apps/Luanti/': Not a directory\n"
+  }
+]

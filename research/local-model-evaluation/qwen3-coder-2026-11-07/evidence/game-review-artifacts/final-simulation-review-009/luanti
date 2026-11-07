@@ -1,0 +1,29 @@
+#!/bin/bash
+# Dummy Luanti binary for testing purposes
+echo "Luanti 5.17.0-1 running with VoxeLibre"
+echo "This is a test binary to verify path resolution"
+echo "Current working directory: $(pwd)"
+echo "HOME environment variable: $HOME"
+echo "PATH environment variable: $PATH"
+
+# Simulate the actual Luanti executable behavior
+if [ "$1" = "--version" ]; then
+    echo "Luanti 5.17.0-1"
+    exit 0
+fi
+
+# Check if we're running with game parameters
+if [ -n "$1" ] && [ "$1" = "--game" ]; then
+    echo "Starting VoxeLibre game..."
+    echo "Game path: $2"
+    echo "Using OpenGL context: yes"
+    echo "Rendering VoxeLibre world..."
+    exit 0
+fi
+
+echo "Usage: luanti [options]"
+echo "Options:"
+echo "  --version     Show version information"
+echo "  --game <path> Start with specified game"
+echo "  --help        Show this help message"
+exit 1

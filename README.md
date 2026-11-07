@@ -25,6 +25,10 @@ the later build 057 remains the known-working display baseline.
 See [MAINTENANCE.md](MAINTENANCE.md) for module boundaries, resource ownership,
 hardware invariants and the cleanup/review workflow.
 
+The [local-model investigation](results/2026-11-07-local-model-investigation.md)
+records the failed Luanti/VoxeLibre agent trial, reproducible probes, evidence,
+and proposed harness corrections.
+
 The following early milestones are historical snapshots. Their patch counts,
 installation state and former hardware-validation restrictions describe those
 earlier checkpoints; use the current report above for present status.

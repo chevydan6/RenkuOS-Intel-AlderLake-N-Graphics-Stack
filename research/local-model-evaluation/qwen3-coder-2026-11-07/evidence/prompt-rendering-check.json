@@ -1,0 +1,18 @@
+{
+  "01-short-evidence": {
+    "chars": 667,
+    "has_system_marker": true,
+    "has_user_marker": true,
+    "has_host_rule": false,
+    "has_guest_wrapper_rule": false,
+    "contains_echo_source": true
+  },
+  "10-routing-system-rule-42": {
+    "chars": 3085,
+    "has_system_marker": true,
+    "has_user_marker": true,
+    "has_host_rule": true,
+    "has_guest_wrapper_rule": true,
+    "contains_echo_source": false
+  }
+}

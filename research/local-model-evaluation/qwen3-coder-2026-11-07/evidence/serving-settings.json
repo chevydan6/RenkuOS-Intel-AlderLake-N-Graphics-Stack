@@ -1,0 +1,33 @@
+{
+  "build_info": "b12182-fd27b2034",
+  "model_alias": "qwen3-coder",
+  "total_slots": 1,
+  "context": 24576,
+  "input_limit": 19968,
+  "output_limit": 4096,
+  "compaction": {
+    "keep_tokens": 6000,
+    "buffer_tokens": 512
+  },
+  "sampling": {
+    "temperature": 0.699999988079071,
+    "top_k": 20,
+    "top_p": 0.800000011920929,
+    "min_p": 0.05000000074505806,
+    "repeat_penalty": 1.0499999523162842
+  },
+  "chat_template_caps": {
+    "supports_object_arguments": true,
+    "supports_parallel_tool_calls": true,
+    "supports_preserve_reasoning": false,
+    "supports_reasoning_effort": false,
+    "supports_string_content": true,
+    "supports_system_role": true,
+    "supports_tool_calls": true,
+    "supports_tools": true,
+    "supports_typed_content": false,
+    "reasoning_effort_levels": []
+  },
+  "raw_template_sha256": "32bf2564d2245b98298677d3ac2332ab50bc3279740c13c3974689464b38aa3c",
+  "upstream_template_sha256": "5a38bfa05833266240066aedc497decc9b00cc0d3e3b8cceea98cf530196ab06"
+}

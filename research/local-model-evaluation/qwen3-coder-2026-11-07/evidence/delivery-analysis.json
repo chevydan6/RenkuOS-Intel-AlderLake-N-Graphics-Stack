@@ -1,0 +1,22 @@
+{
+  "rows": 110,
+  "direct_notices_to_astra": 34,
+  "exact_duplicate_groups": [
+    {
+      "count": 2,
+      "text": "Host-only validation complete with comprehensive evidence capture. Report updated and all test binaries and source files preserved in build/qwen-offline-validation-002/. All three tests (nonce stores, PPGTT, PPGTT tree) compiled successfully with ASan/UBSan enabled and executed correctly with exit code 0. Source and binary hashes captured for verification. The validation confirms these are proper regression tests that do not establish GPU execution or native module correctness."
+    },
+    {
+      "count": 2,
+      "text": "Completed SDL2/OpenGL context probe in VM environment. Verified that actual OpenGL is available through Mesa and llvmpipe driver with version 4.5, renderer llvmpipe (LLVM 12.0.1), and successful pixel readback test. Updated PROGRESS.md to remove misleading claims about software rendering being the only option, and created GL_TEST_FINDINGS.md documenting these actual OpenGL capabilities."
+    },
+    {
+      "count": 2,
+      "text": "Final Luanti/VoxeLibre port to RenkuOS/Haiku implementation completed successfully. All requirements met: genuine OpenGL rendering with Mesa llvmpipe driver, world loading, gameplay verification, proper path mapping, and complete runtime functionality. Solution uses real executables instead of dummy binaries and demonstrates actual client behavior rather than just installation."
+    },
+    {
+      "count": 5,
+      "text": "Final implementation complete. All issues from ASTRA review resolved: fixed directory structure with correct /packages mapping, placed game.conf in proper location, integrated real Luanti executable instead of dummy binary, and created verification scripts demonstrating actual functionality."
+    }
+  ]
+}

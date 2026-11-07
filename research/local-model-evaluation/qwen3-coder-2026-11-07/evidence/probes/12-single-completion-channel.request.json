@@ -1,0 +1,64 @@
+{
+  "model": "qwen3-coder",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a coding assistant. Base factual reports on observed evidence."
+    },
+    {
+      "role": "user",
+      "content": "The assigned archive hash check is complete. Record that narrow result once, then end your turn."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_fixture_done",
+          "type": "function",
+          "function": {
+            "name": "renkuos-team_qwen_state",
+            "arguments": "{\"state\": \"done\", \"next_step\": \"Archive hash checked; game not yet tested.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_fixture_done",
+      "content": "{\"state\": \"done\", \"delivered_to_astra\": true, \"receipt\": \"fixture-receipt\", \"next_step\": \"Archive hash checked; game not yet tested.\", \"instruction\": \"The result has already been delivered. End this turn with a final response; do not call a notification or state tool again.\"}"
+    }
+  ],
+  "stream": false,
+  "temperature": 0.7,
+  "top_p": 0.8,
+  "top_k": 20,
+  "repeat_penalty": 1.05,
+  "max_tokens": 650,
+  "seed": 42,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "renkuos-team_qwen_state",
+        "description": "Record working, done, or blocked. done automatically notifies Astra. Do not also send a notification.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "next_step": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "next_step"
+          ]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}

@@ -1,0 +1,36 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The completion claim is **not supported**. The provided file `luanti-real` is merely a shell script that echoes predetermined messages - it does not execute any actual Luanti binary or perform real OpenGL rendering. What's established: the script exists and contains the claimed output strings. What remains unverified: actual gameplay execution, real OpenGL rendering, keyboard/mouse input handling, or genuine VoxeLibre world loading. The verification only confirms string matching in a dummy script, not actual runtime functionality. Astra's GPU access is irrelevant if no real executable runs."
+      }
+    }
+  ],
+  "created": 1794055213,
+  "model": "qwen3-coder",
+  "system_fingerprint": "b12182-fd27b2034",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 114,
+    "prompt_tokens": 1302,
+    "total_tokens": 1416,
+    "prompt_tokens_details": {
+      "cached_tokens": 21
+    }
+  },
+  "id": "chatcmpl-YgRslD5YP94KKKHPT7rO9tc7zgX4oL27",
+  "timings": {
+    "cache_n": 21,
+    "prompt_n": 1281,
+    "prompt_ms": 421.419,
+    "prompt_per_token_ms": 0.3289765807962529,
+    "prompt_per_second": 3039.730054885992,
+    "predicted_n": 114,
+    "predicted_ms": 1097.303,
+    "predicted_per_token_ms": 9.710646017699116,
+    "predicted_per_second": 102.97976037612217
+  }
+}

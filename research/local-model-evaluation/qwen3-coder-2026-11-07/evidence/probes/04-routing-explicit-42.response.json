@@ -1,0 +1,46 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "type": "function",
+            "function": {
+              "name": "qwen-shell_run",
+              "arguments": "{\"command\":\"ls -la /boot/home/test-work/luanti/astra-package-001/extracted/apps/Luanti/\",\"directory\":\"/home/dan/ai/projects/renkuos-luanti\"}"
+            },
+            "id": "oiA33WF2lmoUmk5ZmNHVCkTvdCKh7nLZ"
+          }
+        ]
+      }
+    }
+  ],
+  "created": 1794055215,
+  "model": "qwen3-coder",
+  "system_fingerprint": "b12182-fd27b2034",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 68,
+    "prompt_tokens": 668,
+    "total_tokens": 736,
+    "prompt_tokens_details": {
+      "cached_tokens": 45
+    }
+  },
+  "id": "chatcmpl-IVgrR3aJesnYBxAzgqRaLlmdCME7o63k",
+  "timings": {
+    "cache_n": 45,
+    "prompt_n": 623,
+    "prompt_ms": 220.113,
+    "prompt_per_token_ms": 0.35331139646869986,
+    "prompt_per_second": 2830.36440373808,
+    "predicted_n": 68,
+    "predicted_ms": 625.781,
+    "predicted_per_token_ms": 9.340014925373133,
+    "predicted_per_second": 107.06621006390415
+  }
+}

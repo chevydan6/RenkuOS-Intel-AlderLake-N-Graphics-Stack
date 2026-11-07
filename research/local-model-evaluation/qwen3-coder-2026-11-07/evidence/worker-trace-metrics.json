@@ -1,0 +1,24 @@
+{
+  "model": {
+    "id": "qwen3-coder",
+    "providerID": "local",
+    "variant": "default"
+  },
+  "messages": 1745,
+  "assistant_messages": 1501,
+  "compactions": 153,
+  "compactions_completed": 152,
+  "full_handoff_message_index": 1541,
+  "after_handoff": {
+    "shell_calls": 71,
+    "vm_py_or_ssh_calls": 0,
+    "compactions": 13,
+    "code_mode_calls": 12,
+    "state_calls": 13,
+    "notify_calls": 10
+  },
+  "model_file_sha256": "f6050b4da22869aa3fb9d94bb3314e9fc5a027d4741c1f97761c387d6b2b2335",
+  "model_file_bytes": 17988419552,
+  "upstream_gguf_revision": "0ca51122012fe4a20dc82988ee58780b008ce4e3",
+  "template_matches_ignoring_trailing_whitespace": true
+}

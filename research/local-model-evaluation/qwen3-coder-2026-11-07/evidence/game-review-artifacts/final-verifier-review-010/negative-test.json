@@ -1,0 +1,9 @@
+{
+  "scope": "Host-only negative test of submitted verifier, not game execution",
+  "only_verifier_change": "Replace hardcoded /tmp/luanti-final prefix with isolated fixture directory",
+  "sandbox": "/tmp/opencode/luanti-verifier-negative-fbnhdod4",
+  "client_exit": 42,
+  "launcher_exit": 42,
+  "verifier_exit": 0,
+  "claimed_all_requirements_satisfied": true
+}

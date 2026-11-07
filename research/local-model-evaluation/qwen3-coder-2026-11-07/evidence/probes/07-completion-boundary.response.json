@@ -1,0 +1,46 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The archive hash check has been completed, and the result is recorded. The next step is to test the game, as the archive hash verification is finished.",
+        "tool_calls": [
+          {
+            "type": "function",
+            "function": {
+              "name": "renkuos-team_notify_astra",
+              "arguments": "{\"message\":\"Archive hash checked; game not yet tested.\"}"
+            },
+            "id": "2kRJNMzOVlwZFax5QlF2w3M7FGUCnycK"
+          }
+        ]
+      }
+    }
+  ],
+  "created": 1794055219,
+  "model": "qwen3-coder",
+  "system_fingerprint": "b12182-fd27b2034",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 65,
+    "prompt_tokens": 490,
+    "total_tokens": 555,
+    "prompt_tokens_details": {
+      "cached_tokens": 36
+    }
+  },
+  "id": "chatcmpl-zop1TuwhI0Xvrgrd1fcJnsa19niofBOT",
+  "timings": {
+    "cache_n": 36,
+    "prompt_n": 454,
+    "prompt_ms": 154.644,
+    "prompt_per_token_ms": 0.340625550660793,
+    "prompt_per_second": 2935.7750704844675,
+    "predicted_n": 65,
+    "predicted_ms": 598.32,
+    "predicted_per_token_ms": 9.34875,
+    "predicted_per_second": 106.9661719481214
+  }
+}
