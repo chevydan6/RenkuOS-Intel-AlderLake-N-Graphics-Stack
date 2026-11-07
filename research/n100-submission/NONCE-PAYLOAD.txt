@@ -1,0 +1,27 @@
+FIRST NONCE PAYLOAD ENCODING — 2026-11-07
+Implemented checked8DWORD GGTT nonce/complement stores at dedicated4K page
+slots0/4, below4GiB. Raw addresses are GGTT offsets, never CPU/physical pointers.
+Page alignment/range, output capacity and unchanged invalid outputs are checked.
+Nonce poison/randomness policy is separate; encoder preserves all32bit values.
+Compiled/tested host O2 C++17 -Wall -Wextra -Werror UBSan:32cases passed. Literal
+reference packet, edge pages, complement, guard words and rejection nonmutation.
+Terra independently reviewed source and reproduced32passing cases; accepted
+as offline candidate. No native compilation, GPU simulator, VM or physical test.
+This is only a direct-ring payload, not a complete request. It has no flush,
+completion, context, ring control, MMIO, publication or recovery operation.
+Existing production display/source unchanged. GPU execution remains unproven.
+Physical blocker revalidated: NanoKVM tools/list has only HID/video controls,
+no reset/power. Console recovery still requires physical reset; no new module
+installed/run. Kernel fixture14ba4f8 remains priority after recovery. More offline
+packet checks do not substitute for its real-kernel evidence.
+Next: run reviewed kernel page fixture once console recovers; complete exact
+Gen12 visibility/flush/completion and initialization/reset contracts before GPU
+publication. Desktop status updated and goal remains active.
+
+Primary references at Linux028ef9c96e96197026887c0f092424679298aae8 (MIT):
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_gpu_commands.h
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/selftest_lrc.c
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/gen8_engine_cs.c
+Host command from gpu-driver root:
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -fsanitize=undefined -fno-sanitize-recover=all -I workstreams/gpu-next tests/n100-nonce-stores-test.cpp -o /tmp/n100-nonce-stores-test
+/tmp/n100-nonce-stores-test
