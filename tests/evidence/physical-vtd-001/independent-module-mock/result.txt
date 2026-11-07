@@ -1,0 +1,20 @@
+Independent host mock review; no hardware access.
+Working directory: /home/dan/renkuos-development/gpu-driver
+Compile and run command:
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -fsanitize=undefined,address -fno-sanitize-recover=all -I /tmp/terra-vtd -I tests -I workstreams/gpu-next /tmp/terra-vtd/test.cpp -o /tmp/terra-vtd/test && /tmp/terra-vtd/test
+Expected observed result: 3 actual-module observer mock scenarios passed
+Scenarios: two successful mappings/reads and cached repeat; second mapping failure after first cleanup; first deletion failure retained and cached repeat without retry.
+Host stubs simulate memory and kernel calls. This is not a real VT-d MMIO test.
+
+Source SHA-256:
+8646cec4d5aa808489ccda24db780fd8530611be374a7d15b3f502dd5fbf2c18  tests/vtd-native-module.cpp
+91f60e2f6bf8bf20e51ed195793674c9d8bd3bbddea7439292fe79ca38ae9dee  tests/vtd-native-protocol.h
+36ac4a334ab6eb5409f5279dc81e8b26303b826f064710399a59401df9e229d2  tests/dmar-native-protocol.h
+3fa8b8a9c306390570b284a82a5d7bff992c488bd9c14067f0ad23ed2ce953b3  workstreams/gpu-next/IntelDmarInventory.h
+16176f40a79572ffeaf63b321e8fde64aeacc78b0e5aa1878e57ef9a6fa3ff93  workstreams/gpu-next/IntelVtdObservation.h
+81624085275f6a61aeee10537a1fb093b3a981a10c14ea1abce90a42a6f6a6a0  /tmp/terra-vtd/test.cpp
+92d8982cea6e422414944f05fb3859c6289c46e69757dda4453b242e836a8536  /tmp/terra-vtd/Drivers.h
+0b9ea151358b7f504fbd8d3b6644ab6ce05c91abda967709b754645cd3c2130b  /tmp/terra-vtd/KernelExport.h
+86c14a2f87447bf5ba9f0beca51230512c1fbe89c8c50b96803c49f013e3427f  /tmp/terra-vtd/module.h
+ef2c2d6c0c266ad0171b441d876d91bb51293befc148852673acdf7adccab905  /tmp/terra-vtd/kernel/lock.h
+3 actual-module observer mock scenarios passed

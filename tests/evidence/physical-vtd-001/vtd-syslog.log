@@ -1,0 +1,2343 @@
+s_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 38
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbecac000 size 0x1000 irq 0x26
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x1)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817ab7c8, path bus/i2c/1/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 39
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbecab000 size 0x1000 irq 0x27
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x2)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817abae8, path bus/i2c/2/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 40
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbecaa000 size 0x1000 irq 0x28
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x3)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817abea8, path bus/i2c/3/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 41
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbeca8000 size 0x1000 irq 0x29
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x4)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000028
+KERN: publish device: node 0xffffffff817ac308, path bus/i2c/4/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 42
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbeca7000 size 0x1000 irq 0x2a
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x5)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817ac628, path bus/i2c/5/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: i2c_elan: firmware version 0x02
+KERN: i2c_elan: touchpad 3282x1793, pattern 1, report length 34, polling
+KERN: publish device: node 0xffffffff817ac8a8, path KERN: acpi_init: found ACPI RSDP signature at 0x0000000076858014
+KERN: acpi: found rsdp at 0x0000000076858014 oem id: COREv4, rev 2
+KERN: acpi: rsdp points to rsdt at 0x76857074
+KERN: acpi: found valid XSDT at 0x00000000768570e8
+KERN: acpi: searching 11 entries for table 'HPET'
+KERN: acpi: Looking for 'HPET'. Skipping 'FACP'
+KERN: acpi: Looking for 'HPET'. Skipping 'SSDT'
+KERN: acpi: Looking for 'HPET'. Skipping 'MCFG'
+KERN: acpi: Looking for 'HPET'. Skipping 'TPM2'
+KERN: acpi: Looking for 'HPET'. Skipping 'LPIT'
+KERN: acpi: Looking for 'HPET'. Skipping 'APIC'
+KERN: acpi: Looking for 'HPET'. Skipping 'SPCR'
+KERN: acpi: Looking for 'HPET'. Skipping 'DMAR'
+KERN: acpi: Looking for 'HPET'. Skipping 'DBG2'
+KERN: acpi: Found 'HPET' @ 0x0000000076857154
+KERN: acpi: searching 11 entries for table 'APIC'
+KERN: acpi: Looking for 'APIC'. Skipping 'FACP'
+KERN: acpi: Looking for 'APIC'. Skipping 'SSDT'
+KERN: acpi: Looking for 'APIC'. Skipping 'MCFG'
+KERN: acpi: Looking for 'APIC'. Skipping 'TPM2'
+KERN: acpi: Looking for 'APIC'. Skipping 'LPIT'
+KERN: acpi: Found 'APIC' @ 0x0000000076857134
+KERN: Welcome to the Haiku boot loader!
+KERN: Haiku revision: hrev60072+518
+KERN: add_partitions_for(0x0000000071aa4298, mountFS = no)
+KERN: add_partitions_for(fd = 0, mountFS = no)
+KERN: 0x0000000071aa4380 Partition::Partition
+KERN: 0x0000000071aa4380 Partition::Scan()
+KERN: check for partitioning_system: GUID Partition Map
+KERN: EFI header: EFI PART
+KERN: EFI revision: 10000
+KERN: header size: 92
+KERN: header CRC: c1b8d468
+KERN: absolute block: 1
+KERN: alternate block: 18010111
+KERN: first usable block: 2048
+KERN: last usable block: 18010078
+KERN: disk GUID: 6add94d6-2606-43d7-a170-b0399f0c5164
+KERN: entries block: 2
+KERN: entry size:  128
+KERN: entry count: 128
+KERN: entries CRC: d23a9ecb
+KERN: EFI header: EFI PART
+KERN: EFI revision: 10000
+KERN: header size: 92
+KERN: header CRC: e0a32fb5
+KERN: absolute block: 18010111
+KERN: alternate block: 1
+KERN: first usable block: 2048
+KERN: last usable block: 18010078
+KERN: disk GUID: 6add94d6-2606-43d7-a170-b0399f0c5164
+KERN: entries block: 18010079
+KERN: entry size:  128
+KERN: entry count: 128
+KERN: entries CRC: d23a9ecb
+KERN: [  0] partition type: c12a7328-f81f-11d2-ba4b-00a0c93ec93b
+KERN:       unique id: 723c720d-3248-45e6-82d1-ce1e1023150d
+KERN:       start block: 2048
+KERN:       end block: 1230847
+KERN:       size: 599.999 MB
+KERN:       attributes: 0
+KERN:       name: Test EFI
+KERN: [  1] partition type: 42465331-3ba3-10f1-802a-4861696b7521
+KERN:       unique id: 6a02a37a-e13e-4a09-95a2-739da8aec0ba
+KERN:       start block: 1230848
+KERN:       end block: 18008063
+KERN:       size: 8191.999 MB
+KERN:       attributes: 0
+KERN:       name: Renku GPU Test
+KERN:   priority: 960
+KERN: check for partitioning_system: Intel Partition Map
+KERN: intel: Found GPT signature, ignoring.
+KERN: check for partitioning_system: Intel Extended Partition
+KERN: efi_gpt_scan_partition(cookie = 0x0000000071aa4488)
+KERN: 0x0000000071aa8568 Partition::Partition
+KERN: 0x0000000071aa4380 Partition::AddChild 0x0000000071aa8568
+KERN: 0x0000000071aa8568 Partition::SetParent 0x0000000071aa4380
+KERN: new child partition!
+KERN: 0x0000000071aa8688 Partition::Partition
+KERN: 0x0000000071aa4380 Partition::AddChild 0x0000000071aa8688
+KERN: 0x0000000071aa8688 Partition::SetParent 0x0000000071aa4380
+KERN: new child partition!
+KERN: 0x0000000071aa4380 Partition::Scan(): scan child 0x0000000071aa8568 (start = 1048576, size = 629145600, parent = 0x0000000071aa4380)!
+KERN: 0x0000000071aa8568 Partition::Scan()
+KERN: check for partitioning_system: GUID Partition Map
+KERN: check for partitioning_system: Intel Partition Map
+KERN: check for partitioning_system: Intel Extended Partition
+KERN: 0x0000000071aa4380 Partition::Scan(): scan child 0x0000000071aa8688 (start = 630194176, size = 8589934592, parent = 0x0000000071aa4380)!
+KERN: 0x0000000071aa8688 Partition::Scan()
+KERN: check for partitioning_system: GUID Partition Map
+KERN: check for partitioning_system: Intel Partition Map
+KERN: check for partitioning_system: Intel Extended Partition
+KERN: 0x0000000071aa4380 Partition::~Partition
+KERN: 0x0000000071aa8568 Partition::SetParent 0x0000000000000000
+KERN: 0x0000000071aa8688 Partition::SetParent 0x0000000000000000
+KERN: 0x0000000071aa8688 Partition::_Mount check for file_system: BFS Filesystem
+KERN: PackageVolumeInfo::SetTo()
+KERN: load kernel kernel_x86_64...
+KERN: ucode_load: system/non-packaged/data/firmware/intel-ucode/06-be-00
+KERN: ucode_load: couldn't find microcode
+KERN: smbios: found v2 at 0x0000000076816000
+KERN: smbios: found v3 at 0x0000000076814000
+KERN: kernel:
+KERN:   text: 0xffffffff80000000, 0x1d0000
+KERN:   data: 0xffffffff801d0000, 0x67000
+KERN:   entry: 0xffffffff8006b2e0
+KERN: EFI: debug syslog at 0x3f00010, previous session 0 bytes
+KERN: GDT at 0xffffff0071c7f580
+KERN: Kernel stack at 0xffffffff829c8000
+KERN: System provided memory map:
+KERN:   phys: 0x00001000-0x00087000, virt: 0x00000000-0x00086000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x00087000-0x00088000, virt: 0x00000000-0x00001000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x00088000-0x000a0000, virt: 0x00000000-0x00018000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x00100000-0x00800000, virt: 0x00000000-0x00700000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x00800000-0x01200000, virt: 0x00000000-0x00a00000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x01200000-0x03f00000, virt: 0x00000000-0x02d00000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x03f00000-0x04000000, virt: 0x00000000-0x00100000, type: EfiLoaderData (0x2), attr: 0xf
+KERN:   phys: 0x04000000-0x04db8000, virt: 0x00000000-0x00db8000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x04db8000-0x051d9000, virt: 0x00000000-0x00421000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x051d9000-0x05200000, virt: 0x00000000-0x00027000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x05200000-0x71040000, virt: 0x00000000-0x6be40000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x71040000-0x71c24000, virt: 0x00000000-0x00be4000, type: EfiLoaderData (0x2), attr: 0xf
+KERN:   phys: 0x71c24000-0x71c93000, virt: 0x00000000-0x0006f000, type: EfiLoaderCode (0x1), attr: 0xf
+KERN:   phys: 0x71c93000-0x71d19000, virt: 0x00000000-0x00086000, type: EfiLoaderData (0x2), attr: 0xf
+KERN:   phys: 0x71d19000-0x725ee000, virt: 0x00000000-0x008d5000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x725ee000-0x72674000, virt: 0x00000000-0x00086000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x72674000-0x72675000, virt: 0x00000000-0x00001000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x72675000-0x726ac000, virt: 0x00000000-0x00037000, type: EfiLoaderData (0x2), attr: 0xf
+KERN:   phys: 0x726ac000-0x7301d000, virt: 0x00000000-0x00971000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x7301d000-0x7303e000, virt: 0x00000000-0x00021000, type: EfiLoaderData (0x2), attr: 0xf
+KERN:   phys: 0x7303e000-0x7307f000, virt: 0x00000000-0x00041000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x7307f000-0x7313f000, virt: 0x00000000-0x000c0000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x7313f000-0x73200000, virt: 0x00000000-0x000c1000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73200000-0x732d4000, virt: 0x00000000-0x000d4000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x732d4000-0x733e8000, virt: 0x00000000-0x00114000, type: EfiRuntimeServicesData (0x6), attr: 0x800000000000000f
+KERN:   phys: 0x733e8000-0x734dd000, virt: 0x00000000-0x000f5000, type: EfiRuntimeServicesCode (0x5), attr: 0x800000000000000f
+KERN:   phys: 0x734dd000-0x73500000, virt: 0x00000000-0x00023000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73500000-0x7351e000, virt: 0x00000000-0x0001e000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x7351e000-0x73522000, virt: 0x00000000-0x00004000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73522000-0x73532000, virt: 0x00000000-0x00010000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73532000-0x7353b000, virt: 0x00000000-0x00009000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x7353b000-0x73566000, virt: 0x00000000-0x0002b000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73566000-0x73567000, virt: 0x00000000-0x00001000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73567000-0x735c6000, virt: 0x00000000-0x0005f000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x735c6000-0x735c7000, virt: 0x00000000-0x00001000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x735c7000-0x735d3000, virt: 0x00000000-0x0000c000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x735d3000-0x739d3000, virt: 0x00000000-0x00400000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x739d3000-0x73aca000, virt: 0x00000000-0KERN: x000f7000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73aca000-0x73acf000, virt: 0x00000000-0x00005000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73acf000-0x73aeb000, virt: 0x00000000-0x0001c000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73aeb000-0x73aee000, virt: 0x00000000-0x00003000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73aee000-0x73b0c000, virt: 0x00000000-0x0001e000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73b0c000-0x73b12000, virt: 0x00000000-0x00006000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73b12000-0x73b21000, virt: 0x00000000-0x0000f000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73b21000-0x73b2a000, virt: 0x00000000-0x00009000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73b2a000-0x73b49000, virt: 0x00000000-0x0001f000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73b49000-0x73b51000, virt: 0x00000000-0x00008000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73b51000-0x73b56000, virt: 0x00000000-0x00005000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73b56000-0x73b57000, virt: 0x00000000-0x00001000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73b57000-0x73b5c000, virt: 0x00000000-0x00005000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73b5c000-0x73b62000, virt: 0x00000000-0x00006000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73b62000-0x73b8f000, virt: 0x00000000-0x0002d000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73b8f000-0x73b98000, virt: 0x00000000-0x00009000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73b98000-0x73b9c000, virt: 0x00000000-0x00004000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73b9c000-0x73bb3000, virt: 0x00000000-0x00017000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x73bb3000-0x73bba000, virt: 0x00000000-0x00007000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x73bba000-0x75e03000, virt: 0x00000000-0x02249000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75e03000-0x75e2c000, virt: 0x00000000-0x00029000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75e2c000-0x75e56000, virt: 0x00000000-0x0002a000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75e56000-0x75e6b000, virt: 0x00000000-0x00015000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75e6b000-0x75e78000, virt: 0x00000000-0x0000d000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75e78000-0x75e7c000, virt: 0x00000000-0x00004000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75e7c000-0x75e97000, virt: 0x00000000-0x0001b000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75e97000-0x75ea4000, virt: 0x00000000-0x0000d000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75ea4000-0x75ea8000, virt: 0x00000000-0x00004000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75ea8000-0x75ecb000, virt: 0x00000000-0x00023000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75ecb000-0x75ece000, virt: 0x00000000-0x00003000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75ece000-0x75ede000, virt: 0x00000000-0x00010000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75ede000-0x75ee6000, virt: 0x00000000-0x00008000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75ee6000-0x75f03000, virt: 0x00000000-0x0001d000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75f03000-0x75f05000, virt: 0x00000000-0x00002000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75f05000-0x75f09000, virt: 0x00000000-0x00004000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75f09000-0x75f0e000, virt: 0x00000000-0x00005000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75f0e000-0x75f12000, virt: 0x00000000-0x00004000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75f12000-0x75f18000, virt: 0x00000000-0x00006000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75f18000-0x75f2c000, virt: 0x00000000-0x00014000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75f2c000-0x75f2e000, virt: 0x00000000-0x00002000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x75f2e000-0x75f31000, virt: 0x00000000-0x00003000, type: EfiBootServicesCode (0x3), attr: 0xf
+KERN:   phys: 0x75f31000-0x76634000, virt: 0x00000000-0x00703000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x76634000-0x76734000, virt: 0x00000000-0x00100000, type: EfiRuntimeServicesCode (0x5), attr: 0x800000000000000f
+KERN:   phys: 0x76734000-0x76834000, virt: 0x00000000-0x00100000, type: EfiRuntimeServicesData (0x6), attr: 0x800000000000000f
+KERN:   phys: 0x76834000-0x7683c000, virt: 0x00000000-0x00008000, type: EfiReservedMemoryType (0x0), attr: 0xf
+KERN:   phys: 0x7683c000-0x76840000, virt: 0x00000000-0x00004000, type: EfiACPIMemoryNVS (0xa), attr: 0xf
+KERN:   phys: 0x76840000-0x76859000, virt: 0x00000000-0x00019000, type: EfiACPIReclaimMemory (0x9), attr: 0xf
+KERN:   phys: 0x76859000-0x7685a000, virt: 0x00000000-0x00001000, type: EfiBootServicesData (0x4), attr: 0xf
+KERN:   phys: 0x100000000-0x17fc00000, virt: 0x00000000-0x7fc00000, type: EfiConventionalMemory (0x7), attr: 0xf
+KERN:   phys: 0x00000000-0x00001000, virt: 0x00000000-0x00001000, type: EfiReservedMemoryType (0x0), attr: 0xf
+KERN:   phys: 0x000a0000-0x00100000, virt: 0x00000000-0x00060000, type: EfiReservedMemoryType (0x0), attr: 0xf
+KERN:   phys: 0x7685a000-0x768a3000, virt: 0x00000000-0x00049000, type: EfiReservedMemoryType (0x0), attr: 0xf
+KERN:   phys: 0x768a3000-0x768b3000, virt: 0x00000000-0x00010000, type: EfiReservedMemoryType (0x0), attr: 0x800000000000000f
+KERN:   phys: 0x768b3000-0x80400000, virt: 0x00000000-0x09b4d000, type: EfiReservedMemoryType (0x0), attr: 0xf
+KERN:   phys: 0xff3b0000-0xff430000, virt: 0x00000000-0x00080000, type: EfiMemoryMappedIO (0xb), attr: 0x800000000000000f
+KERN: Calling ExitBootServices. So long, EFI!
+KERN: Unhooked from EFI serial services
+KERN: arch_enter_kernel(final_pml4: 0x72674000, kernelArgs: 0x0000000071c837e0, kernelEntry: 0xffffffff8006b2e0, sp: 0xffffffff829cd000)
+KERN: Welcome to kernel debugger output!
+KERN: Haiku revision: hrev60072+518, debug level: 2
+KERN: CPU: no microcode provided
+KERN: CPU: using TSC frequency from CPUID
+KERN: CPU 0: type 0 family 6 extended_family 0 model 14 extended_model 11 stepping 0, string 'GenuineIntel'
+KERN: CPU 0: vendor 'Intel' model name 'Intel(R) N100'
+KERN: CPU 0: apic id 0, package 0, core 0, smt 0
+KERN: CPU 0: cache sharing: L1 id 0, L2 id 0, L3 id 0
+KERN: CPU 0: features: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clfsh ds acpi mmx fxsr sse sse2 ss htt tm pbe sse3 pclmulqdq dtes64 monitor dscpl vmx est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tscdeadline aes xsave avx f16c rdrnd syscall nx pdpe1gb long dts itb arat pln ecmd ptm hwp hwp_notify hwp_actwin hwp_epp hwp_plr hwp_cap hwp_peci hwp_flex hwp_fast hwp_ignidl aperfmperf epb tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdt_a rdseed adx smap cflushopt clwb intel_pt sha_ni umip pku waitpkg gfni vaes vpclmulqdq rdpid ibrs stibp l1d_flush msr_arch ssbd constant_tsc xsaveopt xsavec xgetbv1 xsaves 
+KERN: CPU 0: patch_level 0x21
+KERN: using PAT for memory type configuration
+KERN: PAT MSR on CPU 0 before init: 0x7040600070406
+KERN: PAT MSR on CPU 0 after init: 0x7040100070406
+KERN: reserve_io_interrupt_vectors: reserved 16 vectors starting from 0
+KERN: kernel malloc: using slab_heap
+KERN: mark_page_range_in_use(0x0, 0x100): start page is before free list
+KERN: mark_page_range_in_use(0x0, 0xa0): start page is before free list
+KERN: Welcome to syslog debug output!
+KERN: Haiku revision: hrev60072+518
+KERN: enable SMEP
+KERN: enable SMAP
+KERN: arch_altcodepatch_replace found 22 altcodepatches for tag 1
+KERN: arch_altcodepatch_replace found 285 altcodepatches for tag 2
+KERN: arch_altcodepatch_replace found 2 altcodepatches for tag 3
+KERN: arch_altcodepatch_replace found 5 altcodepatches for tag 4
+KERN: arch_altcodepatch_replace found 4 altcodepatches for tag 5
+KERN: enable XSAVEC 0x7 832
+KERN: CPU 1: type 0 family 6 extended_family 0 model 14 extended_model 11 stepping 0, string 'GenuineIntel'
+KERN: CPU 2: type 0 family 6 extended_family 0 model 14 extended_model 11 stepping 0, string 'GenuineIntel'
+KERN: CPU 3: type 0 family 6 extended_family 0 model 14 extended_model 11 stepping 0, string 'GenuineIntel'
+KERN: CPU 2: vendor 'Intel' model name 'Intel(R) N100'
+KERN: CPU 1: vendor 'Intel' model name 'Intel(R) N100KERN: '
+KERN: CPU 2: apic id 4, package 0, core 2, smt 0
+KERN: CPU 1: apic id 2, package 0, core 1, smt 0
+KERN: CPU 2: cache sharing: L1 id 4, L2 id 0, L3 id 0
+KERN: CPU 3: vendor 'Intel' model name 'Intel(R) N100'
+KERN: CPU 2: patch_level 0x21
+KERN: CPU 3: apic id 6, package 0, core 3, smt 0
+KERN: CPU 1: cache sharing: L1 id 2, L2 id 0, L3 id 0
+KERN: CPU 3: cache sharing: L1 id 6, L2 id 0, L3 id 0
+KERN: CPU 1: patch_level 0x21
+KERN: CPU 3: patch_level 0x21
+KERN: PAT MSR on CPU 2 before init: 0x7040600070406
+KERN: PAT MSR on CPU 3 before init: 0x7040600070406
+KERN: PAT MSR on CPU 2 after init: 0x7040100070406
+KERN: PAT MSR on CPU 3 after init: 0x7040100070406
+KERN: PAT MSR on CPU 1 before init: 0x7040600070406
+KERN: PAT MSR on CPU 1 after init: 0x7040100070406
+KERN: reserve_io_interrupt_vectors: reserved 3 vectors starting from 221
+KERN: APIC timer frequency: 38400074
+KERN: reserve_io_interrupt_vectors: reserved 1 vectors starting from 219
+KERN: arch_init_timer: using APIC timer.
+KERN: allocate_commpage_entry(2, 16) -> 0x0000000000000200
+KERN: scheduler_init: found 4 logical cpus and 3 cache levels
+KERN: scheduler switches: single core: false, cpu load tracking: false, core load tracking: true
+KERN: scheduler: switching to low latency mode
+KERN: msi support enabled
+KERN: PCI: pci_module_init
+KERN: ACPI: RSDP 0x0000000076858014 000024 (v02 COREv4)
+KERN: ACPI: XSDT 0x00000000768570E8 00007C (v01 COREv4 COREBOOT 00000000      01000013)
+KERN: ACPI: FACP 0x0000000076856000 000114 (v06 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: DSDT 0x0000000076850000 00590D (v02 COREv4 COREBOOT 20110725 INTL 20250807)
+KERN: ACPI: FACS 0x0000000076872240 000040
+KERN: ACPI: SSDT 0x000000007684C000 003BDC (v02 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: MCFG 0x000000007684B000 00003C (v01 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: TPM2 0x000000007684A000 00004C (v04 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: LPIT 0x0000000076849000 000094 (v00 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: APIC 0x0000000076848000 000072 (v03 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: SPCR 0x0000000076847000 000058 (v04 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: DMAR 0x0000000076846000 000088 (v01 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: DBG2 0x0000000076845000 000061 (v00 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: HPET 0x0000000076844000 000038 (v01 COREv4 COREBOOT 00000000 CORE 20250807)
+KERN: ACPI: BGRT 0x0000000076843000 000038 (v01 COREv4 EDK2     00000002      01000013)
+KERN: smbios_scan
+KERN: found System Information at 0xffffffff8343464a
+KERN: found vendor 1 product 2
+KERN: smbios_scan found vendor Google product Pujjoteen
+KERN: ACPI: Forced DSDT copy: length 0x0590D copied locally, original unmapped
+KERN: Firmware Error (ACPI): Failure creating named object [\_SB.PCI0.CNMT], AE_ALREADY_EXISTS (20260408/dswload2-371)
+KERN: ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20260408/psobject-264)
+KERN: Firmware Error (ACPI): Failure creating named object [\_SB.PCI0.SBTE], AE_ALREADY_EXISTS (20260408/dswload2-371)
+KERN: ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20260408/psobject-264)
+KERN: ACPI: Skipping parse of AML opcode: OpcodeName unavailable (0x0014)
+KERN: Firmware Error (ACPI): Failure creating named object [\_SB.PCI0.GBTE], AE_ALREADY_EXISTS (20260408/dswload2-371)
+KERN: ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20260408/psobject-264)
+KERN: ACPI: Skipping parse of AML opcode: OpcodeName unavailable (0x0014)
+KERN: Firmware Error (ACPI): Failure creating named object [\_SB.PCI0.BTRK], AE_ALREADY_EXISTS (20260408/dswload2-371)
+KERN: ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20260408/psobject-264)
+KERN: ACPI: Skipping parse of AML opcode: OpcodeName unavailable (0x0014)
+KERN: Firmware Error (ACPI): Failure creating named object [\_SB.PCI0.GBTR], AE_ALREADY_EXISTS (20260408/dswload2-371)
+KERN: ACPI Error: AE_ALREADY_EXISTS, During name lookup/catalog (20260408/psobject-264)
+KERN: ACPI: Skipping parse of AML opcode: OpcodeName unavailable (0x0014)
+KERN: ACPI: 2 ACPI AML tables successfully acquired and loaded
+KERN: ACPI: Enabled 2 GPEs in block 00 to 7F
+KERN: found io-apic with address 0xfec00000, global interrupt base 0, apic-id 0
+KERN: mapping io-apic 0 at physical address 0xfec00000
+KERN: io-apic 0 has range 0-119, 120 entries, version 0x00770020, apic-id 0
+KERN: setting ACPI interrupt model to APIC
+KERN: found interrupt override for bus 0, source irq 0, global irq 2, flags 0x00000005
+KERN: found interrupt override for bus 0, source irq 9, global irq 9, flags 0x0000000d
+KERN: free_io_interrupt_vectors: freeing 16 vectors starting from 0
+KERN: reserve_io_interrupt_vectors: reserved 120 vectors starting from 0
+KERN: using io-apics for interrupt routing
+KERN: slab memory manager: created area 0xffffffff80801000 (287)
+KERN: allocate_commpage_entry(3, 69) -> 0x0000000000000210
+KERN: slab memory manager: created area 0xffffffff81001000 (288)
+KERN: publish device: node 0xffffffff83130500, path acpi/namespace, module bus_managers/acpi/namespace/device_v1
+KERN: publish device: node 0xffffffff83130500, path acpi/call, module bus_managers/acpi/call/device_v1
+KERN: registering power button
+KERN: publish device: node 0xffffffff83131720, path power/embedded_controller/0, module drivers/power/acpi_embedded_controller/device_v1
+KERN: initialize PCI controller from ACPI
+KERN: PCI: range from ACPI [0(1),ff(1)] with length 100
+KERN: PCI: range from ACPI [0(1),cf7(1)] with length cf8
+KERN: PCI: range from ACPI [d00(1),ffff(1)] with length f300
+KERN: PCI: range from ACPI [a0000(1),bffff(1)] with length 20000
+KERN: PCI: range from ACPI [c0000(1),c3fff(1)] with length 4000
+KERN: PCI: range from ACPI [c4000(1),c7fff(1)] with length 4000
+KERN: PCI: range from ACPI [c8000(1),cbfff(1)] with length 4000
+KERN: PCI: range from ACPI [cc000(1),cffff(1)] with length 4000
+KERN: PCI: range from ACPI [d0000(1),d3fff(1)] with length 4000
+KERN: PCI: range from ACPI [d4000(1),d7fff(1)] with length 4000
+KERN: PCI: range from ACPI [d8000(1),dbfff(1)] with length 4000
+KERN: PCI: range from ACPI [dc000(1),dffff(1)] with length 4000
+KERN: PCI: range from ACPI [e0000(1),e3fff(1)] with length 4000
+KERN: PCI: range from ACPI [e4000(1),e7fff(1)] with length 4000
+KERN: PCI: range from ACPI [e8000(1),ebfff(1)] with length 4000
+KERN: PCI: range from ACPI [ec000(1),effff(1)] with length 4000
+KERN: PCI: range from ACPI [f0000(1),fffff(1)] with length 10000
+KERN: PCI: range from ACPI [80400000(1),dfffffff(1)] with length 5fc00000
+KERN: PCI: range from ACPI [17fc00000(1),7fffffffff(1)] with length 7e80400000
+KERN: PCI: range from ACPI [fc800000(1),fe7fffff(1)] with length 2000000
+KERN: PCI: range from ACPI [fed40000(1),fed47fff(1)] with length 8000
+KERN: PCI: mechanism addr: c0000000, seg: 0, start: 0, end: ff
+KERN: PCI: FixupDevices: checking bus 1 behind 8086:54bb
+KERN: PCI: dom 0, bus 0, dev 28, func 0, changed PCI bridge control from 0x0012 to 0x0013
+KERN: IRQ routing table with 16 entries
+KERN: address 0x2ffff; pin 0; GSI 17; pci 0:2 pin 1 func mask 1; bios irq: 255; gsi 17; config 0x03
+KERN: address 0x4ffff; pin 0; GSI 18; pci 0:4 pin 1 func mask 1; bios irq: 255; gsi 18; config 0x03
+KERN: address 0x8ffff; pin 0; GSI 23; pci 0:8 pin 1 func mask 1; bios irq: 255; gsi 23; config 0x03
+KERN: address 0x14ffff; pin 1; GSI 23; pci 0:20 pin 2 func mask 1; bios irq: 255; gsi 23; config 0x03
+KERN: address 0x15ffff; pin 0; GSI 37; pci 0:21 pin 1 func mask 1; bios irq: 255; gsi 37; config 0x03
+KERN: address 0x15ffff; pin 1; GSI 38; pci 0:21 pin 2 func mask 2; bios irq: 255; gsi 38; config 0x03
+KERN: address 0x15ffff; pin 2; GSI 39; pci 0:21 pin 3 func mask 4; bios irq: 255; gsi 39; config 0x03
+KERN: address 0x15ffff; pin 3; GSI 40; pci 0:21 pin 4 func mask 8; bios irq: 255; gsi 40; config 0x03
+KERN: address 0x16ffff; pin 0; GSI 18; pci 0:22 pin 1 func mask 1; bios irq: 255; gsi 18; config 0x03
+KERN: address 0x19ffff; pin 0; GSI 41; pci 0:25 pin 1 func mask 1; bios irq: 255; gsi 41; config 0x03
+KERN: address 0x19ffff; pin 1; GSI 42; pci 0:25 pin 2 func mask 2; bios irq: 255; gsi 42; config 0x03
+KERN: address 0x1affff; pin 0; GSI 23; pci 0:26 pin 1 func mask 1; bios irq: 255; gsi 23; config 0x03
+KERN: address 0x1cffff; pin 3; GSI 19; pci 0:28 pin 4 func mask 1; bios irq: 255; gsi 19; config 0x03
+KERN: address 0x1effff; pin 0; GSI 20; pci 0:30 pin 1 func mask 1; bios irq: 255; gsi 20; config 0x03
+KERN: address 0x1fffff; pin 1; GSI 23; pci 0:31 pin 2 func mask 8; bios irq: 255; gsi 23; config 0x03
+KERN: address 0xffff; pin 0; GSI 19; pci 1:0 pin 1 func mask 1; bios irq: 255; gsi 19; config 0x03
+KERN: PCI: [dom 0, bus  0] bus   0, device  0, function  0: vendor 8086, device 461c, revision 00
+KERN: PCI:   class_base 06, class_function 00, class_api 00
+KERN: PCI:   vendor 80KERN: 86: Intel Corporation
+KERN: PCI:   device 461c: Unknown
+KERN: PCI:   info: Bridge (Host bridge)
+KERN: PCI:   line_size 00, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 00, interrupt_pin 00, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 1: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device  2, function  0: vendor 8086, device 46d1, revision 00
+KERN: PCI:   class_base 03, class_function 00, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 46d1: Alder Lake-N [UHD Graphics]
+KERN: PCI:   info: Display controller (VGA compatible controller, VGA controller)
+KERN: PCI:   line_size 10, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 46d1, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 11, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000bf000000, pci 00000000bf000000, size 01000000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000d0000000, pci 00000000d0000000, size 10000000, flags 0c 00
+KERN: PCI:   base reg 4: host 0000ffc0, pci 0000ffc0, size 00000040, flags 01
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: vendspec, PCIe, MSI, PM
+KERN: PCI:   Extended capabilities: Process Address Space Id, Address Translation Services, Page Request, Single Root I/O Virtualization
+KERN: PCI: [dom 0, bus  0] bus   0, device  4, function  0: vendor 8086, device 461d, revision 00
+KERN: PCI:   class_base 11, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 461d: Alder Lake Innovation Platform Framework Processor Participant
+KERN: PCI:   info: Signal processing controller
+KERN: PCI:   line_size 00, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 12, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000bece0000, pci 00000000bece0000, size 00020000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: MSI, PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device  8, function  0: vendor 8086, device 467e, revision 00
+KERN: PCI:   class_base 08, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 467e: Unknown
+KERN: PCI:   info: Generic system peripheral
+KERN: PCI:   line_size 10, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 17, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becaf000, pci 00000000becaf000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: MSI, vendspec, PM, AdvancedFeatures
+KERN: PCI: [dom 0, bus  0] bus   0, device 10, function  0: vendor 8086, device 467d, revision 01
+KERN: PCI:   class_base 11, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 467d: Platform Monitoring Technology
+KERN: PCI:   info: Signal processing controller
+KERN: PCI:   line_size 00, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 00, interrupt_pin 00, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becb8000, pci 00000000becb8000, size 00008000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PCIe, PM
+KERN: PCI:   Extended capabilities: Designated Vendor-Specific, Designated Vendor-Specific, Designated Vendor-Specific
+KERN: PCI: [dom 0, bus  0] bus   0, device 13, function  0: vendor 8086, device 464e, revision 00
+KERN: PCI:   class_base 0c, class_function 03, class_api 30
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 464e: Alder Lake-N Thunderbolt 4 USB Controller
+KERN: PCI:   info: Serial bus controller (USB controller, XHCI)
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line ff, interrupt_pin 00, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becd0000, pci 00000000becd0000, size 00010000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, MSI, vendspec, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 20, function  0: vendor 8086, device 54ed, revision 00
+KERN: PCI:   class_base 0c, class_function 03, class_api 30
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54ed: Alder Lake-N PCH USB 3.2 xHCI Host Controller
+KERN: PCI:   info: Serial bus controller (USB controller, XHCI)
+KERN: PCI:   line_size 00, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 0000, subsystem_vendor_id 0000
+KERN: PCI:   interrupt_line 17, interrupt_pin 02, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becc0000, pci 00000000becc0000, size 00010000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, MSI, vendspec, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 20, function  2: vendor 8086, device 54ef, revision 00
+KERN: PCI:   class_base 05, class_function 00, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54ef: Alder Lake-N PCH Shared SRAM
+KERN: PCI:   info: Memory controller (RAM memory)
+KERN: PCI:   line_size 10, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line ff, interrupt_pin 00, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becb4000, pci 00000000becb4000, size 00004000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000becae000, pci 00000000becae000, size 00001000, flags 04 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM
+KERN: PCI: [dom 0, bus  0] bus   0, device 21, function  0: vendor 8086, device 54e8, revision 00
+KERN: PCI:   class_base 0c, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54e8: Unknown
+KERN: PCI:   info: Serial bus controller
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbuKERN: s_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 25, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becad000, pci 00000000becad000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 21, function  1: vendor 8086, device 54e9, revision 00
+KERN: PCI:   class_base 0c, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54e9: Unknown
+KERN: PCI:   info: Serial bus controller
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 26, interrupt_pin 02, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becac000, pci 00000000becac000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 21, function  2: vendor 8086, device 54ea, revision 00
+KERN: PCI:   class_base 0c, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54ea: Unknown
+KERN: PCI:   info: Serial bus controller
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 27, interrupt_pin 03, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becab000, pci 00000000becab000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 21, function  3: vendor 8086, device 54eb, revision 00
+KERN: PCI:   class_base 0c, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54eb: Unknown
+KERN: PCI:   info: Serial bus controller
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 28, interrupt_pin 04, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becaa000, pci 00000000becaa000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 22, function  0: vendor 8086, device 54e0, revision 00
+KERN: PCI:   class_base 07, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54e0: Alder Lake-N PCH HECI Controller
+KERN: PCI:   info: Communication controller
+KERN: PCI:   line_size 00, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 12, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000beca9000, pci 00000000beca9000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, MSI, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 25, function  0: vendor 8086, device 54c5, revision 00
+KERN: PCI:   class_base 0c, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54c5: Unknown
+KERN: PCI:   info: Serial bus controller
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 29, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000beca8000, pci 00000000beca8000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 25, function  1: vendor 8086, device 54c6, revision 00
+KERN: PCI:   class_base 0c, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54c6: Unknown
+KERN: PCI:   info: Serial bus controller
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 2a, interrupt_pin 02, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000beca7000, pci 00000000beca7000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 26, function  0: vendor 8086, device 54c4, revision 00
+KERN: PCI:   class_base 08, class_function 05, class_api 01
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54c4: Unknown
+KERN: PCI:   info: Generic system peripheral (SD Host controller)
+KERN: PCI:   line_size 10, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 17, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000beca6000, pci 00000000beca6000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 28, function  0: vendor 8086, device 54bb, revision 00
+KERN: PCI:   class_base 06, class_function 04, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54bb: Unknown
+KERN: PCI:   info: Bridge (PCI bridge, Normal decode)
+KERN: PCI:   line_size 10, latency 00, header_type 81, BIST 00
+KERN: PCI:   subsystem_id 0000, subsystem_vendor_id 0040
+KERN: PCI:   primary_bus 00, secondary_bus 01, subordinate_bus 01, secondary_latency 00
+KERN: PCI:   I/O window f000-efff
+KERN: PCI:   memory window fff00000-ffefffff
+KERN: PCI:   prefetchable memory window 00000000bee00000-00000000beffffff
+KERN: PCI:   bridge_control 0013, secondary_status 2000
+KERN: PCI:   interrupt_line 13, interrupt_pin 04
+KERN: PCI:   ROM base host 00000000, pci 00000000, size ??
+KERN: PCI:   base reg 0: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 1: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PCIe, MSI, subvendor, PM
+KERN: PCI:   Extended capabilities: Advanced Error Reporting, Access Control Services, Precision Time Measurement, L1 Power Management Substates, Secondary PCIe
+KERN: PCKERN: I: [dom 0, bus  1] bus   1, device  0, function  0: vendor 14c3, device 7961, revision 00
+KERN: PCI:   class_base 02, class_function 80, class_api 00
+KERN: PCI:   vendor 14c3: MEDIATEK Corp.
+KERN: PCI:   device 7961: MT7921 802.11ax PCI Express Wireless Network Adapter
+KERN: PCI:   info: Network controller
+KERN: PCI:   line_size 10, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id e0bc, subsystem_vendor_id 17aa
+KERN: PCI:   interrupt_line 13, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000bee00000, pci 00000000bee00000, size 00100000, flags 0c 00
+KERN: PCI:   base reg 2: host 00000000bef00000, pci 00000000bef00000, size 00004000, flags 0c 00
+KERN: PCI:   base reg 4: host 00000000bef04000, pci 00000000bef04000, size 00001000, flags 0c 00
+KERN: PCI:   Capabilities: PCIe, MSI, PM
+KERN: PCI:   Extended capabilities: Vendor Unique, Latency Tolerance Reporting, L1 Power Management Substates, Advanced Error Reporting
+KERN: PCI: [dom 0, bus  0] bus   0, device 30, function  0: vendor 8086, device 54a8, revision 00
+KERN: PCI:   class_base 07, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54a8: Alder Lake-N Serial IO UART Host Controller
+KERN: PCI:   info: Communication controller
+KERN: PCI:   line_size 10, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 14, interrupt_pin 01, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000fe03e000, pci 00000000fe03e000, size 00001000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: PM, vendspec
+KERN: PCI: [dom 0, bus  0] bus   0, device 31, function  0: vendor 8086, device 5481, revision 00
+KERN: PCI:   class_base 06, class_function 01, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 5481: Alder Lake-N PCH eSPI Controller
+KERN: PCI:   info: Bridge (ISA bridge)
+KERN: PCI:   line_size 00, latency 00, header_type 80, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 00, interrupt_pin 00, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 1: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: (not supported)
+KERN: PCI: [dom 0, bus  0] bus   0, device 31, function  3: vendor 8086, device 54c8, revision 00
+KERN: PCI:   class_base 04, class_function 01, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54c8: Alder Lake-N PCH High Definition Audio Controller
+KERN: PCI:   info: Multimedia controller (Multimedia audio controller)
+KERN: PCI:   line_size 10, latency 40, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 0000, subsystem_vendor_id 0000
+KERN: PCI:   interrupt_line 17, interrupt_pin 02, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host 00000000becb0000, pci 00000000becb0000, size 00004000, flags 04 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000bed00000, pci 00000000bed00000, size 00100000, flags 04 00
+KERN: PCI:   Capabilities: PM, vendspec, MSI
+KERN: PCI: [dom 0, bus  0] bus   0, device 31, function  5: vendor 8086, device 54a4, revision 00
+KERN: PCI:   class_base 0c, class_function 80, class_api 00
+KERN: PCI:   vendor 8086: Intel Corporation
+KERN: PCI:   device 54a4: Alder Lake-N SPI (flash) Controller
+KERN: PCI:   info: Serial bus controller
+KERN: PCI:   line_size 00, latency 00, header_type 00, BIST 00
+KERN: PCI:   ROM base host 00000000, pci 00000000, size 00000000
+KERN: PCI:   cardbus_CIS 00000000, subsystem_id 7270, subsystem_vendor_id 8086
+KERN: PCI:   interrupt_line 00, interrupt_pin 00, min_grant 00, max_latency 00
+KERN: PCI:   base reg 0: host beca5000, pci beca5000, size 00001000, flags 00
+KERN: PCI:   base reg 1: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 2: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 3: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 4: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   base reg 5: host 00000000, pci 00000000, size 00000000, flags 00
+KERN: PCI:   Capabilities: (not supported)
+KERN: usb xhci -1: interface version: 0x0120
+KERN: usb xhci -1: structural parameters: 1:0x02000840 2:0x14200054 3:0x01900000
+KERN: usb xhci -1: capability parameters: 0x20007fc1
+KERN: allocate_io_interrupt_vectors: allocated 1 vectors starting from 120
+KERN: msi_allocate_vectors: allocated 1 vectors starting from 120
+KERN: msi enabled: 0x0087
+KERN: usb xhci -1: using message signaled interrupts
+KERN: usb xhci -1: starting XHCI host controller
+KERN: usb xhci -1: successfully started the controller
+KERN: usb xhci -1: interface version: 0x0120
+KERN: usb xhci -1: structural parameters: 1:0x10000840 2:0x14200054 3:0x00a0000a
+KERN: usb xhci -1: capability parameters: 0x20007fc1
+KERN: allocate_io_interrupt_vectors: allocated 1 vectors starting from 121
+KERN: msi_allocate_vectors: allocated 1 vectors starting from 121
+KERN: msi enabled: 0x0087
+KERN: usb xhci -1: using message signaled interrupts
+KERN: usb xhci -1: starting XHCI host controller
+KERN: usb xhci -1: successfully started the controller
+KERN: usb hub 7: port 2: new device connected
+KERN: usb hub 7: port 3: new device connected
+KERN: usb_disk: device reports a lun count of 1
+KERN: usb_disk: vendor_identification    "NanoKVM "
+KERN: usb_disk: product_identification   "USB Mass Storage"
+KERN: usb_disk: product_revision_level   "0520"
+KERN: publish device: node 0xffffffff83136fe0, path disk/usb/0/0/raw, module drivers/disk/usb_disk/device_v1
+KERN: usb hub 7: port 5: new device connected
+KERN: usb hub 7: port 7: new device connected
+KERN: usb error xhci 1: ConfigureEndpoint() failed invalid max_burst_payload
+KERN: usb error xhci 1: unable to configure endpoint: Invalid Argument
+KERN: usb error xhci 1: ConfigureEndpoint() failed invalid max_burst_payload
+KERN: usb error xhci 1: unable to configure endpoint: Invalid Argument
+KERN: get_boot_partitions(): boot volume message:
+KERN: KMessage: buffer: 0xffffffff828316f0 (size/capacity: 360/360), flags: 0xa
+KERN:   field: "partition offset"  (LLNG): 630194176 (0x25900000)
+KERN:   field: "packaged"          (BOOL): true
+KERN:   field: "boot method"       (LONG): 0 (0x0)
+KERN:   field: "disk identifier"   (RAWT): data at 0xffffffff828317a0, 79 bytes
+KERN:   field: "_boot_efi smbiosv2root" (LLNG): 1988190208 (0x76816000)
+KERN:   field: "_boot_efi smbiosv3root" (LLNG): 1988182016 (0x76814000)
+KERN: get_boot_partitions(): boot method type: 0
+KERN: [33msdhci:[0m Command execution timed out
+KERN: [33mmmc_bus:[0m CID: MID=0x45, OID=0x00, name="DV4064", PSN=6cb0e72a, PRV=0.1, MDT=7/2023, type=high capacity (sector addressing)
+KERN: DMAResource@0xffffffff831388e0: low/high 0/100000000, max segment count 1, align 512, boundary 524288, max transfer 18446744073709551615, max segment size 523776
+KERN: publish device: node 0xffffffff83138840, path disk/mmc/0/raw, module drivers/disk/mmc/mmc_disk/device_v1
+KERN: [33msdhci:[0m controller: spec 2, SDMA yes, ADMA2 yes, high speed yes, DDR50 yes, SDR104/HS200 yes, HS400 (Intel bit 63) yes, base clock 200 MHz; card type 2 (sector addressing), RCA 1
+KERN: [33msdhci:[0m data transfers: adma2, cmd23
+KERN: [33mmmc_disk:[0m write cache: 4096 KiB, on (flushed on request, on close and on shutdown)
+KERN: [33mmmc_disk:[0m 122142720 sectors of 512 bytes, 8-bit bus, HS400, writable
+KERN: DMAResource@0xffffffff83138b60: low/high 0/ffffffff, max segment count 16, align 1, boundary 0, max transfer 131072, max segment size 18446744073709551615
+KERN: usb_disk: got device name "NanoKVM USB Mass Storage 0520": No error
+KERN: intel: Found GPT signature, ignoring.
+KERN: EKERN: FI header: EFI PART
+KERN: EFI revision: 10000
+KERN: header size: 92
+KERN: header CRC: 6cca2dd5
+KERN: absolute block: 1
+KERN: alternate block: 122142719
+KERN: first usable block: 2048
+KERN: last usable block: 122142686
+KERN: disk GUID: 63c97f70-c5f1-459e-9450-139292643c4b
+KERN: entries block: 2
+KERN: entry size:  128
+KERN: entry count: 128
+KERN: entries CRC: 943c9b9d
+KERN: EFI header: EFI PART
+KERN: EFI revision: 10000
+KERN: header size: 92
+KERN: header CRC: 8508f611
+KERN: absolute block: 122142719
+KERN: alternate block: 1
+KERN: first usable block: 2048
+KERN: last usable block: 122142686
+KERN: disk GUID: 63c97f70-c5f1-459e-9450-139292643c4b
+KERN: entries block: 122142687
+KERN: entry size:  128
+KERN: entry count: 128
+KERN: entries CRC: 943c9b9d
+KERN: [  0] partition type: c12a7328-f81f-11d2-ba4b-00a0c93ec93b
+KERN:       unique id: 41ead752-9f93-4817-944a-11be69f7250a
+KERN:       start block: 2048
+KERN:       end block: 1230847
+KERN:       size: 599.999 MB
+KERN:       attributes: 0
+KERN:       name: EFI System Partition
+KERN: [  1] partition type: 0fc63daf-8483-4772-8e79-3d69d8477de4
+KERN:       unique id: fec3fc70-bf59-43f7-9ea8-d4441b6f95c3
+KERN:       start block: 1230848
+KERN:       end block: 5425151
+KERN:       size: 2047.999 MB
+KERN:       attributes: 0
+KERN:       name: 
+KERN: [  2] partition type: 0fc63daf-8483-4772-8e79-3d69d8477de4
+KERN:       unique id: b8b25bca-fc86-4498-a782-61fc84296e00
+KERN:       start block: 5425152
+KERN:       end block: 105363455
+KERN:       size: 48797.999 MB
+KERN:       attributes: 0
+KERN:       name: 
+KERN: [  3] partition type: 42465331-3ba3-10f1-802a-4861696b7521
+KERN:       unique id: a2d9a980-3997-42ab-bc01-5e2ec0a4c89d
+KERN:       start block: 105363456
+KERN:       end block: 122140671
+KERN:       size: 8191.999 MB
+KERN:       attributes: 0
+KERN:       name: RenkuOS
+KERN: identify(0, 0xffffffff835778b8)
+KERN: efi_gpt_scan_partition(cookie = 0xffffffff830a0540)
+KERN: identify(0, 0xffffffff83577e70)
+KERN: identify(0, 0xffffffff83577f18)
+KERN: identify(0, 0xffffffff809c3030)
+KERN: identify(0, 0xffffffff809c30c0)
+KERN: intel: Found GPT signature, ignoring.
+KERN: EFI header: EFI PART
+KERN: EFI revision: 10000
+KERN: header size: 92
+KERN: header CRC: c1b8d468
+KERN: absolute block: 1
+KERN: alternate block: 18010111
+KERN: first usable block: 2048
+KERN: last usable block: 18010078
+KERN: disk GUID: 6add94d6-2606-43d7-a170-b0399f0c5164
+KERN: entries block: 2
+KERN: entry size:  128
+KERN: entry count: 128
+KERN: entries CRC: d23a9ecb
+KERN: EFI header: EFI PART
+KERN: EFI revision: 10000
+KERN: header size: 92
+KERN: header CRC: e0a32fb5
+KERN: absolute block: 18010111
+KERN: alternate block: 1
+KERN: first usable block: 2048
+KERN: last usable block: 18010078
+KERN: disk GUID: 6add94d6-2606-43d7-a170-b0399f0c5164
+KERN: entries block: 18010079
+KERN: entry size:  128
+KERN: entry count: 128
+KERN: entries CRC: d23a9ecb
+KERN: [  0] partition type: c12a7328-f81f-11d2-ba4b-00a0c93ec93b
+KERN:       unique id: 723c720d-3248-45e6-82d1-ce1e1023150d
+KERN:       start block: 2048
+KERN:       end block: 1230847
+KERN:       size: 599.999 MB
+KERN:       attributes: 0
+KERN:       name: Test EFI
+KERN: [  1] partition type: 42465331-3ba3-10f1-802a-4861696b7521
+KERN:       unique id: 6a02a37a-e13e-4a09-95a2-739da8aec0ba
+KERN:       start block: 1230848
+KERN:       end block: 18008063
+KERN:       size: 8191.999 MB
+KERN:       attributes: 0
+KERN:       name: Renku GPU Test
+KERN: identify(0, 0xffffffff809c3150)
+KERN: usb_disk: unhandled ioctl 10102
+KERN: efi_gpt_scan_partition(cookie = 0xffffffff830a0e00)
+KERN: identify(0, 0xffffffff809c3168)
+KERN: usb_disk: unhandled ioctl 10102
+KERN: identify(0, 0xffffffff809c3078)
+KERN: usb_disk: unhandled ioctl 10102
+KERN: device 0: /dev/disk/mmc/0/raw
+KERN:   media status:      No error
+KERN:   device flags:      2
+KERN:   offset:            0
+KERN:   size:              62537072640 (59640 MB)
+KERN:   content size:      62537072640
+KERN:   block size:        512
+KERN:   physical block size: 512
+KERN:   child count:       4
+KERN:   index:             -1
+KERN:   status:            0
+KERN:   flags:             5
+KERN:   volume:            -1
+KERN:   disk system:       partitioning_systems/efi_gpt/v1
+KERN:   name:              <NULL>
+KERN:   content name:      <NULL>
+KERN:   type:              <NULL>
+KERN:   content type:      GUID Partition Map
+KERN:   params:            <NULL>
+KERN:   content params:    <NULL>
+KERN:   partition 2: /dev/disk/mmc/0/0
+KERN:     offset:            1048576
+KERN:     size:              629145600 (600 MB)
+KERN:     content size:      629145600
+KERN:     block size:        512
+KERN:     physical block size: 512
+KERN:     child count:       0
+KERN:     index:             0
+KERN:     status:            0
+KERN:     flags:             2
+KERN:     volume:            -1
+KERN:     disk system:       file_systems/fat/v1
+KERN:     name:              EFI System Partition
+KERN:     content name:      no name
+KERN:     type:              EFI system data
+KERN:     content type:      FAT32 File System
+KERN:     params:            <NULL>
+KERN:     content params:    <NULL>
+KERN:   partition 3: /dev/disk/mmc/0/1
+KERN:     offset:            630194176
+KERN:     size:              2147483648 (2048 MB)
+KERN:     content size:      2147483648
+KERN:     block size:        4096
+KERN:     physical block size: 512
+KERN:     child count:       0
+KERN:     index:             1
+KERN:     status:            0
+KERN:     flags:             2
+KERN:     volume:            -1
+KERN:     disk system:       file_systems/ext2/v1
+KERN:     name:              
+KERN:     content name:      
+KERN:     type:              Linux data
+KERN:     content type:      Linux Extended File System 2/3/4
+KERN:     params:            <NULL>
+KERN:     content params:    <NULL>
+KERN:   partition 4: /dev/disk/mmc/0/2
+KERN:     offset:            2777677824
+KERN:     size:              51168411648 (48798 MB)
+KERN:     content size:      51168411648
+KERN:     block size:        16384
+KERN:     physical block size: 512
+KERN:     child count:       0
+KERN:     index:             2
+KERN:     status:            0
+KERN:     flags:             2
+KERN:     volume:            -1
+KERN:     disk system:       file_systems/btrfs/v1
+KERN:     name:              
+KERN:     content name:      fedora
+KERN:     type:              Linux data
+KERN:     content type:      Btrfs File System
+KERN:     params:            <NULL>
+KERN:     content params:    <NULL>
+KERN:   partition 5: /dev/disk/mmc/0/3
+KERN:     offset:            53946089472
+KERN:     size:              8589934592 (8192 MB)
+KERN:     content size:      8589934592
+KERN:     block size:        2048
+KERN:     physical block size: 512
+KERN:     child count:       0
+KERN:     index:             3
+KERN:     status:            0
+KERN:     flags:             2
+KERN:     volume:            -1
+KERN:     disk system:       file_systems/bfs/v1
+KERN:     name:              RenkuOS
+KERN:     content name:      RenkuTest
+KERN:     type:              Be File System
+KERN:     content type:      Be File System
+KERN:     params:            <NULL>
+KERN:     content params:    <NULL>
+KERN: device 1: /dev/disk/usb/0/0/raw
+KERN:   media status:      No error
+KERN:   device flags:      3
+KERN:   offset:            0
+KERN:   size:              9221177344 (8794 MB)
+KERN:   content size:      9221177344
+KERN:   block size:        512
+KERN:   physical block size: 512
+KERN:   child count:       2
+KERN:   index:             -1
+KERN:   status:            0
+KERN:   flags:             5
+KERN:   volume:            -1
+KERN:   disk system:       partitioning_systems/efi_gpt/v1
+KERN:   name:              NanoKVM USB Mass Storage 0520
+KERN:   content name:      <NULL>
+KERN:   type:              <NULL>
+KERN:   content type:      GUID Partition Map
+KERN:   params:            <NULL>
+KERN:   content params:    <NULL>
+KERN:   partition 6: /dev/disk/usb/0/0/0
+KERN:     offset:            1048576
+KERN:     size:              629145600 (600 MB)
+KERN:     content size:      629121024
+KERN:     block size:        512
+KERN:     physical block size: 512
+KERN:     child count:       0
+KERN:     index:             0
+KERN:     status:            0
+KERN:     flags:             2
+KERN:     volume:            -1
+KERN:     disk system:       file_systems/fat/v1
+KERN:     name:              Test EFI
+KERN:     content name:      renkutest
+KERN:     type:              EFI system data
+KERN:     content type:      FAT32 File System
+KERN:     params:            <NULL>
+KERN:     content params:    <NULL>
+KERN:   partition 7: /dev/disk/usb/0/0/1
+KERN:     offset:            630194176
+KERN:     size:              8589934592 (8192 MB)
+KERN:     content size:      8589934592
+KERN:     block size:        2048
+KERN:     physical block size: 512
+KERN:     child count:       0
+KERN:     index:             1
+KERN:     status:            0
+KERN:     flags:             2
+KERN:     volume:            -1
+KERN:     disk system:       file_systems/bfs/v1
+KERN:     name:              Renku GPU Test
+KERN:     content name:      RenkuTest
+KERN:     type:              Be File System
+KERN:     content type:      Be File System
+KERN:     params:            <NULL>
+KERN:     content params:    <NULL>
+KERN: Identified boot partition by partition offset.
+KERN: bfs: mounted "RenkuTest" (root node at 524288, device = /dev/disk/usb/0/0/1)
+KERN: Mounted boot partition: /dev/disk/usb/0/0/1
+KERN: unknown: [2887461:    19] Adding packages from "/boot/system/packages"
+KERN: slab memory manager: created area 0xffffffff81801000 (432)
+KERN: slab memory manager: created area 0xffffffff9d001000 (434)
+KERN: unknown: [3998704:    19] StringPool usage:
+KERN: unknown: [3999934:    19]   toKERN: tal unique strings:       18301,   292055 bytes, overhead: 292816 bytes + 262144 bytes
+KERN: unknown: [4003146:    19]   total strings with dups:   102952,  1284735 bytes
+KERN: unknown: [4005295:    19]   unshared strings:            1368
+KERN: unknown: [4007014:    19]   bytes saved:               437720
+KERN: unknown: [4014281:    19] Adding packages from "/boot/home/config/packages"
+KERN: unknown: [4022569:    19] Failed to open packages activation file: No such file or directory
+KERN: unknown: [4025125:    19] Loading packages from activation file failed. Loading all packages in packages directory.
+KERN: unknown: [4036239:    19] StringPool usage:
+KERN: unknown: [4037467:    19]   total unique strings:       18301,   292055 bytes, overhead: 292816 bytes + 262144 bytes
+KERN: unknown: [4040679:    19]   total strings with dups:   102963,  1284800 bytes
+KERN: unknown: [4042830:    19]   unshared strings:            1364
+KERN: unknown: [4044545:    19]   bytes saved:               437785
+KERN: module_init_post_boot_device() failed to normalize path of module image 0xffffffff8300eea0, "btrfs"
+KERN: module_init_post_boot_device() failed to normalize path of module image 0xffffffff831f50c0, "fat"
+KERN: module_init_post_boot_device() failed to normalize path of module image 0xffffffff831f5090, "ext2"
+KERN: module: Search for file_cache/launch_speedup/v1 failed.
+KERN: publish device: node 0xffffffff817a4748, path disk/virtual/ram/control, module drivers/disk/virtual/ram_disk/control/device_v1
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/dprintf
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/null
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/pty
+KERN: con_init: trying module console/frame_buffer/v1
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/console
+KERN: usb_modeswitch: init_hardware()
+KERN: usb_modeswitch: init_driver()
+KERN: usb_modeswitch: trying module bus_managers/usb/v3.1
+KERN: usb_modeswitch: publish_devices()
+KERN: usb_modeswitch: uninit_driver()
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/usb_modeswitch
+KERN: identify(6, 0xffffffff81cbd450)
+KERN: identify(6, 0xffffffff81cbd888)
+KERN: identify(6, 0xffffffff8307c030)
+KERN: identify(6, 0xffffffff81cbd960)
+KERN: identify(6, 0xffffffff81cbd9d8)
+KERN: usb_disk: unhandled ioctl 10102
+KERN: mtrr: [cpu 1] MTRRs are enabled
+KERN: mtrr: [cpu 1] default type is 0 uncacheable
+KERN: mtrr: [cpu 1] fixed range MTRRs are enabled
+KERN: mtrr: [cpu 1] 0: base: 0x0; length: 0x80000000; type: 6 write-back
+KERN: mtrr: [cpu 1] 1: base: 0x77000000; length: 0x1000000; type: 0 uncacheable
+KERN: mtrr: [cpu 1] 2: base: 0x78000000; length: 0x8000000; type: 0 uncacheable
+KERN: mtrr: [cpu 1] 3: base: 0xd0000000; length: 0x10000000; type: 1 write combining
+KERN: mtrr: [cpu 1] 4: base: 0x100000000; length: 0x80000000; type: 6 write-back
+KERN: mtrr: [cpu 1] 5: base: 0x17fc00000; length: 0x400000; type: 0 uncacheable
+KERN: ignoring MTRRs due to PAT support
+KERN: allocate_commpage_entry(4, 16) -> 0x0000000000000258
+KERN: using Intel P-States: min 7, max 8, boost 34, HWP active
+KERN: found cpufreq module: power/cpufreq/intel_pstates/v1
+KERN: scheduler switches: single core: false, cpu load tracking: false, core load tracking: true
+KERN: using x86 C-States: C0, C1, C3, C5, C7
+KERN: found cpuidle module: power/cpuidle/x86_cstates/v1
+KERN: ignoring MTRRs due to PAT support
+KERN: kernel debugger extension "debugger/disasm/v1": loaded
+KERN: kernel debugger extension "debugger/run_on_exit/v1": loaded
+KERN: kernel debugger extension "debugger/hangman/v1": loaded
+KERN: kernel debugger extension "debugger/usb_keyboard/v1": loaded
+KERN: kernel debugger extension "debugger/invalidate_on_exit/v1": loaded
+KERN: publish device: node 0xffffffff817aa8c8, path random, module bus_managers/random/device_v1
+KERN: publish device: node 0xffffffff817aa8c8, path urandom, module bus_managers/random/device_v1
+KERN: publish device: node 0xffffffff817aaaa8, path power/button/power_fixed, module drivers/power/acpi_button/device_v1
+KERN: acpi_lid_support lid device found
+KERN: publish device: node 0xffffffff817aac88, path power/acpi_lid/0, module drivers/power/acpi_lid/device_v1
+KERN: acpi_ac_support ac device found
+KERN: publish device: node 0xffffffff817aae68, path power/acpi_ac/0, module drivers/power/acpi_ac/device_v1
+KERN: publish device: node 0xffffffff817ab048, path power/acpi_battery/0, module drivers/power/acpi_battery/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 37
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbecad000 size 0x1000 irq 0x25
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x0)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000001
+KERN: publish device: node 0xffffffff817ab368, path bus/i2c/0/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 38
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbecac000 size 0x1000 irq 0x26
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x1)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817ab7c8, path bus/i2c/1/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 39
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbecab000 size 0x1000 irq 0x27
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x2)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817abae8, path bus/i2c/2/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 40
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbecaa000 size 0x1000 irq 0x28
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x3)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817abea8, path bus/i2c/3/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 41
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbeca8000 size 0x1000 irq 0x29
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x4)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000028
+KERN: publish device: node 0xffffffff817ac308, path bus/i2c/4/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: [33mpch_i2c_pci:[0m using legacy interrupt 42
+KERN: [33mpch_i2c_pci:[0m init_bus() addr 0xbeca7000 size 0x1000 irq 0x2a
+KERN: [33mpch_i2c_pci:[0m version 0x3230302a
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x0 (0x5)
+KERN: [33mpch_i2c_pci:[0m init_bus() 0x01f4 0x024c 0x004b 0x00a3 0x00000007
+KERN: publish device: node 0xffffffff817ac628, path bus/i2c/5/bus_raw, module bus_managers/i2c/bus/raw/device_v1
+KERN: i2c_elan: firmware version 0x02
+KERN: i2c_elan: touchpad 3282x1793, pattern 1, report length 34, polling
+KERN: publish device: node 0xffffffff817ac8a8, path input/mouse/i2c/0, module drivers/input/i2c_elan/device_v1
+KERN: [33mmmc_disk:[0m Could not get device type
+Last message repeated 1 time
+KERN: slab memory manager: created area 0xffffffff9d801000 (12603)
+KERN: slab memory manager: created area 0xffffffff9e001000 (12887)
+KERN: package_daemon: [6711237:    60] root at "/boot" (device: 3, node: 524288) registered
+KERN: package_daemon: [6711995:    60] volume at "/boot/system" registered
+KERN: package_daemon: [6712607:    60] volume at "/boot/home/config" registered
+KERN: Test: and [file_exists [/system/bin/FirstBootPrompt], or [not [file_exists [/boot/home/config/settings/Locale settings]], readonly ]] -> 0
+KERN: register_domain(5, internet6)
+KERN: register_domain(9, unix)
+KERN: bt: bluetooth_std_ops: Connection Thread error
+KERN: register_domain(10, bluetooth)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6d500, 9, unix)
+KERN: unregister_domain(0xffffffff81c6d480, 5, internet6)
+KERN: unregister_domain(0xffffffff81c6d600, 1, internet)
+KERN: unregister_domain(0xffffffff81c6d580, 10, bluetooth)
+KERN: register_domain(5, internet6)
+KERN: unregister_domain(0xffffffff81c6d700, 5, internet6)
+KERN: register_domain(1, internet)
+KERN: register_domain(4, link)
+KERN: unregister_domain(0xffffffff81c6d780, 1, internet)
+KERN: unregister_domain(0xffffffff81c6c300, 4, link)
+KERN: register_domain(5, internet6)
+KERN: register_domain(9, unix)
+KERN: register_domain(10, bluetooth)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6c600, 9, unix)
+KERN: unregister_domain(0xffffffff81c6c480, 5, internet6)
+KERN: unregister_domain(0xffffffff81c6c680, 1, internet)
+KERN: unregister_domain(0xffffffff81c6cc00, 10, bluetooth)
+KERN: register_domain(5, internet6)
+KERN: unregister_domain(0xffffffff81c6c800, 5, internet6)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6c900, 1, internet)
+KERN: register_domain(5, internet6)
+KERN: register_domain(9, unix)
+KERN: register_domain(10, bluetooth)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6c580, 9, unix)
+KERN: unregister_domain(0xffffffff81c6cb80, 5, internet6)
+KERN: unregister_domain(0xffffffff81c6cd00, 1, internet)
+KERN: unregister_domain(0xffffffff81c6cc80, 10, bluetooth)
+KERN: register_domain(5, internet6)
+KERN: unregister_domain(0xffffffff81c6ce00, 5, internet6)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6ce80, 1, internet)
+KERN: register_domain(5, internet6)
+KERN: register_domain(9, unix)
+KERN: register_domain(10, bluetooth)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c68b80, 9, unix)
+KERN: unregister_domain(0xffffffff81c6b600, 5, internet6)
+KERN: unregister_domain(0xffffffff81c65280, 1, internet)
+KERN: unregister_domain(0xffffffff81c6bd80, 10, bluetooth)
+KERN: register_domain(5, internet6)
+KERN: unregister_domain(0xffffffff81c6b680, 5, internet6)
+KERN: register_domain(5, internet6)
+KERN: unregister_domain(0xffffffff81c6bd00, 5, internet6)
+KERN: register_domain(5, internet6)
+KERN: register_domain(9, unix)
+KERN: register_domain(10, bluetooth)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6bf80, 9, unix)
+KERN: unregister_domain(0xffffffff81c6be00, 5, internet6)
+KERN: unregister_domain(0xffffffff81c6c100, 1, internet)
+KERN: unregister_domain(0xffffffff81c6c080, 10, bluetooth)
+KERN: register_domain(5, internet6)
+KERN: unregister_domain(0xffffffff81c6bb80, 5, internet6)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6c200, 1, internet)
+KERN: register_domain(5, internet6)
+KERN: register_domain(9, unix)
+KERN: register_domain(10, bluetooth)
+KERN: register_domain(1, internet)
+KERN: unregister_domain(0xffffffff81c6c380, 9, unix)
+KERN: unregister_domain(0xffffffff81c6c300, 5, internet6)
+KERN: unregister_domain(0xffffffff81c6c480, 1, internet)
+KERN: unregister_domain(0xffffffff81c6c600, 10, bluetooth)
+KERN: register_domain(5, internet6)
+KERN: unregister_domain(0xffffffff81c6cc00, 5, internet6)
+KERN: register_domain(1, internet)
+KERN: register_domain(5, internet6)
+KERN: pci_reserve_device(1, 0, 0, mediatekwifi)
+KERN: [mediatekwifi] (mwx) bus_alloc_resource(3, [16], 0x0, 0xffffffffffffffff, 0x1,0x2)
+KERN: allocate_io_interrupt_vectors: allocated 1 vectors starting from 122
+KERN: msi_allocate_vectors: allocated 1 vectors starting from 122
+KERN: mediatekwifi: mwx_reg_addr reg 70010200 via L1
+KERN: mediatekwifi: mwx_reg_addr reg 70010204 via L1
+KERN: mediatekwifi: mwx_reg_addr reg 70010020 via L1
+KERN: : <NULL>, rev: MT7961.10
+KERN: mediatekwifi: WFSYS reset
+KERN: mediatekwifi: mwx_reg_addr reg 18000140 via L1
+KERN: Last message repeated 2 times.
+KERN: [mediatekwifi] (mwx) bus_alloc_resource(1, [1], 0x0, 0xffffffffffffffff, 0x1,0x2)
+KERN: msi enabled: 0x018b
+KERN: if_attach 0xffffffff81ea88f0
+KERN: if_attach 0xffffffff81ea8af0
+KERN: mediatekwifi: preinit
+KERN: mediatekwifi: DMA full-reset
+KERN: mediatekwifi: WFSYS reset
+KERN: mediatekwifi: mwx_reg_addr reg 18000140 via L1
+KERN: Last message repeated 2 times.
+KERN: mediatekwifi: mwx_reg_addr reg 18060010 via L1
+KERN: Last message repeated 2 times.
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000010
+KERN: mediatekwifi: mcu rx event, seq 1 eid 4 ext_eid 2 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 1 eid 4 ext_eid 2, opt 0 len 12, cmd 10, mcu_int 2
+KERN: mediatekwifi: HW/SW version: 0x8a108a10, build time: 20251223091050a
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000005
+KERN: mediatekwifi: mcu rx event, seq 2 eid 1 ext_eid 0 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 2 eid 1 ext_eid 0, opt 0 len 12, cmd 5, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000007
+KERN: mediatekwifi: mcu rx event, seq 3 eid 1 ext_eid 0 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 3 eid 1 ext_eid 0, opt 0 len 12, cmd 7, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000010
+KERN: mediatekwifi: mcu rx event, seq 4 eid 4 ext_eid 3 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 4 eid 4 ext_eid 3, opt 0 len 12, cmd 10, mcu_int 3
+KERN: mediatekwifi: WM firmware version: ____010000, build time: 20251223091148
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000001
+KERN: mediatekwifi: mcu rx event, seq 5 eid 1 ext_eid 0 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 5 eid 1 ext_eid 0, opt 0 len 12, cmd 1, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000001
+KERN: mediatekwifi: mcu rx event, seq 6 eid 1 ext_eid 0 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 6 eid 1 ext_eid 0, opt 0 len 12, cmd 1, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000001
+KERN: mediatekwifi: mcu rx event, seq 7 eid 1 ext_eid 0 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 7 eid 1 ext_eid 0, opt 0 len 12, cmd 1, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000001
+KERN: mediatekwifi: mcu rx event, seq 8 eid 1 ext_eid 0 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 8 eid 1 ext_eid 0, opt 0 len 12, cmd 1, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00000002
+KERN: mediatekwifi: mcu rx event, seq 9 eid 1 ext_eid 0 opt 0 len 12
+KERN: mediatekwifi: mcu rx event, seq 9 eid 1 ext_eid 0, opt 0 len 12, cmd 2, mcu_int 0
+KERN: mediatekwifi: firmware loaded
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004008a
+KERN: mediatekwifi: mcu rx event, seq a eid ec ext_eid 0 opt 0 len 528
+KERN: mediatekwifi: mcu rx event, seq a eid ec ext_eid 0, opt 0 len 528, cmd 4008a, mcu_int 0
+KERN: mediatekwifi: address 4c:82:a9:8c:3c:4f
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400c5
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000021ed
+KERN: mediatekwifi: mcu rx event, seq c eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq c eid ed ext_eid 0, opt 0 len 20, cmd 21ed, mcu_int 0
+KERN: mediatekwifi: enable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: preinit done
+KERN: if_initname(0xffffffff81ec4008, mwx, 0)
+KERN: [mediatekwifi] mediatekwifi: /dev/net/mediatekwifi/0
+KERN: start_wlan: wlan started.
+KERN: mediatekwifi: init_driver(0xffffffff825c71f0)
+KERN: loaded driver /boot/home/config/non-packaged/add-ons/kernel/drivers/dev/net/mediatekwifi
+KERN: package_daemon: [8033842:    78] The latest volume state is also the currently active one
+KERN: package_daemon: [8034223:    78] Volume::InitialVerify((nil), (nil))
+KERN: package_daemon: [8118657:    78] Volume::InitialVerify(): volume at "/boot/system" is consistent
+KERN: package_daemon: [8119504:    78] Failed to open packages activation file /boot/home/config/packages/administrative/activated-packages: No such file or directory
+KERN: package_daemon: [8120199:    78] Failed to get activated packages info from activated packages file. Assuming all package files in package directory are activated.
+KERN: package_daemon: [8120903:    78] The latest volume state is also the currently active one
+KERN: package_daemon: [8121292:    78] Volume::InitialVerify(0xf7d9bc9200, (nil))
+KERN: package_daemon: [8122953:    78] Volume::InitialVerify(): volume at "/boot/home/config" is consistent
+KERN: mediatekwifi: low power event state 1
+AUTH 'sshd'[142]: Server listening on :: port 22.
+AUTH 'sshd'[142]: Server listening on 0.0.0.0 port 22.
+AUTH 'sshd'[142]: error: Couldn't create pid file "/packages/openssh-10.4p1-1/.self/var/run/sshd.pid": No such file or directory
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/net/usb_rndis
+KERN: intel_extreme: CALLED status_t init_hardware()
+KERN: intel_extreme: get_next_intel_extreme: Intel gfx deviceID: 0x46d1
+KERN: intel_extreme: CALLED status_t init_driver()
+KERN: [36mAGP:[0m bus manager init
+KERN: [36mAGP:[0m found 0 AGP devices
+KERN: intel_extreme: detect_intel_pch: Intel PCH deviceID: 0x5481
+KERN: intel_extreme: detect_intel_pch: Found Alder Lake PCH
+KERN: intel_extreme: get_next_intel_extreme: Intel gfx deviceID: 0x46d1
+KERN: intel_extreme: (0) Alder Lake-N, revision = 0x0
+KERN: intel_extreme: CALLED const char** publish_devices()
+KERN: intel_extreme: CALLED device_hooks* find_device(const char*)
+KERN: loaded driver /boot/home/config/non-packaged/add-ons/kernel/drivers/dev/graphics/intel_extreme
+KERN: etherpci: init_driver init_driver: etherpci not found
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/graphics/intel_extreme
+KERN: framebuffer: init_hardware()
+KERN: framebuffer: init_driver()
+KERN: framebuffer: publish_devices()
+KERN: framebuffer: find_device()
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/graphics/framebuffer
+KERN: nvidia: CALLED init_hardware
+KERN: nvidia: init_hardware: no supported device found
+KERN: ati: init_hardware() - no supported devices
+KERN: S3: init_hardware() - no supported devices
+KERN: Radeon - init_hardware: Version: 5.1.6.0
+KERN: Radeon - Radeon_CardDetect: no supported devices found
+KERN: [33musb_davicom:[0m00.09.558:init_driver::ver.0.9.5
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/net/usb_davicom
+KERN: radeon_hd: init_hardware
+KERN: vesa: init_hardware()
+KERN: devfs: "intel_810" api_version missing
+KERN: i810: init_hardware() - no supported devices
+KERN: intel_extreme: CALLED status_t device_open(const char*, uint32, void**)
+KERN: intel_extreme: intel_extreme: CALLED status_t intel_extreme_init(intel_info&)
+KERN: intel_gart: bus manager init
+KERN: intel_gart: found intel bridge
+KERN: intel_gart: GTT base bf800000, size 8388608, entries 1048576, stolen 62914560
+KERN: intel_gart: detected 60 MB of stolen memory, aperture size 256 MB, GTT size 8192 KB
+KERN: intel_gart: GTT base = 0xbf800000
+KERN: intel_gart: MMIO base = 0xbf000000
+KERN: intel_gart: GMR base = 0xd0000000
+KERN: [net/mediatekwifi/0] compat_open(0x2)
+KERN: mediatekwifi: stop
+KERN: mwx: INIT -> INIT
+KERN: mediatekwifi: init
+KERN: mediatekwifi: disable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000046ed
+KERN: mediatekwifi: mcu rx event, seq f eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq f eid ed ext_eid 0, opt 0 len 20, cmd 46ed, mcu_int 0
+KERN: mediatekwifi: mt7925 set domain n2 14 n5 27 n6 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004000f
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004005d
+KERN: Last message repeated 7 times.
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20001 mvif idx 0 omac 0 band 0 wmm 0
+KERN: intel_extreme: Init Intel generation 12 GPU with PCH split.
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020001
+KERN: intel_extreme: REGS_NORTH_SHARED: 0x40000
+KERN: intel_extreme: REGS_NORTH_PIPE_AND_PORT: 0x60000
+KERN: intel_extreme: REGS_NORTH_PLANE_CONTROL: 0x70000
+KERN: intel_extreme: REGS_SOUTH_SHARED: 0xc0000
+KERN: intel_extreme: REGS_SOUTH_TRANSCODER_PORT: 0xe0000
+KERN: intel_extreme:CALLED status_t intel_en_gating(intel_info&)
+KERN: intel_extreme:CALLED status_t intel_en_downclock(intel_info&)
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0 opt 2 len 20
+KERN: intel_extreme:intel_en_downclock: Downclocking not supported on this chipset.
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0, opt 2 len 20, cmd 20001, mcu_int 0
+KERN: intel_extreme: Graphic OpRegion physical addr: 0x7689e000; size: 0x2000
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20002 wcid 19
+KERN: intel_extreme: mapping OpRegion: 0x7689e000 -> 0xffffffff828b5000
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020002
+KERN: intel_extreme: RVDA physical addr: 0x768a0000; size: 0x2400
+KERN: Packet hex dump:
+KERN: intel_extreme: VBT signature "$VBT ALDERLAKE-P    ", BDB version 251
+KERN: 0000	KERN: intel_extreme: internal_crt_support: 0x0
+KERN: 54 KERN: intel_extreme: found child device type: 0x1806
+KERN: 00 KERN: intel_extreme: found child device type: 0x68c6
+KERN: 00 KERN: intel_extreme: found child device type: 0x60d2
+KERN: 41 KERN: intel_extreme: panel type: 2
+KERN: 00 KERN: intel_extreme: found bdb lvds backlight info
+KERN: 00 KERN: intel_extreme: display 2 min brightness level is 0
+KERN: 01 KERN: 80 KERN: allocate_io_interrupt_vectors: allocated 1 vectors starting from 123
+KERN: 00 KERN: msi_allocate_vectors: allocated 1 vectors starting from 123
+KERN: 00 KERN: msi enabled: 0x0101
+KERN: 00 KERN: intel_extreme: using message signaled interrupts
+KERN: 00 Last message repeated 2 times
+KERN: intel_extreme: intel_extreme_init: hw_cdclk: 0 kHz
+KERN: 00 KERN: intel_extreme: intel_extreme_init: completed successfully!
+KERN: 00 KERN: intel_extreme: accelerant: intel_extreme.accelerant
+KERN: | KERN: TKERN: .Last message repeated 1 time
+KERN: AKERN: .Last message repeated 11 times
+KERN: 
+KERN: 0010	KERN: 00 Last message repeated 15 times
+KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0020	KERN: 34 KERN: 00 KERN: 02 KERN: 00 Last message repeated 1 time
+KERN: a0 KERN: 00 KERN: 0b KERN: 00 Last message repeated 2 times
+KERN: 07 KERN: 00 Last message repeated 3 times
+KERN: | KERN: 4KERN: .Last message repeated 14 times
+KERN: 
+KERN: 0030	KERN: 00 Last message repeated 5 times
+KERN: 20 KERN: 00 KERN: 01 KERN: 00 Last message repeated 2 times
+KERN: 01 KERN: 00 KERN: 01 KERN: 00 KERN: | KERN: .Last message repeated 5 times
+KERN:  KERN: .Last message repeated 8 times
+KERN: 
+KERN: 0040	KERN: 01 KERN: 00 Last message repeated 6 times
+KERN: 13 KERN: 00 Last message repeated 4 times
+KERN: 13 KERN: 00 KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0050	KERN: 00 Last message repeated 3 times
+KERN:    Last message repeated 11 times
+KERN: | KERN: .Last message repeated 3 times
+KERN: 
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq b eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq b eid 1 ext_eid 0, opt 2 len 20, cmd 20002, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001d
+KERN: mediatekwifi: mwx_newstate_task 0 -> 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00040003
+KERN: /dev/net/mediatekwifi/0: link down, media 0x80 quality 1000 speed 0
+AUTH 'sshd'[150]: error: Bind to port 22 on :: failed: Address already in use.
+AUTH 'sshd'[150]: error: Bind to port 22 on 0.0.0.0 failed: Address already in use.
+AUTH 'sshd'[150]: fatal: Cannot bind any address.
+KERN: intel_extreme: CALLED status_t intel_init_accelerant(int)
+KERN: intel_extreme: Pipe A.
+KERN: intel_extreme: PanelFitter: requested fitter #1
+KERN: intel_extreme: PanelFitter: this fitter is not setup by the BIOS: Enabling.
+KERN: intel_extreme: Pipe Base: 0x0 Plane Base: 0x0
+KERN: intel_extreme: Pipe B.
+KERN: intel_extreme: PanelFitter: requested fitter #2
+KERN: intel_extreme: PanelFitter: this fitter is not setup by the BIOS: Enabling.
+KERN: intel_extreme: Pipe Base: 0x1000 Plane Base: 0x1000
+KERN: intel_extreme: Pipe C.
+KERN: intel_extreme: PanelFitter: requested fitter #3
+KERN: intel_extreme: PanelFitter: this fitter is not setup by the BIOS: Enabling.
+KERN: intel_extreme: Pipe Base: 0x2000 Plane Base: 0x2000
+KERN: intel_extreme: Pipe D.
+KERN: intel_extreme: PanelFitter: requested fitter #4
+KERN: intel_extreme: PanelFitter: this fitter is enabled by the BIOS
+KERN: intel_extreme: Pipe Base: 0xf000 Plane Base: 0x0
+KERN: intel_extreme: adpa: ffffffff
+KERN: intel_extreme: dova: ffffffff, dovb: ffffffff, dovc: ffffffff
+KERN: intel_extreme: lvds: ffffffff
+KERN: intel_extreme: dp_a: 80000002
+KERN: intel_extreme: dp_b: ffffffff
+KERN: intel_extreme: dp_c: ffffffff
+KERN: intel_extreme: dp_d: ffffffff
+KERN: intel_extreme: tra_dp: ffffffff
+KERN: intel_extreme: trb_dp: ffffffff
+KERN: intel_extreme: trc_dp: ffffffff
+KERN: intel_extreme: Probing DDI 1
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: CALLED virtual status_t Port::GetEDID(edid1_info*, bool)
+KERN: intel_extreme: Digital Display Interface A: trying to read EDID
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetupI2c(i2c_bus*)
+KERN: intel_extreme: CALLED status_t Port::_SetupDpAuxI2c(i2c_bus*)
+KERN: intel_extreme: CALLED static status_t Port::_DpAuxSendReceiveHook(const i2c_bus*, uint32, const uint8*, size_t, uint8*, size_t)
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface A DpAuxChannel: 0x0
+KERN: intel_extreme: Digital Display Interface A: found EDID information!
+KERN: EDID info:
+KERN:   EDID version: 1.4
+KERN:   Vendor: CMN Product ID: 0x144f
+KERN:   Serial #: 0
+KERN:   Produced in week/year: 13/2022
+KERN:   Type: Digital
+KERN:   Digital Bit Depth: 8
+KERN:   DisplayPort interface
+KERN:   Size: 31 cm x 17 cm
+KERN:   Gamma=2.20
+KERN:   Red (X,Y)=(0.5898,0.3555)
+KERN:   Green (X,Y)=(0.3301,0.5547)
+KERN:   Blue (X,Y)=(0.1533,0.1191)
+KERN:   White (X,Y)=(0.3135,0.3291)
+KERN: Supported Future Video Modes:
+KERN: Supported VESA Video Modes:
+KERN: Additional Video Mode (1920x1080@60Hz):
+KERN: clock=138.780 MHz
+KERN: h: (1920, 1968, 2000, 2080)
+KERN: v: (1080, 1083, 1088, 1112)
+KERN: size: 30.9 cm x 17.3 cm
+KERN: border: 0.0 cm x 0.0 cm
+KERN: Ascii Data: N140HGA-EA1
+KERN: Ascii Data: CMN
+KERN: Ascii Data: N140HGA-EA1
+KERN: intel_extreme: Probing DDI 2
+KERN: intel_extreme: IsConnected: Digital Display Interface B PortRegister: 0x2004100
+KERN: intel_extreme: IsConnected: Digital Display Interface B: port not found in VBT
+KERN: intel_extreme: Probing DDI 3
+KERN: intel_extreme: IsConnected: Digital Display Interface C PortRegister: 0x2004200
+KERN: intel_extreme: IsConnected: Digital Display Interface C: port not found in VBT
+KERN: intel_extreme: Probing DDI 4
+KERN: intel_extreme: IsConnected: Digital Display Interface D PortRegister: 0x2004300
+KERN: intel_extreme: IsConnected: Digital Display Interface D: port not found in VBT
+KERN: intel_extreme: Probing DDI 5
+KERN: intel_extreme: IsConnected: Digital Display Interface E PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface E: port not found in VBT
+KERN: intel_extreme: Probing DDI 6
+KERN: intel_extreme: IsConnected: Digital Display Interface F PortRegister: 0x2004300
+KERN: intel_extreme: IsConnected: Digital Display Interface F: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface F Maximum Lanes: 4
+KERN: intel_extreme: CALLED virtual status_t Port::GetEDID(edid1_info*, bool)
+KERN: intel_extreme: Digital Display Interface F: trying to read EDID
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetupI2c(i2c_bus*)
+KERN: intel_extreme: CALLED status_t Port::_SetupDpAuxI2c(i2c_bus*)
+KERN: intel_extreme: CALLED static status_t Port::_DpAuxSendReceiveHook(const i2c_bus*, uint32, const uint8*, size_t, uint8*, size_t)
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: _DpAuxSendReceive: aux i2c nack
+KERN: DDC: ddc2_read: DDC information read failure
+KERN: intel_extreme: CALLED static status_t Port::_DpAuxSendReceiveHook(const i2c_bus*, uint32, const uint8*, size_t, uint8*, size_t)
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: _DpAuxSendReceive: aux i2c nack
+KERN: DDC: ddc2_read: DDC information read failure
+KERN: intel_extreme: CALLED static status_t Port::_DpAuxSendReceiveHook(const i2c_bus*, uint32, const uint8*, size_t, uint8*, size_t)
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: _DpAuxSendReceive: aux i2c nack
+KERN: DDC: ddc2_read: DDC information read failure
+KERN: intel_extreme: CALLED static status_t Port::_DpAuxSendReceiveHook(const i2c_bus*, uint32, const uint8*, size_t, uint8*, size_t)
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: CALLED ssize_t Port::_DpAuxTransfer(dp_aux_msg*)
+KERN: intel_extreme: _DpAuxTransfer: Digital Display Interface F DpAuxChannel: 0x5
+KERN: intel_extreme: _DpAuxSendReceive: aux i2c nack
+KERN: DDC: ddc2_read: DDC information read failure
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetupI2cFallback(i2c_bus*)
+KERN: intel_extreme: Digital Display Interface F: no EDID information found.
+KERN: intel_extreme: IsConnected: Not connected
+KERN: intel_extreme: Probing DDI 7
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: CALLED virtual status_t Port::GetEDID(edid1_info*, bool)
+KERN: intel_extreme: Digital Display Interface G: trying to read EDID
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetupI2c(i2c_bus*)
+KERN: intel_extreme: Digital Display Interface G: using ddc @ 0x4005038
+KERN: intel_extreme: Digital Display Interface G: found EDID information!
+KERN: EDID info:
+KERN:   EDID version: 1.3
+KERN:   Vendor: VCS Product ID: 0x1145
+KERN:   Serial #: 4527409
+KERN:   Produced in week/year: 0/2021
+KERN:   Type: Digital
+KERN:   Size: 0 cm x 0 cm
+KERN:   Gamma=1.00
+KERN:   Red (X,Y)=(0.6396,0.3340)
+KERN:   Green (X,Y)=(0.2861,0.5986)
+KERN:   Blue (X,Y)=(0.1543,0.0771)
+KERN:   White (X,Y)=(0.3135,0.3291)
+KERN: Supported Future Video Modes:
+KERN: 1920x1080@60Hz (id=49361)
+KERN: 1680x1680@60Hz (id=179)
+KERN: 1280x1280@60Hz (id=129)
+KERN: 1280x1024@60Hz (id=32897)
+KERN: 1280x960@60Hz (id=16513)
+KERN: 1280x720@60Hz (id=49281)
+KERN: Supported VESA Video Modes:
+KERN: 720x400@70Hz
+KERN: 640x480@60Hz
+KERN: 800x600@56Hz
+KERN: 800x600@60Hz
+KERN: 1024x768@60Hz
+KERN: Additional Video Mode (1920x1080@60Hz):
+KERN: clock=148.500 MHz
+KERN: h: (1920, 2008, 2052, 2200)
+KERN: v: (1080, 1084, 1089, 1125)
+KERN: size: 96.0 cm x 54.0 cm
+KERN: border: 0.0 cm x 0.0 cm
+KERN: Additional Video Mode (1366x768@59Hz):
+KERN: clock=85.750 MHz
+KERN: h: (1366, 1436, 1579, 1792)
+KERN: v: (768, 771, 774, 798)
+KERN: size: 57.5 cm x 32.3 cm
+KERN: border: 0.0 cm x 0.0 cm
+KERN: Horizontal frequency range = 30..80 kHz
+KERN: Vertical frequency range = 50..76 Hz
+KERN: Maximum pixel clock = 160 MHz
+KERN: Monitor Name: Connector
+KERN: Extension blocks: 1
+KERN: DisplayID extension block
+KERN:  Extension version: 124
+KERN:  Extension count: 27
+KERN: intel_extreme: IsConnected: Connected, unused pipe available
+KERN: intel_extreme: Probing complete.
+KERN: intel_extreme: dump_ports: Connected ports: (port_count: 2)
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: port 0: Digital Display Interface A connected
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: Connected, unused pipe available
+KERN: intel_extreme: port 1: Digital Display Interface G connected
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: CALLED virtual pipe_index Port::PipePreference()
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetPipe(Pipe*)
+KERN: intel_extreme: virtual status_t DigitalDisplayInterface::SetPipe(Pipe*): Assuming pipe 1 is assigned by BIOS to port 1 (fixme)
+KERN: intel_extreme: CALLED bool Pipe::IsEnabled()
+KERN: intel_extreme: CALLED void Pipe::Enable(bool)
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: Connected, unused pipe available
+KERN: intel_extreme: CALLED virtual pipe_index Port::PipePreference()
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: Connected, unused pipe available
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetPipe(Pipe*)
+KERN: intel_extreme: virtual status_t DigitalDisplayInterface::SetPipe(Pipe*): Assuming pipe 2 is assigned by BIOS to port 7 (fixme)
+KERN: intel_extreme: CALLED bool Pipe::IsEnabled()
+KERN: intel_extreme: CALLED status_t create_mode_list()
+KERN: intel_extreme: CALLED virtual status_t Port::GetEDID(edid1_info*, bool)
+KERN: intel_extreme: intel_get_preferred_mode
+KERN: intel_extreme: CALLED uint32 intel_accelerant_mode_count()
+KERN: intel_extreme: CALLED status_t intel_get_mode_list(display_mode*)
+KERN: intel_extreme: intel_set_display_mode(1920x1080, virtual: 1920x1080)
+KERN: intel_extreme: CALLED status_t intel_propose_display_mode(display_mode*, const display_mode*, const display_mode*)
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: Power: Digital Display Interface A DDI enabled: false
+KERN: intel_extreme: CALLED void Pipe::Enable(bool)
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: Connected, unused pipe available
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x0: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x1000: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: [36mAGP:[0m create memory 0xffffffff9de53c40, base ffffffffa0000000, size 7e9000, flags 0
+KERN: [36mAGP:[0m allocation is made of reserved memory
+KERN: [36mAGP:[0m reserved memory already bound
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetDisplayMode(display_mode*, uint32)
+KERN: intel_extreme: SetDisplayMode: Digital Display Interface A 1920x1080
+KERN: intel_extreme: SetDisplayMode: Using EDID detailed timing 0 for the internal panel
+KERN: intel_extreme: SetDisplayMode: Setting internal panel to native resolution at 60Hz
+KERN: intel_extreme: Enable: PCH_PANEL_FITTER_CONTROL, 0x80000200
+KERN: intel_extreme: Enable: PCH_PANEL_FITTER_WINDOW_POS, 0x0
+KERN: intel_extreme: TranscoderMode: trans conf reg: 0xc0000000
+KERN: intel_extreme: TranscoderMode: trans DDI func ctl reg: 0x8a000102
+KERN: intel_extreme: TranscoderMode: Transcoder uses DP SST mode
+KERN: intel_extreme: PLL settings: DCO=8090.000000, P,Q,K=3,1,2
+KERN: intel_extreme: Using DPLL 0 for port 1. PLL settings: DCO=8090.000000, P,Q,K=3,1,2
+KERN: intel_extreme: DPLL_ENABLE(46010) initial value = 0
+KERN: intel_extreme: PLL is unlocked
+KERN: intel_extreme: PLL is powered on
+KERN: intel_extreme: DFGCR0(164284) = b555a5, CFGCR1(164288) = 88 (int = 421, frac = 11605)
+KERN: intel_extreme: DPLL_ENABLE(46010) = 8c000000
+KERN: intel_extreme: PLL is locked
+KERN: intel_extreme: PLL configuration before changes: 1e07801
+KERN: intel_extreme: PLL configuration after changes: 1e07800
+KERN: intel_extreme: CALLED void Pipe::ConfigureTimings(display_mode*, bool, port_index)
+KERN: intel_extreme: ConfigureTimings(1): fPipeOffset: 0x0
+KERN: intel_extreme: CALLED void Pipe::ConfigureScalePos(display_mode*)
+KERN: intel_extreme: ConfigureScalePos: fPipeOffset: 0x0
+KERN: intel_extreme: ConfigureScalePos: writing PIPE_SIZE +0x0: 0x077f0437
+KERN: intel_extreme: ConfigureScalePos: writing IMAGE_SIZE +0x0: 0x0437077f (VLV/CHV/DDI/gen<=4 path)
+KERN: intel_extreme: CALLED void Pipe::_ConfigureTranscoder(display_mode*)
+KERN: intel_extreme: _ConfigureTranscoder: fPipeOffset: 0x0
+KERN: intel_extreme: _SetPortLinkGen8: DDI PLL selection not implemented for Gen11, assuming default DP-link reference
+KERN: intel_extreme: _SetPortLinkGen8: DDI DP-link reference clock is 270Mhz
+KERN: intel_extreme: _SetPortLinkGen8: DDI M1 data before: 0x7e62b020
+KERN: intel_extreme: _SetPortLinkGen8: DDI N1 data before: 0x800000
+KERN: intel_extreme: _SetPortLinkGen8: DDI M1 link before: 0x41cac
+KERN: intel_extreme: _SetPortLinkGen8: DDI N1 link before: 0x80000
+KERN: intel_extreme: _SetPortLinkGen8: DDI Link Colordepth: 24
+KERN: intel_extreme: _SetPortLinkGen8: DDI in DP mode with 2 lane(s) in use
+KERN: intel_extreme: _SetPortLinkGen8: DDI M1 data after: 0x7e62b020
+KERN: intel_extreme: _SetPortLinkGen8: DDI N1 data after: 0x800000
+KERN: intel_extreme: _SetPortLinkGen8: DDI M1 link after: 0x41cac
+KERN: intel_extreme: _SetPortLinkGen8: DDI N1 link after: 0x80000
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: Connected, unused pipe available
+KERN: intel_extreme: CALLED virtual status_t DigitalDisplayInterface::SetDisplayMode(display_mode*, uint32)
+KERN: intel_extreme: SetDisplayMode: Digital Display Interface G 1920x1080
+KERN: intel_extreme: ADL HDMI preflight: TC2 pipe1 ref=38400 preset=0 DC=00000000 MAIN=0000fc0f DDI=00000003 prerequisites=-2147483634; preflight only, output selection follows
+KERN: intel_extreme: ADL HDMI plane: CTL=00000008 COLOR=00000000 STRIDE=00000000 OFFSET=00000000 SURF=00000000 DDB=00000000 WM0=00004007
+KERN: intel_extreme: ADL HDMI raster: stage=DDI buffer status=0 cleanup=1 (no planes enabled)
+KERN: intel_extreme: intel_set_display_mode: Port configuration completed successfully!
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: Power: Digital Display Interface A DDI enabled: true
+KERN: intel_extreme: CALLED void Pipe::Enable(bool)
+KERN: intel_extreme: Enable: planeReg 0x3000180 before: 0x14000008, writing: 0x94000008
+KERN: intel_extreme: Enable: planeReg 0x3000180 after: 0x94000008
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: PIPE_DDI_FUNC_CTL nr 2: 0xa9000000
+KERN: intel_extreme: IsConnected: Connected
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x0: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x1000: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: intel_extreme: intel_set_display_mode: LAKE family, writing A=0x78 (addr 0x3000188) B=0x78 (addr 0x3001188)
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x0: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x1000: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: intel_extreme: ADL HDMI desktop: stage=desktop plane programming status=0 underrun_before=00000000 underrun_after=00000000
+KERN: intel_extreme: CALLED status_t intel_get_frame_buffer_config(frame_buffer_config*)
+KERN: intel_extreme: IsConnected: Digital Display Interface A PortRegister: 0x2004000
+KERN: intel_extreme: IsConnected: Digital Display Interface A: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface A Maximum Lanes: 4
+KERN: intel_extreme: Power: Digital Display Interface A DDI enabled: true
+KERN: intel_extreme: CALLED void Pipe::Enable(bool)
+KERN: intel_extreme: Enable: planeReg 0x3000180 before: 0x94000008, writing: 0x94000008
+KERN: intel_extreme: Enable: planeReg 0x3000180 after: 0x94000008
+KERN: intel_extreme: IsConnected: Digital Display Interface G PortRegister: 0x2004400
+KERN: intel_extreme: IsConnected: Digital Display Interface G: port found in VBT
+KERN: intel_extreme: IsConnected: Digital Display Interface G Maximum Lanes: 4
+KERN: intel_extreme: IsConnected: PIPE_DDI_FUNC_CTL nr 2: 0xa9000000
+KERN: intel_extreme: IsConnected: Connected
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x0: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: intel_extreme: set_frame_buffer_registers: writing OFFSET_HAS-style register at +0x1000: 0x00000000 (v_display_start=0, h_display_start=0)
+KERN: slab memory manager: created area 0xffffffffb1001000 (16795)
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/input/wacom
+KERN: usb_hid: no handlers for hid device
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/input/usb_hid
+KERN: ps2_hid: init_hardware
+KERN: ps2_hid: init_driver
+KERN: ps2_hid: publish_devices
+KERN: ps2_hid: uninit_driver
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/input/ps2_hid
+KERN: usb_hid: keyboard device unhandled control 0x00002710
+KERN: usb xhci 1: transfer error on slot 2 endpoint 1: Stall
+KERN: usb xhci 1: recovered halted endpoint 1 on slot 2
+KERN: usb_hid: keyboard device unhandled control 0x00002710
+KERN: ps2: possibly a hot plugin of input/keyboard/at/0
+KERN: AddOnManager::_RegisterAddOn(): InitCheck() in "/boot/system/add-ons/input_server/devices/virtio" returned No such file or directory
+USER: Notify of added/removed/started/stopped device
+Last message repeated 5 times
+KERN: emuxki: init_hardware()
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/audio/hmulti/usb_audio
+KERN: echo3g: init_hardware()
+KERN: echo3g: no card found
+KERN: sis7018:init_hardware:ver:2.0.2
+KERN: auvia: init_hardware()
+KERN: auich: init_hardware()
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/bus/usb_raw
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001b
+KERN: mediatekwifi: mwx_newstate_task 1 -> 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00040003
+KERN: ps2_dev: reset failed: Operation timed out
+KERN: ps2: devfs_publish_device input/mouse/ps2/0, status = 0xffffffff
+KERN: ps2: devfs_publish_device input/keyboard/at/0, status = 0x00000000
+KERN: ps2: keyboard found
+USER: Notify of added/removed/started/stopped device
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001b
+KERN: mediatekwifi: mwx_newstate_task 1 -> 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00040003
+KERN: register_domain(4, link)
+KERN: openbsd wlan_control: 9235, 78 (not supported)
+KERN: register_domain(9, unix)
+KERN: openbsd wlan_control: 9235, 16 (not supported)
+KERN: mediatekwifi: stop
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001b
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20002 mvif idx 0 omac 0 band 0 wmm 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020002
+KERN: Packet hex dump:
+KERN: 0000	KERN: 54 KERN: 00 Last message repeated 1 time
+KERN: 41 KERN: 00 Last message repeated 1 time
+KERN: 01 KERN: 80 KERN: 00 Last message repeated 7 times
+KERN: | KERN: TKERN: .Last message repeated 1 time
+KERN: AKERN: .Last message repeated 11 times
+KERN: 
+KERN: 0010	KERN: 00 Last message repeated 15 times
+KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0020	KERN: 34 KERN: 00 KERN: 02 KERN: 00 Last message repeated 1 time
+KERN: a0 KERN: 00 KERN: 04 KERN: 00 Last message repeated 2 times
+KERN: 07 KERN: 00 Last message repeated 3 times
+KERN: | KERN: 4KERN: .Last message repeated 14 times
+KERN: 
+KERN: 0030	KERN: 00 Last message repeated 5 times
+KERN: 20 KERN: 00 Last message repeated 4 times
+KERN: 01 KERN: 00 KERN: 01 KERN: 00 KERN: | KERN: .Last message repeated 5 times
+KERN:  KERN: .Last message repeated 8 times
+KERN: 
+KERN: 0040	KERN: 01 KERN: 00 Last message repeated 6 times
+KERN: 13 KERN: 00 Last message repeated 4 times
+KERN: 13 KERN: 00 KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0050	KERN: 00 Last message repeated 3 times
+KERN:    Last message repeated 11 times
+KERN: | KERN: .Last message repeated 3 times
+KERN: 
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq 4 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 4 eid 1 ext_eid 0, opt 2 len 20, cmd 20002, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20001 wcid 19
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020001
+KERN: mediatekwifi: mcu rx event, seq 5 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 5 eid 1 ext_eid 0, opt 2 len 20, cmd 20001, mcu_int 0
+KERN: mediatekwifi: enable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000046ed
+KERN: mediatekwifi: mcu rx event, seq 7 eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq 7 eid ed ext_eid 0, opt 0 len 20, cmd 46ed, mcu_int 0
+KERN: mwx: SCAN -> INIT
+KERN: mediatekwifi: init
+KERN: mediatekwifi: disable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000046ed
+KERN: mediatekwifi: low power event state 1
+KERN: mediatekwifi: mcu rx event, seq 9 eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq 9 eid ed ext_eid 0, opt 0 len 20, cmd 46ed, mcu_int 0
+KERN: mediatekwifi: mt7925 set domain n2 14 n5 27 n6 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004000f
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004005d
+KERN: Last message repeated 7 times.
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20001 mvif idx 0 omac 0 band 0 wmm 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020001
+KERN: mediatekwifi: mcu rx event, seq 4 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 4 eid 1 ext_eid 0, opt 2 len 20, cmd 20001, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20002 wcid 19
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020002
+KERN: Packet hex dump:
+KERN: 0000	KERN: 54 KERN: 00 Last message repeated 1 time
+KERN: 41 KERN: 00 Last message repeated 1 time
+KERN: 01 KERN: 80 KERN: 00 Last message repeated 7 times
+KERN: | KERN: TKERN: .Last message repeated 1 time
+KERN: AKERN: .Last message repeated 11 times
+KERN: 
+KERN: 0010	KERN: 00 Last message repeated 15 times
+KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0020	KERN: 34 KERN: 00 KERN: 02 KERN: 00 Last message repeated 1 time
+KERN: a0 KERN: 00 KERN: 05 KERN: 00 Last message repeated 2 times
+KERN: 07 KERN: 00 Last message repeated 3 times
+KERN: | KERN: 4KERN: .Last message repeated 14 times
+KERN: 
+KERN: 0030	KERN: 00 Last message repeated 5 times
+KERN: 20 KERN: 00 KERN: 01 KERN: 00 Last message repeated 2 times
+KERN: 01 KERN: 00 KERN: 01 KERN: 00 KERN: | KERN: .Last message repeated 5 times
+KERN:  KERN: .Last message repeated 8 times
+KERN: 
+KERN: 0040	KERN: 01 KERN: 00 Last message repeated 6 times
+KERN: 13 KERN: 00 Last message repeated 4 times
+KERN: 13 KERN: 00 KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0050	KERN: 00 Last message repeated 3 times
+KERN:    Last message repeated 11 times
+KERN: | KERN: .Last message repeated 3 times
+KERN: 
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq 5 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 5 eid 1 ext_eid 0, opt 2 len 20, cmd 20002, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001d
+KERN: mediatekwifi: mwx_newstate_task 0 -> 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00040003
+KERN: mediatekwifi: stop
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001b
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20002 mvif idx 0 omac 0 band 0 wmm 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020002
+KERN: Packet hex dump:
+KERN: 0000	KERN: 54 KERN: 00 Last message repeated 1 time
+KERN: 41 KERN: 00 Last message repeated 1 time
+KERN: 01 KERN: 80 KERN: 00 Last message repeated 7 times
+KERN: | KERN: TKERN: .Last message repeated 1 time
+KERN: AKERN: .Last message repeated 11 times
+KERN: 
+KERN: 0010	KERN: 00 Last message repeated 15 times
+KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0020	KERN: 34 KERN: 00 KERN: 02 KERN: 00 Last message repeated 1 time
+KERN: a0 KERN: 00 KERN: 09 KERN: 00 Last message repeated 2 times
+KERN: 07 KERN: 00 Last message repeated 3 times
+KERN: | KERN: 4KERN: .Last message repeated 14 times
+KERN: 
+KERN: 0030	KERN: 00 Last message repeated 5 times
+KERN: 20 KERN: 00 Last message repeated 4 times
+KERN: 01 KERN: 00 KERN: 01 KERN: 00 KERN: | KERN: .Last message repeated 5 times
+KERN:  KERN: .Last message repeated 8 times
+KERN: 
+KERN: 0040	KERN: 01 KERN: 00 Last message repeated 6 times
+KERN: 13 KERN: 00 Last message repeated 4 times
+KERN: 13 KERN: 00 KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0050	KERN: 00 Last message repeated 3 times
+KERN:    Last message repeated 11 times
+KERN: | KERN: .Last message repeated 3 times
+KERN: 
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq 9 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 9 eid 1 ext_eid 0, opt 2 len 20, cmd 20002, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20001 wcid 19
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020001
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0, opt 2 len 20, cmd 20001, mcu_int 0
+KERN: mediatekwifi: enable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000046ed
+KERN: mediatekwifi: mcu rx event, seq c eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq c eid ed ext_eid 0, opt 0 len 20, cmd 46ed, mcu_int 0
+KERN: mwx: SCAN -> INIT
+KERN: mediatekwifi: init
+KERN: mediatekwifi: disable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000046ed
+KERN: mediatekwifi: low power event state 1
+KERN: mediatekwifi: mcu rx event, seq e eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq e eid ed ext_eid 0, opt 0 len 20, cmd 46ed, mcu_int 0
+KERN: mediatekwifi: mt7925 set domain n2 14 n5 27 n6 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004000f
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004005d
+KERN: Last message repeated 7 times.
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20001 mvif idx 0 omac 0 band 0 wmm 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020001
+KERN: mediatekwifi: mcu rx event, seq 9 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 9 eid 1 ext_eid 0, opt 2 len 20, cmd 20001, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20002 wcid 19
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020002
+KERN: Packet hex dump:
+KERN: 0000	KERN: 54 KERN: 00 Last message repeated 1 time
+KERN: 41 KERN: 00 Last message repeated 1 time
+KERN: 01 KERN: 80 KERN: 00 Last message repeated 7 times
+KERN: | KERN: TKERN: .Last message repeated 1 time
+KERN: AKERN: .Last message repeated 11 times
+KERN: 
+KERN: 0010	KERN: 00 Last message repeated 15 times
+KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0020	KERN: 34 KERN: 00 KERN: 02 KERN: 00 Last message repeated 1 time
+KERN: a0 KERN: 00 KERN: 0a KERN: 00 Last message repeated 2 times
+KERN: 07 KERN: 00 Last message repeated 3 times
+KERN: | KERN: 4KERN: .Last message repeated 14 times
+KERN: 
+KERN: 0030	KERN: 00 Last message repeated 5 times
+KERN: 20 KERN: 00 KERN: 01 KERN: 00 Last message repeated 2 times
+KERN: 01 KERN: 00 KERN: 01 KERN: 00 KERN: | KERN: .Last message repeated 5 times
+KERN:  KERN: .Last message repeated 8 times
+KERN: 
+KERN: 0040	KERN: 01 KERN: 00 Last message repeated 6 times
+KERN: 13 KERN: 00 Last message repeated 4 times
+KERN: 13 KERN: 00 KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0050	KERN: 00 Last message repeated 3 times
+KERN:    Last message repeated 11 times
+KERN: | KERN: .Last message repeated 3 times
+KERN: 
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0, opt 2 len 20, cmd 20002, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001d
+KERN: mediatekwifi: mwx_newstate_task 0 -> 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00040003
+KERN: mediatekwifi: stop
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001b
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20002 mvif idx 0 omac 0 band 0 wmm 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020002
+KERN: Packet hex dump:
+KERN: 0000	KERN: 54 KERN: 00 Last message repeated 1 time
+KERN: 41 KERN: 00 Last message repeated 1 time
+KERN: 01 KERN: 80 KERN: 00 Last message repeated 7 times
+KERN: | KERN: TKERN: .Last message repeated 1 time
+KERN: AKERN: .Last message repeated 11 times
+KERN: 
+KERN: 0010	KERN: 00 Last message repeated 15 times
+KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0020	KERN: 34 KERN: 00 KERN: 02 KERN: 00 Last message repeated 1 time
+KERN: a0 KERN: 00 KERN: 0e KERN: 00 Last message repeated 2 times
+KERN: 07 KERN: 00 Last message repeated 3 times
+KERN: | KERN: 4KERN: .Last message repeated 14 times
+KERN: 
+KERN: 0030	KERN: 00 Last message repeated 5 times
+KERN: 20 KERN: 00 Last message repeated 4 times
+KERN: 01 KERN: 00 KERN: 01 KERN: 00 KERN: | KERN: .Last message repeated 5 times
+KERN:  KERN: .Last message repeated 8 times
+KERN: 
+KERN: 0040	KERN: 01 KERN: 00 Last message repeated 6 times
+KERN: 13 KERN: 00 Last message repeated 4 times
+KERN: 13 KERN: 00 KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0050	KERN: 00 Last message repeated 3 times
+KERN:    Last message repeated 11 times
+KERN: | KERN: .Last message repeated 3 times
+KERN: 
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq e eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq e eid 1 ext_eid 0, opt 2 len 20, cmd 20002, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20001 wcid 19
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020001
+KERN: mediatekwifi: mcu rx event, seq f eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq f eid 1 ext_eid 0, opt 2 len 20, cmd 20001, mcu_int 0
+KERN: mediatekwifi: enable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000046ed
+KERN: mediatekwifi: mcu rx event, seq 2 eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq 2 eid ed ext_eid 0, opt 0 len 20, cmd 46ed, mcu_int 0
+KERN: mwx: SCAN -> INIT
+KERN: mediatekwifi: init
+KERN: mediatekwifi: disable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000046ed
+KERN: mediatekwifi: low power event state 1
+KERN: mediatekwifi: mcu rx event, seq 4 eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq 4 eid ed ext_eid 0, opt 0 len 20, cmd 46ed, mcu_int 0
+KERN: mediatekwifi: mt7925 set domain n2 14 n5 27 n6 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004000f
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004005d
+KERN: Last message repeated 7 times.
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20001 mvif idx 0 omac 0 band 0 wmm 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020001
+KERN: mediatekwifi: mcu rx event, seq e eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq e eid 1 ext_eid 0, opt 2 len 20, cmd 20001, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_uni_add_dev cmd 20002 wcid 19
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020002
+KERN: Packet hex dump:
+KERN: 0000	KERN: 54 KERN: 00 Last message repeated 1 time
+KERN: 41 KERN: 00 Last message repeated 1 time
+KERN: 01 KERN: 80 KERN: 00 Last message repeated 7 times
+KERN: | KERN: TKERN: .Last message repeated 1 time
+KERN: AKERN: .Last message repeated 11 times
+KERN: 
+KERN: 0010	KERN: 00 Last message repeated 15 times
+KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0020	KERN: 34 KERN: 00 KERN: 02 KERN: 00 Last message repeated 1 time
+KERN: a0 KERN: 00 KERN: 0f KERN: 00 Last message repeated 2 times
+KERN: 07 KERN: 00 Last message repeated 3 times
+KERN: | KERN: 4KERN: .Last message repeated 14 times
+KERN: 
+KERN: 0030	KERN: 00 Last message repeated 5 times
+KERN: 20 KERN: 00 KERN: 01 KERN: 00 Last message repeated 2 times
+KERN: 01 KERN: 00 KERN: 01 KERN: 00 KERN: | KERN: .Last message repeated 5 times
+KERN:  KERN: .Last message repeated 8 times
+KERN: 
+KERN: 0040	KERN: 01 KERN: 00 Last message repeated 6 times
+KERN: 13 KERN: 00 Last message repeated 4 times
+KERN: 13 KERN: 00 KERN: | KERN: .Last message repeated 15 times
+KERN: 
+KERN: 0050	KERN: 00 Last message repeated 3 times
+KERN:    Last message repeated 11 times
+KERN: | KERN: .Last message repeated 3 times
+KERN: 
+KERN: mediatekwifi: mcu rx event, seq 0 eid 11 ext_eid 0 opt 0 len 16
+KERN: mediatekwifi: mcu rx bad seq 0, eid 11 ext_eid 0, opt 0 len 16
+KERN: mediatekwifi: mcu rx event, seq f eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq f eid 1 ext_eid 0, opt 2 len 20, cmd 20002, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001d
+KERN: mediatekwifi: mwx_newstate_task 0 -> 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00040003
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001b
+KERN: mediatekwifi: mwx_newstate_task 1 -> 2
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000008ed
+KERN: mediatekwifi: mcu rx event, seq 4 eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq 4 eid ed ext_eid 0, opt 0 len 20, cmd 8ed, mcu_int 0
+KERN: mediatekwifi: disable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq 6 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 6 eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+KERN: mwx: SCAN -> AUTH
+KERN: mediatekwifi: delete_key: ni 0xffffffff9d2e4000, k_id 0, k_flags 0 k_cipher 0
+KERN: mediatekwifi: delete key: ni 0xffffffff9d2e4000, k_id 0, k_flags 0 k_cipher 0 wcid 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mwx_newstate_task 2 -> 3
+KERN: mwx: AUTH -> ASSOC
+KERN: mediatekwifi: mcu rx event, seq 7 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 7 eid 1 ext_eid 0, opt 2 len 20, cmd 46ed, mcu_int 0
+KERN: mediatekwifi: mwx_newstate_task 3 -> 4
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 0004001b
+KERN: mediatekwifi: disable deep sleep
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 000400ca
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq a eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00003eed
+KERN: mediatekwifi: mcu rx event, seq b eid ed ext_eid 0 opt 0 len 20
+KERN: mediatekwifi: mcu rx event, seq b eid ed ext_eid 0, opt 0 len 20, cmd 3eed, mcu_int 0
+KERN: mwx: ASSOC -> RUN
+KERN: mediatekwifi: set_key: ni 0xffffffff9d2e4000, k_id 0, k_flags 0 k_cipher 8
+KERN: mediatekwifi: set_key: ni 0xffffffff9d2e4000, k_id 2, k_flags 1 k_cipher 8
+KERN: mediatekwifi: add key: ni 0xffffffff9d2e4000, k_id 0, k_flags 0 k_cipher 8 wcid 1
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq c eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq c eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+KERN: mediatekwifi: add key: ni 0xffffffff9d2e4000, k_id 2, k_flags 1 k_cipher 8 wcid 19
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq d eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq d eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+KERN: marking port 94:83:c4:8f:24:fb valid
+KERN: /dev/net/mediatekwifi/0: link up, media 0x860080 quality 1000 speed 0
+DAEMON 'DHCP': /dev/net/mediatekwifi/0: Send DHCP_DISCOVER to 255.255.255.255:67
+DAEMON 'DHCP': /dev/net/mediatekwifi/0: Timeout shift: 500 msecs (try 1)
+DAEMON 'DHCP': /dev/net/mediatekwifi/0: Send DHCP_DISCOVER to 255.255.255.255:67
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq e eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq e eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq f eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq f eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+DAEMON 'DHCP': /dev/net/mediatekwifi/0: Received DHCP_OFFER from 192.168.1.1
+DAEMON 'DHCP':   your_address: 192.168.1.114
+DAEMON 'DHCP':   server: 192.168.1.1
+DAEMON 'DHCP':   lease time: 43200 seconds
+DAEMON 'DHCP':   renewal time: 21600 seconds
+DAEMON 'DHCP':   rebinding time: 37800 seconds
+DAEMON 'DHCP':   subnet: 255.255.255.0
+DAEMON 'DHCP':   broadcast: 192.168.1.255
+DAEMON 'DHCP':   gateway: 192.168.1.1
+DAEMON 'DHCP':   nameserver[0]: 192.168.1.1
+DAEMON 'DHCP':   domain name: "lan"
+DAEMON 'DHCP': /dev/net/mediatekwifi/0: Send DHCP_REQUEST for 192.168.1.114 to 255.255.255.255:67
+DAEMON 'DHCP': /dev/net/mediatekwifi/0: Received DHCP_ACK from 192.168.1.1
+DAEMON 'DHCP':   server: 192.168.1.1
+DAEMON 'DHCP':   lease time: 43200 seconds
+DAEMON 'DHCP':   renewal time: 21600 seconds
+DAEMON 'DHCP':   rebinding time: 37800 seconds
+DAEMON 'DHCP':   subnet: 255.255.255.0
+DAEMON 'DHCP':   broadcast: 192.168.1.255
+DAEMON 'DHCP':   gateway: 192.168.1.1
+DAEMON 'DHCP':   nameserver[0]: 192.168.1.1
+DAEMON 'DHCP':   domain name: "lan"
+DAEMON 'DHCP': /dev/net/mediatekwifi/0: DHCP status = No error
+KERN: openbsd wlan_control: 9235, 78 (not supported)
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq 1 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 1 eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+KERN: mediatekwifi: mwx_mcu_send_mbuf: cmd 00020003
+KERN: mediatekwifi: mcu rx event, seq 2 eid 1 ext_eid 0 opt 2 len 20
+KERN: mediatekwifi: mcu rx event, seq 2 eid 1 ext_eid 0, opt 2 len 20, cmd 20003, mcu_int 0
+KERN: openbsd wlan_control: 9235, 78 (not supported)
+AUTH 'sshd-session'[484]: Accepted publickey for user from 192.168.1.238 port 55584 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[486]: Received disconnect from 192.168.1.238 port 55584:11: disconnected by user
+AUTH 'sshd-session'[486]: Disconnected from user user 192.168.1.238 port 55584
+AUTH 'sshd-session'[488]: Accepted publickey for user from 192.168.1.238 port 59802 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[490]: Received disconnect from 192.168.1.238 port 59802:11: disconnected by user
+AUTH 'sshd-session'[490]: Disconnected from user user 192.168.1.238 port 59802
+AUTH 'sshd-session'[492]: Accepted publickey for user from 192.168.1.238 port 48016 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[494]: Received disconnect from 192.168.1.238 port 48016:11: disconnected by user
+AUTH 'sshd-session'[494]: Disconnected from user user 192.168.1.238 port 48016
+AUTH 'sshd-session'[496]: Accepted publickey for user from 192.168.1.238 port 48018 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[498]: Received disconnect from 192.168.1.238 port 48018:11: disconnected by user
+AUTH 'sshd-session'[498]: Disconnected from user user 192.168.1.238 port 48018
+AUTH 'sshd-session'[500]: Accepted publickey for user from 192.168.1.238 port 34854 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[502]: Received disconnect from 192.168.1.238 port 34854:11: disconnected by user
+AUTH 'sshd-session'[502]: Disconnected from user user 192.168.1.238 port 34854
+AUTH 'sshd-session'[504]: Accepted publickey for user from 192.168.1.238 port 34860 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[506]: Received disconnect from 192.168.1.238 port 34860:11: disconnected by user
+AUTH 'sshd-session'[506]: Disconnected from user user 192.168.1.238 port 34860
+AUTH 'sshd-session'[508]: Accepted publickey for user from 192.168.1.238 port 34872 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[510]: Received disconnect from 192.168.1.238 port 34872:11: disconnected by user
+AUTH 'sshd-session'[510]: Disconnected from user user 192.168.1.238 port 34872
+AUTH 'sshd-session'[512]: Accepted publickey for user from 192.168.1.238 port 34880 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[514]: Received disconnect from 192.168.1.238 port 34880:11: disconnected by user
+AUTH 'sshd-session'[514]: Disconnected from user user 192.168.1.238 port 34880
+AUTH 'sshd-session'[516]: Accepted publickey for user from 192.168.1.238 port 34884 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[518]: Received disconnect from 192.168.1.238 port 34884:11: disconnected by user
+AUTH 'sshd-session'[518]: Disconnected from user user 192.168.1.238 port 34884
+AUTH 'sshd-session'[520]: Accepted publickey for user from 192.168.1.238 port 34896 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[522]: Received disconnect from 192.168.1.238 port 34896:11: disconnected by user
+AUTH 'sshd-session'[522]: Disconnected from user user 192.168.1.238 port 34896
+AUTH 'sshd-session'[533]: Accepted publickey for user from 192.168.1.238 port 48960 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[551]: Received disconnect from 192.168.1.238 port 48960:11: disconnected by user
+AUTH 'sshd-session'[551]: Disconnected from user user 192.168.1.238 port 48960
+KERN: driver "intel_ppgtt_bridge" added
+KERN: loaded driver /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/intel_ppgtt_test
+KERN: nvmm: init_driver OK
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/misc/nvmm
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/misc/poke
+KERN: loaded driver /boot/system/add-ons/kernel/drivers/dev/misc/mem
+AUTH 'sshd-session'[577]: Accepted publickey for user from 192.168.1.238 port 38238 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[579]: Received disconnect from 192.168.1.238 port 38238:11: disconnected by user
+AUTH 'sshd-session'[579]: Disconnected from user user 192.168.1.238 port 38238
+AUTH 'sshd-session'[592]: Accepted publickey for user from 192.168.1.238 port 56432 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[594]: Received disconnect from 192.168.1.238 port 56432:11: disconnected by user
+AUTH 'sshd-session'[594]: Disconnected from user user 192.168.1.238 port 56432
+AUTH 'sshd-session'[598]: Accepted publickey for user from 192.168.1.238 port 43208 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[600]: Received disconnect from 192.168.1.238 port 43208:11: disconnected by user
+AUTH 'sshd-session'[600]: Disconnected from user user 192.168.1.238 port 43208
+AUTH 'sshd-session'[602]: Accepted publickey for user from 192.168.1.238 port 43220 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[604]: Received disconnect from 192.168.1.238 port 43220:11: disconnected by user
+AUTH 'sshd-session'[604]: Disconnected from user user 192.168.1.238 port 43220
+AUTH 'sshd-session'[606]: Accepted publickey for user from 192.168.1.238 port 43234 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[608]: Received disconnect from 192.168.1.238 port 43234:11: disconnected by user
+AUTH 'sshd-session'[608]: Disconnected from user user 192.168.1.238 port 43234
+AUTH 'sshd-session'[610]: Accepted publickey for user from 192.168.1.238 port 43238 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[612]: Received disconnect from 192.168.1.238 port 43238:11: disconnected by user
+AUTH 'sshd-session'[612]: Disconnected from user user 192.168.1.238 port 43238
+AUTH 'sshd-session'[614]: Accepted publickey for user from 192.168.1.238 port 43250 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[616]: Received disconnect from 192.168.1.238 port 43250:11: disconnected by user
+AUTH 'sshd-session'[616]: Disconnected from user user 192.168.1.238 port 43250
+AUTH 'sshd-session'[618]: Accepted publickey for user from 192.168.1.238 port 43262 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[620]: Received disconnect from 192.168.1.238 port 43262:11: disconnected by user
+AUTH 'sshd-session'[620]: Disconnected from user user 192.168.1.238 port 43262
+AUTH 'sshd-session'[622]: Accepted publickey for user from 192.168.1.238 port 43266 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[624]: Received disconnect from 192.168.1.238 port 43266:11: disconnected by user
+AUTH 'sshd-session'[624]: Disconnected from user user 192.168.1.238 port 43266
+AUTH 'sshd-session'[658]: Accepted publickey for user from 192.168.1.238 port 53656 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[660]: Received disconnect from 192.168.1.238 port 53656:11: disconnected by user
+AUTH 'sshd-session'[660]: Disconnected from user user 192.168.1.238 port 53656
+AUTH 'sshd-session'[662]: Accepted publickey for user from 192.168.1.238 port 49580 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[664]: Received disconnect from 192.168.1.238 port 49580:11: disconnected by user
+AUTH 'sshd-session'[664]: Disconnected from user user 192.168.1.238 port 49580
+AUTH 'sshd-session'[666]: Accepted publickey for user from 192.168.1.238 port 49596 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[668]: Received disconnect from 192.168.1.238 port 49596:11: disconnected by user
+AUTH 'sshd-session'[668]: Disconnected from user user 192.168.1.238 port 49596
+AUTH 'sshd-session'[670]: Accepted publickey for user from 192.168.1.238 port 49610 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[672]: Received disconnect from 192.168.1.238 port 49610:11: disconnected by user
+AUTH 'sshd-session'[672]: Disconnected from user user 192.168.1.238 port 49610
+AUTH 'sshd-session'[674]: Accepted publickey for user from 192.168.1.238 port 49624 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[676]: Received disconnect from 192.168.1.238 port 49624:11: disconnected by user
+AUTH 'sshd-session'[676]: Disconnected from user user 192.168.1.238 port 49624
+AUTH 'sshd-session'[678]: Accepted publickey for user from 192.168.1.238 port 49640 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[680]: Received disconnect from 192.168.1.238 port 49640:11: disconnected by user
+AUTH 'sshd-session'[680]: Disconnected from user user 192.168.1.238 port 49640
+AUTH 'sshd-session'[682]: Accepted publickey for user from 192.168.1.238 port 60794 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[684]: Received disconnect from 192.168.1.238 port 60794:11: disconnected by user
+AUTH 'sshd-session'[684]: Disconnected from user user 192.168.1.238 port 60794
+AUTH 'sshd-session'[686]: Accepted publickey for user from 192.168.1.238 port 60800 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[688]: Received disconnect from 192.168.1.238 port 60800:11: disconnected by user
+AUTH 'sshd-session'[688]: Disconnected from user user 192.168.1.238 port 60800
+AUTH 'sshd-session'[722]: Accepted publickey for user from 192.168.1.238 port 60804 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[724]: Received disconnect from 192.168.1.238 port 60804:11: disconnected by user
+AUTH 'sshd-session'[724]: Disconnected from user user 192.168.1.238 port 60804
+KERN: driver "intel_dmar_bridge" added
+AUTH 'sshd-session'[754]: Accepted publickey for user from 192.168.1.238 port 44708 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[756]: Received disconnect from 192.168.1.238 port 44708:11: disconnected by user
+AUTH 'sshd-session'[756]: Disconnected from user user 192.168.1.238 port 44708
+AUTH 'sshd-session'[758]: Accepted publickey for user from 192.168.1.238 port 35758 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[760]: Received disconnect from 192.168.1.238 port 35758:11: disconnected by user
+AUTH 'sshd-session'[760]: Disconnected from user user 192.168.1.238 port 35758
+AUTH 'sshd-session'[769]: Accepted publickey for user from 192.168.1.238 port 49576 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[771]: Received disconnect from 192.168.1.238 port 49576:11: disconnected by user
+AUTH 'sshd-session'[771]: Disconnected from user user 192.168.1.238 port 49576
+AUTH 'sshd-session'[773]: Accepted publickey for user from 192.168.1.238 port 39088 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[775]: Received disconnect from 192.168.1.238 port 39088:11: disconnected by user
+AUTH 'sshd-session'[775]: Disconnected from user user 192.168.1.238 port 39088
+AUTH 'sshd-session'[777]: Accepted publickey for user from 192.168.1.238 port 39094 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[779]: Received disconnect from 192.168.1.238 port 39094:11: disconnected by user
+AUTH 'sshd-session'[779]: Disconnected from user user 192.168.1.238 port 39094
+AUTH 'sshd-session'[781]: Accepted publickey for user from 192.168.1.238 port 40482 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[783]: Received disconnect from 192.168.1.238 port 40482:11: disconnected by user
+AUTH 'sshd-session'[783]: Disconnected from user user 192.168.1.238 port 40482
+AUTH 'sshd-session'[785]: Accepted publickey for user from 192.168.1.238 port 40488 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[787]: Received disconnect from 192.168.1.238 port 40488:11: disconnected by user
+AUTH 'sshd-session'[787]: Disconnected from user user 192.168.1.238 port 40488
+AUTH 'sshd-session'[789]: Accepted publickey for user from 192.168.1.238 port 40490 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[791]: Received disconnect from 192.168.1.238 port 40490:11: disconnected by user
+AUTH 'sshd-session'[791]: Disconnected from user user 192.168.1.238 port 40490
+AUTH 'sshd-session'[793]: Accepted publickey for user from 192.168.1.238 port 33258 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[795]: Received disconnect from 192.168.1.238 port 33258:11: disconnected by user
+AUTH 'sshd-session'[795]: Disconnected from user user 192.168.1.238 port 33258
+AUTH 'sshd-session'[797]: Accepted publickey for user from 192.168.1.238 port 33274 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[799]: Received disconnect from 192.168.1.238 port 33274:11: disconnected by user
+AUTH 'sshd-session'[799]: Disconnected from user user 192.168.1.238 port 33274
+AUTH 'sshd-session'[801]: Accepted publickey for user from 192.168.1.238 port 33282 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[803]: Received disconnect from 192.168.1.238 port 33282:11: disconnected by user
+AUTH 'sshd-session'[803]: Disconnected from user user 192.168.1.238 port 33282
+AUTH 'sshd-session'[805]: Accepted publickey for user from 192.168.1.238 port 46866 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[807]: Received disconnect from 192.168.1.238 port 46866:11: disconnected by user
+AUTH 'sshd-session'[807]: Disconnected from user user 192.168.1.238 port 46866
+AUTH 'sshd-session'[841]: Accepted publickey for user from 192.168.1.238 port 60570 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[843]: Received disconnect from 192.168.1.238 port 60570:11: disconnected by user
+AUTH 'sshd-session'[843]: Disconnected from user user 192.168.1.238 port 60570
+AUTH 'sshd-session'[845]: Accepted publickey for user from 192.168.1.238 port 35288 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[847]: Received disconnect from 192.168.1.238 port 35288:11: disconnected by user
+AUTH 'sshd-session'[847]: Disconnected from user user 192.168.1.238 port 35288
+AUTH 'sshd-session'[849]: Accepted publickey for user from 192.168.1.238 port 35300 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[851]: Received disconnect from 192.168.1.238 port 35300:11: disconnected by user
+AUTH 'sshd-session'[851]: Disconnected from user user 192.168.1.238 port 35300
+AUTH 'sshd-session'[853]: Accepted publickey for user from 192.168.1.238 port 35312 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[855]: Received disconnect from 192.168.1.238 port 35312:11: disconnected by user
+AUTH 'sshd-session'[855]: Disconnected from user user 192.168.1.238 port 35312
+AUTH 'sshd-session'[857]: Accepted publickey for user from 192.168.1.238 port 35316 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[859]: Received disconnect from 192.168.1.238 port 35316:11: disconnected by user
+AUTH 'sshd-session'[859]: Disconnected from user user 192.168.1.238 port 35316
+AUTH 'sshd-session'[861]: Accepted publickey for user from 192.168.1.238 port 54876 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[863]: Received disconnect from 192.168.1.238 port 54876:11: disconnected by user
+AUTH 'sshd-session'[863]: Disconnected from user user 192.168.1.238 port 54876
+AUTH 'sshd-session'[865]: Accepted publickey for user from 192.168.1.238 port 54882 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[867]: Received disconnect from 192.168.1.238 port 54882:11: disconnected by user
+AUTH 'sshd-session'[867]: Disconnected from user user 192.168.1.238 port 54882
+AUTH 'sshd-session'[869]: Accepted publickey for user from 192.168.1.238 port 54886 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[871]: Received disconnect from 192.168.1.238 port 54886:11: disconnected by user
+AUTH 'sshd-session'[871]: Disconnected from user user 192.168.1.238 port 54886
+AUTH 'sshd-session'[873]: Accepted publickey for user from 192.168.1.238 port 54896 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[875]: Received disconnect from 192.168.1.238 port 54896:11: disconnected by user
+AUTH 'sshd-session'[875]: Disconnected from user user 192.168.1.238 port 54896
+AUTH 'sshd-session'[877]: Accepted publickey for user from 192.168.1.238 port 54904 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[879]: Received disconnect from 192.168.1.238 port 54904:11: disconnected by user
+AUTH 'sshd-session'[879]: Disconnected from user user 192.168.1.238 port 54904
+AUTH 'sshd-session'[913]: Accepted publickey for user from 192.168.1.238 port 50238 ssh2: ED25519 SHA256:gYgcibiYYsyK1rQf1wUQjUV+FRL78MnVNLxL6BXZfc0
+AUTH 'sshd-session'[915]: Received disconnect from 192.168.1.238 port 50238:11: disconnected by user
+AUTH 'sshd-session'[915]: Disconnected from user user 192.168.1.238 port 50238
+KERN: driver "intel_vtd_bridge" added

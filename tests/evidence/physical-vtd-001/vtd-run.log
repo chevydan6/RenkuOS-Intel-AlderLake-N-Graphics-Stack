@@ -1,0 +1,4 @@
+version=1 status=0 units=2 cached=1
+unit=0 base=0xfed90000 version=0x40/0x40 CAP=0x1c0000c40660462 ECAP=0x29a00f0505e GSTS=0/0 TES=disabled map=0 read=0 cleanup=0
+unit=1 base=0xfed91000 version=0x50/0x50 CAP=0xd2008c40660462 ECAP=0xf050da GSTS=0/0 TES=disabled map=0 read=0 cleanup=0
+Read-only interval observation; no DMA identity or GPU execution proof.

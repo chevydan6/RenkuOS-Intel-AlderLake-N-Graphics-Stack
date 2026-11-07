@@ -1,0 +1,25 @@
+{
+  "exit": 0,
+  "cached": true,
+  "units": [
+    {
+      "base": "0xfed90000",
+      "version": "0x40",
+      "gsts": [
+        "0x0",
+        "0x0"
+      ],
+      "tes": 0
+    },
+    {
+      "base": "0xfed91000",
+      "version": "0x50",
+      "gsts": [
+        "0x0",
+        "0x0"
+      ],
+      "tes": 0
+    }
+  ],
+  "scope": "Read-only interval observations only; no DMA identity or GPU execution"
+}
