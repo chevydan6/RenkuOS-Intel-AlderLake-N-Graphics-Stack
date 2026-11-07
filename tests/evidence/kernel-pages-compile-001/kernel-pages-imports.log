@@ -1,0 +1,8 @@
+                 U create_area@KERNEL_BASE
+                 U delete_area@KERNEL_BASE
+                 U dprintf@KERNEL_BASE
+                 U free@KERNEL_BASE
+                 U get_memory_map_etc@KERNEL_BASE
+                 U kernel_debugger@KERNEL_BASE
+                 U malloc@KERNEL_BASE
+                 U panic@KERNEL_BASE

@@ -1,0 +1,22 @@
+KERNEL PAGE BACKING ADAPTER — 2026-11-07
+Implemented IntelN100KernelPages.h: exclusive wired4K kernel areas, monotonic
+private ownership tokens, physical-entry coverage validation, fixed24slot ledger,
+context admission and conservative retention. Mapping validation failures return
+acquired descriptors for tree quarantine; no hidden failed-allocation cleanup.
+Unexpected delete errors stay sticky until reboot to avoid recycled area-ID retry.
+Provider requires resident module/code and externally serialized records.
+Compiled: N100 native kernel flags/headers and linked against real kernel exports
+with --no-undefined, exit0; VM API imports inspected. Artifact has no module entry
+point and was not installed/invoked. Build/test actions visible through NanoKVM.
+Initial optimized compilation exposed potential uninitialized scratch encoder
+output; explicit success guards added in tree, then compile/link passed.
+Host O2+UBSan:35mocked VM provider cases and69tree cases passed. Terra independent
+review/run accepted provider; tree success-guard follow-up review tracked separately.
+Mock fixture persisted; failure cases include invalid CPU(no map),late count error,
+create failure with rollback-delete failure,held-context admission and sticky delete.
+Physical hardware runtime: no new allocation or GPU execution in this checkpoint;
+physical laptop performed compilation only. No new VM test. CPU physical lookup
+is not a verified GPU DMA/IOMMU mapping. Production driver remains unchanged.
+Next: separately reviewed resident kernel fixture to invoke real page allocation,
+verify owned tree/cleanup and record native runtime. Hardware publication remains
+gated by DMA/cache/PAT/TLB,retirement/context/reset and unresolved lifetime checks.

@@ -20,6 +20,8 @@ public:
 		bool (*retain)(void*);
 		void (*release)(void*); // Infallible after all pages have been released.
 		// Success returns exactly one exclusively owned, CPU-writable 4K page.
+		// Its descriptor is validated by the tree; mapping failures may return
+		// an acquired page with invalid DMA so ownership remains observable.
 		// Failure leaves output unchanged and no resource or hidden ownership.
 		bool (*allocate)(void*, Page&);
 		// Failure retains this exact token, without side effects preventing retry.
@@ -80,8 +82,11 @@ public:
 		// No page writes occur before the whole allocation set is validated.
 		for (unsigned i = 0; i < fCount; i++)
 			memset(fPages[i].cpu, 0, 4096);
-		uint64_t scratchLeaf;
-		intel_n100_ppgtt_leaf(fPages[7].dma, scratchPat, true, &scratchLeaf);
+		uint64_t scratchLeaf = 0;
+		if (!intel_n100_ppgtt_leaf(fPages[7].dma, scratchPat, true, &scratchLeaf)) {
+			fState = Ambiguous;
+			return false;
+		}
 		// Slots0..3: active root/PDP/PD/PT. Slots4..6: scratch PDP/PD/PT.
 		// Slot7: private writable scratch data; slots8+: owned diagnostic data.
 		Fill(6, scratchLeaf);
@@ -91,8 +96,11 @@ public:
 		Fill(1, Directory(5, cache));
 		Fill(2, Directory(6, cache));
 		Fill(3, scratchLeaf);
-		uint16_t indices[4];
-		intel_n100_ppgtt_indices(window, indices);
+		uint16_t indices[4] = {};
+		if (!intel_n100_ppgtt_indices(window, indices)) {
+			fState = Ambiguous;
+			return false;
+		}
 		fPages[0].cpu[indices[0]] = Directory(1, cache);
 		fPages[1].cpu[indices[1]] = Directory(2, cache);
 		fPages[2].cpu[indices[2]] = Directory(3, cache);
