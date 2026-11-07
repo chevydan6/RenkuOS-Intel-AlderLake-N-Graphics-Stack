@@ -1,0 +1,51 @@
+OWNED OFFLINE PPGTT CONSTRUCTION — 2026-11-07
+Implemented IntelN100PpgttTree.h: fixed ownership ledger for4active table pages,
+3scratch table pages,1private scratch data page and1..16owned diagnostic pages.
+One2MiB-aligned raw48-bit GPU window. Full scratch-backed tree; all CPU/DMA/token
+validation precedes page writes. Failure rolls back known allocations; failed
+release retains ledger/context for explicit retry. Ambiguous descriptors retain
+all claims with no guessed cleanup. No destructor cleanup or publication API.
+Backend and record lifetime, external serialization and callback non-reentry
+are explicit requirements; backend must guarantee exclusive physical backing.
+PAT selectors restricted0..3 per pinned N100 platform policy. Scratch aliases
+are writable present mappings, not faulting guards or verified isolation.
+Compiled/tested: host C++17 warnings-as-errors+UBSan69cases passed; independent
+Terra run also69passed. Actual N100 native build/test exit0, matching input hashes,
+visible NanoKVM. Full independent entry/walk checks; all24acquisition failures,
+all24release failures/retries,rollback failure,8ambiguity variants and admission.
+Simulation: allocator/DMA descriptors are modeled. Native execution allocates
+ordinary userspace test RAM; it does not install real GPU tables or access GPU.
+No new GPU ioctl, VM run, physical execution or acceleration result. Existing
+production driver/display remains unchanged; this is an isolated candidate.
+Terra accepted design before implementation and final corrected code after
+independent tests. Coverage additions included uncached directories,1data page,
+distinct PATs,invalid cache and48-bit boundary; no blocking review defect remains
+within offline scope. Hardware readiness is not approved.
+Next: real retained kernel-page allocator and DMA translation adapter, then
+cache/PAT/TLB publication contract. Context, completion/reset and existing
+lifetime gates remain required before any GPU workload.
+Evidence: tests/evidence/ppgtt-tree-001/
+
+Lifecycle contract:
+Build validates policy/window before retaining the backend context. Allocations
+must fail without modifying output or acquiring hidden ownership. Successful
+allocation must return one exclusively owned, pinned, writable4K page, stable
+until token release; CPU and DMA mappings refer to that same backing. Allocator
+must handle DMA translation/IOMMU as needed, not equate addresses by assumption.
+A successful free relinquishes exactly its token; failed free leaves ownership
+and safe retry intact. Backend release is infallible and occurs only when every
+page is gone. Its code and context outlive every retained record.
+
+Ready is offline readiness only. Release can reclaim Ready because this class
+has no publication transition. Do not add GPU publication to this class without
+changing lifetime/retirement semantics and independently reviewing all callers.
+A module embedding a Retained or Ambiguous record must keep it resident until
+cleanup succeeds or controlled reboot. Ambiguous has no in-place recovery.
+Describe exposes diagnostic records, including zeroed released slots, and must
+not be treated as ownership transfer. Root returns a modeled/allocated DMA root,
+not authorization to program hardware. Raw-encoder PAT4..7 remain encodable but
+constructor policy rejects them pending a supported hardware rationale.
+
+Reference scratch structure: pinned Linux028ef9c96e96197026887c0f092424679298aae8
+intel_gtt.c setup_scratch_page and gen8_ppgtt.c gen8_init_scratch.4K scratch is
+only the offline4K-table choice; stepping/workaround review remains outstanding.

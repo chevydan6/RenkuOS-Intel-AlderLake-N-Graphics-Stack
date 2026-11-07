@@ -1,0 +1,27 @@
+OWNED OFFLINE PPGTT CONSTRUCTION — 2026-11-07
+Implemented IntelN100PpgttTree.h: fixed ownership ledger for4active table pages,
+3scratch table pages,1private scratch data page and1..16owned diagnostic pages.
+One2MiB-aligned raw48-bit GPU window. Full scratch-backed tree; all CPU/DMA/token
+validation precedes page writes. Failure rolls back known allocations; failed
+release retains ledger/context for explicit retry. Ambiguous descriptors retain
+all claims with no guessed cleanup. No destructor cleanup or publication API.
+Backend and record lifetime, external serialization and callback non-reentry
+are explicit requirements; backend must guarantee exclusive physical backing.
+PAT selectors restricted0..3 per pinned N100 platform policy. Scratch aliases
+are writable present mappings, not faulting guards or verified isolation.
+Compiled/tested: host C++17 warnings-as-errors+UBSan69cases passed; independent
+Terra run also69passed. Actual N100 native build/test exit0, matching input hashes,
+visible NanoKVM. Full independent entry/walk checks; all24acquisition failures,
+all24release failures/retries,rollback failure,8ambiguity variants and admission.
+Simulation: allocator/DMA descriptors are modeled. Native execution allocates
+ordinary userspace test RAM; it does not install real GPU tables or access GPU.
+No new GPU ioctl, VM run, physical execution or acceleration result. Existing
+production driver/display remains unchanged; this is an isolated candidate.
+Terra accepted design before implementation and final corrected code after
+independent tests. Coverage additions included uncached directories,1data page,
+distinct PATs,invalid cache and48-bit boundary; no blocking review defect remains
+within offline scope. Hardware readiness is not approved.
+Next: real retained kernel-page allocator and DMA translation adapter, then
+cache/PAT/TLB publication contract. Context, completion/reset and existing
+lifetime gates remain required before any GPU workload.
+Evidence: tests/evidence/ppgtt-tree-001/
