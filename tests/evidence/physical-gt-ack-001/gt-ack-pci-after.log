@@ -1,0 +1,4 @@
+version=1 module=0 completed=2
+run=0 lease=8 begin=0 duplicate=-2147483634 end=0 stale=-2147483643 id=0x46d18086 class_rev=0x3000000 command=0x407 BAR=0:bf000004 PM=0xd0 PMCSR=0
+run=1 lease=9 begin=0 duplicate=-2147483634 end=0 stale=-2147483643 id=0x46d18086 class_rev=0x3000000 command=0x407 BAR=0:bf000004 PM=0xd0 PMCSR=0
+Read-only controlled-boot PCI observation; no GT writes or GPU execution.

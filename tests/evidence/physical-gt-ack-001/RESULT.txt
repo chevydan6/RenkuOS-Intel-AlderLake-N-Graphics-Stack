@@ -1,0 +1,48 @@
+A27 physical N100 raw GT ACK inventory —2026-11-07
+
+Implemented: explicit UC request on SAME existing retained-owner BAR map,
+module-owned known-UC marker, v2 synchronous observation of fixed0x130044,
+Reading phase protecting pin from v1 End, bounds/last-byte overflow checks,
+two volatile32-bit loads with read barriers and final PCI/state retirement.
+v0/v1 ABI unchanged. No GT stores, request bits, submissions or DMA.
+
+Compiled: native N100 owner/bridge/client kernel flags/-Werror and
+--no-undefined link passed. Source/header/fixture/generated-harness hashes
+independently matched by Terra. Native26 mocked cases passed. Host26 actual-
+function cases passed ASan/UBSan independently; original12 GART adapter cases
+and2 regression controls passed. Host/native harness PCI and RAM reads are
+SIMULATED hardware; native CPU execution is not a physical GT access test.
+No new VM test for A27.
+
+Physical deployment: verified19 source/artifact/baseline checks; old A26owner
+3ca11353965ec0100795c2896ce14ab9050cc0204a0fd2c7af4d06080d78d2bd
+preserved on USB and host. Installed and loaded-path hashes match native:
+owner29570eb62329711dc6bafb655f26ca54525478645a8e3e4cf01e3fcdabe0a9dd
+bridge79d3dc8c9d60fbeb74a98b756289b52a13138de034cafdb9691249bc70b3ddd0
+clientcbfb1944b638fcc01671e97d13c38342c4fa771ee1a526e5928ceb9b20466984
+Software reboot reached1920x1080 HDMI desktop. Fresh NanoKVM Terminal uptime0:00;
+kernel hrev60072+518 recorded after boot. Native build and actual test commands
+entered visibly through NanoKVM; SSH used for source/artifact/log transfer.
+
+Physical result: live and post-memory client each made two calls, two raw
+loads per call: eight ACK samples total, all0x00000000. Each module/observation
+status0; LIVE_EXIT=0 and REPEAT_EXIT=0. Kernel ACK bit0 and fallback ACK bit15
+clear ONLY at these eight samples. Pre/post PCI fixtures each passed two
+sessions with command0x407, BAR0xbf000004, PMcap0xd0/PMCSR0,8086:46d1 rev00/VGA.
+
+Regression: ten paired-client GART rounds/20 alloc-free passed, distinct live
+ranges and errno0; MEMORY_EXIT=0. Native fixture/source hashes match A26.
+After-boot, after-live and final app_server127 retained in this boot. Existing
+graphics driver/accelerant/GART binaries unchanged. Terminal remained responsive.
+Terra independently accepted all final source, native and physical evidence.
+
+Limits: these are physical MMIO READS, not GPU execution. No claim of request
+ownership, GT readiness, forcewake success, persistent D0, system power hold,
+DMA identity or hardware acceleration. CPU faults/hangs are not catchable by
+status callback. Invariant violation retains pin rather than guess-retiring.
+Prior full Phase1 IRQ/lifetime gates are still incomplete.
+Next: reviewed bit ownership/power/cleanup contract and bounded forcewake state
+machine; distinguish definitely-issued and uncertain writes before any trial.
+Raw kernel/process/syslogs/reboot probes and backup binary remain private at
+installation/private/gpu-gt-ack-001. Patch0090 replay against preserved A26
+snapshots matched all three production outputs byte-for-byte.
