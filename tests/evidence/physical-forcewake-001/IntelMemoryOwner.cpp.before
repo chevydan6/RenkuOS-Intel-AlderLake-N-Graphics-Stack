@@ -1,0 +1,436 @@
+// SPDX-License-Identifier: MIT
+#include <IntelMemoryOwner.h>
+#include <IntelApertureLeaseState.h>
+#include <KernelExport.h>
+#include <PCI.h>
+#include <kernel/lock.h>
+
+// Deliberately one retained N100 record. No publication, reset or in-place
+// recovery entry point exists. Driver wiring is a separately reviewed step.
+static mutex sLock;
+static IntelApertureLeaseState sState;
+static agp_gart_module_info* sGART;
+static pci_module_info* sPCI;
+static aperture_id sAperture = -1;
+static intel_memory_owner_resources sResources;
+struct OwnerDevice {
+	uint8 bus, device, function;
+	uint64 base, size;
+};
+static OwnerDevice sDevice;
+static bool sRegistersUncached;
+// One observation, sharing the memory owner's Request slot. All transitions
+// require sLock. The operation pin spans admission through final PCI recheck.
+enum ObservationPhase { ObservationIdle, ObservationChecking, ObservationActive,
+	ObservationEnding, ObservationReading };
+static ObservationPhase sObservationPhase = ObservationIdle;
+static bool sObservationBlocked;
+static uint64 sObservationLease;
+static IntelApertureLeaseState::Operation sObservationPin;
+static IntelN100PciSnapshot sObservationSnapshot;
+
+
+static status_t
+Status(IntelApertureLeaseState::Result result)
+{
+	switch (result) {
+		case IntelApertureLeaseState::Success: return B_OK;
+		case IntelApertureLeaseState::Busy: return B_BUSY;
+		case IntelApertureLeaseState::Exhausted: return B_NO_MEMORY;
+		default: return B_BAD_VALUE;
+	}
+}
+
+// A ticket is ended under the owner mutex on every return path. Backend calls
+// occur without this mutex; the pin and permanent module retain their targets.
+class Operation {
+public:
+	Operation(uint64 lease, IntelApertureLeaseState::Access access)
+		: fCanRetainBacking(access == IntelApertureLeaseState::Allocate
+			|| access == IntelApertureLeaseState::Free),
+		  fFailed(true)
+	{
+		mutex_lock(&sLock);
+		fStatus = Status(sState.BeginOperation(lease, access, fTicket));
+		mutex_unlock(&sLock);
+	}
+	~Operation()
+	{
+		if (fStatus != B_OK)
+			return;
+		mutex_lock(&sLock);
+		sState.EndOperation(fTicket, fCanRetainBacking && fFailed);
+		mutex_unlock(&sLock);
+	}
+	status_t InitCheck() const { return fStatus; }
+	void Succeeded() { fFailed = false; }
+private:
+	Operation(const Operation&) = delete;
+	Operation& operator=(const Operation&) = delete;
+	IntelApertureLeaseState::Operation fTicket;
+	status_t fStatus;
+	bool fCanRetainBacking;
+	bool fFailed;
+};
+
+static status_t
+Query(uint64 lease, aperture_info* info)
+{
+	Operation operation(lease, IntelApertureLeaseState::Query);
+	if (operation.InitCheck() != B_OK)
+		return operation.InitCheck();
+	if (info == NULL)
+		return B_BAD_VALUE;
+	return sGART->get_aperture_info(sAperture, info);
+}
+
+static status_t
+Allocate(uint64 lease, size_t size, size_t alignment, uint32 flags,
+	addr_t* base, phys_addr_t* physical)
+{
+	Operation operation(lease, IntelApertureLeaseState::Allocate);
+	if (operation.InitCheck() != B_OK)
+		return operation.InitCheck();
+	status_t status = sGART->allocate_memory(sAperture, size, alignment,
+		flags, base, physical);
+	if (status == B_OK)
+		operation.Succeeded();
+	return status;
+}
+
+static status_t
+Free(uint64 lease, addr_t base)
+{
+	Operation operation(lease, IntelApertureLeaseState::Free);
+	if (operation.InitCheck() != B_OK)
+		return operation.InitCheck();
+	status_t status = sGART->free_memory(sAperture, base);
+	if (status == B_OK)
+		operation.Succeeded();
+	return status;
+}
+
+static status_t
+FinishDisplay(uint64 lease, bool initialized)
+{
+	mutex_lock(&sLock);
+	status_t result = Status(sState.FinishInitialization(lease, initialized));
+	mutex_unlock(&sLock);
+	return result;
+}
+
+static status_t
+ReleaseDisplay(uint64 lease)
+{
+	mutex_lock(&sLock);
+	IntelApertureLeaseState::Result release = sState.Release(lease);
+	if (release == IntelApertureLeaseState::Busy)
+		release = sState.AbortInitialization(lease);
+	status_t result = Status(release);
+	mutex_unlock(&sLock);
+	// Success means lease revocation, including aborted initialization.
+	// Existing operation tickets still retain their pins until completion.
+	// Last close is not scanout-idle evidence. Keep MMIO, GART and backing.
+	return result;
+}
+
+static status_t
+BeginDisplay(uint8 bus, uint8 device, uint8 function, uint64* lease,
+	intel_memory_owner_resources* resources)
+{
+	if (lease == NULL || resources == NULL)
+		return B_BAD_VALUE;
+	// Copy identity from our own PCI module reference, not driver storage.
+	pci_info pci;
+	bool found = false;
+	for (uint32 index = 0; sPCI->get_nth_pci_info(index, &pci) == B_OK; index++) {
+		if (pci.bus == bus && pci.device == device && pci.function == function) {
+			found = true;
+			break;
+		}
+	}
+	if (!found || pci.vendor_id != 0x8086 || pci.device_id != 0x46d1
+		|| pci.revision != 0)
+		return B_NOT_SUPPORTED;
+
+	uint64 id = 0;
+	mutex_lock(&sLock);
+	status_t status = Status(sState.BeginInitialization(id));
+	mutex_unlock(&sLock);
+	if (status != B_OK)
+		return status;
+
+	// Initializing prevents concurrent acquire/release. The lease is not
+	// returned until every required resource is owned by this module.
+	addr_t apertureBase = 0;
+	sAperture = sGART->map_aperture(bus, device, function, 0, &apertureBase);
+	if (sAperture < B_OK)
+		status = sAperture;
+	else
+		status = Query(id, &sResources.aperture);
+
+	if (status == B_OK) {
+		phys_addr_t base = pci.u.h0.base_registers[0];
+		uint64 size = pci.u.h0.base_register_sizes[0];
+		if ((pci.u.h0.base_register_flags[0] & PCI_address_type)
+			== PCI_address_type_64) {
+			base |= (uint64)pci.u.h0.base_registers[1] << 32;
+			size |= (uint64)pci.u.h0.base_register_sizes[1] << 32;
+		}
+		if ((pci.u.h0.base_register_flags[0] & PCI_address_space) != 0
+			|| base == 0 || (base & (B_PAGE_SIZE - 1)) != 0
+			|| size == 0 || (size & (B_PAGE_SIZE - 1)) != 0
+			|| size > SIZE_MAX || base > UINT64_MAX - size)
+			status = B_BAD_VALUE;
+		else {
+			void* address = NULL;
+			sResources.registers_area = map_physical_memory("intel owner mmio",
+				base, (size_t)size, B_ANY_KERNEL_ADDRESS | B_UNCACHED_MEMORY,
+				B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA | B_CLONEABLE_AREA,
+				&address);
+			if (sResources.registers_area < B_OK)
+				status = sResources.registers_area;
+			else {
+				sResources.registers = (addr_t)address;
+				sRegistersUncached = true;
+				// Immutable before FinishDisplay publishes Ready under sLock.
+				sDevice = { bus, device, function, base, size };
+			}
+		}
+	}
+	if (status != B_OK) {
+		// No guessed teardown of inherited scanout or partial acquisition.
+		FinishDisplay(id, false);
+		ReleaseDisplay(id);
+		return status;
+	}
+	*resources = sResources;
+	*lease = id;
+	return B_OK;
+}
+
+// PCI calls are outside sLock. The context is a module-owned local copy,
+// never a pointer to the graphics driver's storage or user-supplied BDF.
+static bool
+ReadConfig(void* context, uint16_t offset, uint8_t size, uint32_t& value)
+{
+	OwnerDevice& device = *(OwnerDevice*)context;
+	value = sPCI->read_pci_config(device.bus, device.device, device.function,
+		offset, size);
+	// This API has no transport status. The helper rejects raw all-ones reads.
+	return true;
+}
+
+// Caller holds sLock. This retires bookkeeping, not hardware or backing.
+static void
+RetireObservation(bool failed)
+{
+	if (failed)
+		sObservationBlocked = true;
+	sState.Release(sObservationLease);
+	sState.EndOperation(sObservationPin, false);
+	sObservationLease = 0;
+	sObservationPhase = ObservationIdle;
+}
+
+static status_t
+BeginObservation(uint64* lease, IntelN100PciSnapshot* output)
+{
+	if (lease == NULL || output == NULL)
+		return B_BAD_VALUE;
+	OwnerDevice device;
+	mutex_lock(&sLock);
+	if (sObservationBlocked || sObservationPhase != ObservationIdle) {
+		mutex_unlock(&sLock);
+		return B_BUSY;
+	}
+	status_t status = Status(sState.AcquireRequest(sObservationLease));
+	if (status == B_OK) {
+		status = Status(sState.BeginOperation(sObservationLease,
+			IntelApertureLeaseState::Query, sObservationPin));
+		if (status != B_OK) {
+			sState.Release(sObservationLease);
+			sObservationLease = 0;
+			sObservationBlocked = true;
+		}
+	}
+	if (status != B_OK) {
+		mutex_unlock(&sLock);
+		return status;
+	}
+	sObservationPhase = ObservationChecking;
+	device = sDevice;
+	mutex_unlock(&sLock);
+
+	IntelN100PciSnapshot snapshot = {};
+	IntelN100PciPower::Result result = IntelN100PciPower::Capture(ReadConfig,
+		&device, device.base, device.size, snapshot);
+	mutex_lock(&sLock);
+	if (result != IntelN100PciPower::Success || !sState.DiagnosticAllowed()) {
+		RetireObservation(true);
+		mutex_unlock(&sLock);
+		dprintf("intel_memory_owner: observation admission failed: pci=%u\n",
+			(unsigned)result);
+		return B_ERROR;
+	}
+	sObservationSnapshot = snapshot;
+	sObservationPhase = ObservationActive;
+	// Private kernel outputs, no user copy while holding the owner mutex.
+	*output = snapshot;
+	*lease = sObservationLease;
+	mutex_unlock(&sLock);
+	return B_OK;
+}
+
+static status_t
+FinishObservation(uint64 lease, ObservationPhase expectedPhase, bool readFailed)
+{
+	OwnerDevice device;
+	IntelN100PciSnapshot original;
+	mutex_lock(&sLock);
+	if (lease == 0 || lease != sObservationLease
+		|| sObservationPhase != expectedPhase) {
+		mutex_unlock(&sLock);
+		return B_BAD_VALUE;
+	}
+	sObservationPhase = ObservationEnding;
+	device = sDevice;
+	original = sObservationSnapshot;
+	mutex_unlock(&sLock);
+
+	IntelN100PciSnapshot snapshot = {};
+	IntelN100PciPower::Result result = IntelN100PciPower::Capture(ReadConfig,
+		&device, device.base, device.size, snapshot);
+	mutex_lock(&sLock);
+	bool failed = readFailed || result != IntelN100PciPower::Success
+		|| !IntelN100PciPower::Same(original, snapshot)
+		|| !sState.DiagnosticAllowed();
+	RetireObservation(failed);
+	mutex_unlock(&sLock);
+	if (failed) {
+		dprintf("intel_memory_owner: observation retirement failed: pci=%u\n",
+			(unsigned)result);
+		return B_ERROR;
+	}
+	return B_OK;
+}
+
+static status_t
+EndObservation(uint64 lease)
+{
+	return FinishObservation(lease, ObservationActive, false);
+}
+
+static bool
+ReadGtAck(addr_t address, uint32& value)
+{
+	// N100 x86-64 only: explicit UC, aligned volatile 32-bit load and read
+	// barriers (LFENCE). This is not a future GT write/posting protocol.
+	memory_read_barrier();
+	value = *(const volatile uint32*)address;
+	memory_read_barrier();
+	return value != UINT32_MAX;
+}
+
+static status_t
+ObserveGtAck(IntelN100GtAckSample* output)
+{
+	if (output == NULL)
+		return B_BAD_VALUE;
+	uint64 lease = 0;
+	IntelN100PciSnapshot pci = {};
+	status_t status = BeginObservation(&lease, &pci);
+	if (status != B_OK)
+		return status;
+
+	mutex_lock(&sLock);
+	if (sObservationLease != lease || sObservationPhase != ObservationActive) {
+		// No participating client may retire this module-owned lease.
+		sObservationBlocked = true;
+		mutex_unlock(&sLock);
+		return B_ERROR;
+	}
+	sObservationPhase = ObservationReading;
+	const addr_t offset = kIntelN100GtAckOffset;
+	const addr_t base = sResources.registers;
+	bool valid = sizeof(addr_t) == 8 && sRegistersUncached
+		&& sResources.registers_area >= B_OK && base != 0 && (base & 3) == 0
+		&& sDevice.size >= uint64(offset) + sizeof(uint32)
+		&& base <= UINTPTR_MAX - offset - (sizeof(uint32) - 1)
+		&& sState.DiagnosticAllowed();
+	mutex_unlock(&sLock);
+
+	IntelN100GtAckSample sample = {};
+	bool read = valid && ReadGtAck(base + offset, sample.first)
+		&& ReadGtAck(base + offset, sample.second);
+	status = FinishObservation(lease, ObservationReading, !read);
+	if (status == B_OK)
+		*output = sample;
+	return status;
+}
+
+// v1 acquires v0 through the module manager. Do not run v0's initialization a
+// second time: both exports share one lock, PCI/GART references and ownership.
+static status_t
+ObservationOperations(int32 operation, ...)
+{
+	switch (operation) {
+		case B_MODULE_INIT:
+		{
+			module_info* owner = NULL;
+			return get_module(INTEL_MEMORY_OWNER_MODULE_NAME, &owner);
+		}
+		case B_MODULE_UNINIT:
+			return B_BUSY;
+		default:
+			return B_BAD_VALUE;
+	}
+}
+
+static status_t
+StandardOperations(int32 operation, ...)
+{
+	switch (operation) {
+		case B_MODULE_INIT:
+		{
+			status_t status = get_module(B_PCI_MODULE_NAME, (module_info**)&sPCI);
+			if (status != B_OK)
+				return status;
+			status = get_module(B_AGP_GART_MODULE_NAME, (module_info**)&sGART);
+			if (status != B_OK) {
+				put_module(B_PCI_MODULE_NAME);
+				return status;
+			}
+			mutex_init(&sLock, "intel memory owner");
+			sResources.registers_area = -1;
+			sRegistersUncached = false;
+			return B_OK;
+		}
+		case B_MODULE_UNINIT:
+			// No reviewed display-stop/hidden-backing recovery protocol exists.
+			// B_KEEP_LOADED retains code as well as these module dependencies.
+			return B_BUSY;
+		default:
+			return B_BAD_VALUE;
+	}
+}
+
+static intel_memory_owner_module_info sModule = {
+	{ INTEL_MEMORY_OWNER_MODULE_NAME, B_KEEP_LOADED, StandardOperations },
+	BeginDisplay, FinishDisplay, ReleaseDisplay, Query, Allocate, Free
+};
+
+static intel_memory_observation_module_info sObservationModule = {
+	{ INTEL_MEMORY_OBSERVATION_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
+	BeginObservation, EndObservation
+};
+
+static intel_gt_observation_module_info sGtObservationModule = {
+	{ INTEL_GT_OBSERVATION_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
+	ObserveGtAck
+};
+
+module_info* modules[] = {
+	(module_info*)&sModule, (module_info*)&sObservationModule,
+	(module_info*)&sGtObservationModule, NULL
+};

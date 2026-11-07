@@ -1,0 +1,54 @@
+A28 — ONE physical primary-bit GT forcewake handshake,2026-11-07
+
+Implemented: bounded primary-only state machine and retained-owner v3. Atomic
+admission into Handshaking, fixed UC32 request enable0x10001/clear0x10000 at
+0xa188 and mandatory ACK reads0x130044. Attempt recorded before store.50ms
+absolute stages include readbacks;250ms total,100ms set+cleanup reservation,
+50ms cleanup reserve,512 polls/stage. Unknown keeps numeric request/pin/report
+until reboot. No fallback stores, engine access, DMA, context or commands.
+
+Compiled: owner/bridge/client native N100 build/link --no-undefined pass.
+67 state-machine +37 actual-owner mocked cases passed native. Same cases
+independently passed host ASan/UBSan with Terra. Simulated callbacks/RAM stay
+simulation even on physical CPU. No A28 VM test. Initial fixture link recipe
+omitted kernel import library; corrected, private initial error log retained.
+Independent review caught/fixed missing cancellation posting read, stage clock
+starting after readback, missing admitted diagnostics, dangling stored callback
+context and non-atomic admission before ANY physical v3 trial.
+
+Physical artifact identities:
+owner e195cd261762efd163ba70a2945ae92ed215a4856b456a2e629d8d6b22033205
+bridge41b3142fb4fba16c22ada4dbd4a2abacdd1622f90e1e4a22a83a24041a6db593
+client4aa4b63ee56908e9f6765edf9fdfb53f69e51f7ef8e4681b4c212c3c65d87f01
+Prior A27owner29570eb... backed up/hash-verified USB and host.21 source/artifact/
+baseline checks before stage; runtime build/baseline checks and cmp to installed
+files passed before invoking. Fresh software reboot reached1920x1080 HDMI;
+NanoKVM Terminal uptime0:01 and kernel hrev60072+518 recorded. All build and trial
+commands entered visibly through NanoKVM; SSH used for transfer/log collection.
+
+Physical result, single client invocation only (no automatic retry):
+version1,module0,transaction0,error0,cleanup0,stage6/Complete,ownership5/Released
+initialACK0 -> setACK1 -> finalACK0,last0,reads9,writes2,elapsed454us,clientexit0.
+The two exact words/offsets derive from reviewed source and software ledger;
+there is no independent bus trace. ACK transition is physical device evidence.
+454us is the state-machine interval, excluding owner admission and final owner
+revalidation/copyout. It is not a latency/performance benchmark.
+
+Postrelease regression: four raw ACK samples0 through read-only v2, two PCI
+sessions pass, command407/BARbf000004/PMcapd0/PMCSR0/8086:46d1rev00VGA.
+Ten paired GART rounds20 alloc/free pass with distinct simultaneous live ranges,
+MEMORY_EXIT0. Postboot/after-live/final app_server127 retained. Existing graphics/
+accelerant/GART binary hashes unchanged. Terminal/display remained responsive.
+Terra independently verified final artifact/source/backup/result evidence.
+
+Exact scope: one successful primary forcewake request/ACK/owned-clear cycle on
+this controlled boot. Not fallback, repeated reliability, firmware/SMM/global
+power authority, engine reset/quiescence, DMA address/cache/translation safety,
+GPU workload execution or hardware-accelerated rendering. Existing full lifetime
+issues remain. Next: reviewed bounded engine bring-up/inventory plus memory/
+context/reset/completion prerequisites before first nonce-store workload.
+
+Evidence milestones:9bb30b3 pure state machine,cc5befd owner/fixture. Patch0091
+replay against preserved A27 snapshots exactly matches all three production
+outputs. Private raw syslogs/process/boot probes and backup binary remain under
+installation/private/gpu-forcewake-001; known boot recovery artifacts preserved.
