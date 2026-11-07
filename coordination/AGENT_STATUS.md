@@ -13,7 +13,10 @@ Physical status: A28 remains one successful primary forcewake handshake; A29 is
 host-only and not installed. No GPU command execution has been demonstrated.
 Blocker for A29: target SSH/transfer and NanoKVM HID failed; cause unknown,
 physical reset requested. Publication can proceed independently of target access.
-Next: push the reviewed checkpoint and record the verified GitHub links.
+Publication: milestone history through f91feaa is pushed and its remote SHA
+verified on gpu/native-memory. Tracking issue: https://github.com/chevydan6/haiku-intel-gpu/issues/1
+Next: fast-forward the private default branch and verify the push CI result.
+
 Current: A29 offline candidate complete/reviewed; native validation blocked on laptop access.
 Source: gpu-next-worktree; implementation Astra, independent review Terra.
 Implemented: held-GT fixed5read BCS inventory, typed uncertainty and final-retirement-only output;

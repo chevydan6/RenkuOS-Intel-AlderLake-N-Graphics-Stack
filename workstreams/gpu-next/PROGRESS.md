@@ -919,3 +919,15 @@ A29offline candidatefa6102a/96fd967: heldfixedBCSsampler,84/37/48hostchecks pass
 independently. Native/physicalNOTRUN,transferblocked bytargetSSH/HIDstalls.
 TransientSSHrecoveryallowedrebootattemptbutaccessnotrestored; Danresetrequested.
 NoA29deployment orGPUexecution. Nextnativebuildafterdesktop/HIDrecovery.
+
+## GitHub publication — 2026-11-07
+
+User requested all progress on GitHub. Published complete milestone history to
+private chevydan6/haiku-intel-gpu, gpu/native-memory through f91feaa; verified
+remote SHA. Added missing recovery patches 0069–0079, matching host harnesses,
+GART caller and IRQ defect records, all shared coordination files, README and
+results/2026-11-07-gpu-progress.md. Issue #1 tracks execution gates. All 92
+patches reconstruct and existing host CI checks pass; Terra reviewed the report.
+No new native compilation, VM run or physical GPU test. A28 physical handshake
+and A29 host-only candidate remain distinct; GPU command execution incomplete.
+Private default branch fast-forward follows; RenkuOS Source main is untouched.

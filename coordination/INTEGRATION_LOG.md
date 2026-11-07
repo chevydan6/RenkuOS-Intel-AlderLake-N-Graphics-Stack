@@ -1001,3 +1001,14 @@ publication. A28 physical handshake and host-only A29 remain separate milestones
 New README/current report identify incomplete execution gates and target reset
 blocker. Downloaded Linux source caches and private access/recovery files remain
 local. No RenkuOS Source main integration is performed here.
+
+## GitHub history publication verified — 2026-11-07
+
+Published the complete local milestone history through f91feaa to
+https://github.com/chevydan6/haiku-intel-gpu/tree/gpu/native-memory and verified
+its remote SHA as f91feaa92172883b19322461eed110f102f24007. The former default
+branch head 81f11d6 is an ancestor; no remote commits are discarded. Tracking
+issue: https://github.com/chevydan6/haiku-intel-gpu/issues/1 . Terra independently
+reviewed the current report; raw MSG_IDLE_BCS naming and reviewed-log wording
+were corrected. Default-branch fast-forward and push CI verification follow.
+No hardware access or new physical execution occurred during publication.
