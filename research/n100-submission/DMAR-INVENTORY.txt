@@ -1,0 +1,36 @@
+READ-ONLY PHYSICAL DMAR INVENTORY — 2026-11-07
+Implemented bounded pure DMAR parser plus cached resident snapshot module,
+bridge/client. Source-specific ACPICA lifetime reviewed:public get_table acquires
+reference with no matching publicput. This diagnostic retains one table reference
+and ACPI dependency forboot lifetime; repeatedcalls never reacquire. Native kernel
+paths show no normal runtimeDMARuninstall while retained module is active; this
+is not a universal validation-ref guarantee or arbitrary-module exclusion proof.
+Native N100 build/module/client passed;96parser cases passed hostUBSan andnative.
+Terra independently reviewed and passed96hostASan/UBSan cases. No new VM test.
+Physical read succeeded,version1,status0,cached1,exit0;136byte valid-checksum table:
+DRHD0 registers0xfed90000,segment0,endpoint00:02.0 (GPU8086:46d1 rev00).
+DRHD1 registers0xfed91000,segment0,include-all,IOAPIC00:1e.7/HPET00:1e.6.
+Raw recordRMRR,segment0,inclusive0x7c000000..0x803fffff,endpoint00:02.0.
+Parser preserves RMRR as other_record; raw evidence independently decoded. No
+claim that firmware-specified coverage means translation enabled or disabled.
+Unknown records/flags/scopes remain unresolved; source-specific residency and
+bounded4KiB/16unit capture limits are explicit. Missing/oversize/malformed leaves
+DMAstatusunknown. No controller/PCI/MMIO register reads or writes, GPU commands,
+or DMA identity proof. app_server127 unchanged; console remains responsive.
+Final source/binary andinstalled hashes checked. Earlier native build appears in
+screenshot but superseded by final rebuild. Terra independently verified rawbytes,
+source/build/installed identities,result,PCIendpoint andbefore/afterapp_server.
+Module and ACPI/table refs remain retained untilreboot. Production display/driver
+unchanged. Next: reviewed read-only remapping-register state andreserved-memory
+exclusion policy,then GTownership/power/forcewake before command submission.
+
+Build from native bundle aftercopyingheaders/sources to tests/:
+make -f Makefile -f tests/dmar-native.mk build/intel_dmar_snapshot build/intel_dmar_bridge build/dmar-native-client
+Kernel module:test-only bus_managers/intel_dmar_snapshot,driverbin:intel_dmar_bridge,
+dev/misc/intel_dmar_inventory symlink../../bin/intel_dmar_bridge. Refuseoverwrite.
+Runclient innewdedicateddirectory; savesdmar-table.bin evenboundedparse-error.
+A bounded rawsnapshot length andmodule status are checked again byclient. Capture
+unsupported/unknown asunknown,never asabsent oridentitypermission. Modulelookup
+must finishinitialization withB_KEEP_LOADED beforeanysnapshotrequest. No GPU
+request/API isintroduced bythisfixture. Runtime module-source in tests/dmar-native-*
+requiresrevision-specific review ifACPI table lifecycle/publicABI changes.
