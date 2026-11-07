@@ -1,0 +1,43 @@
+Locked IRQ accounting retirement checkpoint
+
+Isolated kernel commit5ccc8871 moves the final vector_lock release after
+update_int_load. Accounting still accesses assigned_cpu; vector free clears it
+under vector_lock. Early empty-list unlock and no-lock behavior are preserved.
+No new kernel API and no production GPU worktree integration.
+
+Host validation: tests/irq-tail-host.py extracts actual dispatch/remove/free.
+It pauses at accounting entry; removal either retires before accounting resumes
+(original failure) or observes a failed try-lock and waits (candidate). Accounting
+is modeled as checking assignment/allocation validity, not kernel load arithmetic.
+DEBUG_INTERRUPTS0/1 x edge/level: four baseline exit2 failures, four candidate
+exit0 passes. Terra independently repeated all eight. No-lock ASan control still
+reports its expected defect on this candidate; it is not claimed corrected.
+
+Normal and instrumented kernels compiled; dynamic exports: zero test symbols in
+normal build, ten in instrumented. Initial normal build incorrectly requested
+disabled fixture targets. Switching modes then reused a stale conditional object;
+preserving/removing both generated objects and rebuilding resolved the link error.
+Failed logs retained in testing/kernel-irq-tail-build-001 and -002. Existing CPU
+routing array-bounds warning remains. Normal kernel was compiled, not booted.
+
+Native validation: fresh disposable build040 image copy, offline package edit,
+canonical locks, no physical passthrough. Comparison checked6204 entries; only
+kernel changed (file/mode/symlink scope, not every attribute). Runtime kernel,
+package, bridge/client digests and explicit revision label matched. Eleven native
+software-dispatch rounds passed: one sequential and ten callback/removal contention
+cases. QMP guest-origin shutdown and QEMU exit0; SSH disconnect status retained.
+This does not prove every userspace flush. Evidence tests/evidence/kernel-irq-tail-001.
+
+Build manifest kernel-irq-tail-build-002.json records base2d71916f plus exact patch
+and source hashes because candidate commit followed testing. Its booted:false is
+build-stage status; the separate runtime result establishes the later VM boot.
+Terra independently parsed runtime rows/digests, revision and QMP shutdown and
+accepted isolated checkpoint scope. No production integration approval implied.
+
+Limits: native fixture is callback-removal regression, not the forced accounting
+schedule; that specific evidence is host modeled. Fix applies to dispatch that
+already acquired the lock and retains locked mode. Waiting/late dispatch, mutable
+mode, no-lock traversal, hardware mask/readback, failed cleanup containment and
+physical validation remain open. Longer IRQ-disabled lock hold is unmeasured on
+N100. No physical GPU execution. Next: resolve remaining retirement/ownership
+requirements before controlled physical memory validation and GPU workload.
