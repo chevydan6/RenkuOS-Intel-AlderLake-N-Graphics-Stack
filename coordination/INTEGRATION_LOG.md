@@ -1012,3 +1012,17 @@ issue: https://github.com/chevydan6/haiku-intel-gpu/issues/1 . Terra independent
 reviewed the current report; raw MSG_IDLE_BCS naming and reviewed-log wording
 were corrected. Default-branch fast-forward and push CI verification follow.
 No hardware access or new physical execution occurred during publication.
+
+## GitHub default branch and CI verified — 2026-11-07
+
+Both gpu/renkuos-n100 (private project default) and gpu/native-memory were
+verified at 767fd36e11e0559f7b87b0f467045edcb720744a after an atomic fast-forward
+push. This published 113 local commits beyond the former default head without
+rewriting its history. The default-branch current report was read back through
+the GitHub connector. GitHub source regression workflow 42347031752 completed
+successfully: every source job step passed in 29 seconds.
+https://github.com/chevydan6/haiku-intel-gpu/actions/runs/42347031752
+
+Publication is complete. This final documentation checkpoint records verification;
+issue #1 carries the latest remote/CI status. The target reset/A29 blocker remains.
+No native build or physical GPU test was performed for publication.

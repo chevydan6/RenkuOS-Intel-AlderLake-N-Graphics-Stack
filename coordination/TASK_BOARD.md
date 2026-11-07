@@ -62,4 +62,4 @@ Consult before new work. One owner per task. Astra owns board edits; Terra repor
 | A29 | Scoped engine inventory and execution initialization design | Astra | P2 | A28,Terra engine/reset research | host-tested/reviewed; native/physical blocked on laptop reset | allowlisted powered engine reads, explicit held-access lifetime, context/reset/DMA prerequisites before command publication |
 
 
-| PUBLISH-01 | Publish milestone history, current evidence and remaining execution gates to private GitHub | Astra | P1 | A28 evidence, A29 host review | published to gpu/native-memory; remote SHA verified; issue #1 | preserve history; explicit host/native/physical distinctions; remote readback |
+| PUBLISH-01 | Publish milestone history, current evidence and remaining execution gates to private GitHub | Astra | P1 | A28 evidence, A29 host review | complete: both branches verified at 767fd36; GitHub CI passed; issue #1 | preserve history; explicit host/native/physical distinctions; remote readback |
