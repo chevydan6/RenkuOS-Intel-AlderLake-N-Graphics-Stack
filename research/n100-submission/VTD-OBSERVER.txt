@@ -1,0 +1,42 @@
+READ-ONLY PHYSICAL VT-d STATUS — 2026-11-07
+Implemented a separate resident one-shot observer depending on the cached DMAR
+snapshot. Validates all DRHD bases before mapping; requests explicit UC and kernel
+read-only4K mappings; narrows reads toGSTS32,VER32,CAP32low/high,ECAP32low/high,
+VER32,GSTS32. No controller stores. Cleanup errors retain mapping records/module.
+Module/client copies expose raw samples and conservative Unknown/Disabled/Enabled
+classification. Cached subsequent calls never repeat hardware accesses.
+Reviewed assumptions: trusted firmware DMAR; advertised pages are in a non-RAM
+gap in captured EFI map,not explicitly MMIO descriptors. No competing IOMMUmanager
+found. Kernel typed-alias conflict can returnB_BUSY orpanicdebugkernel; normal
+sandbox recovery accepted. ExplicitUC avoids weak type adoption. MMIO CPUfault/
+hang cannot be caught as callbackfailure; external observer/recovery bounds trial.
+Compiled actualN100 with kernel flags and --no-undefined passed;source/installed
+binary hashes match.79hostUBSan/mock read cases and79native mock cases passed.
+Terra independently ASan/UBSan-tested actualmodule in3mapping/cleanup/cache mock
+scenarios, source-reviewed and independently verified physical evidence.
+Physical results (all map/read/cleanup0;client0;cached1):
+unit0 fed90000 VER40/40 CAP01c0000c40660462 ECAP29a00f0505e GSTS0/0;
+unit1 fed91000 VER50/50 CAPd2008c40660462 ECAPf050da GSTS0/0.
+TES31 clear at four sampled times. This does not prove no change between/after
+samples,identity DMA,translation ownership,RMRR handling orGPUaccess. VM mapping
+metadata/type accounting changes are distinct from controller-register stores.
+app_server127 unchanged;visibleNanoKVM terminal responsive. Module/dependencies
+remain resident untilreboot. Production GPUdriver/display components unchanged.
+No GPUcommands or hardwareacceleration;no newVMtest. Next:reserved-memory exclusion
+and explicitdevice DMAownership,then GTpower/forcewake/context/reset/submission.
+
+Primary factual reference: Intel VT-d Architecture SpecRev4.1,D51397-016,
+sections11.1/11.2/11.4 (register location/access/definitions), downloaded primary
+PDF SHA andsource researchavailable separately. No Linux GPL implementation was
+imported. New source is original MIT code implementing specified fixed reads.
+https://cdrdv2-public.intel.com/774206/vt-directed-io-spec%20.pdf
+
+Host helper test:
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -fsanitize=undefined -fno-sanitize-recover=all -I workstreams/gpu-next tests/vtd-observation-test.cpp -o /tmp/vtd-observation-test
+/tmp/vtd-observation-test
+Native build (headers/sources copiedto bundletests/):
+make -f Makefile -f tests/vtd-native.mk build/intel_vtd_observer build/intel_vtd_bridge build/vtd-native-client
+Test-only modulebus_managers/intel_vtd_observer,driverbinintel_vtd_bridge,and
+node dev/misc/intel_vtd_observer. Refuseoverwrites;exacthashes andcachedDMARsource
+mustbeverified before physicalrun. A newrunrequiresnewboot;resident codecannot
+be replaced safely by copying a different binary overitsloadedfile.
