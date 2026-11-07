@@ -1,0 +1,2 @@
+bridge=absent
+link=absent

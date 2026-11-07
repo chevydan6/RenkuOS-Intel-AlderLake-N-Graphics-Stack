@@ -1,0 +1,9 @@
+version=1 module=0 transaction=-1 fuse=0
+bootstrap error=0 cleanup=0 stage=6 ownership=5 ACK=0/0x1/0 reads=11 writes=2 elapsed_us=490
+group error=13 stage=3 domain=3 count=4 workCalled=1 elapsed_us=1738
+reset error=3 stage=6 reads=11 writes=3 rounds=0 elapsed_us=780 last=0x941c/0 attempted=0x220d0/0x10001
+domain=0 request=0xa188 ack=0x130044 ownership=3 ACK=0/0x1/0 last=0x1 reads=10 writes=1
+domain=1 request=0xa278 ack=0xd84 ownership=3 ACK=0/0x1/0 last=0x1 reads=7 writes=1
+domain=2 request=0xa540 ack=0xd50 ownership=3 ACK=0/0x1/0 last=0x1 reads=6 writes=1
+domain=4 request=0xa560 ack=0xd70 ownership=3 ACK=0/0x1/0 last=0x1 reads=5 writes=1
+Single-use BCS reset observation only; no engine initialization or GPU command execution.

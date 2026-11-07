@@ -1,0 +1,13 @@
+tests/IntelMemoryOwner.h: OK
+tests/IntelApertureLeaseState.h: OK
+tests/IntelN100PciPower.h: OK
+tests/IntelN100GtAck.h: OK
+tests/IntelN100Forcewake.h: OK
+tests/IntelN100BcsInventory.h: OK
+tests/IntelN100ResetDomains.h: OK
+tests/IntelN100ForcewakeGroup.h: OK
+tests/IntelN100BcsReset.h: OK
+tests/IntelN100ResetSafety.h: OK
+tests/IntelMemoryOwner.cpp: OK
+tests/observation-under-test.inc: OK
+run-native-reset.sh: OK

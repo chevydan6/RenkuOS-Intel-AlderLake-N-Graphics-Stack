@@ -1,0 +1,15 @@
+a33-native-owner-001.tar.gz: OK
+Haiku renkuos-tests R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+g++ (2023_08_10) 13.3.0
+Copyright (C) 2023 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+113 actual owner observation cases passed; mocked PCI/kernel only.
+mkdir -p build/driver
+g++ -Isource/headers/private/graphics -Isource/headers/private/graphics/intel_extreme -Isource/headers/private/graphics/common -I/boot/system/develop/headers/private/shared -std=gnu++17 -O2 -g -Wall -fPIC -fno-exceptions -fno-rtti -D_KERNEL_MODE=1 -I/boot/system/develop/headers/private -I/boot/system/develop/headers/private/kernel -I/boot/system/develop/headers/private/drivers -I/boot/system/develop/headers/private/system -I/boot/system/develop/headers/private/kernel/arch/x86 -I/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32 -I/boot/system/develop/headers/private/system/arch/x86_64 -Isource/build/config_headers -ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing -fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer -c source/src/system/kernel/util/kernel_cpp.cpp -o build/driver/kernel_cpp.o
+g++ -Iinputs -Isource/headers/private/graphics -Isource/headers/private/graphics/intel_extreme -Isource/headers/private/graphics/common -I/boot/system/develop/headers/private/shared -std=gnu++17 -O2 -g -Wall -fPIC -fno-exceptions -fno-rtti -D_KERNEL_MODE=1 -I/boot/system/develop/headers/private -I/boot/system/develop/headers/private/kernel -I/boot/system/develop/headers/private/drivers -I/boot/system/develop/headers/private/system -I/boot/system/develop/headers/private/kernel/arch/x86 -I/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32 -I/boot/system/develop/headers/private/system/arch/x86_64 -Isource/build/config_headers -ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing -fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer -Werror -c inputs/IntelMemoryOwner.cpp -o build/reset-owner.o
+g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 -o build/intel_memory_owner_v7_candidate build/reset-owner.o build/driver/kernel_cpp.o -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
+702c8d40111fcafa2ee6604f8d499f4d74cd2402cdcac2d19bcad4018dd31b83  build/intel_memory_owner_v7_candidate
+tar: inputs: time stamp 2026-11-07 09:04:48.6542053 is 0.3620893 s in the future
+tar: inputs.sha256: time stamp 2026-11-07 09:04:48.663058 is 0.36666 s in the future

@@ -1,0 +1,236 @@
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -36,6 +36,7 @@
+ static bool sGroupAttempted;
+ static IntelN100BcsReset sBcsReset;
+ static IntelN100BcsReset::Report sResetReport;
++static IntelN100ResetSafety sResetSafety;
+ 
+ 
+ static status_t
+@@ -514,6 +515,7 @@
+ 	HandshakeContext* handshake;
+ 	IntelN100ResetDomains plan;
+ 	uint64 resetDeadline, resetLastTime;
++	IntelN100ResetSafety safety;
+ };
+ 
+ static bool
+@@ -563,31 +565,88 @@
+ ResetClock(GroupContext& context)
+ {
+ 	uint64 now = HandshakeTime(NULL);
+-	if (now == UINT64_MAX || now < context.resetLastTime || now >= context.resetDeadline)
+-		return false;
++	context.safety.now = now;
++	context.safety.previous = context.resetLastTime;
++	context.safety.deadline = context.resetDeadline;
++	if (now == UINT64_MAX || now < context.resetLastTime) {
++		context.safety.reason = IntelN100ResetSafety::Clock;
++		return false;
++	}
++	if (now >= context.resetDeadline) {
++		context.safety.reason = IntelN100ResetSafety::Deadline;
++		return false;
++	}
+ 	context.resetLastTime = now;
+ 	return true;
+ }
+ 
+ static bool
++ResetOwnerPower(GroupContext& context)
++{
++	HandshakeContext& h = *context.handshake;
++	IntelN100ResetSafety& s = context.safety;
++	s.expected = h.original;
++	s.observed = {};
++	s.pciResult = IntelN100PciPower::Capture(ReadConfig, &h.device,
++		h.device.base, h.device.size, s.observed);
++	if (s.pciResult != IntelN100PciPower::Success) {
++		s.reason = IntelN100ResetSafety::PciCapture;
++		return false;
++	}
++	if (!IntelN100PciPower::Same(h.original, s.observed)) {
++		s.reason = IntelN100ResetSafety::PciChanged;
++		return false;
++	}
++	mutex_lock(&sLock);
++	bool mapping = sObservationPhase == ObservationHandshaking
++		&& sObservationLease == h.lease && sRegistersUncached
++		&& sResources.registers == h.registers;
++	bool owner = sState.DiagnosticAllowed();
++	mutex_unlock(&sLock);
++	if (!mapping || !owner) {
++		s.reason = !mapping ? IntelN100ResetSafety::Mapping : IntelN100ResetSafety::Owner;
++		return false;
++	}
++	return true;
++}
++
++static bool
+ ResetSafe(void* data)
+ {
+ 	GroupContext& context = *(GroupContext*)data;
+-	if (!ResetClock(context) || !GroupSafe(data))
++	context.safety.checks++;
++	context.safety.phase = 1;
++	if (!ResetClock(context) || !ResetOwnerPower(context))
+ 		return false;
+ 	const IntelN100ForcewakeGroup::Report& held = sGroup.LastReport();
++	context.safety.groupStage = held.stage;
++	context.safety.groupCount = held.count;
+ 	if (held.error != IntelN100ForcewakeGroup::Ok
+-		|| held.stage != IntelN100ForcewakeGroup::Work || held.count != context.plan.count)
+-		return false;
++		|| held.stage != IntelN100ForcewakeGroup::Work || held.count != context.plan.count) {
++		context.safety.reason = IntelN100ResetSafety::GroupLedger;
++		return false;
++	}
++	context.safety.phase = 2;
+ 	for (unsigned i = 0; i < context.plan.count; i++) {
+ 		uint32 ack = 0;
++		context.safety.domain = i;
+ 		if (held.domains[i].ownership != IntelN100ForcewakeGroup::Held
+-			|| held.domains[i].ack != context.plan.domains[i].ack
+-			|| !ResetClock(context) || !GroupRead(data, context.plan.domains[i].ack, ack)
+-			|| (ack & 0x8001) != 1)
++			|| held.domains[i].ack != context.plan.domains[i].ack) {
++			context.safety.reason = IntelN100ResetSafety::DomainLedger;
+ 			return false;
+-	}
+-	return GroupSafe(data) && ResetClock(context);
++		}
++		if (!ResetClock(context))
++			return false;
++		context.safety.ackReads++;
++		bool read = GroupRead(data, context.plan.domains[i].ack, ack);
++		context.safety.ack[i] = ack;
++		if (!read || (ack & 0x8001) != 1) {
++			context.safety.reason = !read ? IntelN100ResetSafety::AckRead : IntelN100ResetSafety::AckState;
++			return false;
++		}
++	}
++	context.safety.phase = 3;
++	return ResetOwnerPower(context) && ResetClock(context);
+ }
+ 
+ static bool
+@@ -691,6 +750,7 @@
+ 		}
+ 		sGroupAttempted = true;
+ 		sResetReport = {};
++		sResetSafety = {};
+ 		sResetReport.error = IntelN100BcsReset::Unsafe;
+ 		if (resetOutput != NULL)
+ 			*resetOutput = sResetReport;
+@@ -747,12 +807,13 @@
+ 		? HandshakePciStable(&context) : true;
+ 	bool groupFailed = false;
+ 	IntelN100ForcewakeGroup::Report groupReport = {};
++	IntelN100ResetSafety resetSafety = {};
+ 	if (groupOutput != NULL) {
+ 		groupReport.error = IntelN100ForcewakeGroup::Unsafe;
+ 		groupFailed = true;
+ 		if (result == IntelN100Forcewake::Ok && stable
+ 			&& report.ownership == IntelN100Forcewake::Released) {
+-			GroupContext groupContext = { &context, {}, 0, 0 };
++			GroupContext groupContext = { &context, {}, 0, 0, {} };
+ 			if (intel_n100_reset_domains(original.identity, uint8(original.classRevision),
+ 				observedFuse, groupContext.plan)) {
+ 				IntelN100ForcewakeGroup::IO groupIO = { &groupContext, HandshakeTime,
+@@ -763,6 +824,7 @@
+ 					uint8(original.classRevision), observedFuse,
+ 					resetOutput != NULL ? ResetWork : NULL) != IntelN100ForcewakeGroup::Ok;
+ 				groupReport = sGroup.LastReport();
++				resetSafety = groupContext.safety;
+ 			} else
+ 				groupReport.error = IntelN100ForcewakeGroup::InvalidPlan;
+ 			stable = HandshakePciStable(&context);
+@@ -786,6 +848,7 @@
+ 		sGroupBootstrapReport = report;
+ 		*groupOutput = groupReport;
+ 		if (resetOutput != NULL) {
++			sResetSafety = resetSafety;
+ 			if (sBcsReset.WasUsed())
+ 				sResetReport = sBcsReset.LastReport();
+ 			*resetOutput = sResetReport;
+@@ -851,6 +914,22 @@
+ 	if (bootstrap == NULL || group == NULL || reset == NULL || mediaFuse == NULL)
+ 		return B_BAD_VALUE;
+ 	return RunGtTransaction(bootstrap, NULL, mediaFuse, group, reset);
++}
++
++static status_t
++ReadResetSafety(IntelN100ResetSafety* output)
++{
++	if (output == NULL)
++		return B_BAD_VALUE;
++	mutex_lock(&sLock);
++	if (!sGroupAttempted || (sObservationPhase != ObservationIdle
++		&& sObservationPhase != ObservationUnknown)) {
++		mutex_unlock(&sLock);
++		return B_BUSY;
++	}
++	*output = sResetSafety;
++	mutex_unlock(&sLock);
++	return B_OK;
+ }
+ 
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+@@ -939,9 +1018,15 @@
+ 	RunBcsReset
+ };
+ 
++static intel_gt_reset_safety_module_info sResetSafetyModule = {
++	{ INTEL_GT_RESET_SAFETY_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++	ReadResetSafety
++};
++
+ module_info* modules[] = {
+ 	(module_info*)&sModule, (module_info*)&sObservationModule,
+ 	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule,
+ 	(module_info*)&sEngineInventoryModule, (module_info*)&sMediaFuseModule,
+-	(module_info*)&sGroupHandshakeModule, (module_info*)&sBcsResetModule, NULL
+-};
++	(module_info*)&sGroupHandshakeModule, (module_info*)&sBcsResetModule,
++	(module_info*)&sResetSafetyModule, NULL
++};
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -10,6 +10,7 @@
+ #include <IntelN100BcsInventory.h>
+ #include <IntelN100ForcewakeGroup.h>
+ #include <IntelN100BcsReset.h>
++#include <IntelN100ResetSafety.h>
+ 
+ #define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
+ 
+@@ -101,4 +102,10 @@
+ 		IntelN100ForcewakeGroup::Report* group, IntelN100BcsReset::Report* reset,
+ 		uint32* rawFuse);
+ };
++#define INTEL_GT_RESET_SAFETY_MODULE_NAME "bus_managers/intel_memory_owner/v8"
++// Read-only snapshot after the single-use v7 transaction. No hardware access.
++struct intel_gt_reset_safety_module_info {
++	module_info info;
++	status_t (*read_reset_safety)(IntelN100ResetSafety* output);
++};
+ #endif
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelN100ResetSafety.h
+@@ -0,0 +1,15 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_N100_RESET_SAFETY_H
++#define INTEL_N100_RESET_SAFETY_H
++#include "IntelN100PciPower.h"
++// Retained evidence from the existing reset safety checks. No extra MMIO,
++// cleanup or retry is performed to collect this report.
++struct IntelN100ResetSafety {
++	enum Reason : uint32_t { None, Clock, Deadline, PciCapture, PciChanged,
++		Mapping, Owner, GroupLedger, DomainLedger, AckRead, AckState };
++	uint32_t reason, checks, phase, domain, ackReads, pciResult;
++	uint32_t groupStage, groupCount, ack[5];
++	uint64_t now, previous, deadline;
++	IntelN100PciSnapshot expected, observed;
++};
++#endif

@@ -1,0 +1,445 @@
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -30,6 +30,10 @@
+ static IntelN100PciSnapshot sObservationSnapshot;
+ static IntelN100Forcewake sForcewake;
+ static IntelN100Forcewake::Report sHandshakeReport;
++static IntelN100ForcewakeGroup sGroup;
++static IntelN100ForcewakeGroup::Report sGroupReport;
++static IntelN100Forcewake::Report sGroupBootstrapReport;
++static bool sGroupAttempted;
+ 
+ 
+ static status_t
+@@ -504,13 +508,68 @@
+ 		: sampled ? IntelN100Forcewake::InspectionOk : IntelN100Forcewake::InspectionFailed;
+ }
+ 
++struct GroupContext {
++	HandshakeContext* handshake;
++	IntelN100ResetDomains plan;
++};
++
++static bool
++GroupSafe(void* data)
++{
++	HandshakeContext* context = ((GroupContext*)data)->handshake;
++	return HandshakePciStable(context) && HandshakeLive(context);
++}
++
++static bool
++GroupAccessAllowed(GroupContext& context, uint32 offset, bool write)
++{
++	bool allowed = false;
++	for (unsigned i = 0; i < context.plan.count; i++)
++		allowed |= offset == (write ? context.plan.domains[i].request : context.plan.domains[i].ack);
++	return allowed && (offset & 3) == 0
++		&& uint64(offset) + sizeof(uint32) <= context.handshake->device.size
++		&& context.handshake->registers <= UINTPTR_MAX - offset - 3;
++}
++
++static bool
++GroupRead(void* data, uint32_t offset, uint32_t& value)
++{
++	GroupContext& context = *(GroupContext*)data;
++	if (!GroupAccessAllowed(context, offset, false))
++		return false;
++	memory_read_barrier();
++	value = *(const volatile uint32*)(context.handshake->registers + offset);
++	memory_read_barrier();
++	return value != UINT32_MAX;
++}
++
++static bool
++GroupWrite(void* data, uint32_t offset, uint32_t word)
++{
++	GroupContext& context = *(GroupContext*)data;
++	if (!GroupAccessAllowed(context, offset, true) || (word != 0x10001 && word != 0x10000))
++		return false;
++	// The group ledger records attempted ownership before this callback.
++	memory_write_barrier();
++	*(volatile uint32*)(context.handshake->registers + offset) = word;
++	memory_full_barrier();
++	return true;
++}
++
+ static status_t
+ RunGtTransaction(IntelN100Forcewake::Report* output, IntelN100BcsInventory* inventory,
+-	uint32* mediaFuse = NULL)
+-{
+-	if (output == NULL || (inventory != NULL && mediaFuse != NULL))
++	uint32* mediaFuse = NULL, IntelN100ForcewakeGroup::Report* groupOutput = NULL)
++{
++	if (output == NULL || (inventory != NULL && mediaFuse != NULL)
++		|| (groupOutput != NULL && mediaFuse == NULL))
+ 		return B_BAD_VALUE;
+ 	mutex_lock(&sLock);
++	if (groupOutput != NULL && sGroupAttempted) {
++		*output = sGroupBootstrapReport;
++		*groupOutput = sGroupReport;
++		mutex_unlock(&sLock);
++		return B_BUSY;
++	}
+ 	if (sObservationPhase == ObservationUnknown || (sObservationPhase == ObservationIdle
+ 		&& (sForcewake.IsBlocked() || sHandshakeReport.error != IntelN100Forcewake::Ok))) {
+ 		*output = sHandshakeReport;
+@@ -528,6 +587,23 @@
+ 	IntelN100BcsInventory observed = {};
+ 	uint32 observedFuse = 0;
+ 	mutex_lock(&sLock);
++	if (groupOutput != NULL) {
++		// Another caller may have completed between the initial check and
++		// admission. Do not reset its ledger or enter the single-use helper.
++		if (sGroupAttempted) {
++			*output = sGroupBootstrapReport;
++			*groupOutput = sGroupReport;
++			RetireObservation(false);
++			mutex_unlock(&sLock);
++			return B_BUSY;
++		}
++		sGroupAttempted = true;
++		sGroupBootstrapReport = {};
++		sGroupBootstrapReport.error = IntelN100Forcewake::InvariantFailed;
++		sGroupReport = {};
++		sGroupReport.error = IntelN100ForcewakeGroup::Unsafe;
++		*groupOutput = sGroupReport;
++	}
+ 	if (sObservationLease != lease || sObservationPhase != ObservationHandshaking) {
+ 		sObservationBlocked = true;
+ 		IntelN100Forcewake::Report report = {};
+@@ -535,6 +611,8 @@
+ 		report.stage = IntelN100Forcewake::OwnerValidation;
+ 		report.ownership = IntelN100Forcewake::NoRequest;
+ 		sHandshakeReport = report;
++		if (groupOutput != NULL)
++			sGroupBootstrapReport = report;
+ 		mutex_unlock(&sLock);
+ 		*output = report;
+ 		return B_ERROR; // Invariant breach: retain, never guess-retire.
+@@ -557,6 +635,8 @@
+ 		mutex_lock(&sLock);
+ 		sHandshakeReport = report;
+ 		RetireObservation(true);
++		if (groupOutput != NULL)
++			sGroupBootstrapReport = report;
+ 		mutex_unlock(&sLock);
+ 		*output = report;
+ 		return B_ERROR;
+@@ -569,6 +649,27 @@
+ 	IntelN100Forcewake::Report report = sForcewake.LastReport();
+ 	bool stable = report.ownership == IntelN100Forcewake::Released
+ 		? HandshakePciStable(&context) : true;
++	bool groupFailed = false;
++	IntelN100ForcewakeGroup::Report groupReport = {};
++	if (groupOutput != NULL) {
++		groupReport.error = IntelN100ForcewakeGroup::Unsafe;
++		groupFailed = true;
++		if (result == IntelN100Forcewake::Ok && stable
++			&& report.ownership == IntelN100Forcewake::Released) {
++			GroupContext groupContext = { &context, {} };
++			if (intel_n100_reset_domains(original.identity, uint8(original.classRevision),
++				observedFuse, groupContext.plan)) {
++				IntelN100ForcewakeGroup::IO groupIO = { &groupContext, HandshakeTime,
++					GroupSafe, GroupRead, GroupWrite, HandshakePause };
++				// Handshake only: no callback capable of resetting or submitting.
++				groupFailed = sGroup.Run(groupIO, original.identity,
++					uint8(original.classRevision), observedFuse) != IntelN100ForcewakeGroup::Ok;
++				groupReport = sGroup.LastReport();
++			} else
++				groupReport.error = IntelN100ForcewakeGroup::InvalidPlan;
++			stable = HandshakePciStable(&context);
++		}
++	}
+ 	mutex_lock(&sLock);
+ 	if (report.ownership == IntelN100Forcewake::Released
+ 		&& (!stable || !sState.DiagnosticAllowed())) {
+@@ -577,8 +678,18 @@
+ 		report.stage = IntelN100Forcewake::OwnerValidation;
+ 		report.ownership = IntelN100Forcewake::Unknown;
+ 	}
++	if (groupOutput != NULL) {
++		if (!stable || !sState.DiagnosticAllowed()) {
++			groupFailed = true;
++			if (groupReport.error == IntelN100ForcewakeGroup::Ok)
++				groupReport.error = IntelN100ForcewakeGroup::Unsafe;
++		}
++		sGroupReport = groupReport;
++		sGroupBootstrapReport = report;
++		*groupOutput = groupReport;
++	}
+ 	sHandshakeReport = report;
+-	if (report.ownership == IntelN100Forcewake::Unknown) {
++	if (report.ownership == IntelN100Forcewake::Unknown || groupFailed) {
+ 		sObservationBlocked = true;
+ 		sObservationPhase = ObservationUnknown;
+ 		// Do not retire the numeric request or operation pin. No in-place
+@@ -618,6 +729,15 @@
+ 	if (report == NULL || mediaFuse == NULL)
+ 		return B_BAD_VALUE;
+ 	return RunGtTransaction(report, NULL, mediaFuse);
++}
++
++static status_t
++RunGroupHandshake(IntelN100Forcewake::Report* bootstrap,
++	IntelN100ForcewakeGroup::Report* group, uint32* mediaFuse)
++{
++	if (bootstrap == NULL || group == NULL || mediaFuse == NULL)
++		return B_BAD_VALUE;
++	return RunGtTransaction(bootstrap, NULL, mediaFuse, group);
+ }
+ 
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+@@ -696,8 +816,14 @@
+ 	RunMediaFuse
+ };
+ 
++static intel_gt_group_handshake_module_info sGroupHandshakeModule = {
++	{ INTEL_GT_GROUP_HANDSHAKE_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++	RunGroupHandshake
++};
++
+ module_info* modules[] = {
+ 	(module_info*)&sModule, (module_info*)&sObservationModule,
+ 	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule,
+-	(module_info*)&sEngineInventoryModule, (module_info*)&sMediaFuseModule, NULL
+-};
++	(module_info*)&sEngineInventoryModule, (module_info*)&sMediaFuseModule,
++	(module_info*)&sGroupHandshakeModule, NULL
++};
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -8,6 +8,7 @@
+ #include <IntelN100GtAck.h>
+ #include <IntelN100Forcewake.h>
+ #include <IntelN100BcsInventory.h>
++#include <IntelN100ForcewakeGroup.h>
+ 
+ #define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
+ 
+@@ -82,4 +83,12 @@
+ 	module_info info;
+ 	status_t (*sample_media_fuse)(IntelN100Forcewake::Report* report, uint32* rawFuse);
+ };
++#define INTEL_GT_GROUP_HANDSHAKE_MODULE_NAME "bus_managers/intel_memory_owner/v6"
++// Single-use, handshake-only diagnostic. A fresh fixed fuse capture precedes
++// the group under the same retained operation pin. No reset/work callback.
++struct intel_gt_group_handshake_module_info {
++	module_info info;
++	status_t (*run_group_handshake)(IntelN100Forcewake::Report* bootstrap,
++		IntelN100ForcewakeGroup::Report* group, uint32* rawFuse);
++};
+ #endif
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelN100ForcewakeGroup.h
+@@ -0,0 +1,172 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_N100_FORCEWAKE_GROUP_H
++#define INTEL_N100_FORCEWAKE_GROUP_H
++#include "IntelN100ResetDomains.h"
++#include <stddef.h>
++
++// Trusted retained-owner helper; not yet connected to MMIO. Single use, no
++// fallback-bit stores and no speculative cleanup on any failure. The owner must
++// retain this ledger, its code/mapping and operation pin whenever Run fails.
++class IntelN100ForcewakeGroup {
++public:
++	enum Error : uint32_t { Ok, AlreadyUsed, InvalidIO, InvalidPlan, Unsafe,
++		ClockError, TotalTimeout, ReadError, WriteError, FallbackBusy,
++		PreexistingRequest, AckTimeout, AckLost, WorkFailed, WorkTimeout };
++	enum Stage : uint32_t { Preflight, Acquire, VerifyHeld, Work, Release, VerifyReleased, Complete };
++	enum Ownership : uint32_t { NoRequest, EnableAttempted, Issued, Held, ClearAttempted, Released };
++	struct DomainReport {
++		uint32_t kind, request, ack, ownership, reads, writes;
++		uint32_t initialAck, setAck, finalAck, lastAck;
++	};
++	struct Report {
++		uint32_t error, stage, domain, count, workCalled;
++		uint64_t elapsed;
++		DomainReport domains[5];
++	};
++	struct IO {
++		void* context;
++		uint64_t (*now)(void*);
++		bool (*safe)(void*); // Owner, exact PCI/D0 identity and retained UC map.
++		bool (*readAck)(void*, uint32_t, uint32_t&);
++		bool (*writeRequest)(void*, uint32_t, uint32_t);
++		void (*pause)(void*);
++	};
++	// Future trusted reset callback only. False retains every wake request;
++	// failure is NOT permission to release power or DMA. No userspace callbacks.
++	typedef bool (*Operation)(void*, uint64_t deadline);
++	IntelN100ForcewakeGroup() : fUsed(false), fIO(), fReport(), fStart(0), fLast(0) {}
++	const Report& LastReport() const { return fReport; }
++	Error Run(const IO& io, uint32_t identity, uint8_t revision, uint32_t rawFuse,
++		Operation operation = NULL)
++	{
++		if (fUsed) return AlreadyUsed;
++		fUsed = true;
++		if (!io.now || !io.safe || !io.readAck || !io.writeRequest || !io.pause)
++			return Fail(InvalidIO);
++		IntelN100ResetDomains plan = {};
++		if (!intel_n100_reset_domains(identity, revision, rawFuse, plan))
++			return Fail(InvalidPlan);
++		fReport.count = plan.count;
++		for (unsigned i = 0; i < plan.count; i++) {
++			fReport.domains[i].kind = plan.domains[i].kind;
++			fReport.domains[i].request = plan.domains[i].request;
++			fReport.domains[i].ack = plan.domains[i].ack;
++		}
++		fIO = io;
++		struct ClearIO { IO& io; ~ClearIO() { io = {}; } } clear = { fIO };
++		fStart = fLast = io.now(io.context);
++		if (fStart > UINT64_MAX - 1000000) return Fail(ClockError);
++		// Read every selected ACK before issuing anything. Never clear a stale
++		// kernel/fallback request on the assumption that it belongs to us.
++		for (unsigned i = 0; i < plan.count; i++) {
++			if (!Read(i)) return Error(fReport.error);
++			fReport.domains[i].initialAck = fReport.domains[i].lastAck;
++			if (fReport.domains[i].lastAck & 1) return Fail(PreexistingRequest);
++		}
++		for (unsigned i = 0; i < plan.count; i++) {
++			fReport.stage = Acquire;
++			if (!Read(i)) return Error(fReport.error);
++			if (fReport.domains[i].lastAck & 1) return Fail(PreexistingRequest);
++			if (!Store(i, true) || !Poll(i, true)) return Error(fReport.error);
++			fReport.domains[i].ownership = Held;
++			fReport.domains[i].setAck = fReport.domains[i].lastAck;
++			if (!Verify(i + 1, true)) return Error(fReport.error);
++		}
++		fReport.stage = VerifyHeld;
++		if (!Verify(plan.count, true)) return Error(fReport.error);
++		if (operation != NULL) {
++			fReport.stage = Work;
++			if (!Check()) return Error(fReport.error);
++			if (1000000 - (fLast - fStart) < 400000) return Fail(TotalTimeout);
++			const uint64_t deadline = fLast + 100000;
++			fReport.workCalled = 1;
++			bool success = operation(io.context, deadline);
++			if (!Check()) return Error(fReport.error);
++			if (fLast >= deadline) return Fail(WorkTimeout);
++			if (!success) return Fail(WorkFailed);
++			if (!Verify(plan.count, true)) return Error(fReport.error);
++		}
++		// Release the exact acquired set in reverse. One failed clear stops
++		// immediately, retaining the remaining known/attempted ownership.
++		for (unsigned n = plan.count; n > 0; n--) {
++			fReport.stage = Release;
++			if (!Verify(n, true)) return Error(fReport.error);
++			if (!Store(n - 1, false) || !Poll(n - 1, false)) return Error(fReport.error);
++			fReport.domains[n - 1].ownership = Released;
++			fReport.domains[n - 1].finalAck = fReport.domains[n - 1].lastAck;
++		}
++		fReport.stage = VerifyReleased;
++		if (!Verify(plan.count, false)) return Error(fReport.error);
++		fReport.stage = Complete;
++		return Ok;
++	}
++
++private:
++	Error Fail(Error error) { fReport.error = error; return error; }
++	bool Time()
++	{
++		uint64_t now = fIO.now(fIO.context);
++		if (now == UINT64_MAX || now < fLast) { Fail(ClockError); return false; }
++		fLast = now; fReport.elapsed = now - fStart;
++		if (fReport.elapsed >= 1000000) { Fail(TotalTimeout); return false; }
++		return true;
++	}
++	bool Check()
++	{
++		if (!Time()) return false;
++		if (!fIO.safe(fIO.context)) { Fail(Unsafe); return false; }
++		return Time();
++	}
++	bool Read(unsigned index)
++	{
++		fReport.domain = index;
++		if (!Check()) return false;
++		auto& d = fReport.domains[index];
++		d.reads++;
++		uint32_t value = 0;
++		if (!fIO.readAck(fIO.context, d.ack, value)) { Fail(ReadError); return false; }
++		d.lastAck = value;
++		if (value == UINT32_MAX) { Fail(ReadError); return false; }
++		if (value & 0x8000) { Fail(FallbackBusy); return false; }
++		return Check();
++	}
++	bool Store(unsigned index, bool enable)
++	{
++		fReport.domain = index;
++		if (!Check()) return false;
++		auto& d = fReport.domains[index];
++		d.ownership = enable ? EnableAttempted : ClearAttempted;
++		d.writes++;
++		if (!fIO.writeRequest(fIO.context, d.request, enable ? 0x10001 : 0x10000)) {
++			Fail(WriteError); return false;
++		}
++		if (enable) d.ownership = Issued;
++		return true; // Next poll validates safety and observes ACK before release.
++	}
++	bool Poll(unsigned index, bool set)
++	{
++		const uint64_t deadline = fLast + 50000;
++		for (unsigned tries = 0; tries < 512; tries++) {
++			if (!Read(index)) return false;
++			if (fLast >= deadline) { Fail(AckTimeout); return false; }
++			if (bool(fReport.domains[index].lastAck & 1) == set) return true;
++			fIO.pause(fIO.context);
++		}
++		Fail(AckTimeout); return false;
++	}
++	bool Verify(unsigned count, bool held)
++	{
++		for (unsigned i = 0; i < count; i++) {
++			if (!Read(i)) return false;
++			if (bool(fReport.domains[i].lastAck & 1) != held) { Fail(AckLost); return false; }
++		}
++		return true;
++	}
++	IntelN100ForcewakeGroup(const IntelN100ForcewakeGroup&) = delete;
++	IntelN100ForcewakeGroup& operator=(const IntelN100ForcewakeGroup&) = delete;
++	bool fUsed;
++	IO fIO;
++	Report fReport;
++	uint64_t fStart, fLast;
++};
++#endif
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelN100ResetDomains.h
+@@ -0,0 +1,36 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_N100_RESET_DOMAINS_H
++#define INTEL_N100_RESET_DOMAINS_H
++#include <stdint.h>
++
++// Offline domain planner only. Raw fuse must be sampled under owned GT wake.
++// Pin/source: BCS-RESET-DESIGN.md. This is NOT a forcewake acquisition or a
++// substitute for a live identity/ownership/power check in the eventual adapter.
++struct IntelN100ResetDomains {
++	enum Kind : uint32_t { Gt, Render, Vdbox0, Vdbox2, Vebox0 };
++	struct Domain { uint32_t kind, request, ack; } domains[5];
++	uint32_t count, rawFuse;
++};
++
++static inline bool
++intel_n100_reset_domains(uint32_t pciIdentity, uint8_t revision,
++	uint32_t mediaDisableFuse, IntelN100ResetDomains& output)
++{
++	if (pciIdentity != 0x46d18086 || revision != 0 || mediaDisableFuse == UINT32_MAX)
++		return false;
++	IntelN100ResetDomains result = {};
++	result.rawFuse = mediaDisableFuse;
++	result.domains[result.count++] = { IntelN100ResetDomains::Gt, 0xa188, 0x130044 };
++	result.domains[result.count++] = { IntelN100ResetDomains::Render, 0xa278, 0xd84 };
++	// ADL-N uses adl_p_info: only VCS0, VCS2 and VECS0 are candidates.
++	// Gen12.0 fuse bits are DISABLE, unlike >=12.55 enable semantics.
++	if ((mediaDisableFuse & (1u << 0)) == 0)
++		result.domains[result.count++] = { IntelN100ResetDomains::Vdbox0, 0xa540, 0xd50 };
++	if ((mediaDisableFuse & (1u << 2)) == 0)
++		result.domains[result.count++] = { IntelN100ResetDomains::Vdbox2, 0xa548, 0xd58 };
++	if ((mediaDisableFuse & (1u << 16)) == 0)
++		result.domains[result.count++] = { IntelN100ResetDomains::Vebox0, 0xa560, 0xd70 };
++	output = result;
++	return true;
++}
++#endif

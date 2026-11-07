@@ -1,0 +1,17 @@
+{
+  "exit": 0,
+  "hashes": {
+    "build/a34-reset-safety-development-001/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp": "2c697f813a3797ad556d5a6aa1279b88364c41d193c7c040729b852d2f49e2a1",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h": "adea0412f14056b4cf054707e93accfbb3f37dc8dbcb56ea2311ec51f34dfdd4",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100PciPower.h": "56c7b5bf1e34fef35b443e702648c39cdd8c74d0f25b88d17104929113a9e47b",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100GtAck.h": "82a5c80a6d4a7fa597cb47180bb0bbbd42e8b07902e0878074d08a8b646140e1",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100Forcewake.h": "511a68143f7ff4a91a30b0528c34442cef155f88decc2713e2c6b90aa9271be2",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100BcsInventory.h": "86aca4c050a9259595ce2f42696b38939bc277ccbec01b83fc11d9896072b1eb",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100ResetDomains.h": "751208234426327b619994e6c3eb299fb7e437365c06b05f9c39985232f8d896",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100ForcewakeGroup.h": "2f1f5423c806f4be5ba13a5ea0bca762232048e76904f492641392a91de73902",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100BcsReset.h": "967abf776f96b42bab3ba927bb8227aeaef3b7e7bbadfd7f15f65ef5d92d90d2",
+    "build/a34-reset-safety-development-001/source/headers/private/graphics/intel_extreme/IntelN100ResetSafety.h": "243076b861c11f70ca9060fe0735d61c1cb0fb1072ba18eb0b155bb2734bc925",
+    "/home/dan/ai/projects/haiku-intel-gpu/tests/owner-observation-test.cpp": "3b01304d39fd313d0a4c99e33764e5b28b98f780cf7d62cfa6156df8033e6b82"
+  },
+  "scope": "Actual observation admission/retirement functions; mocked PCI and kernel mutex, no hardware."
+}

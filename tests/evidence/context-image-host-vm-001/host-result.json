@@ -1,0 +1,37 @@
+{
+  "command": [
+    "g++",
+    "-std=c++17",
+    "-O1",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-fsanitize=address,undefined",
+    "-fno-omit-frame-pointer",
+    "-fno-pie",
+    "-no-pie",
+    "-Iworkstreams/gpu-next",
+    "-Ibuild/a37-context-image-host-004",
+    "tests/n100-context-image-test.cpp",
+    "-o",
+    "build/a37-context-image-host-004/context-image-test"
+  ],
+  "exit": 0,
+  "inputs": {
+    "workstreams/gpu-next/IntelN100ContextImage.h": "980b3c2c98045678b783993eab7805f3358c5faaa84a06a20a86e938fe7887a6",
+    "workstreams/gpu-next/IntelN100Ppgtt.h": "225ed93d2427224a5d75ac45563c8c65fd1076c05b3c1955d91fd7d57fef3b70",
+    "tests/n100-context-image-test.cpp": "ec55f29e00ffc53aa13ac48343d6c59f66fb7e70b7f3b4e695294bdb4e6680e7",
+    "/home/dan/ai/projects/haiku-intel-gpu/tests/context-image-host.py": "2ced4b989c19221ce7b5f6dd99e1549ed708163a36c9057d09c3ae389d5a4462",
+    "build/a37-context-image-host-004/lrc-reference.inc": "27c043591bc82dcbe77e4c81b47b5a40a91054c91dc58d1c98cec8a8b50e6205"
+  },
+  "references": {
+    "intel_lrc.c": "1c6d88c0cf02125e02d4826b09d9bbd9c1acebaab6d53e74ac36462a24eac3ba",
+    "intel_lrc.h": "e71534746b6f6720c978c0096316c51873f5afc2974d94cd4979303384a6f5b3",
+    "intel_lrc_reg.h": "671b2adfb2825597425eea515b892cba1365f658d552f9a90439182f0f7f21c0",
+    "intel_engine_regs.h": "e6ae20bc2946a252a948628df6a84522c19dd45d537f5efa0e5c55d08e82961a",
+    "intel_gpu_commands.h": "d8d14b3edefb858418eb52506f5f7598ee2cd6bd8affa659e43faaf11c85e77c",
+    "intel_gt_regs.h": "2d131eb5839396c099e8c63b52e8f998407936d8a34df4a547080fc13f5a91b9",
+    "gen8_engine_cs.c": "d605b5e4b74d76e29be1db9fb22b2f16d52f8ed96ad2c5746f850665f10f2c72"
+  }
+}

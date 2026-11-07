@@ -5,9 +5,17 @@
 #include "IntelN100GtAck.h"
 #include "IntelN100Forcewake.h"
 #include "IntelN100BcsInventory.h"
+#include "IntelN100ForcewakeGroup.h"
+#if __has_include("IntelN100BcsReset.h")
+#include "IntelN100BcsReset.h"
+#endif
+#if __has_include("IntelN100ResetSafety.h")
+#include "IntelN100ResetSafety.h"
+#endif
 #include <assert.h>
 #include <chrono>
 #include <condition_variable>
+#include <initializer_list>
 #include <new>
 #include <stdint.h>
 #include <stdio.h>
@@ -46,12 +54,35 @@ static bool sNoSet, sNoClear, sBadPostRead;
 static bool sWriteGate, sWriteEntered, sWriteProceed, sFailFinalOwner;
 static unsigned sPostClearIdentities;
 static bool sEngineGate, sEngineEntered, sEngineProceed;
+static bool sTestingGroup, sGroupGate, sGroupEntered, sGroupProceed;
+static unsigned sGroupWrites;
+static int sGroupNoSet, sGroupNoClear;
+static bool sGroupBadRead, sGroupLoseAck, sFailGroupFinalOwner;
+static void MockGroupBarrier();
+#ifdef INTEL_N100_BCS_RESET_H
+static bool sTestingReset, sResetNoReady, sResetNoDomain, sResetLoseAck;
+static bool sResetGate, sResetEntered, sResetProceed;
+static unsigned sResetWrites;
+static uint32 sResetFaultAck;
+static bool MockResetActive();
+static void MockResetBarrier();
+#endif
 static int64_t MockSystemTime() { return sClock; }
 static int MockSnooze(int64_t delay) { sClock += delay; return 0; }
 static void MockWriteBarrier() { assert(sLock.try_lock()); sLock.unlock(); }
 static void MockFullBarrier()
 {
 	assert(sLock.try_lock()); sLock.unlock();
+#ifdef INTEL_N100_BCS_RESET_H
+	if (MockResetActive()) {
+		MockResetBarrier();
+		return;
+	}
+#endif
+	if (sTestingGroup && sRequestWrites >= 2) {
+		MockGroupBarrier();
+		return;
+	}
 	uint32 word = sMockRegisters[0xa188 / 4];
 	assert(word == (sRequestWrites == 0 ? 0x10001 : 0x10000));
 	sRequestWrites++;
@@ -93,7 +124,60 @@ static void memory_read_barrier()
 #undef memory_write_barrier
 #undef memory_full_barrier
 
+static void MockGroupBarrier()
+{
+	const auto& report = sGroup.LastReport();
+	const auto& domain = report.domains[report.domain];
+	assert(domain.ownership == IntelN100ForcewakeGroup::EnableAttempted
+		|| domain.ownership == IntelN100ForcewakeGroup::ClearAttempted);
+	uint32 word = sMockRegisters[domain.request / 4];
+	assert(word == (domain.ownership == IntelN100ForcewakeGroup::EnableAttempted ? 0x10001u : 0x10000u));
+	sRequestWrites++; sGroupWrites++;
+	if (word == 0x10001 && int(domain.kind) != sGroupNoSet)
+		sMockRegisters[domain.ack / 4] = 1;
+	if (word == 0x10000 && int(domain.kind) != sGroupNoClear)
+		sMockRegisters[domain.ack / 4] = 0;
+	if (sGroupBadRead) sMockRegisters[domain.ack / 4] = UINT32_MAX;
+	if (sGroupLoseAck && domain.kind != 0) sMockRegisters[kIntelN100GtAckOffset / 4] = 0;
+	if (sGroupGate && sGroupWrites == 1) {
+		std::unique_lock<std::mutex> lock(sAckLock);
+		sGroupEntered = true; sAckChanged.notify_all();
+		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sGroupProceed; }));
+	}
+}
+
 using Owner = IntelApertureLeaseState;
+#ifdef INTEL_N100_BCS_RESET_H
+static bool MockResetActive()
+{
+	return sTestingReset && sGroup.LastReport().stage == IntelN100ForcewakeGroup::Work;
+}
+static void MockResetBarrier()
+{
+	using Reset = IntelN100BcsReset;
+	const auto& r = sBcsReset.LastReport();
+	const uint32 offsets[] = {Reset::kMode, Reset::kPrefetch, Reset::kResetControl,
+		Reset::kDomain, Reset::kDomain, Reset::kResetControl};
+	const uint32 words[] = {0x01000100, 0x04000400, 0x10001, 4, 4, 0x10000};
+	assert(sResetWrites < 6 && r.attemptedOffset == offsets[sResetWrites]
+		&& r.attemptedValue == words[sResetWrites]);
+	assert(sMockRegisters[r.attemptedOffset/4] == words[sResetWrites]);
+	sResetWrites++; sRequestWrites++;
+	assert(r.writes == sResetWrites);
+	if (r.attemptedOffset == Reset::kMode) sMockRegisters[Reset::kMode/4] = 0x300;
+	if (r.attemptedOffset == Reset::kPrefetch) sMockRegisters[Reset::kPrefetch/4] = 0x400;
+	if (r.attemptedOffset == Reset::kResetControl)
+		sMockRegisters[Reset::kResetControl/4] = r.attemptedValue == 0x10000 ? 0 : sResetNoReady ? 1 : 3;
+	if (r.attemptedOffset == Reset::kDomain && !sResetNoDomain)
+		sMockRegisters[Reset::kDomain/4] = 0;
+	if (sResetLoseAck) sMockRegisters[0xd84/4] = sResetFaultAck;
+	if (sResetGate && sResetWrites == 1) {
+		std::unique_lock<std::mutex> lock(sAckLock);
+		sResetEntered = true; sAckChanged.notify_all();
+		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sResetProceed; }));
+	}
+}
+#endif
 static std::mutex sConfigLock;
 static std::condition_variable sChanged;
 static bool sGate, sEntered, sProceed;
@@ -116,6 +200,9 @@ static uint32 Read(uint8 bus, uint8 device, uint8 function, uint16 offset, uint8
 	switch (offset) {
 		case 0:
 			assert(size == 4);
+			if (sFailGroupFinalOwner
+				&& sGroup.LastReport().stage == IntelN100ForcewakeGroup::Complete)
+				return UINT32_MAX;
 			// Four identities per completed capture; fail final owner capture,
 			// after the helper's post-clear PCI check has succeeded.
 			if (sFailFinalOwner && sRequestWrites == 2 && ++sPostClearIdentities == 5)
@@ -142,6 +229,20 @@ static void Reset()
 	sState.~Owner(); new (&sState) Owner();
 	sObservationPin.~Operation(); new (&sObservationPin) Owner::Operation();
 	sForcewake.~IntelN100Forcewake(); new (&sForcewake) IntelN100Forcewake();
+	sGroup.~IntelN100ForcewakeGroup(); new (&sGroup) IntelN100ForcewakeGroup();
+	sGroupReport = {}; sGroupAttempted = false;
+	sGroupBootstrapReport = {};
+#ifdef INTEL_N100_BCS_RESET_H
+	sBcsReset.~IntelN100BcsReset(); new (&sBcsReset) IntelN100BcsReset();
+	sResetReport = {};
+#ifdef INTEL_N100_RESET_SAFETY_H
+	sResetSafety = {};
+#endif
+	sTestingReset = sResetNoReady = sResetNoDomain = sResetLoseAck = false;
+	sResetGate = sResetEntered = sResetProceed = false;
+	sResetWrites = 0;
+	sResetFaultAck = 0;
+#endif
 	sHandshakeReport = {};
 	sObservationBlocked = false;
 	sObservationPhase = ObservationIdle;
@@ -158,7 +259,12 @@ static void Reset()
 	sWriteGate = sWriteEntered = sWriteProceed = sFailFinalOwner = false;
 	sPostClearIdentities = 0;
 	sEngineGate = sEngineEntered = sEngineProceed = false;
+	sTestingGroup = sGroupGate = sGroupEntered = sGroupProceed = false;
+	sGroupWrites = 0; sGroupNoSet = sGroupNoClear = -1;
+	sGroupBadRead = sGroupLoseAck = sFailGroupFinalOwner = false;
+	for (unsigned offset : {0xd84u,0xd50u,0xd58u,0xd70u}) sMockRegisters[offset/4] = 0;
 	for (unsigned i = 0; i < 5; i++) sMockRegisters[kIntelN100BcsOffsets[i] / 4] = i + 1;
+	sMockRegisters[0x9140 / 4] = 0x00010004;
 	sPMControl = 0;
 	sGate = sEntered = sProceed = false;
 	sReads = 0;
@@ -476,5 +582,321 @@ int main()
 		assert(memcmp(&bcs, &saved, sizeof(bcs)) == 0);
 		ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
 	}
+	// v5 fixed media fuse leaves the v4 BCS ABI and allowlist intact.
+	Reset(); uint32 fuse = 0xfeedface;
+	assert(RunMediaFuse(NULL, &fuse) == B_BAD_VALUE);
+	assert(RunMediaFuse(&report, NULL) == B_BAD_VALUE);
+	assert(RunGtTransaction(&report, &bcs, &fuse) == B_BAD_VALUE);
+	assert(sRequestWrites == 0 && sReads == 0 && sBarriers == 0); cases++;
+	assert(RunMediaFuse(&report, &fuse) == B_OK && fuse == 0x00010004);
+	assert(report.error == 0 && report.cleanup == 0
+		&& report.ownership == IntelN100Forcewake::Released
+		&& report.stage == IntelN100Forcewake::Complete && sRequestWrites == 2);
+	assert(sObservationPhase == ObservationIdle && !sObservationBlocked); cases++;
+	for (unsigned fault = 0; fault < 5; fault++) {
+		Reset(); fuse = 0xfeedface;
+		if (fault == 0) sMockRegisters[0x9140 / 4] = UINT32_MAX;
+		if (fault == 1) sNoSet = true;
+		if (fault == 2) sNoClear = true;
+		if (fault == 3) sFailFinalOwner = true;
+		if (fault == 4) sBadPostRead = true;
+		assert(RunMediaFuse(&report, &fuse) == B_ERROR && fuse == 0xfeedface);
+		assert(report.ownership == IntelN100Forcewake::Unknown
+			&& sObservationPhase == ObservationUnknown);
+		unsigned writes = sRequestWrites, reads = sReads, barriers = sBarriers;
+		IntelN100Forcewake::Report failure = report;
+		assert(RunMediaFuse(&report, &fuse) == B_BUSY && fuse == 0xfeedface);
+		assert(memcmp(&report, &failure, sizeof(report)) == 0);
+		assert(sRequestWrites == writes && sReads == reads && sBarriers == barriers);
+		ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
+	for (unsigned fault = 0; fault < 7; fault++) {
+		Reset(); sEngineGate = true; fuse = 0xfeedface;
+		std::thread samplingFuse([&] { result = RunMediaFuse(&report, &fuse); });
+		{
+			std::unique_lock<std::mutex> lock(sAckLock);
+			assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sEngineEntered; }));
+		}
+		assert(EndObservation(sObservationLease) == B_BAD_VALUE);
+		IntelN100Forcewake::Report ignored = {}; uint32 untouchedFuse = 0xabcdef;
+		assert(RunMediaFuse(&ignored, &untouchedFuse) == B_BUSY && untouchedFuse == 0xabcdef);
+		assert(RunBcsInventory(&ignored, &bcs) == B_BUSY);
+		if (fault == 0) ReleaseDisplay();
+		if (fault == 1) {
+			std::lock_guard<std::mutex> lock(sConfigLock); sPMControl = 3;
+		}
+		if (fault == 2) {
+			std::lock_guard<std::mutex> lock(sLock);
+			Owner::Operation operation;
+			assert(sState.BeginOperation(sDisplay, Owner::Free, operation) == Owner::Success);
+			assert(sState.EndOperation(operation, true) == Owner::Success);
+		}
+		if (fault == 6) {
+			std::lock_guard<std::mutex> lock(sLock); sRegistersUncached = false;
+		}
+		{
+			std::lock_guard<std::mutex> lock(sAckLock);
+			if (fault == 3) sClock = 0;
+			if (fault == 4) sClock += 50000;
+			if (fault == 5) sMockRegisters[kIntelN100GtAckOffset / 4] = 0;
+			sEngineProceed = true; sAckChanged.notify_all();
+		}
+		samplingFuse.join();
+		assert(result == B_ERROR && fuse == 0xfeedface);
+		assert(report.ownership == IntelN100Forcewake::Unknown);
+		assert(sRequestWrites == (fault == 0 || fault == 2 ? 2u : 1u));
+		if (fault != 0) ReleaseDisplay();
+		assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
+	// Exercise actual adapter rejection before dereference: fixed endpoint
+	// separation, alignment, BAR extent, address wrap and deadline/clock bounds.
+	for (unsigned fault = 0; fault < 9; fault++) {
+		Reset(); fuse = 0xfeedface;
+		HandshakeContext context = {sDevice, {}, 1, sResources.registers,
+			NULL, &fuse, false, 2000, 1000};
+		uint32 offset = 0x9140, value = 0xabcdef;
+		if (fault == 0) offset = 0xa188;
+		if (fault == 1) offset = 0x22030;
+		if (fault == 2) offset++;
+		if (fault == 3) context.device.size = 0x9143;
+		if (fault == 4) context.registers = UINTPTR_MAX - 0x9140;
+		if (fault == 5) context.sampleDeadline = 1000;
+		if (fault == 6) context.sampleLastTime = 1001;
+		if (fault == 7) context.mediaFuse = NULL;
+		if (fault == 8) { context.mediaFuse = NULL; context.inventory = &bcs; }
+		assert(!ReadInventoryRegister(&context, offset, value));
+		assert(context.sampleUncertain && value == 0xabcdef && sBarriers == 0); cases++;
+	}
+	// v6 owns one pin across fresh GT/fuse bootstrap and all-domain handshake.
+	Reset(); sTestingGroup = true; sMockRegisters[0x9140/4] = 0xe00fe;
+	IntelN100ForcewakeGroup::Report groupReport = {}; fuse = 0xfeedface;
+	assert(RunGroupHandshake(NULL, &groupReport, &fuse) == B_BAD_VALUE);
+	assert(RunGroupHandshake(&report, NULL, &fuse) == B_BAD_VALUE);
+	assert(RunGroupHandshake(&report, &groupReport, NULL) == B_BAD_VALUE && sRequestWrites == 0);
+	assert(RunGroupHandshake(&report, &groupReport, &fuse) == B_OK);
+	assert(fuse == 0xe00fe && groupReport.count == 4 && groupReport.workCalled == 0);
+	assert(groupReport.error == 0 && groupReport.stage == IntelN100ForcewakeGroup::Complete);
+	assert(sGroupWrites == 8 && sRequestWrites == 10 && sObservationPhase == ObservationIdle);
+	for (unsigned i = 0; i < groupReport.count; i++)
+		assert(groupReport.domains[i].ownership == IntelN100ForcewakeGroup::Released);
+	unsigned groupReads = sReads, groupBarriers = sBarriers;
+	auto groupSaved = groupReport;
+	assert(RunGroupHandshake(&report, &groupReport, &fuse) == B_BUSY);
+	assert(memcmp(&groupSaved, &groupReport, sizeof(groupReport)) == 0
+		&& sReads == groupReads && sBarriers == groupBarriers && sRequestWrites == 10); cases++;
+	// A legacy transaction must not overwrite the completed v6 bootstrap.
+	auto bootstrapSaved = report;
+	sTestingGroup = false; sRequestWrites = 0; sClock += 200;
+	assert(RunHandshake(&report) == B_OK);
+	assert(RunGroupHandshake(&report, &groupReport, &fuse) == B_BUSY);
+	assert(memcmp(&bootstrapSaved, &report, sizeof(report)) == 0);
+	assert(memcmp(&groupSaved, &groupReport, sizeof(groupReport)) == 0); cases++;
+	for (unsigned fault = 0; fault < 8; fault++) {
+		Reset(); sTestingGroup = true; sMockRegisters[0x9140/4] = 0xe00fe; fuse = 0xfeedface;
+		if (fault == 0) sMockRegisters[0x9140/4] = UINT32_MAX;
+		if (fault == 1) sMockRegisters[0xd84/4] = 1;
+		if (fault == 2) sMockRegisters[0xd50/4] = 0x8000;
+		if (fault == 3) sGroupNoSet = 1;
+		if (fault == 4) sGroupNoClear = 4;
+		if (fault == 5) sGroupBadRead = true;
+		if (fault == 6) sGroupLoseAck = true;
+		if (fault == 7) sFailGroupFinalOwner = true;
+		assert(RunGroupHandshake(&report, &groupReport, &fuse) == B_ERROR);
+		if (fault == 7) {
+			assert(sGroup.LastReport().stage == IntelN100ForcewakeGroup::Complete);
+			assert(groupReport.error == IntelN100ForcewakeGroup::Unsafe && sGroupWrites == 8);
+		}
+		assert(fuse == 0xfeedface && sObservationPhase == ObservationUnknown && sObservationBlocked);
+		unsigned writes = sRequestWrites, reads = sReads;
+		assert(RunGroupHandshake(&report, &groupReport, &fuse) == B_BUSY);
+		assert(RunMediaFuse(&report, &fuse) == B_BUSY);
+		assert(writes == sRequestWrites && reads == sReads);
+		ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
+	for (unsigned fault = 0; fault < 4; fault++) {
+		Reset(); sTestingGroup = sGroupGate = true; sMockRegisters[0x9140/4] = 0xe00fe; fuse = 0xfeedface;
+		std::thread groupThread([&] { result = RunGroupHandshake(&report, &groupReport, &fuse); });
+		{
+			std::unique_lock<std::mutex> lock(sAckLock);
+			assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sGroupEntered; }));
+		}
+		IntelN100ForcewakeGroup::Report ignoredGroup = {}; IntelN100Forcewake::Report ignoredBootstrap = {};
+		uint32 ignoredFuse = 0xdeadbeef;
+		assert(RunGroupHandshake(&ignoredBootstrap, &ignoredGroup, &ignoredFuse) == B_BUSY);
+		assert(ignoredFuse == 0xdeadbeef && EndObservation(sObservationLease) == B_BAD_VALUE);
+		if (fault == 0) ReleaseDisplay();
+		if (fault == 1) { std::lock_guard<std::mutex> lock(sConfigLock); sPMControl = 3; }
+		if (fault == 2) { std::lock_guard<std::mutex> lock(sLock); sRegistersUncached = false; }
+		{
+			std::lock_guard<std::mutex> lock(sAckLock);
+			if (fault == 3) sClock += 1000000;
+			sGroupProceed = true; sAckChanged.notify_all();
+		}
+		groupThread.join();
+		assert(result == B_ERROR && fuse == 0xfeedface && sGroupWrites == 1);
+		assert(sObservationPhase == ObservationUnknown);
+		if (fault != 0) ReleaseDisplay();
+		assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
+	// Actual adapter: reject a fused-off domain, wrong access direction,
+	// request masks other than the owned bit and invalid BAR extent/wrap.
+	for (unsigned fault = 0; fault < 7; fault++) {
+		Reset(); uint32 value = 0xabcdef;
+		HandshakeContext handshake = {sDevice, {}, 1, sResources.registers, NULL, &fuse, false, 2000, 1000};
+		GroupContext context = {}; context.handshake = &handshake;
+		assert(intel_n100_reset_domains(0x46d18086, 0, 0xe00fe, context.plan));
+		if (fault == 0) assert(!GroupRead(&context, 0xd58, value));
+		if (fault == 1) assert(!GroupWrite(&context, 0xa548, 0x10001));
+		if (fault == 2) assert(!GroupWrite(&context, 0xa188, 0x80008000));
+		if (fault == 3) assert(!GroupRead(&context, 0xa188, value));
+		if (fault == 4) assert(!GroupWrite(&context, 0xd84, 0x10001));
+		if (fault == 5) { handshake.device.size = 0xd85; assert(!GroupRead(&context, 0xd84, value)); }
+		if (fault == 6) { handshake.registers = UINTPTR_MAX - 0xd84; assert(!GroupRead(&context, 0xd84, value)); }
+		assert(sRequestWrites == 0 && sBarriers == 0 && value == 0xabcdef); cases++;
+	}
+#ifdef INTEL_N100_BCS_RESET_H
+	// v7 composes the actual retained owner with the group and reset helpers.
+	using ResetHelper = IntelN100BcsReset;
+	IntelN100BcsReset::Report resetReport = {};
+	for (unsigned fault = 0; fault < 10; fault++) {
+		Reset(); sTestingGroup = sTestingReset = true;
+		sMockRegisters[0x9140/4] = 0xe00fe; fuse = 0xfeedface;
+		sMockRegisters[ResetHelper::kControl/4] = 0;
+		sMockRegisters[ResetHelper::kMode/4] = 0x200;
+		sMockRegisters[ResetHelper::kPrefetch/4] = 0;
+		sMockRegisters[ResetHelper::kResetControl/4] = 0;
+		sMockRegisters[ResetHelper::kDomain/4] = 0;
+		sMockRegisters[ResetHelper::kPending/4] = 0x10;
+		if (fault == 1) sMockRegisters[ResetHelper::kControl/4] = 1;
+		if (fault == 2) sMockRegisters[ResetHelper::kPrefetch/4] = UINT32_MAX;
+		if (fault == 3) sResetNoReady = true;
+		if (fault == 4) sResetNoDomain = true;
+		if (fault == 5) sResetLoseAck = true;
+		if (fault == 6) sFailGroupFinalOwner = true;
+		if (fault == 7) sMockRegisters[0xd84/4] = 1;
+		if (fault == 8 || fault == 9) {
+			sResetLoseAck = true;
+			sResetFaultAck = fault == 8 ? 0x8001 : UINT32_MAX;
+		}
+		assert(RunBcsReset(&report, &groupReport, &resetReport, &fuse) == (fault ? B_ERROR : B_OK));
+#ifdef INTEL_N100_RESET_SAFETY_H
+		IntelN100ResetSafety safety = {};
+		unsigned readsBeforeSafety = sReads, writesBeforeSafety = sRequestWrites, barriersBeforeSafety = sBarriers;
+		assert(ReadResetSafety(&safety) == B_OK);
+		assert(sReads == readsBeforeSafety && sRequestWrites == writesBeforeSafety && sBarriers == barriersBeforeSafety);
+		if (fault == 5 || fault == 8 || fault == 9) {
+			assert(safety.reason == (fault == 9 ? IntelN100ResetSafety::AckRead : IntelN100ResetSafety::AckState)
+				&& safety.domain == 1);
+			assert(safety.phase == 2 && safety.ack[1] == sResetFaultAck);
+		} else assert(safety.reason == IntelN100ResetSafety::None);
+		assert(fault == 7 ? safety.checks == 0 : safety.checks > 0);
+		cases++;
+#endif
+		if (fault == 0) {
+			assert(resetReport.error == 0 && resetReport.stage == ResetHelper::ResetObserved);
+			assert(resetReport.resetRounds == 2 && sResetWrites == 6 && sRequestWrites == 16);
+			assert(groupReport.error == 0 && groupReport.workCalled == 1 && sGroupWrites == 8);
+			assert(fuse == 0xe00fe && sObservationPhase == ObservationIdle);
+		} else {
+			assert(fuse == 0xfeedface && sObservationPhase == ObservationUnknown);
+			assert(sGroupWrites == (fault == 6 ? 8u : fault == 7 ? 0u : 4u));
+			if (fault == 1 || fault == 2 || fault == 7) assert(sResetWrites == 0);
+			if (fault == 3) assert(sResetWrites == 3);
+			if (fault == 4) assert(sResetWrites == 4);
+			if (fault == 5 || fault == 8 || fault == 9)
+				assert(sResetWrites == 1 && resetReport.error == ResetHelper::Unsafe);
+			ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy);
+		}
+		auto savedReset = resetReport; auto savedGroup = groupReport; auto savedBootstrap = report;
+		unsigned writes = sRequestWrites, reads = sReads;
+		assert(RunBcsReset(&report, &groupReport, &resetReport, &fuse) == B_BUSY);
+		assert(memcmp(&savedReset, &resetReport, sizeof(resetReport)) == 0);
+		assert(memcmp(&savedGroup, &groupReport, sizeof(groupReport)) == 0);
+		assert(memcmp(&savedBootstrap, &report, sizeof(report)) == 0);
+		assert(RunGroupHandshake(&report, &groupReport, &fuse) == B_BUSY);
+		assert(sRequestWrites == writes && sReads == reads); cases++;
+		#ifdef INTEL_N100_RESET_SAFETY_H
+		IntelN100ResetSafety repeatedSafety = {};
+		assert(ReadResetSafety(&repeatedSafety) == B_OK);
+		assert(memcmp(&safety, &repeatedSafety, sizeof(safety)) == 0); cases++;
+		#endif
+	}
+	for (unsigned fault = 0; fault < 4; fault++) {
+		Reset(); sTestingGroup = sTestingReset = sResetGate = true;
+		sMockRegisters[0x9140/4] = 0xe00fe; fuse = 0xfeedface;
+		sMockRegisters[ResetHelper::kControl/4] = 0;
+		sMockRegisters[ResetHelper::kMode/4] = 0x200;
+		sMockRegisters[ResetHelper::kPrefetch/4] = 0;
+		sMockRegisters[ResetHelper::kResetControl/4] = 0;
+		sMockRegisters[ResetHelper::kDomain/4] = 0;
+		sMockRegisters[ResetHelper::kPending/4] = 0x10;
+		std::thread resetThread([&] { result = RunBcsReset(&report, &groupReport, &resetReport, &fuse); });
+		{
+			std::unique_lock<std::mutex> lock(sAckLock);
+			assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sResetEntered; }));
+		}
+		IntelN100Forcewake::Report ignoredBootstrap = {};
+		IntelN100ForcewakeGroup::Report ignoredGroup = {};
+		IntelN100BcsReset::Report ignoredReset = {}; uint32 ignoredFuse = 0xabcdef;
+		assert(RunBcsReset(&ignoredBootstrap, &ignoredGroup, &ignoredReset, &ignoredFuse) == B_BUSY);
+#ifdef INTEL_N100_RESET_SAFETY_H
+		IntelN100ResetSafety pendingSafety = {}; pendingSafety.reason = 123;
+		assert(ReadResetSafety(&pendingSafety) == B_BUSY && pendingSafety.reason == 123);
+#endif
+		assert(RunGroupHandshake(&ignoredBootstrap, &ignoredGroup, &ignoredFuse) == B_BUSY);
+		assert(ignoredFuse == 0xabcdef && EndObservation(sObservationLease) == B_BAD_VALUE);
+		if (fault == 0) ReleaseDisplay();
+		if (fault == 1) { std::lock_guard<std::mutex> lock(sConfigLock); sPMControl = 3; }
+		if (fault == 2) { std::lock_guard<std::mutex> lock(sLock); sRegistersUncached = false; }
+		{
+			std::lock_guard<std::mutex> lock(sAckLock);
+			if (fault == 3) sClock += 1000000;
+			sResetProceed = true; sAckChanged.notify_all();
+		}
+		resetThread.join();
+		assert(result == B_ERROR && fuse == 0xfeedface && sResetWrites == 1 && sGroupWrites == 4);
+#ifdef INTEL_N100_RESET_SAFETY_H
+		IntelN100ResetSafety failureSafety = {};
+		assert(ReadResetSafety(&failureSafety) == B_OK);
+		if (fault == 0) assert(failureSafety.reason == IntelN100ResetSafety::Owner);
+		if (fault == 1) assert(failureSafety.reason == IntelN100ResetSafety::PciCapture);
+		if (fault == 2) assert(failureSafety.reason == IntelN100ResetSafety::Mapping);
+		// The helper's own clock can reject before the adapter is called.
+		if (fault == 3) assert(resetReport.error == ResetHelper::Deadline);
+		cases++;
+#endif
+		assert(sObservationPhase == ObservationUnknown);
+		if (fault != 0) ReleaseDisplay();
+		assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
+	Reset(); sTestingGroup = true; sMockRegisters[0x9140/4] = 0xe00fe;
+	assert(RunGroupHandshake(&report, &groupReport, &fuse) == B_OK);
+	assert(RunBcsReset(&report, &groupReport, &resetReport, &fuse) == B_BUSY);
+	assert(!sBcsReset.WasUsed() && sResetWrites == 0 && sRequestWrites == 10); cases++;
+	Reset();
+	assert(RunBcsReset(NULL, &groupReport, &resetReport, &fuse) == B_BAD_VALUE);
+#ifdef INTEL_N100_RESET_SAFETY_H
+	IntelN100ResetSafety beforeReset = {}; beforeReset.reason = 123;
+	assert(ReadResetSafety(NULL) == B_BAD_VALUE);
+	assert(ReadResetSafety(&beforeReset) == B_BUSY && beforeReset.reason == 123); cases++;
+#endif
+	assert(RunBcsReset(&report, NULL, &resetReport, &fuse) == B_BAD_VALUE);
+	assert(RunBcsReset(&report, &groupReport, NULL, &fuse) == B_BAD_VALUE);
+	assert(RunBcsReset(&report, &groupReport, &resetReport, NULL) == B_BAD_VALUE);
+	assert(sReads == 0 && sRequestWrites == 0); cases++;
+	for (unsigned fault = 0; fault < 7; fault++) {
+		Reset(); uint32 value = 0xabcdef;
+		HandshakeContext handshake = {sDevice, {}, 1, sResources.registers, NULL, &fuse, false, 2000, 1000};
+		GroupContext context = {}; context.handshake = &handshake;
+		if (fault == 0) assert(!ResetRead(&context, 0x22030, value));
+		if (fault == 1) assert(!ResetWrite(&context, 0x941c, 8));
+		if (fault == 2) assert(!ResetWrite(&context, 0x800c, 0));
+		if (fault == 3) assert(!ResetWrite(&context, 0x2209c, 0x01000000));
+		if (fault == 4) assert(!ResetWrite(&context, 0x220d0, 0x80008000));
+		if (fault == 5) { handshake.device.size = 0x941f; assert(!ResetRead(&context, 0x941c, value)); }
+		if (fault == 6) { handshake.registers = UINTPTR_MAX - 0x941c; assert(!ResetRead(&context, 0x941c, value)); }
+		assert(sRequestWrites == 0 && sBarriers == 0 && value == 0xabcdef); cases++;
+	}
+#endif
 	printf("%u actual owner observation cases passed; mocked PCI/kernel only.\n", cases);
 }

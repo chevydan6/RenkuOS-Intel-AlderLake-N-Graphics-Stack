@@ -1,0 +1,16 @@
+{
+  "exit": 0,
+  "hashes": {
+    "build/a33-reset-development-001/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp": "fd285ee408206d391573224444ef370f3dbcc2e7ff3f335061664c682a991d50",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h": "adea0412f14056b4cf054707e93accfbb3f37dc8dbcb56ea2311ec51f34dfdd4",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelN100PciPower.h": "56c7b5bf1e34fef35b443e702648c39cdd8c74d0f25b88d17104929113a9e47b",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelN100GtAck.h": "82a5c80a6d4a7fa597cb47180bb0bbbd42e8b07902e0878074d08a8b646140e1",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelN100Forcewake.h": "511a68143f7ff4a91a30b0528c34442cef155f88decc2713e2c6b90aa9271be2",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelN100BcsInventory.h": "86aca4c050a9259595ce2f42696b38939bc277ccbec01b83fc11d9896072b1eb",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelN100ResetDomains.h": "751208234426327b619994e6c3eb299fb7e437365c06b05f9c39985232f8d896",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelN100ForcewakeGroup.h": "2f1f5423c806f4be5ba13a5ea0bca762232048e76904f492641392a91de73902",
+    "build/a33-reset-development-001/source/headers/private/graphics/intel_extreme/IntelN100BcsReset.h": "967abf776f96b42bab3ba927bb8227aeaef3b7e7bbadfd7f15f65ef5d92d90d2",
+    "/home/dan/ai/projects/haiku-intel-gpu/tests/owner-observation-test.cpp": "0cb81f5da7c7aa3ca85373746a6bd6ee570e58393f67e865a0a229dfdbb57566"
+  },
+  "scope": "Actual observation admission/retirement functions; mocked PCI and kernel mutex, no hardware."
+}

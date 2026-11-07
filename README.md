@@ -5,17 +5,18 @@ with independent Terra research and validation. Target: `8086:46d1`, revision 00
 Haiku research, patches and tests are preserved on `gpu/alderlake-n`.
 
 **Current status, 2026-11-07:** native 1920×1080 RGB8 HDMI desktop output is
-physically validated. One physical primary-bit GT forcewake handshake completed
-with ACK `0 → 1 → 0`. **GPU command execution and accelerated rendering have
-not been demonstrated.**
+physically validated. A34 completed one bounded physical BCS reset with two reset
+rounds and clean release of four forcewake domains; display/memory postchecks
+passed. A33's earlier safety-check failure remains unexplained. **GPU command
+execution, accelerated rendering and Vulkan have not been demonstrated.**
 
-The next candidate reads five fixed BCS registers while forcewake is held. Its
-84 state-machine, 37 sampler and 48 actual-owner mocked cases pass host
-ASan/UBSan checks and independent review. Native compilation, installation and
-physical sampling remain pending: source transfer and NanoKVM HID stalled before
-the build, and a physical laptop reset has been requested. The cause is unknown.
+Patches through0096 implement retained observation/reset diagnostics. The newer
+descriptor/status, bounded CSB reader and16KiB context-image helpers passed
+2357,135 and715 host/native cases respectively. They are CPU-only prerequisites,
+not a wired submission path. Owned execution-memory integration, persistent
+DMA/power ownership, cache/TLB policy and engine initialization remain unfinished.
 
-Start with the [current progress and evidence report](results/2026-11-07-gpu-progress.md),
+Start with the [current progress and evidence report](results/2026-11-07-reset-context-progress.md),
 [task board](coordination/TASK_BOARD.md),
 [hardware results](coordination/HARDWARE_TEST_RESULTS.md), and
 [command-submission design](research/n100-submission/DESIGN.md).

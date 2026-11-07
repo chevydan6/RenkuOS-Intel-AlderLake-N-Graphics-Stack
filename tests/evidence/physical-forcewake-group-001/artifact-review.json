@@ -1,0 +1,34 @@
+{
+  "intel_memory_owner_v6_candidate": {
+    "sha256": "b063f9f2c52828b953b5d11dfea2cc192e017666d194a8880da0d72751f10951",
+    "needed": [
+      "_KERNEL_"
+    ],
+    "exports_verified": [
+      "modules"
+    ]
+  },
+  "intel_group_handshake_bridge": {
+    "sha256": "5ce038b6c5974d23ce196b7459b75a38c5f5dd0951af58892c7f5b15145eec3f",
+    "needed": [
+      "_KERNEL_"
+    ],
+    "exports_verified": [
+      "api_version",
+      "init_hardware",
+      "init_driver",
+      "uninit_driver",
+      "publish_devices",
+      "find_device"
+    ]
+  },
+  "group-native-client": {
+    "sha256": "9bccb8acf2eca4c0a729382ac653deff57637bad3aacbe5537d632a9b164680a",
+    "needed": [
+      "libstdc++.so.6",
+      "libgcc_s.so.1",
+      "libroot.so"
+    ],
+    "exports_verified": []
+  }
+}

@@ -1,0 +1,21 @@
+/boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_bcs_reset_bridge: OK
+recovery-a32/agp_gart: OK
+recovery-a32/intel: OK
+recovery-a32/intel_bcs_inventory_bridge: OK
+recovery-a32/intel_extreme: OK
+recovery-a32/intel_extreme.accelerant: OK
+recovery-a32/intel_group_handshake_bridge: OK
+recovery-a32/intel_media_fuse_bridge: OK
+recovery-a32/intel_memory_owner: OK
+/boot/system/kernel_x86_64: OK
+/boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_group_handshake_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_media_fuse_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_bcs_inventory_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_extreme: OK
+/boot/system/non-packaged/add-ons/kernel/busses/agp_gart/intel: OK
+/boot/system/non-packaged/add-ons/kernel/bus_managers/agp_gart: OK
+/boot/system/non-packaged/add-ons/accelerants/intel_extreme.accelerant: OK
+A32 restored on disk; retained live A33 state requires reboot, no further GPU tests.
+A33_ROLLBACK_EXIT=0

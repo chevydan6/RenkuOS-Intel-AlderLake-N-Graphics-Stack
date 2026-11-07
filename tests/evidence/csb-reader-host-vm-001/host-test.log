@@ -1,0 +1,2 @@
+Injected callbacks only; no GPU access, completion or retirement authority.
+135 bounded CSB reader/HWSP cases passed.

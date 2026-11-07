@@ -1,0 +1,4 @@
+version=1 module=0 transaction=0 error=0 cleanup=0 stage=6 ownership=5
+ACK=0/0x1/0 reads=11 writes=2 elapsed_us=480
+tail[22030]=0 head[22034]=0 ctl[2203c]=0 mode[2209c]=0x200 msg_idle[800c]=0x10
+Sequential raw BCS samples only; no engine-ready, reset, DMA or GPU execution claim.

@@ -1,0 +1,8 @@
+version=1 module=0 transaction=0 fuse=0xe00fe
+bootstrap error=0 cleanup=0 stage=6 ownership=5 ACK=0/0x1/0 reads=11 writes=2 elapsed_us=473
+group error=0 stage=6 domain=3 count=4 workCalled=0 elapsed_us=1165
+domain=0 request=0xa188 ack=0x130044 ownership=5 ACK=0/0x1/0 last=0 reads=16 writes=2
+domain=1 request=0xa278 ack=0xd84 ownership=5 ACK=0/0x1/0 last=0 reads=12 writes=2
+domain=2 request=0xa540 ack=0xd50 ownership=5 ACK=0/0x1/0 last=0 reads=10 writes=2
+domain=4 request=0xa560 ack=0xd70 ownership=5 ACK=0/0x1/0 last=0 reads=8 writes=2
+Single-use all-domain handshake only; no reset or GPU command execution.

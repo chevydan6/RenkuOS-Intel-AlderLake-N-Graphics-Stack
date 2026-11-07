@@ -1,5 +1,9 @@
 # Intel N100 GPU development progress — 2026-11-07
 
+Historical A29 publication checkpoint. Superseded by the
+[A34 reset / A35–A37 context progress report](2026-11-07-reset-context-progress.md).
+The access blocker and pending A29 results below were subsequently resolved.
+
 Target: Intel N100 / Alder Lake-N, PCI `8086:46d1`, revision 00. Production
 implementation: Astra. Independent research, review and validation: Terra.
 

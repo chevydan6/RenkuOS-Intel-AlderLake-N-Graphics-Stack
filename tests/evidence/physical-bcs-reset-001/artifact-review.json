@@ -1,0 +1,34 @@
+{
+  "intel_memory_owner_v7_candidate": {
+    "sha256": "99c91dc191798daf0d1341a4d97b3c1477d23b0d12676e8b78913d6b3791f668",
+    "needed": [
+      "_KERNEL_"
+    ],
+    "exports_verified": [
+      "modules"
+    ]
+  },
+  "intel_bcs_reset_bridge": {
+    "sha256": "e8839f425ee4df470af6d30d64535077ecddace0deb77118dc5d25bcb77d212c",
+    "needed": [
+      "_KERNEL_"
+    ],
+    "exports_verified": [
+      "api_version",
+      "init_hardware",
+      "init_driver",
+      "uninit_driver",
+      "publish_devices",
+      "find_device"
+    ]
+  },
+  "reset-native-client": {
+    "sha256": "84f39cec4d719f79333f052b4566e08d0d7622e3adc4bc4e001b2f9f4ebae282",
+    "needed": [
+      "libstdc++.so.6",
+      "libgcc_s.so.1",
+      "libroot.so"
+    ],
+    "exports_verified": []
+  }
+}

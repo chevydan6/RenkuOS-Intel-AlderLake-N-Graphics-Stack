@@ -19,6 +19,12 @@ A valid logical context/address-space root and managed DMA lifetime remain requi
 
 ## Ordered implementation checkpoints
 
+Progress update, A34: one physical reset-only trial passed with two reset rounds
+and clean four-domain release; postchecks passed. Evidence:
+`tests/evidence/physical-bcs-reset-002/`. G2 still requires reinitialization and
+context-status/error service. A33's earlier safety failure remains unexplained.
+Direct-ring simplification is accepted in `coordination/DECISIONS.md`.
+
 | ID / owner | Implement | Acceptance evidence |
 | --- | --- | --- |
 | M1 / Astra | Correct nested GART lock, hash insertion failure handling and semaphore cleanup; review partial-bind and failed-unmap callers | Actual helper/header in host tests; allocation fault matrix; native/kernel tests; new memory path physically validated separately |

@@ -1,0 +1,145 @@
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -386,6 +386,7 @@
+ 	uint64 lease;
+ 	addr_t registers;
+ 	IntelN100BcsInventory* inventory;
++	uint32* mediaFuse;
+ 	bool sampleUncertain;
+ 	uint64 sampleDeadline, sampleLastTime;
+ };
+@@ -455,12 +456,16 @@
+ }
+ 
+ static bool
+-ReadBcsRegister(void* data, uint32_t offset, uint32_t& value)
++ReadInventoryRegister(void* data, uint32_t offset, uint32_t& value)
+ {
+ 	HandshakeContext& context = *(HandshakeContext*)data;
+-	bool allowed = false;
+-	for (unsigned i = 0; i < 5; i++)
+-		allowed |= offset == kIntelN100BcsOffsets[i];
++	// v5 permits only the fixed media-disable fuse; v4 retains its original
++	// five-offset allowlist. Neither endpoint accepts an offset from userspace.
++	bool allowed = context.mediaFuse != NULL && offset == 0x9140;
++	if (context.mediaFuse == NULL && context.inventory != NULL) {
++		for (unsigned i = 0; i < 5; i++)
++			allowed |= offset == kIntelN100BcsOffsets[i];
++	}
+ 	uint64 now = HandshakeTime(NULL);
+ 	if (!allowed || (offset & 3) != 0
+ 		|| uint64(offset) + sizeof(uint32) > context.device.size
+@@ -487,20 +492,23 @@
+ }
+ 
+ static IntelN100Forcewake::InspectionResult
+-InspectBcs(void* data, uint64_t deadline)
++InspectInventory(void* data, uint64_t deadline)
+ {
+ 	HandshakeContext& context = *(HandshakeContext*)data;
+ 	context.sampleDeadline = deadline;
+ 	context.sampleLastTime = HandshakeTime(NULL);
+-	bool sampled = intel_n100_sample_bcs(ReadBcsRegister, data, *context.inventory);
++	bool sampled = context.mediaFuse != NULL
++		? ReadInventoryRegister(data, 0x9140, *context.mediaFuse)
++		: intel_n100_sample_bcs(ReadInventoryRegister, data, *context.inventory);
+ 	return context.sampleUncertain ? IntelN100Forcewake::InspectionUncertain
+ 		: sampled ? IntelN100Forcewake::InspectionOk : IntelN100Forcewake::InspectionFailed;
+ }
+ 
+ static status_t
+-RunGtTransaction(IntelN100Forcewake::Report* output, IntelN100BcsInventory* inventory)
+-{
+-	if (output == NULL)
++RunGtTransaction(IntelN100Forcewake::Report* output, IntelN100BcsInventory* inventory,
++	uint32* mediaFuse = NULL)
++{
++	if (output == NULL || (inventory != NULL && mediaFuse != NULL))
+ 		return B_BAD_VALUE;
+ 	mutex_lock(&sLock);
+ 	if (sObservationPhase == ObservationUnknown || (sObservationPhase == ObservationIdle
+@@ -518,6 +526,7 @@
+ 
+ 	HandshakeContext context;
+ 	IntelN100BcsInventory observed = {};
++	uint32 observedFuse = 0;
+ 	mutex_lock(&sLock);
+ 	if (sObservationLease != lease || sObservationPhase != ObservationHandshaking) {
+ 		sObservationBlocked = true;
+@@ -532,7 +541,8 @@
+ 	}
+ 	sObservationPhase = ObservationHandshaking;
+ 	context = { sDevice, original, lease, sResources.registers,
+-		inventory != NULL ? &observed : NULL, false, 0, 0 };
++		inventory != NULL ? &observed : NULL,
++		mediaFuse != NULL ? &observedFuse : NULL, false, 0, 0 };
+ 	bool valid = sizeof(addr_t) == 8 && sRegistersUncached
+ 		&& sResources.registers_area >= B_OK && context.registers != 0
+ 		&& (context.registers & 3) == 0
+@@ -554,8 +564,8 @@
+ 
+ 	IntelN100Forcewake::IO io = { &context, HandshakeTime, HandshakeRead,
+ 		HandshakeWrite, HandshakePciStable, HandshakeLive, HandshakePause };
+-	IntelN100Forcewake::Error result = inventory != NULL
+-		? sForcewake.RunWithInspection(io, InspectBcs) : sForcewake.Run(io);
++	IntelN100Forcewake::Error result = inventory != NULL || mediaFuse != NULL
++		? sForcewake.RunWithInspection(io, InspectInventory) : sForcewake.Run(io);
+ 	IntelN100Forcewake::Report report = sForcewake.LastReport();
+ 	bool stable = report.ownership == IntelN100Forcewake::Released
+ 		? HandshakePciStable(&context) : true;
+@@ -583,6 +593,8 @@
+ 	*output = report;
+ 	if (status == B_OK && inventory != NULL)
+ 		*inventory = observed;
++	if (status == B_OK && mediaFuse != NULL)
++		*mediaFuse = observedFuse;
+ 	return status;
+ }
+ 
+@@ -598,6 +610,14 @@
+ 	if (report == NULL || inventory == NULL)
+ 		return B_BAD_VALUE;
+ 	return RunGtTransaction(report, inventory);
++}
++
++static status_t
++RunMediaFuse(IntelN100Forcewake::Report* report, uint32* mediaFuse)
++{
++	if (report == NULL || mediaFuse == NULL)
++		return B_BAD_VALUE;
++	return RunGtTransaction(report, NULL, mediaFuse);
+ }
+ 
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+@@ -671,8 +691,13 @@
+ 	RunBcsInventory
+ };
+ 
++static intel_gt_media_fuse_module_info sMediaFuseModule = {
++	{ INTEL_GT_MEDIA_FUSE_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++	RunMediaFuse
++};
++
+ module_info* modules[] = {
+ 	(module_info*)&sModule, (module_info*)&sObservationModule,
+ 	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule,
+-	(module_info*)&sEngineInventoryModule, NULL
+-};
++	(module_info*)&sEngineInventoryModule, (module_info*)&sMediaFuseModule, NULL
++};
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -73,4 +73,13 @@
+ 	status_t (*sample_bcs)(IntelN100Forcewake::Report* report,
+ 		IntelN100BcsInventory* inventory);
+ };
++#define INTEL_GT_MEDIA_FUSE_MODULE_NAME "bus_managers/intel_memory_owner/v5"
++
++// Fixed raw 0x9140 observation under the existing primary GT handshake.
++// Output is published only after successful release and owner revalidation.
++// v0-v4 layouts remain unchanged; this is not reset or all-domain forcewake.
++struct intel_gt_media_fuse_module_info {
++	module_info info;
++	status_t (*sample_media_fuse)(IntelN100Forcewake::Report* report, uint32* rawFuse);
++};
+ #endif

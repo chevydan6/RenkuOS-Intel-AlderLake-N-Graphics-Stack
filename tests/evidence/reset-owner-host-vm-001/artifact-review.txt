@@ -1,0 +1,114 @@
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Shared object file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          186632 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         4
+  Size of section headers:           64 (bytes)
+  Number of section headers:         30
+  Section header string table index: 29
+
+Dynamic section at offset 0xa008 contains 20 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [_KERNEL_]
+ 0x0000000000000019 (INIT_ARRAY)         0xa000
+ 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)
+ 0x0000000000000004 (HASH)               0x120
+ 0x0000000000000005 (STRTAB)             0xb80
+ 0x0000000000000006 (SYMTAB)             0x388
+ 0x000000000000000a (STRSZ)              1748 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000003 (PLTGOT)             0xa188
+ 0x0000000000000002 (PLTRELSZ)           744 (bytes)
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000017 (JMPREL)             0x16c8
+ 0x0000000000000007 (RELA)               0x1320
+ 0x0000000000000008 (RELASZ)             936 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000006ffffffe (VERNEED)            0x1300
+ 0x000000006fffffff (VERNEEDNUM)         1
+ 0x000000006ffffff0 (VERSYM)             0x1254
+ 0x000000006ffffff9 (RELACOUNT)          39
+ 0x0000000000000000 (NULL)               0x0
+0000000000008050 T abort
+0000000000007fe0 T __aeabi_unwind_cpp_pr0
+0000000000007ff0 T __aeabi_unwind_cpp_pr1
+0000000000008000 T __aeabi_unwind_cpp_pr2
+000000000000a480 B __bss_start
+0000000000007d60 T __cxa_atexit
+0000000000007d70 T __cxa_finalize
+0000000000007d50 T __cxa_pure_virtual
+0000000000008070 T debugger
+0000000000007fc0 T __deregister_frame_info
+000000000000aa48 B _end
+0000000000008080 T exit
+0000000000007e30 T fprintf
+0000000000007e90 T fputc
+0000000000007e70 T fputs
+0000000000007e50 T fwrite
+0000000000008040 T __gnu_unwind_frame
+000000000000a468 D _gSharedObjectHaikuABI
+000000000000a46c D _gSharedObjectHaikuVersion
+000000000000a2c0 D modules
+0000000000008504 R mynothrow
+0000000000007eb0 T printf
+0000000000007ed0 T puts
+0000000000007fd0 T __register_frame_info
+000000000000aa40 B stderr
+0000000000008010 T _Unwind_Complete
+0000000000007ee0 T _Unwind_DeleteException
+0000000000007ef0 T _Unwind_Find_FDE
+0000000000007f00 T _Unwind_GetDataRelBase
+0000000000007f10 T _Unwind_GetGR
+0000000000007f20 T _Unwind_GetIP
+0000000000007f30 T _Unwind_GetIPInfo
+0000000000007f40 T _Unwind_GetLanguageSpecificData
+0000000000007f50 T _Unwind_GetRegionStart
+0000000000007f60 T _Unwind_GetTextRelBase
+0000000000007f70 T _Unwind_RaiseException
+0000000000007f80 T _Unwind_Resume
+0000000000007f90 T _Unwind_Resume_or_Rethrow
+0000000000007fa0 T _Unwind_SetGR
+0000000000007fb0 T _Unwind_SetIP
+0000000000008030 T _Unwind_VRS_Get
+0000000000008020 T _Unwind_VRS_Set
+0000000000007df0 T _ZdaPv
+0000000000007e20 T _ZdaPvm
+0000000000007de0 T _ZdlPv
+0000000000007e10 T _ZdlPvm
+0000000000007e00 T _ZdlPvRKSt9nothrow_t
+0000000000007990 W _ZN17IntelN100BcsReset3RunERKNS_2IOE
+0000000000007860 W _ZN17IntelN100BcsReset4PollENS_5StageEjjjmj
+00000000000075a0 W _ZN17IntelN100BcsReset4ReadEj
+0000000000007500 W _ZN17IntelN100BcsReset5CheckEv
+0000000000007700 W _ZN17IntelN100BcsReset5StoreENS_5StageEjj
+0000000000005900 W _ZN17IntelN100PciPower4OnceEPFbPvthRjES0_mR20IntelN100PciSnapshot
+0000000000005730 W _ZN17IntelN100PciPower7AnchorsEPFbPvthRjES0_mR20IntelN100PciSnapshot
+0000000000005c40 W _ZN17IntelN100PciPower7CaptureEPFbPvthRjES0_mmR20IntelN100PciSnapshot
+0000000000006050 W _ZN18IntelN100Forcewake11ReadCheckedEv
+0000000000006120 W _ZN18IntelN100Forcewake17RunWithInspectionERKNS_2IOEPFNS_16InspectionResultEPvmE
+0000000000005e60 W _ZN18IntelN100Forcewake4PollEbbNS_5StageENS_5ErrorEm
+0000000000005e10 W _ZN18IntelN100Forcewake4TimeEv
+0000000000006e00 W _ZN23IntelN100ForcewakeGroup3RunERKNS_2IOEjhjPFbPvmE
+0000000000006990 W _ZN23IntelN100ForcewakeGroup4PollEjb
+00000000000067e0 W _ZN23IntelN100ForcewakeGroup4ReadEj
+0000000000006720 W _ZN23IntelN100ForcewakeGroup5CheckEv
+0000000000006bd0 W _ZN23IntelN100ForcewakeGroup6VerifyEjb
+0000000000007d90 T _Znam
+0000000000007dd0 T _ZnamRK11mynothrow_t
+0000000000007db0 T _ZnamRKSt9nothrow_t
+0000000000007d80 T _Znwm
+0000000000007dc0 T _ZnwmRK11mynothrow_t
+0000000000007da0 T _ZnwmRKSt9nothrow_t
+0000000000008505 R _ZSt7nothrow

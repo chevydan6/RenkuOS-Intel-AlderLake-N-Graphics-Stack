@@ -1,0 +1,25 @@
+{
+  "command": [
+    "g++",
+    "-std=c++17",
+    "-O1",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-fsanitize=address,undefined",
+    "-fno-omit-frame-pointer",
+    "-fno-pie",
+    "-no-pie",
+    "-Iworkstreams/gpu-next",
+    "tests/n100-csb-reader-test.cpp",
+    "-o",
+    "build/a36-csb-host-001/csb-reader-test"
+  ],
+  "exit": 0,
+  "inputs": {
+    "workstreams/gpu-next/IntelN100ContextStatus.h": "2e2d4e09b81e8e5ab48927e774139bdda078634f37a6e1c77e493a3909674ec9",
+    "workstreams/gpu-next/IntelN100CsbReader.h": "86c2de0f5922b7646ae4742388619ba24f4788b7bcc1bd5623e6fb11e7aa8a0a",
+    "tests/n100-csb-reader-test.cpp": "5f0c1b14c3c9791c5e49633dbaccb5a9447f4687a5750da93dea3c5290c578a5"
+  }
+}

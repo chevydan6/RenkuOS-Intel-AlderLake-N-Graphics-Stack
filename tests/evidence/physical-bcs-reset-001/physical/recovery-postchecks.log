@@ -1,0 +1,42 @@
+run=0 version=1 module=0 observation=0 offset=0x130044 raw=0/0 kernel=0/0 fallback=0/0
+run=1 version=1 module=0 observation=0 offset=0x130044 raw=0/0 kernel=0/0 fallback=0/0
+Raw read-only ACK samples; no forcewake request, GPU workload or power hold.
+version=1 module=0 completed=2
+run=0 lease=4 begin=0 duplicate=-2147483634 end=0 stale=-2147483643 id=0x46d18086 class_rev=0x3000000 command=0x407 BAR=0:bf000004 PM=0xd0 PMCSR=0
+run=1 lease=5 begin=0 duplicate=-2147483634 end=0 stale=-2147483643 id=0x46d18086 class_rev=0x3000000 command=0x407 BAR=0:bf000004 PM=0xd0 PMCSR=0
+Read-only controlled-boot PCI observation; no GT writes or GPU execution.
+version=1 module=0 transaction=0 error=0 cleanup=0 stage=6 ownership=5
+ACK=0/0x1/0 reads=11 writes=2 elapsed_us=478
+tail[22030]=0 head[22034]=0 ctl[2203c]=0 mode[2209c]=0x200 msg_idle[800c]=0x10
+Sequential raw BCS samples only; no engine-ready, reset, DMA or GPU execution claim.
+round=0 client=0 base=0xffffffffa3c02000 size=4096 errno=0
+round=0 client=1 base=0xffffffffa3c00000 size=8192 errno=0
+round=0 two distinct live ranges freed successfully
+round=1 client=0 base=0xffffffffa3c10000 size=8192 errno=0
+round=1 client=1 base=0xffffffffa3c00000 size=65536 errno=0
+round=1 two distinct live ranges freed successfully
+round=2 client=0 base=0xffffffffa3c00000 size=65536 errno=0
+round=2 client=1 base=0xffffffffa3c10000 size=4096 errno=0
+round=2 two distinct live ranges freed successfully
+round=3 client=0 base=0xffffffffa3c00000 size=4096 errno=0
+round=3 client=1 base=0xffffffffa3c01000 size=8192 errno=0
+round=3 two distinct live ranges freed successfully
+round=4 client=0 base=0xffffffffa3c00000 size=8192 errno=0
+round=4 client=1 base=0xffffffffa3c02000 size=65536 errno=0
+round=4 two distinct live ranges freed successfully
+round=5 client=0 base=0xffffffffa3c00000 size=65536 errno=0
+round=5 client=1 base=0xffffffffa3c10000 size=4096 errno=0
+round=5 two distinct live ranges freed successfully
+round=6 client=0 base=0xffffffffa3c00000 size=4096 errno=0
+round=6 client=1 base=0xffffffffa3c01000 size=8192 errno=0
+round=6 two distinct live ranges freed successfully
+round=7 client=0 base=0xffffffffa3c00000 size=8192 errno=0
+round=7 client=1 base=0xffffffffa3c02000 size=65536 errno=0
+round=7 two distinct live ranges freed successfully
+round=8 client=0 base=0xffffffffa3c00000 size=65536 errno=0
+round=8 client=1 base=0xffffffffa3c10000 size=4096 errno=0
+round=8 two distinct live ranges freed successfully
+round=9 client=0 base=0xffffffffa3c00000 size=4096 errno=0
+round=9 client=1 base=0xffffffffa3c01000 size=8192 errno=0
+round=9 two distinct live ranges freed successfully
+10 concurrent-client rounds passed; not GPU execution proof.

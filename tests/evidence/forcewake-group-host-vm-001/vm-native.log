@@ -1,0 +1,8 @@
+IntelN100ForcewakeGroup.h: OK
+IntelN100ResetDomains.h: OK
+forcewake-group-test.cpp: OK
+Haiku renkuos-tests R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+2f1f5423c806f4be5ba13a5ea0bca762232048e76904f492641392a91de73902  IntelN100ForcewakeGroup.h
+751208234426327b619994e6c3eb299fb7e437365c06b05f9c39985232f8d896  IntelN100ResetDomains.h
+5d8fe5ff104a50cc04ccc56cec6a2281e26819efbc4578905096c3483a0b351a  forcewake-group-test.cpp
+964 multi-domain forcewake cases passed; mocked I/O only.

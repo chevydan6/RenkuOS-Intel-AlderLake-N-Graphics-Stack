@@ -1,0 +1,15 @@
+Haiku renkuos-tests R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+g++ (2023_08_10) 13.3.0
+Copyright (C) 2023 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+66753cb36a1481790dbf55a564e8632fdcb7534fdacbb6f5999432ea196de4f6  /boot/system/kernel_x86_64
+2f8d7eb2ad6b356b96f4bfa32425f72ae57848986c2b0afd9d0b393ca93bace3  /boot/system/develop/lib/_KERNEL_
+a7cf12c37b0e5f0d98056a76df0522b8db09421ae3366017dbdbf79b9aa1fa32  /boot/system/develop/lib/haiku_version_glue.o
+IntelN100ContextImage.h: OK
+IntelN100Ppgtt.h: OK
+n100-context-image-test.cpp: OK
+lrc-reference.inc: OK
+715 initial context-image cases passed; full16KiB comparisons against extracted pinned Linux routines, CPU-only.
+b4d319c25db2a0dd45879e2943a6fcca37bfdb28a2f69f586e96a95d852b86ad  context-image-test

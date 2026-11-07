@@ -1,0 +1,24 @@
+{
+  "command": [
+    "g++",
+    "-std=c++17",
+    "-O1",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-fsanitize=address,undefined",
+    "-fno-omit-frame-pointer",
+    "-fno-pie",
+    "-no-pie",
+    "-Iworkstreams/gpu-next",
+    "tests/n100-context-status-test.cpp",
+    "-o",
+    "build/a35-context-host-001/context-status-test"
+  ],
+  "exit": 0,
+  "inputs": {
+    "workstreams/gpu-next/IntelN100ContextStatus.h": "2e2d4e09b81e8e5ab48927e774139bdda078634f37a6e1c77e493a3909674ec9",
+    "tests/n100-context-status-test.cpp": "c887fbbc25fa4da9925e5f5a3141f3628a945da3af5c0596332e6162cb8ca5fb"
+  }
+}

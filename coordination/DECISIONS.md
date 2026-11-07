@@ -7,7 +7,7 @@ D4: retained execution-module design remains proposed. No GPU workload until mem
 
 ## Terra proposal D-T1 — direct-ring MI proof
 
-Proposed, Astra acceptance pending: use direct-ring MI stores before a separate
+Astra accepts for first-execution design: use direct-ring MI stores before a separate
 PPGTT batch for the first execution proof. Linux LRC selftest is source evidence.
 This reduces workload structures without removing context/VM/lifetime requirements.
 Follow with immutable PPGTT batch to validate useful address translation.

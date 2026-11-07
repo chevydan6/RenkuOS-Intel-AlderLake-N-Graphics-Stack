@@ -1,0 +1,43 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+ 08:53:52  up   0:20,  0 users,  load average: 0.00, 0.00, 0.00
+   Device No.: 3
+   Mounted at: /boot
+  Volume Name: "RenkuTest"
+  File System: bfs
+       Device: /dev/disk/usb/0/0/1
+        Flags: QAM-P-W
+     I/O Size:   64.0 KiB (65536 byte)
+   Block Size:    2.0 KiB (2048 byte)
+ Total Blocks:    8.0 GiB (4194304 blocks)
+  Used Blocks:    2.4 GiB (1270228 blocks)
+  Free Blocks:    5.6 GiB (2924076 blocks)
+      Usage %:   30.3 %
+  Total Nodes: 0
+   Used Nodes: 0
+   Free Nodes: 0
+   Root Inode: 524288
+/boot/system/kernel_x86_64: OK
+/boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_media_fuse_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_bcs_inventory_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_extreme: OK
+/boot/system/non-packaged/add-ons/kernel/busses/agp_gart/intel: OK
+/boot/system/non-packaged/add-ons/kernel/bus_managers/agp_gart: OK
+/boot/system/non-packaged/add-ons/accelerants/intel_extreme.accelerant: OK
+/boot/system/kernel_x86_64: OK
+/boot/system/develop/lib/_KERNEL_: OK
+/boot/system/develop/lib/haiku_version_glue.o: OK
+build/intel_memory_owner_v6_candidate: OK
+build/intel_group_handshake_bridge: OK
+build/group-native-client: OK
+version=1 module=0 completed=2
+run=0 lease=7 begin=0 duplicate=-2147483634 end=0 stale=-2147483643 id=0x46d18086 class_rev=0x3000000 command=0x407 BAR=0:bf000004 PM=0xd0 PMCSR=0
+run=1 lease=8 begin=0 duplicate=-2147483634 end=0 stale=-2147483643 id=0x46d18086 class_rev=0x3000000 command=0x407 BAR=0:bf000004 PM=0xd0 PMCSR=0
+Read-only controlled-boot PCI observation; no GT writes or GPU execution.
+run=0 version=1 module=0 observation=0 offset=0x130044 raw=0/0 kernel=0/0 fallback=0/0
+run=1 version=1 module=0 observation=0 offset=0x130044 raw=0/0 kernel=0/0 fallback=0/0
+Raw read-only ACK samples; no forcewake request, GPU workload or power hold.
+b063f9f2c52828b953b5d11dfea2cc192e017666d194a8880da0d72751f10951  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+5ce038b6c5974d23ce196b7459b75a38c5f5dd0951af58892c7f5b15145eec3f  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_group_handshake_bridge
+A32 staged; no group sample yet. Fresh reboot required.
+A32_STAGE_EXIT=0

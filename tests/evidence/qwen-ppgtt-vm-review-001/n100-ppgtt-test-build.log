@@ -1,0 +1,1 @@
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. n100-ppgtt-test.cpp -o n100-ppgtt-test

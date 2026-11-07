@@ -1,0 +1,6 @@
+{
+  "workstreams/gpu-next/IntelN100BcsReset.h": "967abf776f96b42bab3ba927bb8227aeaef3b7e7bbadfd7f15f65ef5d92d90d2",
+  "tests/bcs-reset-test.cpp": "27f0a5ecad37acca86c22e087a31b2e73971662860d51b734d09f8a8f437d3f8",
+  "workstreams/gpu-next/IntelN100ResetDomains.h": "751208234426327b619994e6c3eb299fb7e437365c06b05f9c39985232f8d896",
+  "tests/reset-domains-test.cpp": "575290aea65b838e5588c76d2837ae95a03c570301a2d2c472c7435bc9f6725a"
+}

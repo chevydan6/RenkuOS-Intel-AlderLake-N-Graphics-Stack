@@ -1,0 +1,3 @@
+967abf776f96b42bab3ba927bb8227aeaef3b7e7bbadfd7f15f65ef5d92d90d2  IntelN100BcsReset.h
+27f0a5ecad37acca86c22e087a31b2e73971662860d51b734d09f8a8f437d3f8  bcs-reset-test.cpp
+431 BCS reset-only cases passed; mocked I/O, no hardware reset.

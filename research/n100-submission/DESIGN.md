@@ -214,6 +214,18 @@ DMAR inventory and two-unit VT-d status samples are captured, without a persiste
 DMA identity claim. A28 demonstrated one primary GT forcewake ACK0→1→0 cycle,
 with owned clear, post-release memory/PCI/display checks and independent review.
 This is not command execution or a production power reference. A29 is a reviewed
-host-tested fixed BCS inventory candidate; native transfer/build and physical
-sampling are blocked on restored target access. No engine/reset/ring writes or
-GPU commands have been introduced. See BCS-INVENTORY-DESIGN.txt for exact scope.
+host-tested fixed BCS inventory implementation. On 2026-11-07 native compilation,
+native mocks and one physical sample passed: ACK 0→1→0, two request writes,
+Complete/Released, no error/cleanup error, 480 us. Raw tail/head/control were 0,
+mode 0x200 and message-idle 0x10. ACK/PCI and ten paired-GART postcheck rounds
+passed with unchanged display/GART hashes and responsive desktop/SSH. See
+coordination/ASTRA_A29_READINESS.md section 14 (relative to repository root).
+That A29 milestone introduced no engine/reset/ring writes. Subsequently A34
+completed one bounded BCS reset under the fuse-selected four-domain group;
+A33's earlier safety-check failure remains unresolved. See BCS-RESET-DESIGN.md
+and `tests/evidence/physical-bcs-reset-002/` for the reset result and limits.
+A35–A37 add offline descriptor/status, bounded CSB and full initial context-image
+construction. They do not yet form an owned submission path. Persistent DMA/
+power ownership, memory integration, cache/TLB policy and engine initialization
+remain prerequisites. GPU commands have not been submitted. Current status:
+`results/2026-11-07-reset-context-progress.md` (relative to repository root).

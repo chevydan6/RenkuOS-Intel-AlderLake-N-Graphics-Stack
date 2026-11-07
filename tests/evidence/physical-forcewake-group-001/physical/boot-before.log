@@ -1,0 +1,16 @@
+   Device No.: 3
+   Mounted at: /boot
+  Volume Name: "RenkuTest"
+  File System: bfs
+       Device: /dev/disk/usb/0/0/1
+        Flags: QAM-P-W
+     I/O Size:   64.0 KiB (65536 byte)
+   Block Size:    2.0 KiB (2048 byte)
+ Total Blocks:    8.0 GiB (4194304 blocks)
+  Used Blocks:    2.4 GiB (1270228 blocks)
+  Free Blocks:    5.6 GiB (2924076 blocks)
+      Usage %:   30.3 %
+  Total Nodes: 0
+   Used Nodes: 0
+   Free Nodes: 0
+   Root Inode: 524288

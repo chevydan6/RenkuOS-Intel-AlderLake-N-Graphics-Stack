@@ -1,0 +1,12 @@
+version=2 module=0 transaction=0 fuse=0xe00fe
+bootstrap error=0 cleanup=0 stage=6 ownership=5 ACK=0/0x1/0 reads=11 writes=2 elapsed_us=479
+group error=0 stage=6 domain=3 count=4 workCalled=1 elapsed_us=2383
+reset error=0 stage=11 reads=15 writes=6 rounds=2 elapsed_us=1150 last=0x220d0/0 attempted=0x220d0/0x10000
+safety module=0 read=0 reason=0 checks=49 phase=3 domain=3 ackReads=196 pciResult=0 groupStage=3 groupCount=4
+safety clock=122961311 previous=122961302 deadline=123060161 ACK=0x1/0x1/0x1/0x1/0
+safety PCI expected=0x46d18086/0x3000000 command=0x407 BAR=0:0xbf000004 PM=0; observed=0x46d18086/0x3000000 command=0x407 BAR=0:0xbf000004 PM=0
+domain=0 request=0xa188 ack=0x130044 ownership=5 ACK=0/0x1/0 last=0 reads=17 writes=2
+domain=1 request=0xa278 ack=0xd84 ownership=5 ACK=0/0x1/0 last=0 reads=13 writes=2
+domain=2 request=0xa540 ack=0xd50 ownership=5 ACK=0/0x1/0 last=0 reads=11 writes=2
+domain=4 request=0xa560 ack=0xd70 ownership=5 ACK=0/0x1/0 last=0 reads=9 writes=2
+Single-use BCS reset observation only; no engine initialization or GPU command execution.

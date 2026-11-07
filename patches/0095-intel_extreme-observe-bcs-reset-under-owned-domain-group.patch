@@ -1,0 +1,411 @@
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -5,8 +5,8 @@
+ #include <PCI.h>
+ #include <kernel/lock.h>
+ 
+-// Deliberately one retained N100 record. No publication, reset or in-place
+-// recovery entry point exists. Driver wiring is a separately reviewed step.
++// Deliberately one retained N100 record. v7 adds a single-use reset observation;
++// no GPU publication or in-place recovery of uncertain ownership is exposed.
+ static mutex sLock;
+ static IntelApertureLeaseState sState;
+ static agp_gart_module_info* sGART;
+@@ -34,6 +34,8 @@
+ static IntelN100ForcewakeGroup::Report sGroupReport;
+ static IntelN100Forcewake::Report sGroupBootstrapReport;
+ static bool sGroupAttempted;
++static IntelN100BcsReset sBcsReset;
++static IntelN100BcsReset::Report sResetReport;
+ 
+ 
+ static status_t
+@@ -511,6 +513,7 @@
+ struct GroupContext {
+ 	HandshakeContext* handshake;
+ 	IntelN100ResetDomains plan;
++	uint64 resetDeadline, resetLastTime;
+ };
+ 
+ static bool
+@@ -556,14 +559,101 @@
+ 	return true;
+ }
+ 
++static bool
++ResetClock(GroupContext& context)
++{
++	uint64 now = HandshakeTime(NULL);
++	if (now == UINT64_MAX || now < context.resetLastTime || now >= context.resetDeadline)
++		return false;
++	context.resetLastTime = now;
++	return true;
++}
++
++static bool
++ResetSafe(void* data)
++{
++	GroupContext& context = *(GroupContext*)data;
++	if (!ResetClock(context) || !GroupSafe(data))
++		return false;
++	const IntelN100ForcewakeGroup::Report& held = sGroup.LastReport();
++	if (held.error != IntelN100ForcewakeGroup::Ok
++		|| held.stage != IntelN100ForcewakeGroup::Work || held.count != context.plan.count)
++		return false;
++	for (unsigned i = 0; i < context.plan.count; i++) {
++		uint32 ack = 0;
++		if (held.domains[i].ownership != IntelN100ForcewakeGroup::Held
++			|| held.domains[i].ack != context.plan.domains[i].ack
++			|| !ResetClock(context) || !GroupRead(data, context.plan.domains[i].ack, ack)
++			|| (ack & 0x8001) != 1)
++			return false;
++	}
++	return GroupSafe(data) && ResetClock(context);
++}
++
++static bool
++ResetAccessAllowed(GroupContext& context, uint32 offset)
++{
++	using Reset = IntelN100BcsReset;
++	return (offset == Reset::kControl || offset == Reset::kMode
++		|| offset == Reset::kPrefetch || offset == Reset::kPending
++		|| offset == Reset::kResetControl || offset == Reset::kDomain)
++		&& uint64(offset) + sizeof(uint32) <= context.handshake->device.size
++		&& context.handshake->registers <= UINTPTR_MAX - offset - 3;
++}
++
++static bool
++ResetRead(void* data, uint32_t offset, uint32_t& value)
++{
++	GroupContext& context = *(GroupContext*)data;
++	if (!ResetAccessAllowed(context, offset))
++		return false;
++	memory_read_barrier();
++	value = *(const volatile uint32*)(context.handshake->registers + offset);
++	memory_read_barrier();
++	return value != UINT32_MAX;
++}
++
++static bool
++ResetWrite(void* data, uint32_t offset, uint32_t word)
++{
++	GroupContext& context = *(GroupContext*)data;
++	using Reset = IntelN100BcsReset;
++	bool allowed = (offset == Reset::kMode && word == 0x01000100)
++		|| (offset == Reset::kPrefetch && word == 0x04000400)
++		|| (offset == Reset::kResetControl && (word == 0x00010001 || word == 0x00010000))
++		|| (offset == Reset::kDomain && word == 4);
++	if (!allowed || !ResetAccessAllowed(context, offset))
++		return false;
++	// Reset helper records the attempted offset/word before this callback.
++	memory_write_barrier();
++	*(volatile uint32*)(context.handshake->registers + offset) = word;
++	memory_full_barrier();
++	return true;
++}
++
++static bool
++ResetWork(void* data, uint64_t deadline)
++{
++	GroupContext& context = *(GroupContext*)data;
++	context.resetDeadline = deadline;
++	context.resetLastTime = HandshakeTime(NULL);
++	IntelN100BcsReset::IO io = { data, HandshakeTime, ResetSafe, ResetRead,
++		ResetWrite, HandshakePause };
++	return sBcsReset.Run(io) == IntelN100BcsReset::Ok;
++}
++
+ static status_t
+ RunGtTransaction(IntelN100Forcewake::Report* output, IntelN100BcsInventory* inventory,
+-	uint32* mediaFuse = NULL, IntelN100ForcewakeGroup::Report* groupOutput = NULL)
++	uint32* mediaFuse = NULL, IntelN100ForcewakeGroup::Report* groupOutput = NULL,
++	IntelN100BcsReset::Report* resetOutput = NULL)
+ {
+ 	if (output == NULL || (inventory != NULL && mediaFuse != NULL)
+-		|| (groupOutput != NULL && mediaFuse == NULL))
++		|| (groupOutput != NULL && mediaFuse == NULL)
++		|| (resetOutput != NULL && groupOutput == NULL))
+ 		return B_BAD_VALUE;
+ 	mutex_lock(&sLock);
++	if (resetOutput != NULL)
++		*resetOutput = sResetReport;
+ 	if (groupOutput != NULL && sGroupAttempted) {
+ 		*output = sGroupBootstrapReport;
+ 		*groupOutput = sGroupReport;
+@@ -591,6 +681,8 @@
+ 		// Another caller may have completed between the initial check and
+ 		// admission. Do not reset its ledger or enter the single-use helper.
+ 		if (sGroupAttempted) {
++			if (resetOutput != NULL)
++				*resetOutput = sResetReport;
+ 			*output = sGroupBootstrapReport;
+ 			*groupOutput = sGroupReport;
+ 			RetireObservation(false);
+@@ -598,6 +690,10 @@
+ 			return B_BUSY;
+ 		}
+ 		sGroupAttempted = true;
++		sResetReport = {};
++		sResetReport.error = IntelN100BcsReset::Unsafe;
++		if (resetOutput != NULL)
++			*resetOutput = sResetReport;
+ 		sGroupBootstrapReport = {};
+ 		sGroupBootstrapReport.error = IntelN100Forcewake::InvariantFailed;
+ 		sGroupReport = {};
+@@ -656,14 +752,16 @@
+ 		groupFailed = true;
+ 		if (result == IntelN100Forcewake::Ok && stable
+ 			&& report.ownership == IntelN100Forcewake::Released) {
+-			GroupContext groupContext = { &context, {} };
++			GroupContext groupContext = { &context, {}, 0, 0 };
+ 			if (intel_n100_reset_domains(original.identity, uint8(original.classRevision),
+ 				observedFuse, groupContext.plan)) {
+ 				IntelN100ForcewakeGroup::IO groupIO = { &groupContext, HandshakeTime,
+ 					GroupSafe, GroupRead, GroupWrite, HandshakePause };
+-				// Handshake only: no callback capable of resetting or submitting.
++				// v6 remains handshake-only. Only the fixed v7 endpoint selects
++				// the trusted reset callback, never an operation from userspace.
+ 				groupFailed = sGroup.Run(groupIO, original.identity,
+-					uint8(original.classRevision), observedFuse) != IntelN100ForcewakeGroup::Ok;
++					uint8(original.classRevision), observedFuse,
++					resetOutput != NULL ? ResetWork : NULL) != IntelN100ForcewakeGroup::Ok;
+ 				groupReport = sGroup.LastReport();
+ 			} else
+ 				groupReport.error = IntelN100ForcewakeGroup::InvalidPlan;
+@@ -687,6 +785,11 @@
+ 		sGroupReport = groupReport;
+ 		sGroupBootstrapReport = report;
+ 		*groupOutput = groupReport;
++		if (resetOutput != NULL) {
++			if (sBcsReset.WasUsed())
++				sResetReport = sBcsReset.LastReport();
++			*resetOutput = sResetReport;
++		}
+ 	}
+ 	sHandshakeReport = report;
+ 	if (report.ownership == IntelN100Forcewake::Unknown || groupFailed) {
+@@ -738,6 +841,16 @@
+ 	if (bootstrap == NULL || group == NULL || mediaFuse == NULL)
+ 		return B_BAD_VALUE;
+ 	return RunGtTransaction(bootstrap, NULL, mediaFuse, group);
++}
++
++static status_t
++RunBcsReset(IntelN100Forcewake::Report* bootstrap,
++	IntelN100ForcewakeGroup::Report* group, IntelN100BcsReset::Report* reset,
++	uint32* mediaFuse)
++{
++	if (bootstrap == NULL || group == NULL || reset == NULL || mediaFuse == NULL)
++		return B_BAD_VALUE;
++	return RunGtTransaction(bootstrap, NULL, mediaFuse, group, reset);
+ }
+ 
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+@@ -821,9 +934,14 @@
+ 	RunGroupHandshake
+ };
+ 
++static intel_gt_bcs_reset_module_info sBcsResetModule = {
++	{ INTEL_GT_BCS_RESET_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++	RunBcsReset
++};
++
+ module_info* modules[] = {
+ 	(module_info*)&sModule, (module_info*)&sObservationModule,
+ 	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule,
+ 	(module_info*)&sEngineInventoryModule, (module_info*)&sMediaFuseModule,
+-	(module_info*)&sGroupHandshakeModule, NULL
+-};
++	(module_info*)&sGroupHandshakeModule, (module_info*)&sBcsResetModule, NULL
++};
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -9,6 +9,7 @@
+ #include <IntelN100Forcewake.h>
+ #include <IntelN100BcsInventory.h>
+ #include <IntelN100ForcewakeGroup.h>
++#include <IntelN100BcsReset.h>
+ 
+ #define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
+ 
+@@ -91,4 +92,13 @@
+ 	status_t (*run_group_handshake)(IntelN100Forcewake::Report* bootstrap,
+ 		IntelN100ForcewakeGroup::Report* group, uint32* rawFuse);
+ };
++#define INTEL_GT_BCS_RESET_MODULE_NAME "bus_managers/intel_memory_owner/v7"
++// Fixed reset-only diagnostic. Shares the single-use group with v6: whichever
++// endpoint is admitted first consumes it. No ring/context/DMA publication.
++struct intel_gt_bcs_reset_module_info {
++	module_info info;
++	status_t (*reset_bcs)(IntelN100Forcewake::Report* bootstrap,
++		IntelN100ForcewakeGroup::Report* group, IntelN100BcsReset::Report* reset,
++		uint32* rawFuse);
++};
+ #endif
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelN100BcsReset.h
+@@ -0,0 +1,164 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_N100_BCS_RESET_H
++#define INTEL_N100_BCS_RESET_H
++#include <stdint.h>
++
++// Fixed reset-only algorithm; not connected to hardware. See BCS-RESET-DESIGN.md.
++// Caller retains this single-use ledger and serializes all access. A successful
++// reset observation is NOT engine initialization or permission to release DMA.
++class IntelN100BcsReset {
++public:
++	static constexpr uint32_t kControl = 0x2203c, kMode = 0x2209c;
++	static constexpr uint32_t kPrefetch = 0x2229c, kPending = 0x800c;
++	static constexpr uint32_t kResetControl = 0x220d0, kDomain = 0x941c;
++	enum Error : uint32_t { Ok, AlreadyUsed, InvalidIO, Unsafe, ClockError,
++		Deadline, ReadError, WriteError, PreexistingState, PendingWake, Timeout };
++	enum Stage : uint32_t { Preflight, Stop, DisablePrefetch, WaitIdle,
++		CheckPending, RequestReset, WaitReady, ResetFirst, ResetSecond,
++		Settle, CancelRequest, ResetObserved };
++	struct Report {
++		uint32_t error, stage, reads, writes, resetRounds;
++		uint32_t lastOffset, lastValue, attemptedOffset, attemptedValue;
++		uint64_t elapsed;
++	};
++	struct IO {
++		void* context;
++		uint64_t (*now)(void*);
++		bool (*safe)(void*); // Identity, power/forcewake, mapping and owner valid.
++		bool (*read)(void*, uint32_t, uint32_t&);
++		bool (*write)(void*, uint32_t, uint32_t); // False may still have issued.
++		void (*pause)(void*); // Bounded; clock and iteration caps are independent.
++	};
++	IntelN100BcsReset() : fUsed(false), fIO(), fReport(), fStart(0), fLast(0) {}
++	const Report& LastReport() const { return fReport; }
++	bool WasUsed() const { return fUsed; }
++
++	Error Run(const IO& io)
++	{
++		if (fUsed)
++			return AlreadyUsed;
++		fUsed = true;
++		if (!io.now || !io.safe || !io.read || !io.write || !io.pause)
++			return Fail(InvalidIO);
++		fIO = io;
++		struct ClearIO { IO& io; ~ClearIO() { io = {}; } } clear = { fIO };
++		fStart = fLast = io.now(io.context);
++		if (fStart > UINT64_MAX - 10000)
++			return Fail(ClockError);
++		if (!Read(kControl) || !Require((fReport.lastValue & 1) == 0)
++			|| !Read(kMode) || !Require((fReport.lastValue & 0x300) == 0x200)
++			|| !Read(kPrefetch) || !Require((fReport.lastValue & 0x400) == 0)
++			|| !Read(kResetControl) || !Require((fReport.lastValue & 7) == 0)
++			|| !Read(kDomain) || !Require(fReport.lastValue == 0))
++			return Error(fReport.error);
++		if (!Store(Stop, kMode, 0x01000100)
++			|| !Store(DisablePrefetch, kPrefetch, 0x04000400)
++			|| !Poll(WaitIdle, kMode, 0x300, 0x300, 1000))
++			return Error(fReport.error);
++		// Posting observation, independently checked even after MODE_IDLE.
++		if (!Read(kMode) || !Require((fReport.lastValue & 0x300) == 0x300))
++			return Error(fReport.error);
++		fReport.stage = CheckPending;
++		if (!Read(kPending))
++			return Error(fReport.error);
++		uint32_t pending = fReport.lastValue;
++		if ((pending & (pending >> 16) & 0x3e00) != 0)
++			return Fail(PendingWake);
++		// Do not overwrite state that changed during stop/prefetch preparation.
++		if (!Read(kResetControl) || !Require((fReport.lastValue & 7) == 0)
++			|| !Store(RequestReset, kResetControl, 0x00010001)
++			|| !Poll(WaitReady, kResetControl, 3, 3, 700, 4))
++			return Error(fReport.error);
++		for (unsigned round = 0; round < 2; round++) {
++			if (!Read(kDomain) || !Require(fReport.lastValue == 0)
++				|| !Store(round == 0 ? ResetFirst : ResetSecond, kDomain, 4)
++				|| !Poll(round == 0 ? ResetFirst : ResetSecond, kDomain, 4, 0, 2000, ~4u))
++				return Error(fReport.error);
++			fReport.resetRounds++;
++		}
++		fReport.stage = Settle;
++		uint64_t until = fLast + 50;
++		bool settled = false;
++		for (unsigned count = 0; count < 4096; count++) {
++			if (!Check())
++				return Error(fReport.error);
++			if (fLast >= until) { settled = true; break; }
++			io.pause(io.context);
++		}
++		if (!settled)
++			return Fail(Timeout);
++		if (!Store(CancelRequest, kResetControl, 0x00010000)
++			|| !Poll(CancelRequest, kResetControl, 5, 0, 700))
++			return Error(fReport.error);
++		fReport.stage = ResetObserved;
++		return Ok;
++	}
++
++private:
++	Error Fail(Error error) { fReport.error = error; return error; }
++	bool Require(bool condition)
++	{
++		if (condition) return true;
++		Fail(PreexistingState); return false;
++	}
++	bool Time()
++	{
++		uint64_t now = fIO.now(fIO.context);
++		if (now == UINT64_MAX || now < fLast) { Fail(ClockError); return false; }
++		fLast = now;
++		fReport.elapsed = now - fStart;
++		if (fReport.elapsed >= 10000) { Fail(Deadline); return false; }
++		return true;
++	}
++	bool Check()
++	{
++		if (!Time()) return false;
++		if (!fIO.safe(fIO.context)) { Fail(Unsafe); return false; }
++		return Time(); // Include time spent validating ownership/power.
++	}
++	bool Read(uint32_t offset)
++	{
++		if (!Check()) return false;
++		fReport.reads++;
++		fReport.lastOffset = offset;
++		uint32_t value = 0;
++		if (!fIO.read(fIO.context, offset, value)) { Fail(ReadError); return false; }
++		fReport.lastValue = value;
++		if (value == UINT32_MAX) { Fail(ReadError); return false; }
++		return Check();
++	}
++	bool Store(Stage stage, uint32_t offset, uint32_t value)
++	{
++		fReport.stage = stage;
++		if (!Check()) return false;
++		// Attempt ledger precedes the callback, including ambiguous failures.
++		fReport.attemptedOffset = offset;
++		fReport.attemptedValue = value;
++		fReport.writes++;
++		if (!fIO.write(fIO.context, offset, value)) { Fail(WriteError); return false; }
++		return Check();
++	}
++	bool Poll(Stage stage, uint32_t offset, uint32_t mask, uint32_t value,
++		uint64_t budget, uint32_t forbidden = 0)
++	{
++		fReport.stage = stage;
++		const uint64_t end = fLast + budget;
++		for (unsigned count = 0; count < 4096; count++) {
++			if (!Check()) return false;
++			if (fLast >= end) { Fail(Timeout); return false; }
++			if (!Read(offset)) return false;
++			if (fLast >= end) { Fail(Timeout); return false; }
++			if (!Require((fReport.lastValue & forbidden) == 0)) return false;
++			if ((fReport.lastValue & mask) == value) return true;
++			fIO.pause(fIO.context);
++		}
++		Fail(Timeout); return false;
++	}
++	IntelN100BcsReset(const IntelN100BcsReset&) = delete;
++	IntelN100BcsReset& operator=(const IntelN100BcsReset&) = delete;
++	bool fUsed;
++	IO fIO;
++	Report fReport;
++	uint64_t fStart, fLast;
++};
++#endif

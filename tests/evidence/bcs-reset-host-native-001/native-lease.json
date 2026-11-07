@@ -1,0 +1,10 @@
+{
+  "state": "released-after-native-mocks",
+  "pid": 1885,
+  "lock": "/root/power-recovery-20261105/physical-test.lock",
+  "inode": 131082,
+  "started": 1794039616.0333445,
+  "deadline": 1794040516.0333445,
+  "scope": "A30 visible native CPU-only reset helper validation, no hardware reset",
+  "released": 1794039694.1373847
+}

@@ -1,0 +1,2 @@
+image dword0x461: actual=0x2000000 reference=0x1000000
+context-image-test: tests/n100-context-image-test.cpp:23: void Compare(const IntelN100ContextImage::Input&): Assertion `memcmp(guarded + 16, expected, Image::kBytes) == 0' failed.

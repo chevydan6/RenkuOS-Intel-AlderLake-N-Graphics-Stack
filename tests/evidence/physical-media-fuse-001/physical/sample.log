@@ -1,0 +1,8 @@
+version=1 module=0 transaction=0 error=0 cleanup=0 stage=6 ownership=5
+ACK=0/0x1/0 reads=11 writes=2 elapsed_us=494
+media_disable[9140]=0xe00fe planned_domains=4
+domain=0 request=0xa188 ack=0x130044
+domain=1 request=0xa278 ack=0xd84
+domain=2 request=0xa540 ack=0xd50
+domain=4 request=0xa560 ack=0xd70
+Fixed raw media-fuse observation and offline decode only; no all-domain wake, reset or GPU execution.

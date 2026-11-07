@@ -30,6 +30,23 @@ jobs:
         run: |
           python3 -m py_compile tools/*.py tests/*.py
           git diff --check
+      - name: Validate retained owner and bounded reset helpers
+        run: |
+          python3 tests/owner-observation-host.py --source build/ci/source --output build/ci-owner
+          for test in reset-domains forcewake-group bcs-reset; do
+            g++ -std=c++17 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -Iworkstreams/gpu-next tests/$test-test.cpp -o build/$test-test
+            build/$test-test
+          done
+      - name: Validate offline context status and bounded CSB reader
+        run: |
+          for test in n100-context-status n100-csb-reader; do
+            g++ -std=c++17 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -Iworkstreams/gpu-next tests/$test-test.cpp -o build/$test-test
+            build/$test-test
+          done
+      - name: Compare full context image with pinned Linux routines
+        run: |
+          python3 tools/fetch-context-image-references.py --output build/context-references
+          python3 tests/context-image-host.py --references build/context-references --output build/context-image
       - name: Validate immutable boot framebuffer descriptor bounds
         run: |
           g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=address,undefined -Idiagnostics diagnostics/tests/boot-framebuffer-info-test.cpp -o build/boot-framebuffer-info-test

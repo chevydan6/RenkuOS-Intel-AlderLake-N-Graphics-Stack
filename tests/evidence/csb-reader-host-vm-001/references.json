@@ -1,0 +1,18 @@
+{
+  "gt/intel_engine.h": {
+    "url": "https://raw.githubusercontent.com/torvalds/linux/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_engine.h",
+    "sha256": "d07100bbdd00a2874b19851134c56b56c448df0219be67acb01e89ab3ed996cc"
+  },
+  "gt/intel_engine_types.h": {
+    "url": "https://raw.githubusercontent.com/torvalds/linux/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_engine_types.h",
+    "sha256": "47b77f01148818361cf0f0c02bb40fd6420b06941d6e06516e9447f3146b6a62"
+  },
+  "gt/intel_lrc_reg.h": {
+    "url": "https://raw.githubusercontent.com/torvalds/linux/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_lrc_reg.h",
+    "sha256": "671b2adfb2825597425eea515b892cba1365f658d552f9a90439182f0f7f21c0"
+  },
+  "gt/intel_execlists_submission.c": {
+    "url": "https://raw.githubusercontent.com/torvalds/linux/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_execlists_submission.c",
+    "sha256": "3cf2edaee92b05138282fcb99e10ed93a1afa207de5774c1e62b71aea73ac85c"
+  }
+}
