@@ -24,7 +24,7 @@ functions_end = text.index('// v1 acquires v0', functions_start)
     text[globals_start:status_end] + text[functions_start:functions_end])
 headers = a.source / 'headers/private/graphics/intel_extreme'
 inputs = [source]
-for name in ('IntelApertureLeaseState.h', 'IntelN100PciPower.h'):
+for name in ('IntelApertureLeaseState.h', 'IntelN100PciPower.h', 'IntelN100GtAck.h'):
     shutil.copy2(headers / name, a.output / name)
     inputs.append(headers / name)
 test = Path(__file__).with_name('owner-observation-test.cpp')

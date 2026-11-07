@@ -1,0 +1,62 @@
+A27 — owner-only raw GT ACK inventory
+
+Purpose
+Observe the Gen12 GT ACK at BAR0+0x130044 without writing a request bit. Linux
+028ef9c96e96197026887c0f092424679298aae8 intel_uncore.c __gen12_fw_ranges marks
+0x40000..0x1bffff as requiring no forcewake domain; gt/intel_gt_regs.h names this
+FORCEWAKE_ACK_GT_GEN9. This source-derived read scope is not a guarantee that
+PCI D0 supplies Linux runtime-PM/RC6 semantics or prevents external transitions.
+
+Mapping requirement
+vm.cpp vm_map_physical_memory uses weak UC when no type specified. x86
+add_memory_type_range may adopt an overlapping type, so successful weak mapping
+alone cannot certify UC. The matched Intel GART ALD backend requests strong UC
+for the same full BAR before the owner maps it; its retained lease preserves
+that area. A27 additionally requests B_UNCACHED_MEMORY on the SAME owner map
+at fresh boot. No live type mutation, new alias, or display mapping replacement.
+Clones retain the area's memory type. The module-owned known-UC marker becomes
+true only after explicit map success; it is never a caller-supplied assertion.
+A conflicting mapping can return B_BUSY or panic a debug kernel; preserve prior
+owner and known boot image before trial. area_info has no supported type getter.
+
+Interface and lifetime
+A new v2 module record in the existing binary gets/retains v0 just like v1. No
+second initializer or owner. Synchronous observe_gt_ack accepts kernel output
+only and owns its numeric Request/operation pin through PCI retirement. v0/v1
+layouts are unchanged. Active becomes Reading under owner mutex; v1 End cannot
+consume Reading's pin. MMIO and PCI execute outside the mutex, using permanently
+retained resources. Close may revoke admission but cannot free admitted backing.
+
+Read scope
+Check known UC, live area, 64-bit address width, nonzero four-byte-aligned base,
+size covering0x130044+4, virtual last-byte overflow, and live diagnostic state.
+Perform exactly two aligned volatile uint32 loads at this fixed offset. Each has
+memory_read_barrier before/after; the inspected N100 x86-64 kernel emits LFENCE
+with compiler memory clobber. This is not a general MMIO write/posting protocol.
+Reject all-ones; differing valid samples may be returned as differing samples.
+Final phase-specific retirement rechecks PCI snapshot and ownership, blocks
+uncertainty for this boot and retires pin once. Publish output only on success.
+An impossible lease/phase invariant breach retains rather than guessing what to
+retire. A CPU MMIO fault/hang cannot be caught by this status-returning adapter;
+userland alarm cannot interrupt it. External NanoKVM observation/reset required.
+
+Verification
+Actual-function host harness uses mocked PCI and RAM for the actual volatile
+loads; it does not test hardware ordering.26 cases include read failures at either
+sample, differing samples, mapping/overflow/bounds, v1 End overlap, close, PM change
+and failed GART ownership. Native build and same mocked cases are separate from
+physical ACK observations. Physical fixture accepts no register/BDF/lease input.
+
+Interpretation
+Raw bit0/kernel and bit15/fallback values are samples only. Zero/equality does not
+establish bit ownership, wake handshake, engine availability, stable power, DMA
+reachability or GPU workload execution. Do not read protected request0xa188,
+clear broad masks, or infer permission for forcewake stores from these samples.
+
+Primary source locations
+RenkuOS src/system/kernel/vm/vm.cpp:vm_map_physical_memory, device clone path
+RenkuOS src/system/kernel/arch/x86/arch_vm.cpp:add_memory_type_range
+RenkuOS headers/private/kernel/arch/x86/64/atomic.h:memory_read_barrier_inline
+RenkuOS src/add-ons/kernel/busses/agp_gart/intel_gart.cpp:map_aperture
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/intel_uncore.c
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_gt_regs.h

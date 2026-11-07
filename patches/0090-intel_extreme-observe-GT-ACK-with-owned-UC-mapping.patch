@@ -1,0 +1,181 @@
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -18,10 +18,11 @@
+ 	uint64 base, size;
+ };
+ static OwnerDevice sDevice;
++static bool sRegistersUncached;
+ // One observation, sharing the memory owner's Request slot. All transitions
+ // require sLock. The operation pin spans admission through final PCI recheck.
+ enum ObservationPhase { ObservationIdle, ObservationChecking, ObservationActive,
+-	ObservationEnding };
++	ObservationEnding, ObservationReading };
+ static ObservationPhase sObservationPhase = ObservationIdle;
+ static bool sObservationBlocked;
+ static uint64 sObservationLease;
+@@ -184,13 +185,14 @@
+ 		else {
+ 			void* address = NULL;
+ 			sResources.registers_area = map_physical_memory("intel owner mmio",
+-				base, (size_t)size, B_ANY_KERNEL_ADDRESS,
++				base, (size_t)size, B_ANY_KERNEL_ADDRESS | B_UNCACHED_MEMORY,
+ 				B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA | B_CLONEABLE_AREA,
+ 				&address);
+ 			if (sResources.registers_area < B_OK)
+ 				status = sResources.registers_area;
+ 			else {
+ 				sResources.registers = (addr_t)address;
++				sRegistersUncached = true;
+ 				// Immutable before FinishDisplay publishes Ready under sLock.
+ 				sDevice = { bus, device, function, base, size };
+ 			}
+@@ -281,13 +283,13 @@
+ }
+ 
+ static status_t
+-EndObservation(uint64 lease)
++FinishObservation(uint64 lease, ObservationPhase expectedPhase, bool readFailed)
+ {
+ 	OwnerDevice device;
+ 	IntelN100PciSnapshot original;
+ 	mutex_lock(&sLock);
+ 	if (lease == 0 || lease != sObservationLease
+-		|| sObservationPhase != ObservationActive) {
++		|| sObservationPhase != expectedPhase) {
+ 		mutex_unlock(&sLock);
+ 		return B_BAD_VALUE;
+ 	}
+@@ -300,7 +302,7 @@
+ 	IntelN100PciPower::Result result = IntelN100PciPower::Capture(ReadConfig,
+ 		&device, device.base, device.size, snapshot);
+ 	mutex_lock(&sLock);
+-	bool failed = result != IntelN100PciPower::Success
++	bool failed = readFailed || result != IntelN100PciPower::Success
+ 		|| !IntelN100PciPower::Same(original, snapshot)
+ 		|| !sState.DiagnosticAllowed();
+ 	RetireObservation(failed);
+@@ -311,6 +313,60 @@
+ 		return B_ERROR;
+ 	}
+ 	return B_OK;
++}
++
++static status_t
++EndObservation(uint64 lease)
++{
++	return FinishObservation(lease, ObservationActive, false);
++}
++
++static bool
++ReadGtAck(addr_t address, uint32& value)
++{
++	// N100 x86-64 only: explicit UC, aligned volatile 32-bit load and read
++	// barriers (LFENCE). This is not a future GT write/posting protocol.
++	memory_read_barrier();
++	value = *(const volatile uint32*)address;
++	memory_read_barrier();
++	return value != UINT32_MAX;
++}
++
++static status_t
++ObserveGtAck(IntelN100GtAckSample* output)
++{
++	if (output == NULL)
++		return B_BAD_VALUE;
++	uint64 lease = 0;
++	IntelN100PciSnapshot pci = {};
++	status_t status = BeginObservation(&lease, &pci);
++	if (status != B_OK)
++		return status;
++
++	mutex_lock(&sLock);
++	if (sObservationLease != lease || sObservationPhase != ObservationActive) {
++		// No participating client may retire this module-owned lease.
++		sObservationBlocked = true;
++		mutex_unlock(&sLock);
++		return B_ERROR;
++	}
++	sObservationPhase = ObservationReading;
++	const addr_t offset = kIntelN100GtAckOffset;
++	const addr_t base = sResources.registers;
++	bool valid = sizeof(addr_t) == 8 && sRegistersUncached
++		&& sResources.registers_area >= B_OK && base != 0 && (base & 3) == 0
++		&& sDevice.size >= uint64(offset) + sizeof(uint32)
++		&& base <= UINTPTR_MAX - offset - (sizeof(uint32) - 1)
++		&& sState.DiagnosticAllowed();
++	mutex_unlock(&sLock);
++
++	IntelN100GtAckSample sample = {};
++	bool read = valid && ReadGtAck(base + offset, sample.first)
++		&& ReadGtAck(base + offset, sample.second);
++	status = FinishObservation(lease, ObservationReading, !read);
++	if (status == B_OK)
++		*output = sample;
++	return status;
+ }
+ 
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+@@ -347,6 +403,7 @@
+ 			}
+ 			mutex_init(&sLock, "intel memory owner");
+ 			sResources.registers_area = -1;
++			sRegistersUncached = false;
+ 			return B_OK;
+ 		}
+ 		case B_MODULE_UNINIT:
+@@ -368,6 +425,12 @@
+ 	BeginObservation, EndObservation
+ };
+ 
++static intel_gt_observation_module_info sGtObservationModule = {
++	{ INTEL_GT_OBSERVATION_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++	ObserveGtAck
++};
++
+ module_info* modules[] = {
+-	(module_info*)&sModule, (module_info*)&sObservationModule, NULL
+-};
++	(module_info*)&sModule, (module_info*)&sObservationModule,
++	(module_info*)&sGtObservationModule, NULL
++};
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -5,6 +5,7 @@
+ #include <AGP.h>
+ #include <module.h>
+ #include <IntelN100PciPower.h>
++#include <IntelN100GtAck.h>
+ 
+ #define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
+ 
+@@ -41,4 +42,14 @@
+ 	status_t (*begin_observation)(uint64* lease, IntelN100PciSnapshot* snapshot);
+ 	status_t (*end_observation)(uint64 lease);
+ };
++
++#define INTEL_GT_OBSERVATION_MODULE_NAME "bus_managers/intel_memory_owner/v2"
++
++// Synchronous fixed-offset raw ACK inventory. Owns its observation lease until
++// PCI retirement completes; accepts no lease/register/pointer input from users.
++// No GT stores, request-bit manipulation, general MMIO or DMA authorization.
++struct intel_gt_observation_module_info {
++	module_info info;
++	status_t (*observe_gt_ack)(IntelN100GtAckSample* sample);
++};
+ #endif
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelN100GtAck.h
+@@ -0,0 +1,13 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_N100_GT_ACK_H
++#define INTEL_N100_GT_ACK_H
++#include <stdint.h>
++
++// Two raw observations only. Equal/clear bits prove neither request ownership,
++// a working forcewake handshake, engine readiness nor a persistent power hold.
++struct IntelN100GtAckSample {
++	uint32_t first;
++	uint32_t second;
++};
++static const uint32_t kIntelN100GtAckOffset = 0x130044;
++#endif

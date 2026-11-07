@@ -2,6 +2,7 @@
 // Actual owner observation functions; mocked PCI, kernel mutex and module API.
 #include "IntelApertureLeaseState.h"
 #include "IntelN100PciPower.h"
+#include "IntelN100GtAck.h"
 #include <assert.h>
 #include <chrono>
 #include <condition_variable>
@@ -16,6 +17,7 @@ using uint16 = uint16_t;
 using uint32 = uint32_t;
 using uint64 = uint64_t;
 using status_t = int;
+using addr_t = uintptr_t;
 #ifndef B_OK
 const int B_OK = 0, B_BUSY = -1, B_NO_MEMORY = -2, B_BAD_VALUE = -3, B_ERROR = -4;
 #endif
@@ -28,6 +30,26 @@ struct pci_module_info {
 static mutex sLock;
 static IntelApertureLeaseState sState;
 static pci_module_info* sPCI;
+static struct { int registers_area; addr_t registers; } sResources;
+static uint32 sMockRegisters[0x140000 / sizeof(uint32)];
+static std::mutex sAckLock;
+static std::condition_variable sAckChanged;
+static bool sAckGate, sAckEntered, sAckProceed, sChangeAck, sSecondInvalid;
+static unsigned sBarriers;
+static void memory_read_barrier()
+{
+	assert(sLock.try_lock()); sLock.unlock();
+	std::unique_lock<std::mutex> lock(sAckLock);
+	unsigned barrier = sBarriers++;
+	if (barrier == 0 && sAckGate) {
+		sAckEntered = true; sAckChanged.notify_all();
+		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sAckProceed; }));
+	}
+	if (barrier == 1 && sChangeAck)
+		sMockRegisters[kIntelN100GtAckOffset / 4] = 0x8001;
+	if (barrier == 1 && sSecondInvalid)
+		sMockRegisters[kIntelN100GtAckOffset / 4] = UINT32_MAX;
+}
 #define dprintf(...) ((void)0)
 #include "observation-under-test.inc"
 #undef dprintf
@@ -77,6 +99,12 @@ static void Reset()
 	sObservationPhase = ObservationIdle;
 	sObservationLease = 0;
 	sDevice = {0, 2, 0, 0x6000000000ULL, 0x1000000};
+	sRegistersUncached = true;
+	sResources.registers_area = 123;
+	sResources.registers = (addr_t)sMockRegisters;
+	sMockRegisters[kIntelN100GtAckOffset / 4] = 0;
+	sAckGate = sAckEntered = sAckProceed = sChangeAck = sSecondInvalid = false;
+	sBarriers = 0;
 	sPMControl = 0;
 	sGate = sEntered = sProceed = false;
 	sReads = 0;
@@ -188,5 +216,85 @@ int main()
 	Proceed(); failedBacking.join();
 	assert(result == B_ERROR && sObservationBlocked);
 	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	// Actual volatile loads target mock RAM, never hardware in this harness.
+	Reset(); IntelN100GtAckSample ack = {0xfeed, 0xbeef};
+	assert(ObserveGtAck(NULL) == B_BAD_VALUE && sReads == 0);
+	assert(ObserveGtAck(&ack) == B_OK && ack.first == 0 && ack.second == 0);
+	assert(sBarriers == 4 && sObservationPhase == ObservationIdle); cases++;
+	Reset(); sChangeAck = true;
+	assert(ObserveGtAck(&ack) == B_OK && ack.first == 0 && ack.second == 0x8001);
+	assert(sBarriers == 4); cases++;
+	Reset(); sDevice.size = 0x131000;
+	assert(ObserveGtAck(&ack) == B_OK && sBarriers == 4); cases++;
+	for (unsigned invalid = 0; invalid < 7; invalid++) {
+		Reset(); ack = {0xfeed, 0xbeef};
+		switch (invalid) {
+			case 0: sRegistersUncached = false; break;
+			case 1: sResources.registers_area = -1; break;
+			case 2: sResources.registers = 0; break;
+			case 3: sResources.registers++; break;
+			case 4: sDevice.size = 0x130000; break;
+			case 5: sResources.registers = UINTPTR_MAX - 3; break;
+			case 6: sResources.registers = UINTPTR_MAX - kIntelN100GtAckOffset; break;
+		}
+		assert(ObserveGtAck(&ack) == B_ERROR && sBarriers == 0);
+		assert(ack.first == 0xfeed && ack.second == 0xbeef);
+		assert(sObservationBlocked && sObservationPhase == ObservationIdle);
+		ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Success); cases++;
+	}
+	Reset(); ack = {0xfeed, 0xbeef}; sMockRegisters[kIntelN100GtAckOffset / 4] = UINT32_MAX;
+	assert(ObserveGtAck(&ack) == B_ERROR && sBarriers == 2);
+	assert(ack.first == 0xfeed && ack.second == 0xbeef && sObservationBlocked);
+	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Success); cases++;
+	Reset(); ack = {0xfeed, 0xbeef}; sSecondInvalid = true;
+	assert(ObserveGtAck(&ack) == B_ERROR && sBarriers == 4);
+	assert(ack.first == 0xfeed && ack.second == 0xbeef && sObservationBlocked);
+	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Success); cases++;
+	// A v1 End must not consume v2's Reading pin while its read is gated.
+	Reset(); sAckGate = true; ack = {0xfeed, 0xbeef};
+	std::thread reading([&] { result = ObserveGtAck(&ack); });
+	{
+		std::unique_lock<std::mutex> lock(sAckLock);
+		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sAckEntered; }));
+	}
+	assert(EndObservation(sObservationLease) == B_BAD_VALUE);
+	assert(BeginObservation(&untouched, &snapshot) == B_BUSY);
+	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy);
+	{
+		std::lock_guard<std::mutex> lock(sAckLock);
+		sAckProceed = true; sAckChanged.notify_all();
+	}
+	reading.join();
+	assert(result == B_ERROR && ack.first == 0xfeed && ack.second == 0xbeef);
+	assert(sObservationBlocked && sState.BeginCleanup(true, true) == Owner::Success); cases++;
+	for (unsigned failure = 0; failure < 2; failure++) {
+		Reset(); sAckGate = true; ack = {0xfeed, 0xbeef};
+		std::thread uncertain([&] { result = ObserveGtAck(&ack); });
+		{
+			std::unique_lock<std::mutex> lock(sAckLock);
+			assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sAckEntered; }));
+		}
+		if (failure == 0) {
+			std::lock_guard<std::mutex> lock(sConfigLock);
+			sPMControl = 3;
+		} else {
+			std::lock_guard<std::mutex> lock(sLock);
+			Owner::Operation operation;
+			assert(sState.BeginOperation(sDisplay, Owner::Free, operation) == Owner::Success);
+			assert(sState.EndOperation(operation, true) == Owner::Success);
+		}
+		{
+			std::lock_guard<std::mutex> lock(sAckLock);
+			sAckProceed = true; sAckChanged.notify_all();
+		}
+		uncertain.join();
+		assert(result == B_ERROR && ack.first == 0xfeed && ack.second == 0xbeef);
+		assert(sObservationBlocked && sObservationPhase == ObservationIdle);
+		ReleaseDisplay();
+		assert(sState.BeginCleanup(true, true) == (failure ? Owner::Busy : Owner::Success)); cases++;
+	}
+	Reset(); ack = {0xfeed, 0xbeef}; sPMControl = 3;
+	assert(ObserveGtAck(&ack) == B_ERROR && sBarriers == 0);
+	assert(ack.first == 0xfeed && ack.second == 0xbeef); cases++;
 	printf("%u actual owner observation cases passed; mocked PCI/kernel only.\n", cases);
 }
