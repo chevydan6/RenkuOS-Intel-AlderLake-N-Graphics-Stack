@@ -1,0 +1,2 @@
+Haiku revision: hrev60072+518
+Haiku revision: git-2d71916f-irq-tail-candidate, debug level: 2

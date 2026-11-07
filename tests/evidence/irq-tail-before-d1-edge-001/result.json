@@ -1,0 +1,23 @@
+{
+  "scope": "host model; actual dispatcher/removal/free, modeled accounting",
+  "source": "/tmp/renku-irq-tail-before.cpp",
+  "source_sha256": "1ea681e0d7bd1e40e220b6eeb6f16dff01a1ae5935ae0a14344e403d046f0c05",
+  "harness_sha256": "2f9178c87ab3795b226b1c4c754dc6a6dca1820cefa7e064335d3005f40efb20",
+  "generated_sha256": "eebf0dbad9b120fdc4c897a825086981eae0895e449312d191886be6c0b72635",
+  "debug_interrupts": 1,
+  "trigger": "edge",
+  "build_command": [
+    "g++",
+    "-std=c++17",
+    "-pthread",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-g",
+    "-O1",
+    "/tmp/renku-irq-tail-sw1hdw36/test.cpp",
+    "-o",
+    "/tmp/renku-irq-tail-sw1hdw36/test"
+  ],
+  "returncode": 2
+}

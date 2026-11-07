@@ -1,0 +1,7 @@
+{
+  "candidate_commit": "5ccc88710073fe2ee2e5691e69434869cda6b46b",
+  "build_manifest": "tests/evidence/kernel-irq-tail-build-002.json",
+  "private_evidence": "/home/dan/renkuos-development/installation/private/kernel-irq-tail-001",
+  "serial_sha256": "8ee1e6b352c8776338b42f7d6927a26eb19a42efd8cbced36feb2f61f80e2dc1",
+  "scope": "Native software-dispatch regression, not forced accounting-tail overlap or physical IRQ/GPU execution"
+}

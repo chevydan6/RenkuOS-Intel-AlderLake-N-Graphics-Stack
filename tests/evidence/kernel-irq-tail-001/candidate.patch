@@ -1,0 +1,26 @@
+diff --git a/src/system/kernel/interrupts.cpp b/src/system/kernel/interrupts.cpp
+index b351ea3b..20802207 100644
+--- a/src/system/kernel/interrupts.cpp
++++ b/src/system/kernel/interrupts.cpp
+@@ -356,9 +356,6 @@ io_interrupt_handler(int vector, interrupt_trigger_mode triggerMode)
+ 	}
+ #endif
+ 
+-	if (!sVectors[vector].no_lock_vector)
+-		release_spinlock(&sVectors[vector].vector_lock);
+-
+ 	SpinLocker vectorLocker(sVectors[vector].load_lock);
+ 	bigtime_t deltaTime = system_time() - start;
+ 	sVectors[vector].last_measure_active += deltaTime;
+@@ -375,6 +372,11 @@ io_interrupt_handler(int vector, interrupt_trigger_mode triggerMode)
+ 
+ 	update_int_load(vector);
+ 
++	// Vector retirement must wait for accounting as well as callbacks: load
++	// accounting still accesses the vector's CPU assignment.
++	if (!sVectors[vector].no_lock_vector)
++		release_spinlock(&sVectors[vector].vector_lock);
++
+ 	if (triggerMode == B_LEVEL_TRIGGERED)
+ 		return status;
+ 

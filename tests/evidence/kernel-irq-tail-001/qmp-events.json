@@ -1,0 +1,13 @@
+[
+  {
+    "timestamp": {
+      "seconds": 1794010752,
+      "microseconds": 331186
+    },
+    "event": "SHUTDOWN",
+    "data": {
+      "guest": true,
+      "reason": "guest-shutdown"
+    }
+  }
+]

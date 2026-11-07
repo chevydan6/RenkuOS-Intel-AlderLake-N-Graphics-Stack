@@ -1,0 +1,24 @@
+workers run=0 pinned=1 dispatch=0/0 remove=0/0
+workers run=1 pinned=1 dispatch=1/0 remove=0/0
+round run=1 control=1 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,0,2,3 debug=1,0,1
+workers run=2 pinned=1 dispatch=1/0 remove=0/0
+round run=2 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=3 pinned=1 dispatch=1/0 remove=0/0
+round run=3 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=4 pinned=1 dispatch=1/0 remove=0/0
+round run=4 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=5 pinned=1 dispatch=1/0 remove=0/0
+round run=5 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=6 pinned=1 dispatch=1/0 remove=0/0
+round run=6 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=7 pinned=1 dispatch=1/0 remove=0/0
+round run=7 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=8 pinned=1 dispatch=1/0 remove=0/0
+round run=8 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=9 pinned=1 dispatch=1/0 remove=0/0
+round run=9 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=10 pinned=1 dispatch=1/0 remove=0/0
+round run=10 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+workers run=11 pinned=1 dispatch=1/0 remove=0/0
+round run=11 control=0 finish=0 passed=1 vector=24 cpus=0,1,hook:1 callbacks=1 timeout=0 events=1,2,3,4 debug=1,0,1
+PASS native IRQ drain fixture; software dispatch, no GPU execution

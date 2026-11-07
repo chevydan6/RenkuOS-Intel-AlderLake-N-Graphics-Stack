@@ -1,0 +1,47 @@
+{
+  "source_commit": "2d71916ff3f582ddf1cc204450ae2d22094d0fad",
+  "source_has_candidate_patch": true,
+  "patch_sha256": "c4cb53df77522052e303a8150ed93783d0a1eef05595add609512d3a10caa46c",
+  "interrupts_source_sha256": "2638943ae0f63de0480ee4ecf3481eeec8a9b26b0f17ce1d44dc48e0fef992a4",
+  "revision_label": "git-2d71916f-irq-tail-candidate",
+  "cross_compilation_passed": true,
+  "disabled_build_current_source_tested": true,
+  "exports": {
+    "0": [],
+    "1": [
+      "_Z18irq_drain_test_armiiPFiPvES_@@KERNEL_BASE",
+      "_Z20irq_drain_test_checkiPFiPvES_@@KERNEL_BASE",
+      "_Z21irq_drain_test_finishi@@KERNEL_BASE",
+      "_Z21irq_drain_test_recordi20irq_drain_test_event@@KERNEL_BASE",
+      "_Z21irq_drain_test_removei@@KERNEL_BASE",
+      "_Z22irq_drain_fixture_openv@@KERNEL_BASE",
+      "_Z23irq_drain_fixture_closev@@KERNEL_BASE",
+      "_Z25irq_drain_fixture_controljiP24irq_drain_fixture_packet@@KERNEL_BASE",
+      "_Z25irq_drain_test_contentioni@@KERNEL_BASE",
+      "_Z26irq_drain_test_result_readiP21irq_drain_test_result@@KERNEL_BASE"
+    ]
+  },
+  "artifacts": {
+    "kernel": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/system/kernel/revisioned/kernel_x86_64",
+      "sha256": "d8363771bb52617f820bfc4d6ef356bb83c5725e959b2353e12953745f8659c4"
+    },
+    "bridge": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/tests/system/kernel/irq_drain/irq_drain_bridge",
+      "sha256": "00df56ca36f61ecf725108265a818c3d2947c616003dc61b015f6f38809bed48"
+    },
+    "client": {
+      "path": "/home/dan/renkuos-development/source/gpu-kernel-validation/generated.kernel/objects/haiku/x86_64/release/tests/system/kernel/irq_drain/irq_drain_client",
+      "sha256": "a4ce48e9ac561f115ee5af33e8d25e41d2c1bb56793d3d2946b6a1c5b38fe980"
+    }
+  },
+  "normal_kernel_sha256": "09898c3173fea8d35865f7ab9b0f7aaf8e5dd213e193ef5bd57710585779ee82",
+  "physical_gpu_execution": false,
+  "booted": false,
+  "evidence_directory": "/home/dan/renkuos-development/testing/kernel-irq-tail-build-002",
+  "build_notes": [
+    "Initial normal build requested disabled fixture targets and returned failure despite kernel link; corrected target set.",
+    "Instrumented build reused a normal object; retry preserved and removed both generated objects and rebuilt explicitly.",
+    "Existing array-bounds warning in removal CPU routing retained."
+  ]
+}
