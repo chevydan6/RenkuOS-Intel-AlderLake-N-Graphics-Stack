@@ -1,0 +1,58 @@
+A26 — retained-owner PCI observation admission
+
+Purpose and boundaries
+The N100 v0 owner already retains GART/MMIO/display lifetime. Add v1 in that same
+binary; v1 gets and retains v0 rather than initializing its globals twice. No new
+independent MMIO mapping or display setup. This stage reads PCI config only. It
+provides neither forcewake nor Linux runtime PM, and exposes no GT register API.
+
+Admission
+Reserve the existing Request slot and an operation ticket under the owner mutex
+only with Ready and a live display. Copy owner BDF/base/size locally, drop the
+mutex, then sample config. Verify8086:46d1/rev00/VGA class, type0 header, MEM decode,
+64-bit BAR0 matching the owned mapping, valid bounded/cycle-free capability list,
+unique non-overlapping PM capability and PMCSR D0. Read identity/command/BAR before
+and after each full capture; two captures must match, including capability topology
+and raw PM capability/control. Outputs commit only after a mutex-protected owner
+state recheck. All-ones/unrepresentable raw reads fail; PCI API cannot otherwise
+report transport errors. No bus-master write or D0 setter is needed.
+
+Retirement
+One retained numeric request/pin spans the observation. End marks Ending while
+locked, rechecks PCI outside the lock and compares to the original snapshot, then
+retires lease/pin once. Concurrent/stale/double End rejects without consuming it.
+Display close or failed GART backing operations revoke diagnostics; a changed or
+uncertain capture sticky-blocks further observation this boot. Module mappings/code
+remain resident. Retirement is bookkeeping, not GPU quiescence or resource reclaim.
+
+Power scope
+Full tracked kernel audit found no normal supported S1/S2/S3 or hibernate caller
+and no transition-notification lease hook. Power server/registrar lead to kernel
+shutdown; x86 shutdown uses ACPI OFF/reboot. ACPICA sleep functions still exist and
+raw clients/firmware/SMM are outside this contract. Controlled current-boot use
+requires no independent power/config writer. Before DMA, implement an actual
+shutdown/admission barrier and prove bounded engine quiescence; this owner-local
+session cannot establish either. DPMS blanking is not a system power hold.
+
+Source evidence audited by Terra in gpu-kernel-validation
+src/servers/power/power_button_monitor.cpp
+src/servers/registrar/ShutdownProcess.cpp
+src/system/kernel/shutdown.cpp
+src/system/kernel/arch/x86/arch_cpu.cpp
+src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
+src/add-ons/kernel/bus_managers/pci/pci.cpp
+PCI GetPowerstate defaults D0 when cap absent; SetPowerstate does not verify its
+config write. This helper deliberately rejects absent PM instead of trusting that.
+
+Next execution prerequisites
+Review revision0 GT initialization/workarounds, forcewake and MMIO ordering/cache
+attributes; check each allowed register against owned mapping size. PCI success
+uses trusted owner extent metadata and does not probe BAR size. Sampled VT-d TES0
+and RMRR page exclusions are not a persistent DMA identity guarantee. Resolve DMA
+address/cache/TLB contracts, valid context/ring/page tables, completion, reset and
+retirement before publishing any GPU address. Preserve the display path.
+
+First execution experiment remains a single controlled GGTT nonce/complement
+store pair on BCS, with CPU-only sentinel initialization and independent expected
+value verification. Completion, bounded timeout and failed-engine recovery are
+required. A PCI observation or forcewake handshake alone is not GPU command proof.

@@ -1,0 +1,9 @@
+A26 checked PCI-only observation helper
+Host: 302 mocked config cases pass with -Wall -Wextra -Werror and ASan/UBSan.
+Native: 302 identical mocked cases pass on physical N100; HELPER_EXIT=0.
+Terra independently reproduced PMCSR/header overlap, reviewed its correction,
+and reran302 cases with ASan/UBSan. Both traversal-order regressions included.
+Native compilation initially hit host-only status constant redefinition in the
+separate owner harness; corrected with platform constant guard. No helper defect.
+This evidence is simulated PCI input even when running on the physical CPU.
+No real PCI/GT/DMA execution claim. Full live run tracked under physical-pci-owner-001.
