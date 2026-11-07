@@ -1,0 +1,18 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+ 03:13:21  up   0:18,  0 users,  load average: 0.08, 0.07, 0.02
+   Device No.: 3
+   Mounted at: /boot
+  Volume Name: "RenkuTest"
+  File System: bfs
+       Device: /dev/disk/usb/0/0/1
+        Flags: QAM-P-W
+     I/O Size:   64.0 KiB (65536 byte)
+   Block Size:    2.0 KiB (2048 byte)
+ Total Blocks:    8.0 GiB (4194304 blocks)
+  Used Blocks:    2.4 GiB (1252255 blocks)
+  Free Blocks:    5.6 GiB (2942049 blocks)
+      Usage %:   29.9 %
+  Total Nodes: 0
+   Used Nodes: 0
+   Free Nodes: 0
+   Root Inode: 524288
