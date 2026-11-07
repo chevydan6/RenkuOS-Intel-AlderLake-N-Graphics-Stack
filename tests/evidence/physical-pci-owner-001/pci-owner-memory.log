@@ -1,0 +1,31 @@
+round=0 client=0 base=0xffffffffb3c00000 size=4096 errno=0
+round=0 client=1 base=0xffffffffb3c01000 size=8192 errno=0
+round=0 two distinct live ranges freed successfully
+round=1 client=0 base=0xffffffffb3c10000 size=8192 errno=0
+round=1 client=1 base=0xffffffffb3c00000 size=65536 errno=0
+round=1 two distinct live ranges freed successfully
+round=2 client=0 base=0xffffffffb3c01000 size=65536 errno=0
+round=2 client=1 base=0xffffffffb3c00000 size=4096 errno=0
+round=2 two distinct live ranges freed successfully
+round=3 client=0 base=0xffffffffb3c00000 size=4096 errno=0
+round=3 client=1 base=0xffffffffb3c01000 size=8192 errno=0
+round=3 two distinct live ranges freed successfully
+round=4 client=0 base=0xffffffffb3c10000 size=8192 errno=0
+round=4 client=1 base=0xffffffffb3c00000 size=65536 errno=0
+round=4 two distinct live ranges freed successfully
+round=5 client=0 base=0xffffffffb3c00000 size=65536 errno=0
+round=5 client=1 base=0xffffffffb3c10000 size=4096 errno=0
+round=5 two distinct live ranges freed successfully
+round=6 client=0 base=0xffffffffb3c02000 size=4096 errno=0
+round=6 client=1 base=0xffffffffb3c00000 size=8192 errno=0
+round=6 two distinct live ranges freed successfully
+round=7 client=0 base=0xffffffffb3c00000 size=8192 errno=0
+round=7 client=1 base=0xffffffffb3c02000 size=65536 errno=0
+round=7 two distinct live ranges freed successfully
+round=8 client=0 base=0xffffffffb3c00000 size=65536 errno=0
+round=8 client=1 base=0xffffffffb3c10000 size=4096 errno=0
+round=8 two distinct live ranges freed successfully
+round=9 client=0 base=0xffffffffb3c02000 size=4096 errno=0
+round=9 client=1 base=0xffffffffb3c00000 size=8192 errno=0
+round=9 two distinct live ranges freed successfully
+10 concurrent-client rounds passed; not GPU execution proof.

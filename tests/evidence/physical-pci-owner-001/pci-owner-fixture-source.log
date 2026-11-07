@@ -1,0 +1,4 @@
+5bf56d4692f7a4a82aa40628ca15a284dd8c80539e600dbccb01059bcff3722d  tests/pci-owner-native-bridge.cpp
+0cc73f9360027b1cb744b1311138466dedc0d85029dd4ced05aed12a5243c43d  tests/pci-owner-native-client.cpp
+05031f705a83cf413d84dcb8cdfb6e77b022b3e20d3a5242b4682b5ebf95d069  tests/pci-owner-native-protocol.h
+2783415de65c460df264a1757df8e809f4bfe309374df31d7c4384c0a63116bc  tests/pci-owner-native.mk

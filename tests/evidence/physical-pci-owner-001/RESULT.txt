@@ -1,0 +1,46 @@
+A26 physical retained-owner PCI-only admission — 2026-11-07
+
+Implemented: v1 Begin/End shares permanent v0 owner/lock/PCI/GART state. Stable
+PCI identity, MEM decode, 64-bit BAR mapping and PM D0 required; no PCI writes,
+GT MMIO, submission or DMA. v0 ABI unchanged. Incremental patch0089 applies to the
+before snapshots preserved here (including existing uncommitted owner work).
+Helper is the exact SHA-matched IntelN100PciPower.h from helper commit905b808.
+
+Compiled: N100 kernel module candidate and fixture built natively with kernel
+flags/-Werror, linked --no-undefined. Helper302 and actual-function owner10 mocked
+cases passed natively. Host302 helper and10 owner cases passed ASan/UBSan; previous
+12 GART adapter cases and2 regression controls passed. Terra independently reviewed
+source and repeated host tests. No VM test was performed for A26.
+First native owner-harness compile encountered B_OK macro redefinition; fixed
+platform constant guard. Initial screenshot/private exit preserved; final exit0.
+
+Physical: hash-checked old owner a0e7ed... backed up on USB and host. Candidate
+3ca11353965ec0100795c2896ce14ab9050cc0204a0fd2c7af4d06080d78d2bd
+installed; software reboot through NanoKVM reached1920x1080 desktop. Fresh terminal
+uptime0:01 and kernel hrev60072+518 support new boot. app_server127 before/after
+live tests retained. Native owner/bridge hashes match installed/loaded paths.
+Six archived real PCI Begin/End sessions passed: live IDs2/3,repeat IDs4/5,post-
+memory IDs8/9. Duplicate B_BUSY and stale B_BAD_VALUE checked. An intermediate
+pre-memory call consumed IDs6/7; its log was overwritten and is excluded from
+the archived acceptance count.
+Command0x407, BAR0:bf000004, PMcap0xd0, PMCSR0,8086:46d1,rev00/VGA in every run.
+Real GPU config reads and module lifecycle only: NOT GPU workload execution.
+
+Regression:10 paired-client rounds/20 allocations and frees through actual Intel
+GART passed, errno0, two distinct live ranges per round. Source hash matches the
+previously reviewed fixture. Driver, accelerant, GART manager and Intel GART hashes
+unchanged. Initial generic device selection found framebuffer plus Intel, so it
+skipped memory testing; corrected explicit verified intel_extreme_000200 and
+recorded the actual successful run. No skipped test counted as a pass.
+
+Limitations/blockers: controlled current boot only, no global power/runtime-PM or
+PCI-writer exclusion. No claim of complete Phase1 lifetime safety; existing IRQ
+teardown/retrace ownership issues remain. No GT writes, GPU contexts/submissions,
+rendering or acceleration. Next: reviewed owner-only raw ACK inventory, MMIO type/
+ordering and per-register bounds, then forcewake/power/stepping/reset prerequisites.
+Raw syslogs/process inventories, reboot probes and original backup binary remain
+private at installation/private/gpu-pci-owner-001. The known baseline image and
+other display recovery artifacts were preserved.
+
+Terra independently accepted final physical evidence within PCI-session and
+paired-memory scope. Astra accepted all stated limitations.

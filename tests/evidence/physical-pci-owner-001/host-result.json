@@ -1,0 +1,10 @@
+{
+  "exit": 0,
+  "hashes": {
+    "/home/dan/renkuos-development/source/gpu-next-worktree/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp": "61b3b223c007d1048cf522bac468459ffb8b5c12287e7344f0d85502f346539a",
+    "/home/dan/renkuos-development/source/gpu-next-worktree/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h": "adea0412f14056b4cf054707e93accfbb3f37dc8dbcb56ea2311ec51f34dfdd4",
+    "/home/dan/renkuos-development/source/gpu-next-worktree/headers/private/graphics/intel_extreme/IntelN100PciPower.h": "56c7b5bf1e34fef35b443e702648c39cdd8c74d0f25b88d17104929113a9e47b",
+    "/home/dan/renkuos-development/gpu-driver/tests/owner-observation-test.cpp": "aaa7b8b6953c8e2efb1d468710fbd2e26ea0a7c1be56cf3b1b57b8d6820ce064"
+  },
+  "scope": "Actual observation admission/retirement functions; mocked PCI and kernel mutex, no hardware."
+}

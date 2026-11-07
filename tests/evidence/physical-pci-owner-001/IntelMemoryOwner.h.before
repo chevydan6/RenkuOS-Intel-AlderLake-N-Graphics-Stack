@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: MIT
+#ifndef INTEL_MEMORY_OWNER_H
+#define INTEL_MEMORY_OWNER_H
+
+#include <AGP.h>
+#include <module.h>
+
+#define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
+
+// Private kernel interface. Addresses and leases must never be user input.
+struct intel_memory_owner_resources {
+	aperture_info aperture;
+	area_id registers_area;
+	addr_t registers;
+};
+
+struct intel_memory_owner_module_info {
+	module_info info;
+	status_t (*begin_display)(uint8 bus, uint8 device, uint8 function,
+		uint64* lease, intel_memory_owner_resources* resources);
+	status_t (*finish_display)(uint64 lease, bool initialized);
+	// Revokes the lease even during initialization; never claims hardware idle
+	// or frees retained mappings. In-flight operations finish under module pins.
+	status_t (*release_display)(uint64 lease);
+	status_t (*query)(uint64 lease, aperture_info* info);
+	status_t (*allocate)(uint64 lease, size_t size, size_t alignment,
+		uint32 flags, addr_t* base, phys_addr_t* physical);
+	status_t (*free)(uint64 lease, addr_t base);
+};
+#endif
