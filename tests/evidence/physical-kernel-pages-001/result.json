@@ -1,0 +1,13 @@
+{
+  "physical_machine": "Intel N100 PCI8086:46d1",
+  "kernel": "hrev60072+518 Nov3 2026",
+  "boot_volume": "RenkuTest USB",
+  "completed": 3,
+  "verified_areas": 42,
+  "absent_area_ids": 42,
+  "live_provider_areas": 0,
+  "tree_state": "Empty",
+  "exit": 0,
+  "cached_result": "identical",
+  "scope": "Real kernel wired-area allocation, CPU table verification and cleanup; no GPU access"
+}

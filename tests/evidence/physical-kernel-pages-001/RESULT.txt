@@ -1,0 +1,28 @@
+REAL KERNEL PAGE/TREE RUNTIME — 2026-11-07
+User physical reset restored console. Fresh uptime and USB RenkuTest boot,PCI46d1,
+kernel hrev60072+518,loaded display path verified. Old USB hash log was empty and
+existing binaries differed after reset; re-copied all reviewed sources and rebuilt
+natively. Exact source hashes match; rebuilt binaries reproduce original reviewed
+hashes. Checksum verification and byte comparison preceded test-only installation.
+Implemented this checkpoint: evidence collector/status; fixture source unchanged.
+Compiled actualN100 module,bridge,client passed. Ran actual resident B_KEEP_LOADED
+module through visible NanoKVM terminal. Three kernel cases passed:1/16/1owned
+diagnostic pages,42wired areas verified,full table/independent walks and zero data,
+all releases succeeded,empty provider ledger/state,42old IDs absent (supporting
+observation),cached second ioctl identical,client exit0. Module remained loaded
+after client closed; app_server127 unchanged and display/terminal responsive.
+No new simulation or VM run; this is real kernel CPU-memory work on physical
+hardware, not GPU execution or GPU DMA/cache/translation proof. No GT MMIO writes.
+Production driver/accelerant/GART hashes unchanged. Kernel logs still contain
+xHCI endpoint configuration/stall errors; system-wide stability not established.
+Only test module/bridge installed; resident test state remains until reboot.
+Terra independent physical evidence review requested. Remaining:full failure/close
+lifetime gates,device DMA/IOMMU/PAT/visibility,TLB/context/power/reset/submission.
+Next: accept independent runtime review and implement bounded GT/DMA bring-up.
+
+Terra independent physical evidence disposition: PASS within wired-page kernel
+scope. All8source/header hashes and3rebuild binaries verified;installed hashes,
+PCIidentity,client0,3cases/42areas/live0/cachedresult and inspected terminal agree.
+No60second post-test observation claim: snapshots span about36seconds. Successful
+delete returns,emptyledger andold-IDabsence support cleanup,not exhaustive physical
+page accounting. No GPU DMA,MMIO or execution proof. Astra accepts these limits.

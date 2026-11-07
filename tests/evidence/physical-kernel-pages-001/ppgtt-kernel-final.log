@@ -1,0 +1,119 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+ 02:58:03  up   0:03,  0 users,  load average: 0.01, 0.02, 0.00
+   Device No.: 3
+   Mounted at: /boot
+  Volume Name: "RenkuTest"
+  File System: bfs
+       Device: /dev/disk/usb/0/0/1
+        Flags: QAM-P-W
+     I/O Size:   64.0 KiB (65536 byte)
+   Block Size:    2.0 KiB (2048 byte)
+ Total Blocks:    8.0 GiB (4194304 blocks)
+  Used Blocks:    2.4 GiB (1252021 blocks)
+  Free Blocks:    5.6 GiB (2942283 blocks)
+      Usage %:   29.9 %
+  Total Nodes: 0
+   Used Nodes: 0
+   Free Nodes: 0
+   Root Inode: 524288
+
+KERNEL TEAM:
+   ID               Text               Data  Seq#      Init# Name
+--------------------------------------------------------------------------------
+    1 0xffffffff80000000 0xffffffff801d0000     0          0 kernel_x86_64
+    4 0xffffffff827e8000 0xffffffff82828000     0          0 btrfs
+   13 0xffffffff826dd000 0xffffffff82705000     0          0 ext2
+   14 0xffffffff826b1000 0xffffffff826db000     0          0 fat
+   20 0xffffffff8263c000 0xffffffff8264e000     0          0 usb_disk
+   21 0xffffffff82637000 0xffffffff8263b000     0          0 mmc_disk
+   22 0xffffffff82626000 0xffffffff82636000     0          0 usb
+   26 0xffffffff82601000 0xffffffff82602000     0          0 smbios
+   28 0xffffffff8251c000 0xffffffff82566000     0          0 acpi
+   30 0xffffffff824dc000 0xffffffff82515000     0          0 bfs
+   33 0xffffffff824b2000 0xffffffff824b3000     0          0 isa
+   37 0xffffffff8247d000 0xffffffff82499000     0          0 xhci
+   39 0xffffffff82211000 0xffffffff823df000     0          0 pci
+   44 0xffffffff821ef000 0xffffffff821f5000     0          0 x86
+   45 0xffffffff821e5000 0xffffffff821ee000     0          0 sdhci
+   48 0xffffffff821da000 0xffffffff821de000     0          0 mmc
+   51 0xffffffff821ac000 0xffffffff821b7000     0          0 efi_gpt
+   53 0xffffffff821a7000 0xffffffff821a8000     0          0 dpc
+   54 0xffffffff8208d000 0xffffffff82121000     0          0 packagefs
+   57 0x0000000000000000 0x0000000000000000     0          0 commpage
+  154 0xffffffff821f6000 0xffffffff821fe000     0          0 /boot/system/add-ons/kernel/drivers/disk/virtual/ram_disk
+  155 0xffffffff821a9000 0xffffffff821aa000     0          0 /boot/system/add-ons/kernel/drivers/dev/dprintf
+  156 0xffffffff821df000 0xffffffff821e0000     0          0 /boot/system/add-ons/kernel/drivers/dev/null
+  157 0xffffffff82517000 0xffffffff8251a000     0          0 /boot/system/add-ons/kernel/drivers/dev/pty
+  158 0xffffffff8249a000 0xffffffff824a3000     0          0 /boot/system/add-ons/kernel/generic/tty
+  159 0xffffffff82479000 0xffffffff8247b000     0          0 /boot/system/add-ons/kernel/drivers/dev/console
+  618 0xffffffff821e1000 0xffffffff821e3000     0          0 /boot/system/add-ons/kernel/cpu/generic_x86
+  619 0xffffffff82080000 0xffffffff82082000     0          0 /boot/system/add-ons/kernel/power/cpufreq/intel_pstates
+  621 0xffffffff828a9000 0xffffffff828ab000     0          0 /boot/system/add-ons/kernel/power/cpuidle/x86_cstates
+  622 0xffffffff82bf7000 0xffffffff82c73000     0          0 /boot/system/add-ons/kernel/debugger/disasm
+  623 0xffffffff82083000 0xffffffff82084000     0          0 /boot/system/add-ons/kernel/debugger/run_on_exit
+  624 0xffffffff824a4000 0xffffffff824a6000     0          0 /boot/system/add-ons/kernel/debugger/hangman
+  625 0xffffffff821b9000 0xffffffff821cd000     0          0 /boot/system/add-ons/kernel/debugger/demangle
+  626 0xffffffff828ac000 0xffffffff828ad000     0          0 /boot/system/add-ons/kernel/debugger/usb_keyboard
+  627 0xffffffff82085000 0xffffffff82086000     0          0 /boot/system/add-ons/kernel/debugger/invalidate_on_exit
+  632 0xffffffff82087000 0xffffffff8208a000     0          0 /boot/system/add-ons/kernel/bus_managers/random
+  659 0xffffffff828ae000 0xffffffff828b0000     0          0 /boot/system/add-ons/kernel/drivers/power/acpi_button
+ 1479 0xffffffff828b1000 0xffffffff828b3000     0          0 /boot/system/add-ons/kernel/drivers/power/acpi_lid
+ 1513 0xffffffff821cf000 0xffffffff821d1000     0          0 /boot/system/add-ons/kernel/drivers/power/acpi_ac
+ 1544 0xffffffff821d2000 0xffffffff821d5000     0          0 /boot/system/add-ons/kernel/drivers/power/acpi_battery
+ 5322 0xffffffff824a7000 0xffffffff824ad000     0          0 /boot/system/non-packaged/add-ons/kernel/busses/i2c/pch_i2c
+ 5324 0xffffffff824ae000 0xffffffff824b1000     0          0 /boot/system/add-ons/kernel/bus_managers/i2c
+ 5885 0xffffffff821ff000 0xffffffff82205000     0          0 /boot/system/add-ons/kernel/drivers/input/i2c_elan
+ 6155 0xffffffff82653000 0xffffffff82686000     0          0 /boot/system/add-ons/kernel/file_systems/ramfs
+ 6411 0xffffffff8203c000 0xffffffff82061000     0          0 /boot/system/add-ons/kernel/network/stack
+ 6422 0xffffffff826ac000 0xffffffff826af000     0          0 /boot/system/add-ons/kernel/bluetooth/btCoreData
+ 6423 0xffffffff82076000 0xffffffff8207a000     0          0 /boot/system/add-ons/kernel/bluetooth/hci
+ 6532 0xffffffff824d7000 0xffffffff824d9000     0          0 /boot/system/add-ons/kernel/network/notifications
+ 6548 0xffffffff82063000 0xffffffff8206b000     0          0 /boot/system/add-ons/kernel/network/protocols/udp
+ 6549 0xffffffff82127000 0xffffffff82133000     0          0 /boot/system/add-ons/kernel/network/protocols/ipv4
+ 6552 0xffffffff8207b000 0xffffffff8207d000     0          0 /boot/system/add-ons/kernel/network/devices/loopback
+ 6553 0xffffffff824da000 0xffffffff824db000     0          0 /boot/system/add-ons/kernel/network/datalink_protocols/loopback_frame
+ 6554 0xffffffff82135000 0xffffffff82141000     0          0 /boot/system/add-ons/kernel/network/protocols/ipv6
+ 6583 0xffffffff82569000 0xffffffff825c6000     0          0 /boot/home/config/non-packaged/add-ons/kernel/drivers/dev/net/mediatekwifi
+ 7517 0xffffffff8216b000 0xffffffff8217b000     0          0 /boot/system/add-ons/kernel/network/protocols/tcp
+ 7542 0xffffffff8217c000 0xffffffff82188000     0          0 /boot/home/config/non-packaged/add-ons/kernel/drivers/dev/graphics/intel_extreme
+ 7544 0xffffffff8218e000 0xffffffff82195000     0          0 /boot/system/non-packaged/add-ons/kernel/bus_managers/agp_gart
+ 7547 0xffffffff82621000 0xffffffff82623000     0          0 /boot/system/add-ons/kernel/drivers/dev/graphics/framebuffer
+ 7566 0xffffffff82189000 0xffffffff8218c000     0          0 /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+ 7567 0xffffffff82196000 0xffffffff8219b000     0          0 /boot/system/non-packaged/add-ons/kernel/busses/agp_gart/intel
+ 7575 0xffffffff8220b000 0xffffffff8220e000     0          0 /boot/system/add-ons/kernel/network/devices/ethernet
+ 7576 0xffffffff8219d000 0xffffffff821a1000     0          0 /boot/system/add-ons/kernel/network/datalink_protocols/arp
+ 7577 0xffffffff825fd000 0xffffffff825ff000     0          0 /boot/system/add-ons/kernel/network/datalink_protocols/ethernet_frame
+ 7695 0xffffffff82739000 0xffffffff8274a000     0          0 /boot/system/add-ons/kernel/drivers/dev/input/usb_hid
+ 7697 0xffffffff8274b000 0xffffffff82759000     0          0 /boot/system/add-ons/kernel/bus_managers/ps2
+ 7915 0xffffffff827e1000 0xffffffff827e4000     0          0 /boot/system/add-ons/kernel/drivers/dev/bus/usb_raw
+ 8193 0xffffffff82d9c000 0xffffffff82dac000     0          0 /boot/system/add-ons/kernel/network/protocols/unix
+ 9099 0xffffffff82dad000 0xffffffff82db1000     0          0 /boot/system/add-ons/kernel/network/datalink_protocols/ipv6_datagram
+ 9100 0xffffffff82db2000 0xffffffff82db5000     0          0 /boot/system/add-ons/kernel/network/protocols/icmp
+10793 0xffffffff82e0b000 0xffffffff82e0d000     0          0 /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_ppgtt_bridge
+10854 0xffffffff802dc000 0xffffffff802ed000     0          0 /boot/system/add-ons/kernel/drivers/dev/misc/nvmm
+10855 0xffffffff82e0e000 0xffffffff82e10000     0          0 /boot/system/add-ons/kernel/drivers/dev/misc/poke
+10856 0xffffffff828b5000 0xffffffff828b6000     0          0 /boot/system/add-ons/kernel/drivers/dev/misc/mem
+10857 0xffffffff82e11000 0xffffffff82e15000     0          0 /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_ppgtt_test
+Team                                                  Id #Threads  Gid  Uid 
+kernel_team                                            1       45    0    0 
+/boot/system/servers/launch_daemon                    51        2    0    0 
+/boot/system/servers/debug_server                     55        2    0    0 
+/boot/system/servers/mount_server                     56        1    0    0 
+/boot/system/servers/net_server                       59        4    0    0 
+/boot/system/servers/package_daemon                   60        2    0    0 
+/boot/system/servers/power_daemon                     61        2    0    0 
+/boot/system/servers/registrar                        62        6    0    0 
+/boot/system/servers/syslog_daemon                    63        2    0    0 
+/boot/system/servers/launch_daemon user               73        2    0    0 
+/boot/system/servers/media_server                     93        4    0    0 
+/boot/system/servers/app_server                      127       27    0    0 
+/boot/system/Deskbar                                 138        5    0    0 
+/boot/system/Tracker                                 139        8    0    0 
+/bin/sshd                                            142        1    0    0 
+/boot/system/servers/input_server                    154       14    0    0 
+/boot/system/servers/media_addon_server              179        5    0    0 
+/boot/system/bin/wpa_supplicant                      249        3    0    0 
+/boot/system/servers/notification_server             378        2    0    0 
+/boot/system/data/deskbar/menu/Applications/Terminal   442        5    0    0 
+/bin/bash -l                                         448        1    0    0 
+/bin/ps                                              585        1    0    0 
