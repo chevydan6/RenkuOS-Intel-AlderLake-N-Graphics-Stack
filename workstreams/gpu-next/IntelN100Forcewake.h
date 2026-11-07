@@ -11,9 +11,9 @@ class IntelN100Forcewake {
 public:
 	enum Error : uint32_t { Ok, Blocked, InvalidCallbacks, Cancelled,
 		PowerChanged, ClockError, ReadError, WriteError, PreTimeout, SetTimeout,
-		ClearTimeout, TotalTimeout, FallbackChanged, InvalidMapping, InvariantFailed };
+		ClearTimeout, TotalTimeout, FallbackChanged, InvalidMapping, InvariantFailed, InspectFailed, InspectTimeout, AckLost, InspectUncertain };
 	enum Stage : uint32_t { Preflight, WaitIdle, Enable, WaitSet, Clear,
-		WaitClear, Complete, OwnerValidation };
+		WaitClear, Complete, OwnerValidation, Inspect };
 	enum Ownership : uint32_t { NoRequest, EnableAttempted, Issued,
 		Acknowledged, ClearAttempted, Released, Unknown };
 	struct Report {
@@ -37,7 +37,12 @@ public:
 	const Report& LastReport() const { return fReport; }
 	bool IsBlocked() const { return fBlocked; }
 
-	Error Run(const IO& io)
+	Error Run(const IO& io) { return RunWithInspection(io, NULL); }
+
+	// Trusted owner-only fixed sampler. No userspace callback or generic batch.
+	enum InspectionResult : uint32_t { InspectionOk, InspectionFailed, InspectionUncertain };
+	typedef InspectionResult (*Inspector)(void*, uint64_t deadline);
+	Error RunWithInspection(const IO& io, Inspector inspect)
 	{
 		if (fBlocked)
 			return Blocked; // Preserve the original diagnostic ledger.
@@ -66,7 +71,7 @@ public:
 			return Fail(PowerChanged);
 		if ((error = Time()) != Ok)
 			return Fail(error);
-		if (fTotalEnd - fLastTime < 100000)
+		if (fTotalEnd - fLastTime < (inspect != NULL ? 150000u : 100000u))
 			return Fail(TotalTimeout); // Reserve set and cleanup wait budgets.
 
 		const uint64_t setDeadline = fLastTime + 50000;
@@ -92,6 +97,44 @@ public:
 			fReport.setAck = fReport.lastAck;
 		} else if (error != SetTimeout && error != Cancelled) {
 			return UnknownFailure(error);
+		}
+		if (acknowledged && inspect != NULL) {
+			if (!io.pciStable(io.context))
+				return UnknownFailure(PowerChanged);
+			if ((error = Time()) != Ok)
+				return UnknownFailure(error);
+			if (fTotalEnd - fLastTime < 100000)
+				return UnknownFailure(TotalTimeout);
+			const uint64_t inspectDeadline = fLastTime + 50000;
+			fReport.stage = Inspect;
+			if ((error = ReadChecked()) != Ok)
+				return UnknownFailure(error);
+			if ((fReport.lastAck & 1) == 0)
+				return UnknownFailure(AckLost);
+			if (fLastTime >= inspectDeadline)
+				return UnknownFailure(InspectTimeout);
+			if (!io.live(io.context))
+				error = Cancelled;
+			else {
+				InspectionResult inspected = inspect(io.context, inspectDeadline);
+				if (!io.pciStable(io.context))
+					return UnknownFailure(PowerChanged);
+				if ((error = Time()) != Ok)
+					return UnknownFailure(error);
+				if (fLastTime >= inspectDeadline)
+					return UnknownFailure(InspectTimeout);
+				if ((error = ReadChecked()) != Ok)
+					return UnknownFailure(error);
+				if ((fReport.lastAck & 1) == 0)
+					return UnknownFailure(AckLost);
+				if (fLastTime >= inspectDeadline)
+					return UnknownFailure(InspectTimeout);
+				if (inspected != InspectionOk && inspected != InspectionFailed)
+					return UnknownFailure(InspectUncertain);
+				error = inspected == InspectionOk ? Ok : InspectFailed;
+				if (!io.live(io.context))
+					error = Cancelled;
+			}
 		}
 		// Even an ACK timeout/cancel after a known CPU issue gets a bounded
 		// owned-bit clear attempt, but only with a valid clock and PCI state.
@@ -131,7 +174,7 @@ public:
 			return UnknownFailure(Cancelled);
 		fReport.ownership = Released;
 		fReport.stage = Complete;
-		return Ok;
+		return error == Ok ? Ok : Fail(error);
 	}
 
 private:

@@ -21,6 +21,12 @@ struct Mock {
 	int delayPower = -1;
 	int slowRead = -1;
 	uint64_t readDelay = 0;
+	int zeroRead = -1, postInspectAck = -1;
+	unsigned inspections = 0;
+	uint64_t inspectDelay = 0;
+	bool inspectFail = false, inspectClose = false, inspectPower = false;
+	bool inspectUncertain = false;
+	bool inspectInvalid = false;
 	std::vector<char> events;
 	std::vector<uint32_t> words;
 };
@@ -42,6 +48,10 @@ static bool Read(void* context, uint32_t& ack)
 	if (int(read) == m.failRead) return false;
 	if (int(read) == m.onesRead) { ack = UINT32_MAX; return true; }
 	if (int(read) == m.fallbackRead) { ack = 0x8000; return true; }
+	if (int(read) == m.zeroRead) { ack = 0; return true; }
+	if (m.writes == 1 && m.inspections != 0 && m.postInspectAck >= 0) {
+		ack = m.postInspectAck; return true;
+	}
 	if (m.writes == 0) {
 		ack = m.initialDelay > 0 ? 1 : 0;
 		if (m.initialDelay) m.initialDelay--;
@@ -92,11 +102,25 @@ static Wake::IO Callbacks(Mock& m)
 {
 	return {&m, Now, Read, Write, Power, Live, Pause};
 }
+static Wake::InspectionResult Inspect(void* context, uint64_t deadline)
+{
+	Mock& m = *(Mock*)context;
+	assert(!m.mustRead && m.now < deadline);
+	assert(m.wake->LastReport().ownership == Wake::Acknowledged);
+	assert(m.wake->LastReport().stage == Wake::Inspect);
+	m.events.push_back('I'); m.inspections++;
+	m.now += m.inspectDelay;
+	if (m.inspectClose) m.closed = true;
+	if (m.inspectPower) m.failPower = m.powers;
+	return m.inspectInvalid ? Wake::InspectionResult(99) : m.inspectUncertain ? Wake::InspectionUncertain
+		: m.inspectFail ? Wake::InspectionFailed : Wake::InspectionOk;
+}
 static unsigned sCases;
-static void Check(Mock m, Wake::Error expected, Wake::Ownership ownership, unsigned writes)
+static void Check(Mock m, Wake::Error expected, Wake::Ownership ownership, unsigned writes,
+	bool inspect = false)
 {
 	Wake wake; m.wake = &wake;
-	assert(wake.Run(Callbacks(m)) == expected);
+	assert((inspect ? wake.RunWithInspection(Callbacks(m), Inspect) : wake.Run(Callbacks(m))) == expected);
 	const Wake::Report& r = wake.LastReport();
 	assert(r.error == unsigned(expected) && r.ownership == unsigned(ownership));
 	assert(r.writes == writes && m.words.size() == writes);
@@ -189,6 +213,23 @@ int main()
 			case 4: io.live = NULL; break; case 5: io.pause = NULL; break;
 		}
 		assert(wake.Run(io) == Wake::InvalidCallbacks && m.reads == 0 && m.writes == 0); sCases++;
+	}
+	m = Mock(); Check(m, Wake::Ok, Wake::Released, 2, true);
+	m = Mock(); m.inspectFail = true; Check(m, Wake::InspectFailed, Wake::Released, 2, true);
+	m = Mock(); m.inspectUncertain = true; Check(m, Wake::InspectUncertain, Wake::Unknown, 1, true);
+	m = Mock(); m.inspectInvalid = true; Check(m, Wake::InspectUncertain, Wake::Unknown, 1, true);
+	m = Mock(); m.inspectClose = true; Check(m, Wake::Cancelled, Wake::Unknown, 2, true);
+	m = Mock(); m.inspectPower = true; Check(m, Wake::PowerChanged, Wake::Unknown, 1, true);
+	for (int read : {2, 3}) {
+		m = Mock(); m.onesRead = read; Check(m, Wake::ReadError, Wake::Unknown, 1, true);
+		m = Mock(); m.fallbackRead = read; Check(m, Wake::FallbackChanged, Wake::Unknown, 1, true);
+		m = Mock(); m.zeroRead = read; Check(m, Wake::AckLost, Wake::Unknown, 1, true);
+		m = Mock(); m.jumpRead = read; Check(m, Wake::TotalTimeout, Wake::Unknown, 1, true);
+	}
+	for (uint64_t delay : {49000u, 50000u, 51000u}) {
+		m = Mock(); m.inspectDelay = delay;
+		Check(m, delay < 50000 ? Wake::Ok : Wake::InspectTimeout,
+			delay < 50000 ? Wake::Released : Wake::Unknown, delay < 50000 ? 2 : 1, true);
 	}
 	printf("%u forcewake state-machine cases passed; mocked I/O only.\n", sCases);
 }

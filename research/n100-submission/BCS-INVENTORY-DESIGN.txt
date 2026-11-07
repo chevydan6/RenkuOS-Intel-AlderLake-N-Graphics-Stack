@@ -1,0 +1,53 @@
+A29 fixed raw BCS inventory under held GT forcewake — candidate
+
+Status: source reviewed,84 pure state/37sampler/48 actual-owner host cases pass.
+Native compilation has NOT run. Both source-transfer attempts timed out before
+build; NanoKVM keyboard/mouseHID I/O timed out. SSH briefly recovered at24min
+uptime; controlled reboot attempt didnot restore access. Physicalreset requested.
+No A29 candidate installed, no physical engine register values obtained.
+A28 physical handshake remains recorded evidence; current responsiveness unknown.
+
+Reuse the same retained owner/Request pin and handshake controller. v3 Run(null)
+keeps its old67 regression cases/budgets/ABI. New trusted fixed inspection hook
+reserves150ms beforeenable and100ms beforeinspection;50ms inspection includes
+held-ACK pre/postchecks and callback duration within250ms total. PCI/display/
+monotonic checks bracket sampling. Callback doesnot accept user addresses.
+Only explicit safe failure can be cleaned/released; unknown/invalid inspection
+result, clock/power/ACK fault or allones retainsUnknown with no guessed clear.
+
+Fixed BCS0 offsets derived from Linux028ef9c96e96197026887c0f092424679298aae8:
+22030 tail,22034 head,2203c control,2209c MI mode,800c pending-MI-forcewake status.
+Gen12 forcewake table assigns these toGT. Pinned intel_engine_cs.c ring_is_idle
+and debug dumps read head/tail/mode/control; __cs_pending_mi_force_wakes reads
+MSG_IDLE_BCS and combines bits29:25 with13:9. Our sampler returns raw values,
+not a combined idle predicate. Snapshots are sequential/non-atomic, not proof
+of engine presence/idleness/ownership/init/submissionreadiness. adl_p_info includes
+BCS0 in platformmask; fuse handling doesnotconstitute physicalpresence proof.
+Avoid CSB/FIFO, interrupt/error/acknowledge regs and any engine/ring/reset store.
+
+Owner v4 performs exactly five checked volatile32 loads while ACKkernel0 is
+set/fallback15 clear. Check each offset allowlist,extent,virtual overflow,live
+lease and per-read deadline/monotonic time. Raw allones/clock/bounds faults set
+explicit uncertainty passed through typed inspector result. Temporary raw data
+commits only after owned clear/ACKclear and final owner PCI/display validation.
+Context is kernel stack only; IOcallbacks clear on Run return. Unknown request/
+pin/report remains untilreboot. No newMMIOalias, mapping mutation or DMA allocation.
+
+Host tests include exact offsetlist and no partial output, allfive raw ones,
+held-ACK loss/fallback/ones before/afterhook, deadlines/reserves, concurrentclose,
+failedbacking, backwardclock and finalPCI failure; invalid typed inspection results also retain Unknown.
+Native/physical tests must remain
+separate evidence and run before declaring integration. Physicaltrial shouldbe
+one operator-controlled fixed sample, checksum/backup/freshboot and postchecks;
+no automaticretry, no GPU command execution hidden inside inventory.
+
+Kernel-side reset research is next, not authorized by rawvalues: Gen12 BCS
+STOP_RING plus prefetch workaround, pending-MI wake coordination, RING_RESET_CTL
+request/ready and BCS-domain GDRST sequence require broader ownership/power and
+A0 workaround audit. Do not fallback to global/displayreset. Contextimage,
+DMA/cache/translation/TLB, completion and quiescent retirement remain gates.
+
+Primary refs:
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_engine_regs.h
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_engine_cs.c
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/intel_uncore.c
