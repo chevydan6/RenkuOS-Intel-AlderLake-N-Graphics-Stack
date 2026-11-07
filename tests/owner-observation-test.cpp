@@ -3,6 +3,7 @@
 #include "IntelApertureLeaseState.h"
 #include "IntelN100PciPower.h"
 #include "IntelN100GtAck.h"
+#include "IntelN100Forcewake.h"
 #include <assert.h>
 #include <chrono>
 #include <condition_variable>
@@ -18,6 +19,7 @@ using uint32 = uint32_t;
 using uint64 = uint64_t;
 using status_t = int;
 using addr_t = uintptr_t;
+using bigtime_t = int64_t;
 #ifndef B_OK
 const int B_OK = 0, B_BUSY = -1, B_NO_MEMORY = -2, B_BAD_VALUE = -3, B_ERROR = -4;
 #endif
@@ -36,6 +38,28 @@ static std::mutex sAckLock;
 static std::condition_variable sAckChanged;
 static bool sAckGate, sAckEntered, sAckProceed, sChangeAck, sSecondInvalid;
 static unsigned sBarriers;
+static uint64_t sClock;
+static unsigned sRequestWrites;
+static bool sNoSet, sNoClear, sBadPostRead;
+static bool sWriteGate, sWriteEntered, sWriteProceed, sFailFinalOwner;
+static unsigned sPostClearIdentities;
+static int64_t MockSystemTime() { return sClock; }
+static int MockSnooze(int64_t delay) { sClock += delay; return 0; }
+static void MockWriteBarrier() { assert(sLock.try_lock()); sLock.unlock(); }
+static void MockFullBarrier()
+{
+	assert(sLock.try_lock()); sLock.unlock();
+	uint32 word = sMockRegisters[0xa188 / 4];
+	assert(word == (sRequestWrites == 0 ? 0x10001 : 0x10000));
+	sRequestWrites++;
+	sMockRegisters[kIntelN100GtAckOffset / 4] = sBadPostRead ? UINT32_MAX
+		: (word == 0x10001 ? !sNoSet : sNoClear);
+	if (sWriteGate && sRequestWrites == 1) {
+		std::unique_lock<std::mutex> lock(sAckLock);
+		sWriteEntered = true; sAckChanged.notify_all();
+		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sWriteProceed; }));
+	}
+}
 static void memory_read_barrier()
 {
 	assert(sLock.try_lock()); sLock.unlock();
@@ -51,8 +75,16 @@ static void memory_read_barrier()
 		sMockRegisters[kIntelN100GtAckOffset / 4] = UINT32_MAX;
 }
 #define dprintf(...) ((void)0)
+#define system_time MockSystemTime
+#define snooze MockSnooze
+#define memory_write_barrier MockWriteBarrier
+#define memory_full_barrier MockFullBarrier
 #include "observation-under-test.inc"
 #undef dprintf
+#undef system_time
+#undef snooze
+#undef memory_write_barrier
+#undef memory_full_barrier
 
 using Owner = IntelApertureLeaseState;
 static std::mutex sConfigLock;
@@ -75,7 +107,13 @@ static uint32 Read(uint8 bus, uint8 device, uint8 function, uint16 offset, uint8
 		assert(sChanged.wait_for(lock, std::chrono::seconds(5), [] { return sProceed; }));
 	}
 	switch (offset) {
-		case 0: assert(size == 4); return 0x46d18086;
+		case 0:
+			assert(size == 4);
+			// Four identities per completed capture; fail final owner capture,
+			// after the helper's post-clear PCI check has succeeded.
+			if (sFailFinalOwner && sRequestWrites == 2 && ++sPostClearIdentities == 5)
+				return UINT32_MAX;
+			return 0x46d18086;
 		case 8: assert(size == 4); return 0x03000000;
 		case 0x0e: assert(size == 1); return 0;
 		case 4: assert(size == 2); return 2;
@@ -95,6 +133,9 @@ static void Reset()
 {
 	// No workers exist here. These are mock records, never a real owner reset.
 	sState.~Owner(); new (&sState) Owner();
+	sObservationPin.~Operation(); new (&sObservationPin) Owner::Operation();
+	sForcewake.~IntelN100Forcewake(); new (&sForcewake) IntelN100Forcewake();
+	sHandshakeReport = {};
 	sObservationBlocked = false;
 	sObservationPhase = ObservationIdle;
 	sObservationLease = 0;
@@ -105,6 +146,10 @@ static void Reset()
 	sMockRegisters[kIntelN100GtAckOffset / 4] = 0;
 	sAckGate = sAckEntered = sAckProceed = sChangeAck = sSecondInvalid = false;
 	sBarriers = 0;
+	sClock = 1000; sRequestWrites = 0;
+	sNoSet = sNoClear = sBadPostRead = false;
+	sWriteGate = sWriteEntered = sWriteProceed = sFailFinalOwner = false;
+	sPostClearIdentities = 0;
 	sPMControl = 0;
 	sGate = sEntered = sProceed = false;
 	sReads = 0;
@@ -296,5 +341,72 @@ int main()
 	Reset(); ack = {0xfeed, 0xbeef}; sPMControl = 3;
 	assert(ObserveGtAck(&ack) == B_ERROR && sBarriers == 0);
 	assert(ack.first == 0xfeed && ack.second == 0xbeef); cases++;
+	Reset(); IntelN100Forcewake::Report report = {};
+	assert(RunHandshake(NULL) == B_BAD_VALUE && sRequestWrites == 0);
+	assert(RunHandshake(&report) == B_OK && report.ownership == IntelN100Forcewake::Released);
+	assert(report.error == 0 && report.writes == 2 && sRequestWrites == 2);
+	assert(sObservationPhase == ObservationIdle && !sObservationBlocked); cases++;
+	for (unsigned failure = 0; failure < 3; failure++) {
+		Reset();
+		sNoSet = failure == 0; sNoClear = failure == 1; sBadPostRead = failure == 2;
+		status_t outcome = RunHandshake(&report);
+		if (outcome != B_ERROR || report.ownership != IntelN100Forcewake::Unknown)
+			fprintf(stderr, "failure=%u status=%d error=%u ownership=%u writes=%u reads=%u clock=%llu\n",
+				failure, outcome, report.error, report.ownership, report.writes, report.reads,
+				(unsigned long long)sClock);
+		assert(outcome == B_ERROR && report.ownership == IntelN100Forcewake::Unknown);
+		assert(sObservationPhase == ObservationUnknown && sObservationBlocked);
+		unsigned writes = sRequestWrites, reads = sReads;
+		assert(RunHandshake(&report) == B_BUSY && writes == sRequestWrites && reads == sReads);
+		assert(EndObservation(sObservationLease) == B_BAD_VALUE);
+		ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
+	Reset(); sMockRegisters[kIntelN100GtAckOffset / 4] = 1;
+	assert(RunHandshake(&report) == B_ERROR && report.ownership == IntelN100Forcewake::NoRequest);
+	assert(sRequestWrites == 0 && sObservationPhase == ObservationIdle);
+	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Success); cases++;
+	Reset(); sRegistersUncached = false;
+	assert(RunHandshake(&report) == B_ERROR && report.error == IntelN100Forcewake::InvalidMapping);
+	assert(report.ownership == IntelN100Forcewake::NoRequest && sRequestWrites == 0);
+	assert(RunHandshake(&report) == B_BUSY && report.error == IntelN100Forcewake::InvalidMapping);
+	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Success); cases++;
+	Reset(); sFailFinalOwner = true;
+	assert(RunHandshake(&report) == B_ERROR && report.ownership == IntelN100Forcewake::Unknown);
+	assert(report.stage == IntelN100Forcewake::OwnerValidation);
+	assert(report.error == IntelN100Forcewake::PowerChanged && report.cleanup == report.error);
+	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	for (unsigned failure = 0; failure < 4; failure++) {
+		Reset(); sWriteGate = true;
+		std::thread handshake([&] { result = RunHandshake(&report); });
+		{
+			std::unique_lock<std::mutex> lock(sAckLock);
+			assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sWriteEntered; }));
+		}
+		assert(EndObservation(sObservationLease) == B_BAD_VALUE);
+		assert(BeginObservation(&untouched, &snapshot) == B_BUSY);
+		IntelN100Forcewake::Report ignored = {};
+		assert(RunHandshake(&ignored) == B_BUSY);
+		if (failure == 3) {
+			std::lock_guard<std::mutex> lock(sLock);
+			Owner::Operation operation;
+			assert(sState.BeginOperation(sDisplay, Owner::Free, operation) == Owner::Success);
+			assert(sState.EndOperation(operation, true) == Owner::Success);
+		} else ReleaseDisplay();
+		if (failure == 2) {
+			std::lock_guard<std::mutex> lock(sConfigLock);
+			sPMControl = 3;
+		}
+		{
+			std::lock_guard<std::mutex> lock(sAckLock);
+			if (failure == 1) sMockRegisters[kIntelN100GtAckOffset / 4] = UINT32_MAX;
+			sWriteProceed = true; sAckChanged.notify_all();
+		}
+		handshake.join();
+		assert(result == B_ERROR && report.ownership == IntelN100Forcewake::Unknown);
+		assert(sRequestWrites == (failure == 1 || failure == 2 ? 1u : 2u));
+		assert(sObservationPhase == ObservationUnknown);
+		if (failure == 3) ReleaseDisplay();
+		assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
 	printf("%u actual owner observation cases passed; mocked PCI/kernel only.\n", cases);
 }
