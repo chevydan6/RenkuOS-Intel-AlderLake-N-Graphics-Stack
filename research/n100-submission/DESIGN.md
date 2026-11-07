@@ -206,3 +206,14 @@ all applicable units and platform DMA constraints still need live evidence.
 The real kernel wired-page fixture is compiled/reviewed but remains uninstalled
 because console/SSH recovery is pending. Offline encoding, ownership construction
 and native compilation do not close the hardware memory or submission gates.
+
+## Current bring-up evidence (supersedes historical status above)
+
+Real wired-page/tree and DMAR reserved-range checks passed on the N100; see A19/A25.
+DMAR inventory and two-unit VT-d status samples are captured, without a persistent
+DMA identity claim. A28 demonstrated one primary GT forcewake ACK0→1→0 cycle,
+with owned clear, post-release memory/PCI/display checks and independent review.
+This is not command execution or a production power reference. A29 is a reviewed
+host-tested fixed BCS inventory candidate; native transfer/build and physical
+sampling are blocked on restored target access. No engine/reset/ring writes or
+GPU commands have been introduced. See BCS-INVENTORY-DESIGN.txt for exact scope.
