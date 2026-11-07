@@ -118,13 +118,13 @@ that contract. MOCS/PAT and relevant workarounds remain a pre-execution gate.
 | --- | --- | --- |
 | Host lifetime | 100 threaded query/unmap rounds; 154 lifecycle checks; recovery fixtures | Extend to allocate/bind/free and competing reopen; failure/close/unload cases with retained objects. |
 | Caller contract | Seven manager callbacks now protect lookup lifetime | Review all clients, including sources absent from sparse checkout; establish behavior after failed unmap and forbid reuse of cleanup-only records. |
-| Hardware memory | New memory code compiles in native VM | Separate USB boot of matching driver pair; allocation/free and fault-recovery smoke, unchanged HDMI/SSH, capture logs and physical PCI identity. |
+| Hardware memory | Native089 built on N100; matched components verified; 60 serial allocation/free cycles across two boots and 10 paired-client rounds (20 allocations/frees) passed. See physical-memory-001/002 and physical-concurrent-001 evidence. | Physical failure/close/reopen recovery and retained backing validation remain incomplete. Paired live ranges do not prove simultaneous kernel execution, mapping extent, or GPU access. |
 | Ownership | GART retains failed teardown; reopen retries cleanup | Demonstrate device/module lifetime through client death, failed cleanup and unload; resolve partial-bind orphan recovery before execution. |
 | Placement | Page-rounding and reserved-prefix guards; host regressions | Audit remaining nonempty-list/alignment arithmetic, aliasing, DMA pinning and invalidation. |
 | GT bring-up | No modern execution path | Read-only engine/stepping inventory, bounded forcewake/GT power, reset-domain and interrupt audit; confirm BCS0. |
 | VM/context | Reference files inspected only | Implement and test private PPGTT, context-image layout, context descriptor, status handling, cache policy, generation workarounds and publication order. |
 | Recovery | GART cleanup recovery is not engine recovery | Implement bounded engine stop/reset, stale completion rejection, reinitialization and lifetime retention. Test reset-only operation before the first batch. |
-| Physical recovery | Build 057 known working historically | Verify bootable isolated recovery image now, exact hashes/backups and external power/console recovery; no writes to internal installations. |
+| Physical recovery | Test USB components backed up; original image preserved. User reset restored a stalled terminal/USB session. NanoKVM console and visible native builds work after reboot. | Preserve backups and bounded observation. User explicitly accepts sandbox crashes and physical reset; verified remote recovery is not an additional authorization prerequisite. The earlier hang cause remains unresolved. |
 
 Until every gate passes, no workload is authorized by this design. Physical
 memory validation is a separate phase from launching a batch. The read-only

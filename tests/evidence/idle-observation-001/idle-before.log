@@ -1,0 +1,29 @@
+Sat Nov  7 01:39:31 GMT 2026
+ 01:39:31  up   0:05,  0 users,  load average: 0.00, 0.00, 0.00
+Team                                                  Id #Threads  Gid  Uid 
+kernel_team                                            1       45    0    0 
+/boot/system/servers/launch_daemon                    51        2    0    0 
+/boot/system/servers/debug_server                     55        2    0    0 
+/boot/system/servers/mount_server                     56        1    0    0 
+/boot/system/servers/net_server                       59        4    0    0 
+/boot/system/servers/package_daemon                   60        2    0    0 
+/boot/system/servers/power_daemon                     61        2    0    0 
+/boot/system/servers/registrar                        62        6    0    0 
+/boot/system/servers/syslog_daemon                    63        2    0    0 
+/boot/system/servers/launch_daemon user               74        2    0    0 
+/boot/system/servers/media_server                     95        4    0    0 
+/boot/system/servers/app_server                      127       27    0    0 
+/boot/system/Deskbar                                 138        5    0    0 
+/boot/system/Tracker                                 139        8    0    0 
+/bin/sshd                                            142        1    0    0 
+/boot/system/servers/input_server                    154       14    0    0 
+/boot/system/servers/media_addon_server              179        5    0    0 
+/boot/system/bin/wpa_supplicant                      249        3    0    0 
+/boot/system/servers/notification_server             378        2    0    0 
+/boot/system/data/deskbar/menu/Applications/Terminal   442        5    0    0 
+/bin/bash -l                                         448        1    0    0 
+/bin/bash -l                                         541        1    0    0 
+/bin/tee idle-before.log                             542        1    0    0 
+/bin/ps                                              545        1    0    0 
+-rw-r--r-- 1 user root 106 Nov  6 07:02 /boot/home/config/settings/ScreenSaver_settings
+-rw-r--r-- 1 user root 629 Nov  5 07:48 /boot/home/config/settings/ScreenSaver_settings.before-gpu-test

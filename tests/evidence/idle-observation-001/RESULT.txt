@@ -1,0 +1,17 @@
+IDLE-HANG INVESTIGATION — 2026-11-07
+Implemented: no production changes; submission design updated with physical memory
+milestones and user-authorized recovery scope. No new compilation or simulation.
+Physical: screensaver preferences showed Enable screensaver unchecked and screen
+power-off disabled. No power setting changed. The hexdump command was unavailable;
+GUI screenshot is evidence, not a parsed settings-file result.
+Six10-second heartbeat intervals completed in visible NanoKVM terminal; app_server
+team127 remained running. This is a lightly active responsiveness observation,
+not true idle/suspend testing and not proof against longer idle failures.
+Saved syslog deep-sleep messages belong to mediatekwifi; xHCI stall/recovery is also
+present. Neither establishes a system suspend. Prior terminal/HID hang remains
+unexplained. No new GPU command workload or acceleration evidence.
+Independent latest physical-evidence review remains pending: Terra task returned
+service cybersecurity flag/systemError. Earlier diagnostic source/mock review
+was completed; do not conflate that with physical evidence review.
+Next: resolve review availability and remaining ownership/retirement/submission
+prerequisites. Do not assume this observation satisfies GPU execution gates.
