@@ -1,0 +1,12 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -449,6 +449,9 @@
+ {
+ 	ASSERT(fFirstMemory == NULL);
+ 
++	if (fLock.sem >= B_OK)
++		uninit_lock(&fLock);
++
+ 	fModule->delete_aperture(fPrivateAperture);
+ 	put_module(fModule->info.name);
+ }

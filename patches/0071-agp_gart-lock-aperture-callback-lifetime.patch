@@ -1,0 +1,58 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -1107,6 +1107,7 @@
+ static status_t
+ get_aperture_info(aperture_id id, aperture_info *info)
+ {
++	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
+@@ -1123,6 +1124,7 @@
+ 	if ((flags & ~APERTURE_PUBLIC_FLAGS_MASK) != 0 || _apertureBase == NULL)
+ 		return B_BAD_VALUE;
+ 
++	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
+@@ -1173,6 +1175,7 @@
+ static status_t
+ free_memory(aperture_id id, addr_t base)
+ {
++	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
+@@ -1189,6 +1192,7 @@
+ static status_t
+ reserve_aperture(aperture_id id, size_t size, addr_t *_apertureBase)
+ {
++	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
+@@ -1200,6 +1204,7 @@
+ static status_t
+ unreserve_aperture(aperture_id id, addr_t apertureBase)
+ {
++	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
+@@ -1212,6 +1217,7 @@
+ bind_aperture(aperture_id id, area_id area, addr_t base, size_t size,
+ 	size_t alignment, addr_t reservedBase, addr_t *_apertureBase)
+ {
++	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
+@@ -1273,6 +1279,7 @@
+ static status_t
+ unbind_aperture(aperture_id id, addr_t base)
+ {
++	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;

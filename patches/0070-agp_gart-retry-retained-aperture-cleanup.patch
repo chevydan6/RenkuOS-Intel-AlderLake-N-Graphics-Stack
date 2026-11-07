@@ -1,0 +1,103 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -117,7 +117,8 @@
+ 
+ class Aperture {
+ public:
+-	Aperture(agp_gart_bus_module_info *module, void *aperture);
++	Aperture(agp_gart_bus_module_info *module, void *aperture,
++		uint8 bus, uint8 device, uint8 function);
+ 	~Aperture();
+ 
+ 	status_t InitCheck() const { return fLock.sem >= B_OK ? B_OK : fLock.sem; }
+@@ -138,6 +139,10 @@
+ 	addr_t Base() const { return fInfo.base; }
+ 	addr_t Size() const { return fInfo.size; }
+ 	int32 ID() const { return fID; }
++	bool NeedsCleanup(uint8 bus, uint8 device, uint8 function) const
++		{ return fCleanupPending && fBus == bus && fDevice == device
++			&& fFunction == function; }
++	void MarkCleanupPending() { fCleanupPending = true; }
+ 	struct lock &Lock() { return fLock; }
+ 
+ private:
+@@ -154,6 +159,10 @@
+ 	MemoryHashTable				fHashTable;
+ 	aperture_memory				*fFirstMemory;
+ 	void						*fPrivateAperture;
++	uint8 fBus;
++	uint8 fDevice;
++	uint8 fFunction;
++	bool fCleanupPending;
+ 
+ public:
+ 	Aperture					*fNext;
+@@ -416,13 +425,18 @@
+ //	#pragma mark - Aperture
+ 
+ 
+-Aperture::Aperture(agp_gart_bus_module_info *module, void *aperture)
++Aperture::Aperture(agp_gart_bus_module_info *module, void *aperture,
++	uint8 bus, uint8 device, uint8 function)
+ 	:
+ 	fModule(module),
+ 	fInfo(),
+ 	fHashTable(fInfo),
+ 	fFirstMemory(NULL),
+-	fPrivateAperture(aperture)
++	fPrivateAperture(aperture),
++	fBus(bus),
++	fDevice(device),
++	fFunction(function),
++	fCleanupPending(false)
+ {
+ 	fModule->get_aperture_info(fPrivateAperture, &fInfo);
+ 	fID = atomic_add(&sNextApertureID, 1);
+@@ -999,6 +1013,25 @@
+ 
+ 	Autolock _(sLock);
+ 
++	// Retry only apertures whose owner already requested teardown. Active
++	// apertures, including those on other PCI functions, must remain untouched.
++	ApertureHashTable::Iterator retained = sApertureHashTable.GetIterator();
++	while (retained.HasNext()) {
++		Aperture* candidate = retained.Next();
++		if (!candidate->NeedsCleanup(bus, device, function))
++			continue;
++		{
++			Autolock memoryLocker(candidate->Lock());
++			status = candidate->DeleteAllMemory();
++			if (status < B_OK) {
++				close_module_list(iterator);
++				return status;
++			}
++		}
++		sApertureHashTable.RemoveUnchecked(candidate);
++		delete candidate;
++	}
++
+ 	while (true) {
+ 		char name[256];
+ 		size_t nameLength = sizeof(name);
+@@ -1015,7 +1048,8 @@
+ 				continue;
+ 			}
+ 
+-			aperture = new(std::nothrow) Aperture(module, privateAperture);
++			aperture = new(std::nothrow) Aperture(module, privateAperture,
++				bus, device, function);
+ 			if (aperture == NULL) {
+ 				module->delete_aperture(privateAperture);
+ 				put_module(name);
+@@ -1059,8 +1093,10 @@
+ 	{
+ 		Autolock memoryLocker(aperture->Lock());
+ 		status_t status = aperture->DeleteAllMemory();
+-		if (status < B_OK)
++		if (status < B_OK) {
++			aperture->MarkCleanupPending();
+ 			return status;
++		}
+ 	}
+ 	sApertureHashTable.Remove(aperture);
+ 	delete aperture;

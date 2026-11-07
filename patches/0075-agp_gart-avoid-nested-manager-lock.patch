@@ -1,0 +1,14 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -415,10 +415,10 @@
+ }
+ 
+ 
++// Caller must hold sLock through lookup and the last use of the result.
+ Aperture *
+ get_aperture(aperture_id id)
+ {
+-	Autolock _(sLock);
+ 	return sApertureHashTable.Lookup(id);
+ }
+ 

@@ -1,0 +1,21 @@
+{
+  "scope": "host model; actual dispatcher/removal/free, modeled accounting",
+  "source": "/home/dan/renkuos-development/source/gpu-kernel-validation/src/system/kernel/interrupts.cpp",
+  "source_sha256": "1ea681e0d7bd1e40e220b6eeb6f16dff01a1ae5935ae0a14344e403d046f0c05",
+  "harness_sha256": "69dacb8c4838c723b65dbf57258001fdd382ed5ed84f0e0d5a5e43e54dafd977",
+  "generated_sha256": "f7bb3175549fff2699f9a786c53bdf74e17f48daff3c2122c1de06ef7d48071f",
+  "build_command": [
+    "g++",
+    "-std=c++17",
+    "-pthread",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-g",
+    "-O1",
+    "/tmp/renku-irq-tail-bijs3zss/test.cpp",
+    "-o",
+    "/tmp/renku-irq-tail-bijs3zss/test"
+  ],
+  "returncode": 2
+}

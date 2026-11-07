@@ -1,0 +1,13 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -1124,6 +1124,10 @@
+ 	if ((flags & ~APERTURE_PUBLIC_FLAGS_MASK) != 0 || _apertureBase == NULL)
+ 		return B_BAD_VALUE;
+ 
++	// Check before page rounding so an oversized request cannot wrap.
++	if (size == 0 || size > (size_t)-1 - (B_PAGE_SIZE - 1))
++		return B_BAD_VALUE;
++
+ 	Autolock managerLocker(sLock);
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)

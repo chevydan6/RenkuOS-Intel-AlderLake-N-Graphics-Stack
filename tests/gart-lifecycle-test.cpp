@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Production bind/unbind/delete methods; simulated pages and faulting callbacks.
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -22,6 +23,9 @@ static constexpr uint32 B_APERTURE_NON_RESERVED = 0x01;
 static constexpr uint32 B_APERTURE_NEED_PHYSICAL = 0x02;
 static constexpr phys_addr_t kPhysicalBase = 0x100000;
 #define TRACE(...) ((void)0)
+#ifndef B_BUSY
+#define B_BUSY -16
+#endif
 #define ERROR(...) ((void)0)
 #define ROUNDUP(value, alignment) (((value) + (alignment) - 1) & ~((alignment) - 1))
 
@@ -74,6 +78,8 @@ public:
 	status_t UnbindMemory(aperture_memory*);
 	GART_DELETE_RESULT DeleteMemory(aperture_memory*);
 	status_t DeleteAllMemory();
+	bool IsCleanupPending() const { return cleanupPending; }
+	void MarkCleanupPending() { cleanupPending = true; }
 	aperture_memory* CreateMemory(size_t, size_t, uint32);
 	aperture_memory* GetMemory(addr_t base)
 	{
@@ -95,6 +101,7 @@ public:
 	HashTable fHashTable;
 	aperture_memory* fFirstMemory;
 	TestLock fLock = {};
+	bool cleanupPending = false;
 };
 
 struct ApertureTable {
@@ -323,6 +330,9 @@ main()
 		memory->pages = pointers;
 		check(aperture->BindMemory(memory, 0, 0) == B_OK, "aperture unmap fixture binds");
 		check(unmap_aperture(1) == B_ERROR, "aperture unmap returns cleanup failure");
+		assert(aperture->IsCleanupPending());
+		assert(bind_aperture(1, -1, 0x900000, B_PAGE_SIZE, 0, 0, NULL)
+			== B_BUSY);
 		check(sApertureHashTable.value == aperture && state.destructions == 0,
 			"failed unmap preserves aperture and registry entry");
 		check(state.frees == 0 && owned_mappings(state), "failed unmap preserves backing");

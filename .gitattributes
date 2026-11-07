@@ -1,2 +1,4 @@
 # Patch context carries leading diff markers and signature separators.
 *.patch -whitespace
+# Preserve the sanitizer's raw shadow-byte legend in archived defect evidence.
+tests/evidence/**/no-lock.log -whitespace

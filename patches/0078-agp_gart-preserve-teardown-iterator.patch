@@ -1,0 +1,11 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -1368,7 +1368,7 @@
+ 			if (status < B_OK)
+ 				return status;
+ 		}
+-		sApertureHashTable.Remove(aperture);
++		sApertureHashTable.RemoveUnchecked(aperture);
+ 		delete aperture;
+ 	}
+ 

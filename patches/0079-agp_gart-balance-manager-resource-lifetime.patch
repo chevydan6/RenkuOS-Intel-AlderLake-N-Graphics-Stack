@@ -1,0 +1,30 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -1349,8 +1349,14 @@
+ 	// Since there can be custom aperture modules (for memory management only),
+ 	// we always succeed if we could get the resources we need.
+ 
++	status_t status = init_lock(&sLock, "agp_gart");
++	if (status < B_OK) {
++		put_module(B_PCI_MODULE_NAME);
++		return status;
++	}
++
+ 	new(&sApertureHashTable) ApertureHashTable();
+-	return init_lock(&sLock, "agp_gart");
++	return B_OK;
+ }
+ 
+ 
+@@ -1372,6 +1378,11 @@
+ 		delete aperture;
+ 	}
+ 
++	// Release bucket storage and leave the global object valid for teardown
++	// or a subsequent module initialization.
++	sApertureHashTable.~ApertureHashTable();
++	new(&sApertureHashTable) ApertureHashTable();
++	uninit_lock(&sLock);
+ 	put_module(B_PCI_MODULE_NAME);
+ 	return B_OK;
+ }

@@ -1,0 +1,28 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -142,6 +142,7 @@
+ 	bool NeedsCleanup(uint8 bus, uint8 device, uint8 function) const
+ 		{ return fCleanupPending && fBus == bus && fDevice == device
+ 			&& fFunction == function; }
++	bool IsCleanupPending() const { return fCleanupPending; }
+ 	void MarkCleanupPending() { fCleanupPending = true; }
+ 	struct lock &Lock() { return fLock; }
+ 
+@@ -1137,6 +1138,8 @@
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
++	if (aperture->IsCleanupPending())
++		return B_BUSY;
+ 
+ 	size = ROUNDUP(size, B_PAGE_SIZE);
+ 
+@@ -1230,6 +1233,8 @@
+ 	Aperture *aperture = get_aperture(id);
+ 	if (aperture == NULL)
+ 		return B_ENTRY_NOT_FOUND;
++	if (aperture->IsCleanupPending())
++		return B_BUSY;
+ 
+ 	if (area < 0) {
+ 		if (size == 0 || size > aperture->Size()

@@ -1,0 +1,30 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -521,7 +521,12 @@
+ 	memory->area = -1;
+ #endif
+ 
+-	fHashTable.Insert(memory);
++	status = fHashTable.Insert(memory);
++	if (status < B_OK) {
++		_Remove(memory);
++		delete memory;
++		return NULL;
++	}
+ 	return memory;
+ }
+ 
+@@ -1063,11 +1068,11 @@
+ 				break;
+ 			}
+ 			status = aperture->InitCheck();
++			if (status == B_OK)
++				status = sApertureHashTable.Insert(aperture);
+ 			if (status == B_OK) {
+ 				if (_apertureBase != NULL)
+ 					*_apertureBase = aperture->Base();
+-
+-				sApertureHashTable.Insert(aperture);
+ 			} else {
+ 				delete aperture;
+ 				aperture = NULL;

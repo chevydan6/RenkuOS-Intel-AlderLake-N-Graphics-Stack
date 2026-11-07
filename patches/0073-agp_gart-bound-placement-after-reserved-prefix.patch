@@ -1,0 +1,14 @@
+--- a/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
++++ b/src/add-ons/kernel/bus_managers/agp_gart/agp_gart.cpp
+@@ -841,6 +841,11 @@
+ 	if (start > fInfo.base - 1 + fInfo.size || start < fInfo.base)
+ 		return B_NO_MEMORY;
+ 
++	// The reserved prefix and alignment can leave less than size bytes,
++	// even when the request fits the total aperture size.
++	if (size > fInfo.size - (start - fInfo.base))
++		return B_NO_MEMORY;
++
+ 	// walk up to the spot where we should start searching
+ 
+ 	next = fFirstMemory;
