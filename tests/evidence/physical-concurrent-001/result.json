@@ -1,0 +1,15 @@
+{
+  "physical": true,
+  "rounds": 10,
+  "allocations_freed": 20,
+  "exit": 0,
+  "app_server_team_before_after": 127,
+  "source_sha256": "8c27c133808537f2efef15928035000e0f5e70895c3cc81e4ffcba5b22623d09",
+  "scope": "two clients with overlapping live allocation lifetimes; no GPU commands; no simultaneous kernel execution proof",
+  "limits": [
+    "one physical run",
+    "prior terminal/USB stall unresolved",
+    "xHCI stall present in boot log",
+    "no stuck ioctl or retirement proof"
+  ]
+}
