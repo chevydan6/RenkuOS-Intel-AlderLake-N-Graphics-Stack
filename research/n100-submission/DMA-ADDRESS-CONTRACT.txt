@@ -1,0 +1,47 @@
+N100 address domains and remaining DMA admission contract — 2026-11-07
+
+Verified in full source HEAD of source/gpu-kernel-validation using git grep:
+1. headers/os/drivers/KernelExport.h and vm/vm.cpp get_memory_map_etc return
+CPU physical entries. B_FULL_LOCK owns wired RAM; it creates no per-device DMA
+mapping and does not answer firmware-IOMMU state.
+2. PCI.h ram_address has an ambiguous parameter name. pci/pci.cpp:129
+pci_ram_address converts PCI child address to host address; x86 branch is identity.
+The same helper is called when converting BAR resource addresses at pci.cpp:1506.
+It is not a per-device DMA mapping/pinning service. Do not use it as evidence
+that arbitrary CPU physical addresses are valid GPU bus addresses.
+3. Full-tree IOMMU/DMAR search found ACPICA table definitions, PCI class constant
+and inherited wireless comments, but no IOMMU translation owner in the searched
+kernel and add-on paths. This source observation does not prove firmware state
+or identify every external module in the physically running image.
+4. Saved physical-copyout001 syslog reports ACPI DMAR at0x76846000 length0x88,
+revision1 COREv4/COREBOOT. This is historical table-presence evidence only. No
+DMAR bytes, remapping-unit registers or live device translation state captured.
+
+Consequence: IntelN100KernelPages remains an OFFLINE CPU-physical provider.
+The field named dma in the abstract tree must not become publishable merely
+because it passes the39bit numeric check. Mapping identity is still unverified.
+
+Required next implementation contract (design, not existing APIs):
+- Preserve separate CPU physical, device DMA, CPU mapping and GGTT/PPGTT addresses
+in the owned backing record. A successful device mapping carries a lifetime/pin
+reference tied to the target PCI BDF and publication/reset generation.
+- Before choosing identity mapping for this sandbox, collect read-only ACPI DMAR
+unit inventory and authoritative live translation-enabled state for every unit
+that can cover8086:46d1, including include-all scopes. Validate table lengths,
+checksum,segment/device scopes and platform DMA/bus constraints. Inactive
+translation alone is necessary evidence for this path, not a complete mapping
+contract; the wired-page fixture likewise cannot prove GPU DMA suitability.
+Unknown scope, read error or enabled translation rejects this identity path.
+- Do not disable firmware remapping or rewrite unit tables merely to satisfy
+this test. Enabled translation needs a separate kernel-owned mapping service.
+- A controller register-read recipe is not approved here: exact register mapping,
+read widths, active-state and lifetime sources must be reviewed first. ACPI table
+absence alone cannot prove disabled translation; missing evidence remains unknown.
+- Keep this check separate from PAT/MOCS, CPU/GPU cache visibility, GGTT binding,
+page-table invalidation, engine/context setup and retirement/reset guarantees.
+An identity decision does not discharge those contracts.
+
+No source change to production driver, no new compilation/simulation/native or
+physical test. The audit prevents substituting an unrelated PCI helper for the
+missing DMA contract. Hardware recovery remains prerequisite to collecting live
+evidence; A19 kernel wired-page fixture is still first runtime checkpoint.

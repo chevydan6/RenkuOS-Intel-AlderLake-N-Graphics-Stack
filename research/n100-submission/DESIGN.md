@@ -194,3 +194,15 @@ Terra T-F2 supplies the missing MOCS reference; register/stepping and visibility
 review remains open. T-F3 independently verifies the retained-module mechanism,
 not automatic backing/aperture retention. Imported reports are source research,
 not a hardware-ready programming recipe.
+
+## Bring-up research update — 2026-11-07
+
+GT-FORCEWAKE-DESIGN.txt records reviewed Gen12 GT-domain handshake fields and
+ownership/power/deadline requirements. No hardware forcewake implementation has
+been validated. DMA-ADDRESS-CONTRACT.txt distinguishes CPU physical pages from
+PCI resources and device DMA. The existing x86 PCI identity helper does not
+establish firmware-IOMMU state. Archived physical logs contain DMAR table presence;
+all applicable units and platform DMA constraints still need live evidence.
+The real kernel wired-page fixture is compiled/reviewed but remains uninstalled
+because console/SSH recovery is pending. Offline encoding, ownership construction
+and native compilation do not close the hardware memory or submission gates.

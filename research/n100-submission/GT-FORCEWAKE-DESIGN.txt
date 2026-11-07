@@ -1,0 +1,53 @@
+N100 GT forcewake acquisition design — 2026-11-07
+
+Terra independently inspected Linux028ef9c96e96197026887c0f092424679298aae8
+intel_uncore.c, intel_uncore.h and gt/intel_gt_regs.h. This is a source-derived
+adapter design, not a hardware-ready sequence or a physical test result.
+
+Known programming fields:
+- __gen12_fw_ranges assigns BCS0 0x22000..0x23fff to GT, not RENDER.
+- GT-domain ranges also include fault0x4294,aux-invalidate0x4248,idle0x800c,
+and MOCS0xcc00. Range membership does not authorize arbitrary MMIO access.
+- Request0xa188,ack0x130044,kernel bit0. Masked request1=0x00010001;
+release=0x00010000. Individual reference ACK wait limit50ms.
+- First get waits kernel ACK clear, requests, waits ACK set. Final put clears
+request. Reference release does not poll ACK clear; next acquisition does.
+- Gen11+ uses fallback bit15: wait clear,masked enable0x80008000,delay10*pass
+microseconds,wait set,sample desired primary ACK,disable0x80000000; at most10
+passes. Linux diagnostic continuation after a timeout is not new-driver success.
+
+Proposed C++ owner and sequence boundary:
+1. Module retains MMIO mapping/code, device identity and a separate GT power
+reference. A device mutex serializes non-reentrant acquire/release and protects
+lease count/state. No caller may use the common kernel request bit outside it.
+2. Raw register adapter exposes only prevalidated32bit request/ACK offsets with
+posted-write semantics. It must not recursively request forcewake itself.
+3. First acquisition requires a reviewed ownership handoff; stale ACK/request
+must not be cleared by inference. Track every attempted request/fallback bit
+in persistent state. Nested acquisitions increment count without programming
+hardware; overflow and invalid release fail without writes.
+4. Poll with individual and total monotonic deadlines. Proposed total acquisition
+limit2.5seconds includes all clear/set/fallback waits, pending stepping review.
+Do not wait with interrupts disabled or hold a GART/display lock across polling.
+5. As a deliberate stricter adapter policy (not a claim about every Linux poll),
+MMIO read errors/all-ones,expired deadlines,unknown ownership or uncertain
+release reject all dependent GT access and further submission. Retain attempted
+bit ownership for recovery diagnostics; no broad0xefff reset-mask write here.
+6. A live lease enables only an explicit BCS register allowlist (offset,width,
+read/write semantics). GT forcewake is separate from runtime power, engine reset,
+DMA/table visibility, context setup, command completion and retirement.
+
+Implementation approval still requires revision0 workaround completeness, power
+reference acquisition, ownership interaction with active display/firmware, raw
+MMIO posting/ordering and live BCS fuse/availability checks. No forcewake writes
+are authorized by this note alone. Existing sparse GPU driver/accelerant search
+found no forcewake-symbol calls, but this is not proof of exclusive hardware use.
+
+Future tests: logged access order and deadlines,clear/set/fallback successes,
+all-ones/read/write failure at each step,stale ACK,timeout,nested references,
+underflow/overflow and acquire/release contention. Native physical handshake
+must precede engine-dependent inventory and be reported separately.
+
+Sources:
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/intel_uncore.c
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_gt_regs.h
