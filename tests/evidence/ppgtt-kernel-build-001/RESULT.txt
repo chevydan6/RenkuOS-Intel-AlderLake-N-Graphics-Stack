@@ -1,0 +1,20 @@
+RESIDENT KERNEL WIRED-PAGE FIXTURE — 2026-11-07
+Implemented tests/ppgtt-native-{module,bridge,client,protocol} and make targets.
+B_KEEP_LOADED module owns provider/tree/lock and cached one-shot result. Three
+cases create1,16,1diagnostic pages at low/top windows; verify all table entries,
+independent walks, zero data/scratch, kernel area4K/full-lock attributes, release
+and empty ownership ledger. Old-ID absence is supporting observation only.
+Bridge owns no retained resources; copyout failure cannot rerun/clean module.
+Terra reviewed design and source, accepted bounded memory-only physical test.
+Compiled on actualN100 through visible NanoKVM: module,bridge and client pass,
+source and binary hashes saved. No new simulation/VM test in this checkpoint.
+Runtime: NOT installed or executed. NanoKVM HID timed out before installation.
+SSH remained responsive; attempted visible Terminal launch stalled before its
+logfile appeared; launch shell2634 was subsequently sent termination. One normal
+shutdown-r request returned0 but uptime remained1hour; reboot completion unproven.
+Thus console/target recovery blocks real kernel allocation evidence. Physical
+reset needed; test fixtures did not cause this pre-install hang. No inference of
+sleep cause, error-free system, actual page reclamation, DMA or GPU execution.
+Next: recover console, verify fresh boot/identities/artifacts, install only named
+test module/bridge, observe client within60sec under canonical locks, collect logs
+and leave resident failure state. Existing driver/recovery components untouched.
