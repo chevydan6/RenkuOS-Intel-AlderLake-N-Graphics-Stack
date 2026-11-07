@@ -1,0 +1,8 @@
+A29 host-only candidate checkpoint
+84 forcewake/inspection state cases and37 fixed sampler cases passed host
+O2 warnings-as-errors ASan/UBSan.48 actual owner-function cases passed with
+mocked PCI,barriers,time and RAM-backed register accesses. Terra independently
+reviewed code and reran cases. Existing v3 cases preserved. These are simulation.
+Native compile and physical inventory NOT performed: target SSH/source transfer
+and NanoKVM HID failed beforebuild. No A29 candidate installed. A28 evidence
+stays historical; target physicalreset required to continue. NoGPUexecution.

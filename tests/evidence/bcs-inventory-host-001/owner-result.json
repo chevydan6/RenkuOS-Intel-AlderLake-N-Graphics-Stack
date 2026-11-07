@@ -1,0 +1,13 @@
+{
+  "exit": 0,
+  "hashes": {
+    "/home/dan/renkuos-development/source/gpu-next-worktree/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp": "80601207bfd3db2808de446d0a225152222f7ba990798c907b1d6d1f5b91bf5f",
+    "/home/dan/renkuos-development/source/gpu-next-worktree/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h": "adea0412f14056b4cf054707e93accfbb3f37dc8dbcb56ea2311ec51f34dfdd4",
+    "/home/dan/renkuos-development/source/gpu-next-worktree/headers/private/graphics/intel_extreme/IntelN100PciPower.h": "56c7b5bf1e34fef35b443e702648c39cdd8c74d0f25b88d17104929113a9e47b",
+    "/home/dan/renkuos-development/source/gpu-next-worktree/headers/private/graphics/intel_extreme/IntelN100GtAck.h": "82a5c80a6d4a7fa597cb47180bb0bbbd42e8b07902e0878074d08a8b646140e1",
+    "/home/dan/renkuos-development/source/gpu-next-worktree/headers/private/graphics/intel_extreme/IntelN100Forcewake.h": "511a68143f7ff4a91a30b0528c34442cef155f88decc2713e2c6b90aa9271be2",
+    "/home/dan/renkuos-development/source/gpu-next-worktree/headers/private/graphics/intel_extreme/IntelN100BcsInventory.h": "86aca4c050a9259595ce2f42696b38939bc277ccbec01b83fc11d9896072b1eb",
+    "/home/dan/renkuos-development/gpu-driver/tests/owner-observation-test.cpp": "c16bf403cf87b6aacb62252c8554f2ad2404513809ed180b61f0d7cdf1396bb9"
+  },
+  "scope": "Actual observation admission/retirement functions; mocked PCI and kernel mutex, no hardware."
+}

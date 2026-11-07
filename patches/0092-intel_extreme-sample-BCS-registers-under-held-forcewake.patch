@@ -1,0 +1,286 @@
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -385,6 +385,9 @@
+ 	IntelN100PciSnapshot original;
+ 	uint64 lease;
+ 	addr_t registers;
++	IntelN100BcsInventory* inventory;
++	bool sampleUncertain;
++	uint64 sampleDeadline, sampleLastTime;
+ };
+ 
+ static uint64_t
+@@ -451,8 +454,51 @@
+ 	snooze(100);
+ }
+ 
+-static status_t
+-RunHandshake(IntelN100Forcewake::Report* output)
++static bool
++ReadBcsRegister(void* data, uint32_t offset, uint32_t& value)
++{
++	HandshakeContext& context = *(HandshakeContext*)data;
++	bool allowed = false;
++	for (unsigned i = 0; i < 5; i++)
++		allowed |= offset == kIntelN100BcsOffsets[i];
++	uint64 now = HandshakeTime(NULL);
++	if (!allowed || (offset & 3) != 0
++		|| uint64(offset) + sizeof(uint32) > context.device.size
++		|| context.registers > UINTPTR_MAX - offset - 3
++		|| now == UINT64_MAX || now < context.sampleLastTime
++		|| now >= context.sampleDeadline) {
++		context.sampleUncertain = true;
++		return false;
++	}
++	context.sampleLastTime = now;
++	if (!HandshakeLive(data))
++		return false;
++	memory_read_barrier();
++	value = *(const volatile uint32*)(context.registers + offset);
++	memory_read_barrier();
++	now = HandshakeTime(NULL);
++	if (value == UINT32_MAX || now == UINT64_MAX
++		|| now < context.sampleLastTime || now >= context.sampleDeadline) {
++		context.sampleUncertain = true;
++		return false;
++	}
++	context.sampleLastTime = now;
++	return true;
++}
++
++static IntelN100Forcewake::InspectionResult
++InspectBcs(void* data, uint64_t deadline)
++{
++	HandshakeContext& context = *(HandshakeContext*)data;
++	context.sampleDeadline = deadline;
++	context.sampleLastTime = HandshakeTime(NULL);
++	bool sampled = intel_n100_sample_bcs(ReadBcsRegister, data, *context.inventory);
++	return context.sampleUncertain ? IntelN100Forcewake::InspectionUncertain
++		: sampled ? IntelN100Forcewake::InspectionOk : IntelN100Forcewake::InspectionFailed;
++}
++
++static status_t
++RunGtTransaction(IntelN100Forcewake::Report* output, IntelN100BcsInventory* inventory)
+ {
+ 	if (output == NULL)
+ 		return B_BAD_VALUE;
+@@ -471,6 +517,7 @@
+ 		return status;
+ 
+ 	HandshakeContext context;
++	IntelN100BcsInventory observed = {};
+ 	mutex_lock(&sLock);
+ 	if (sObservationLease != lease || sObservationPhase != ObservationHandshaking) {
+ 		sObservationBlocked = true;
+@@ -484,7 +531,8 @@
+ 		return B_ERROR; // Invariant breach: retain, never guess-retire.
+ 	}
+ 	sObservationPhase = ObservationHandshaking;
+-	context = { sDevice, original, lease, sResources.registers };
++	context = { sDevice, original, lease, sResources.registers,
++		inventory != NULL ? &observed : NULL, false, 0, 0 };
+ 	bool valid = sizeof(addr_t) == 8 && sRegistersUncached
+ 		&& sResources.registers_area >= B_OK && context.registers != 0
+ 		&& (context.registers & 3) == 0
+@@ -506,7 +554,8 @@
+ 
+ 	IntelN100Forcewake::IO io = { &context, HandshakeTime, HandshakeRead,
+ 		HandshakeWrite, HandshakePciStable, HandshakeLive, HandshakePause };
+-	IntelN100Forcewake::Error result = sForcewake.Run(io);
++	IntelN100Forcewake::Error result = inventory != NULL
++		? sForcewake.RunWithInspection(io, InspectBcs) : sForcewake.Run(io);
+ 	IntelN100Forcewake::Report report = sForcewake.LastReport();
+ 	bool stable = report.ownership == IntelN100Forcewake::Released
+ 		? HandshakePciStable(&context) : true;
+@@ -532,7 +581,23 @@
+ 	}
+ 	mutex_unlock(&sLock);
+ 	*output = report;
++	if (status == B_OK && inventory != NULL)
++		*inventory = observed;
+ 	return status;
++}
++
++static status_t
++RunHandshake(IntelN100Forcewake::Report* output)
++{
++	return RunGtTransaction(output, NULL);
++}
++
++static status_t
++RunBcsInventory(IntelN100Forcewake::Report* report, IntelN100BcsInventory* inventory)
++{
++	if (report == NULL || inventory == NULL)
++		return B_BAD_VALUE;
++	return RunGtTransaction(report, inventory);
+ }
+ 
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+@@ -601,7 +666,13 @@
+ 	RunHandshake
+ };
+ 
++static intel_gt_engine_inventory_module_info sEngineInventoryModule = {
++	{ INTEL_GT_ENGINE_INVENTORY_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++	RunBcsInventory
++};
++
+ module_info* modules[] = {
+ 	(module_info*)&sModule, (module_info*)&sObservationModule,
+-	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule, NULL
+-};
++	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule,
++	(module_info*)&sEngineInventoryModule, NULL
++};
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -7,6 +7,7 @@
+ #include <IntelN100PciPower.h>
+ #include <IntelN100GtAck.h>
+ #include <IntelN100Forcewake.h>
++#include <IntelN100BcsInventory.h>
+ 
+ #define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
+ 
+@@ -62,4 +63,14 @@
+ 	module_info info;
+ 	status_t (*run_handshake)(IntelN100Forcewake::Report* report);
+ };
++
++#define INTEL_GT_ENGINE_INVENTORY_MODULE_NAME "bus_managers/intel_memory_owner/v4"
++// Fixed raw BCS register inventory under held forcewake. No engine/ring stores,
++// context, commands or DMA. Report follows v3 admission contract; register
++// output commits only after successful sampling, release and final validation.
++struct intel_gt_engine_inventory_module_info {
++	module_info info;
++	status_t (*sample_bcs)(IntelN100Forcewake::Report* report,
++		IntelN100BcsInventory* inventory);
++};
+ #endif
+--- a/headers/private/graphics/intel_extreme/IntelN100Forcewake.h
++++ b/headers/private/graphics/intel_extreme/IntelN100Forcewake.h
+@@ -11,9 +11,9 @@
+ public:
+ 	enum Error : uint32_t { Ok, Blocked, InvalidCallbacks, Cancelled,
+ 		PowerChanged, ClockError, ReadError, WriteError, PreTimeout, SetTimeout,
+-		ClearTimeout, TotalTimeout, FallbackChanged, InvalidMapping, InvariantFailed };
++		ClearTimeout, TotalTimeout, FallbackChanged, InvalidMapping, InvariantFailed, InspectFailed, InspectTimeout, AckLost, InspectUncertain };
+ 	enum Stage : uint32_t { Preflight, WaitIdle, Enable, WaitSet, Clear,
+-		WaitClear, Complete, OwnerValidation };
++		WaitClear, Complete, OwnerValidation, Inspect };
+ 	enum Ownership : uint32_t { NoRequest, EnableAttempted, Issued,
+ 		Acknowledged, ClearAttempted, Released, Unknown };
+ 	struct Report {
+@@ -37,7 +37,12 @@
+ 	const Report& LastReport() const { return fReport; }
+ 	bool IsBlocked() const { return fBlocked; }
+ 
+-	Error Run(const IO& io)
++	Error Run(const IO& io) { return RunWithInspection(io, NULL); }
++
++	// Trusted owner-only fixed sampler. No userspace callback or generic batch.
++	enum InspectionResult : uint32_t { InspectionOk, InspectionFailed, InspectionUncertain };
++	typedef InspectionResult (*Inspector)(void*, uint64_t deadline);
++	Error RunWithInspection(const IO& io, Inspector inspect)
+ 	{
+ 		if (fBlocked)
+ 			return Blocked; // Preserve the original diagnostic ledger.
+@@ -66,7 +71,7 @@
+ 			return Fail(PowerChanged);
+ 		if ((error = Time()) != Ok)
+ 			return Fail(error);
+-		if (fTotalEnd - fLastTime < 100000)
++		if (fTotalEnd - fLastTime < (inspect != NULL ? 150000u : 100000u))
+ 			return Fail(TotalTimeout); // Reserve set and cleanup wait budgets.
+ 
+ 		const uint64_t setDeadline = fLastTime + 50000;
+@@ -93,6 +98,44 @@
+ 		} else if (error != SetTimeout && error != Cancelled) {
+ 			return UnknownFailure(error);
+ 		}
++		if (acknowledged && inspect != NULL) {
++			if (!io.pciStable(io.context))
++				return UnknownFailure(PowerChanged);
++			if ((error = Time()) != Ok)
++				return UnknownFailure(error);
++			if (fTotalEnd - fLastTime < 100000)
++				return UnknownFailure(TotalTimeout);
++			const uint64_t inspectDeadline = fLastTime + 50000;
++			fReport.stage = Inspect;
++			if ((error = ReadChecked()) != Ok)
++				return UnknownFailure(error);
++			if ((fReport.lastAck & 1) == 0)
++				return UnknownFailure(AckLost);
++			if (fLastTime >= inspectDeadline)
++				return UnknownFailure(InspectTimeout);
++			if (!io.live(io.context))
++				error = Cancelled;
++			else {
++				InspectionResult inspected = inspect(io.context, inspectDeadline);
++				if (!io.pciStable(io.context))
++					return UnknownFailure(PowerChanged);
++				if ((error = Time()) != Ok)
++					return UnknownFailure(error);
++				if (fLastTime >= inspectDeadline)
++					return UnknownFailure(InspectTimeout);
++				if ((error = ReadChecked()) != Ok)
++					return UnknownFailure(error);
++				if ((fReport.lastAck & 1) == 0)
++					return UnknownFailure(AckLost);
++				if (fLastTime >= inspectDeadline)
++					return UnknownFailure(InspectTimeout);
++				if (inspected != InspectionOk && inspected != InspectionFailed)
++					return UnknownFailure(InspectUncertain);
++				error = inspected == InspectionOk ? Ok : InspectFailed;
++				if (!io.live(io.context))
++					error = Cancelled;
++			}
++		}
+ 		// Even an ACK timeout/cancel after a known CPU issue gets a bounded
+ 		// owned-bit clear attempt, but only with a valid clock and PCI state.
+ 		fReport.error = error;
+@@ -131,7 +174,7 @@
+ 			return UnknownFailure(Cancelled);
+ 		fReport.ownership = Released;
+ 		fReport.stage = Complete;
+-		return Ok;
++		return error == Ok ? Ok : Fail(error);
+ 	}
+ 
+ private:
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelN100BcsInventory.h
+@@ -0,0 +1,33 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_N100_BCS_INVENTORY_H
++#define INTEL_N100_BCS_INVENTORY_H
++#include <stdint.h>
++#include <stddef.h>
++
++// Raw sequential samples only: no engine-present, idle or submission-ready
++// conclusion. Owner supplies live GT forcewake, UC mapping and per-read guards.
++struct IntelN100BcsInventory {
++	uint32_t tail, head, control, mode, pendingWake;
++};
++static const uint32_t kIntelN100BcsOffsets[5] = {
++	0x22030, 0x22034, 0x2203c, 0x2209c, 0x800c
++};
++static inline bool
++intel_n100_sample_bcs(bool (*read)(void*, uint32_t, uint32_t&), void* context,
++	IntelN100BcsInventory& output)
++{
++	if (read == NULL)
++		return false;
++	uint32_t values[5] = {};
++	for (unsigned i = 0; i < 5; i++) {
++		if (!read(context, kIntelN100BcsOffsets[i], values[i])
++			|| values[i] == UINT32_MAX)
++			return false;
++	}
++	IntelN100BcsInventory sample = {
++		values[0], values[1], values[2], values[3], values[4]
++	};
++	output = sample;
++	return true;
++}
++#endif

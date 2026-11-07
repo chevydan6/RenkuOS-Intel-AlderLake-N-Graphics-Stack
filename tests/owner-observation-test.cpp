@@ -4,12 +4,14 @@
 #include "IntelN100PciPower.h"
 #include "IntelN100GtAck.h"
 #include "IntelN100Forcewake.h"
+#include "IntelN100BcsInventory.h"
 #include <assert.h>
 #include <chrono>
 #include <condition_variable>
 #include <new>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <mutex>
 #include <thread>
 
@@ -43,6 +45,7 @@ static unsigned sRequestWrites;
 static bool sNoSet, sNoClear, sBadPostRead;
 static bool sWriteGate, sWriteEntered, sWriteProceed, sFailFinalOwner;
 static unsigned sPostClearIdentities;
+static bool sEngineGate, sEngineEntered, sEngineProceed;
 static int64_t MockSystemTime() { return sClock; }
 static int MockSnooze(int64_t delay) { sClock += delay; return 0; }
 static void MockWriteBarrier() { assert(sLock.try_lock()); sLock.unlock(); }
@@ -65,6 +68,10 @@ static void memory_read_barrier()
 	assert(sLock.try_lock()); sLock.unlock();
 	std::unique_lock<std::mutex> lock(sAckLock);
 	unsigned barrier = sBarriers++;
+	if (sEngineGate && barrier == 6) {
+		sEngineEntered = true; sAckChanged.notify_all();
+		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sEngineProceed; }));
+	}
 	if (barrier == 0 && sAckGate) {
 		sAckEntered = true; sAckChanged.notify_all();
 		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sAckProceed; }));
@@ -150,6 +157,8 @@ static void Reset()
 	sNoSet = sNoClear = sBadPostRead = false;
 	sWriteGate = sWriteEntered = sWriteProceed = sFailFinalOwner = false;
 	sPostClearIdentities = 0;
+	sEngineGate = sEngineEntered = sEngineProceed = false;
+	for (unsigned i = 0; i < 5; i++) sMockRegisters[kIntelN100BcsOffsets[i] / 4] = i + 1;
 	sPMControl = 0;
 	sGate = sEntered = sProceed = false;
 	sReads = 0;
@@ -407,6 +416,65 @@ int main()
 		assert(sObservationPhase == ObservationUnknown);
 		if (failure == 3) ReleaseDisplay();
 		assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	}
+	Reset(); IntelN100BcsInventory bcs = {}, saved = {};
+	assert(RunBcsInventory(NULL, &bcs) == B_BAD_VALUE);
+	assert(RunBcsInventory(&report, NULL) == B_BAD_VALUE && sRequestWrites == 0);
+	assert(RunBcsInventory(&report, &bcs) == B_OK && report.ownership == IntelN100Forcewake::Released);
+	assert(bcs.tail == 1 && bcs.head == 2 && bcs.control == 3 && bcs.mode == 4 && bcs.pendingWake == 5);
+	assert(sRequestWrites == 2 && sObservationPhase == ObservationIdle); cases++;
+	for (unsigned invalid = 0; invalid < 5; invalid++) {
+		Reset(); memset(&bcs, 0xa5, sizeof(bcs)); saved = bcs;
+		sMockRegisters[kIntelN100BcsOffsets[invalid] / 4] = UINT32_MAX;
+		assert(RunBcsInventory(&report, &bcs) == B_ERROR);
+		assert(report.error == IntelN100Forcewake::InspectUncertain && report.ownership == IntelN100Forcewake::Unknown);
+		assert(sRequestWrites == 1 && memcmp(&bcs, &saved, sizeof(bcs)) == 0);
+		assert(sObservationPhase == ObservationUnknown); cases++;
+	}
+	Reset(); sEngineGate = true; memset(&bcs, 0xa5, sizeof(bcs)); saved = bcs;
+	std::thread sampling([&] { result = RunBcsInventory(&report, &bcs); });
+	{
+		std::unique_lock<std::mutex> lock(sAckLock);
+		assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sEngineEntered; }));
+	}
+	assert(EndObservation(sObservationLease) == B_BAD_VALUE);
+	ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy);
+	{
+		std::lock_guard<std::mutex> lock(sAckLock);
+		sEngineProceed = true; sAckChanged.notify_all();
+	}
+	sampling.join();
+	assert(result == B_ERROR && report.ownership == IntelN100Forcewake::Unknown);
+	assert(sRequestWrites == 2 && memcmp(&bcs, &saved, sizeof(bcs)) == 0);
+	assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
+	Reset(); sFailFinalOwner = true; memset(&bcs, 0xa5, sizeof(bcs)); saved = bcs;
+	assert(RunBcsInventory(&report, &bcs) == B_ERROR);
+	assert(report.stage == IntelN100Forcewake::OwnerValidation && report.ownership == IntelN100Forcewake::Unknown);
+	assert(memcmp(&bcs, &saved, sizeof(bcs)) == 0 && sRequestWrites == 2); cases++;
+	for (unsigned fault = 0; fault < 3; fault++) {
+		Reset(); sEngineGate = true; memset(&bcs, 0xa5, sizeof(bcs)); saved = bcs;
+		std::thread guarded([&] { result = RunBcsInventory(&report, &bcs); });
+		{
+			std::unique_lock<std::mutex> lock(sAckLock);
+			assert(sAckChanged.wait_for(lock, std::chrono::seconds(5), [] { return sEngineEntered; }));
+		}
+		if (fault == 0) {
+			std::lock_guard<std::mutex> lock(sLock);
+			Owner::Operation operation;
+			assert(sState.BeginOperation(sDisplay, Owner::Free, operation) == Owner::Success);
+			assert(sState.EndOperation(operation, true) == Owner::Success);
+		}
+		{
+			std::lock_guard<std::mutex> lock(sAckLock);
+			if (fault == 1) sClock = 0;
+			if (fault == 2) sClock += 50000;
+			sEngineProceed = true; sAckChanged.notify_all();
+		}
+		guarded.join();
+		assert(result == B_ERROR && report.ownership == IntelN100Forcewake::Unknown);
+		assert(sRequestWrites == (fault == 0 ? 2u : 1u));
+		assert(memcmp(&bcs, &saved, sizeof(bcs)) == 0);
+		ReleaseDisplay(); assert(sState.BeginCleanup(true, true) == Owner::Busy); cases++;
 	}
 	printf("%u actual owner observation cases passed; mocked PCI/kernel only.\n", cases);
 }
