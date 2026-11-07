@@ -1,0 +1,17 @@
+PAIRED OWNER LIFETIME TESTS — 2026-11-07
+Implemented: deterministic two-operation retirement coverage in existing owner
+state-machine suite. Both leases revoked with pins outstanding; both return orders
+and all four success/failure combinations repeated100times (800cases). Verify
+request slot cannot be reused, stale leases rejected, first return cannot release
+backing, and any failed return preserves retention after final pin drops.
+Compiled: host and actual N100 C++17 with warnings as errors; both passed existing
+100close races plus800new cases. Source/header SHA256 matched target copies.
+Simulation: userspace state-machine harness uses actual header with modeled backend
+return events, not kernel GART calls. Two host-only deliberately broken copies
+failed at expected assertions; unmodified control passed. Native test visibly
+run through NanoKVM; no new physical GPU ioctl workload or GPU execution.
+Production owner/display code unchanged: these tests found no new defect.
+Incomplete: backend/driver failure and close/unload integration, interrupt lifetime,
+engine/context/VM/cache/reset/submission. Independent review pending; Terra service
+review unavailable in latest attempt. Previous physical memory evidence unchanged.
+Evidence: tests/evidence/owner-paired-001/

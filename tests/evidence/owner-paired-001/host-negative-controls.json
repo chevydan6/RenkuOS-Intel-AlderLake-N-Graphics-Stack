@@ -1,0 +1,23 @@
+[
+  {
+    "case": "control",
+    "exit": 0,
+    "expected": 0,
+    "stderr": "",
+    "passed": true
+  },
+  {
+    "case": "missing_pin_guard",
+    "exit": -6,
+    "expected": -6,
+    "stderr": "test: /tmp/renku-owner-controls-ale824zu/test.cpp:62: void CheckRetiringOperations(unsigned int, unsigned int): Assertion `owner.BeginCleanup(true, true) == Owner::Busy' failed.\n",
+    "passed": true
+  },
+  {
+    "case": "forgotten_failure",
+    "exit": -6,
+    "expected": -6,
+    "stderr": "test: /tmp/renku-owner-controls-ale824zu/test.cpp:74: void CheckRetiringOperations(unsigned int, unsigned int): Assertion `owner.BeginCleanup(true, true) == (failureMask == 0 ? Owner::Success : Owner::Busy)' failed.\n",
+    "passed": true
+  }
+]

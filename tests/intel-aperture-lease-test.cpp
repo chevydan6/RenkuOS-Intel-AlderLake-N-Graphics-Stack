@@ -20,6 +20,66 @@ Initialize(Owner& owner)
 	return lease;
 }
 
+// Both leases retire while their backend calls are outstanding. Gates make the
+// two return orders deterministic; all owner accesses still hold its mutex.
+static void
+CheckRetiringOperations(unsigned failureMask, unsigned first)
+{
+	Owner owner;
+	uint64_t display = Initialize(owner), request = 0;
+	assert(owner.AcquireRequest(request) == Owner::Success);
+	std::mutex mutex;
+	std::condition_variable changed;
+	unsigned entered = 0;
+	bool returnNow[2] = {false, false}, returned[2] = {false, false};
+	auto operation = [&](unsigned index) {
+		Owner::Operation ticket;
+		std::unique_lock<std::mutex> lock(mutex);
+		assert(owner.BeginOperation(index == 0 ? display : request,
+			index == 0 ? Owner::Free : Owner::Allocate, ticket) == Owner::Success);
+		entered++;
+		changed.notify_all();
+		assert(changed.wait_for(lock, std::chrono::seconds(5),
+			[&] { return returnNow[index]; }));
+		assert(owner.EndOperation(ticket, (failureMask & (1u << index)) != 0)
+			== Owner::Success);
+		returned[index] = true;
+		changed.notify_all();
+	};
+	std::thread displayOperation(operation, 0), requestOperation(operation, 1);
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		assert(changed.wait_for(lock, std::chrono::seconds(5),
+			[&] { return entered == 2; }));
+		assert(owner.Release(request) == Owner::Success);
+		uint64_t next = 91;
+		assert(owner.AcquireRequest(next) == Owner::Busy && next == 91);
+		assert(owner.Release(display) == Owner::Success);
+		assert(!owner.DiagnosticAllowed());
+		Owner::Operation rejected;
+		assert(owner.BeginOperation(request, Owner::Query, rejected) == Owner::Invalid);
+		assert(owner.BeginOperation(display, Owner::Free, rejected) == Owner::Invalid);
+		assert(owner.BeginCleanup(true, true) == Owner::Busy);
+		returnNow[first] = true;
+		changed.notify_all();
+		assert(changed.wait_for(lock, std::chrono::seconds(5),
+			[&] { return returned[first]; }));
+		assert(owner.BeginCleanup(true, true) == Owner::Busy);
+		assert(owner.BeginInitialization(next) == Owner::Busy && next == 91);
+		returnNow[1 - first] = true;
+		changed.notify_all();
+		assert(changed.wait_for(lock, std::chrono::seconds(5),
+			[&] { return returned[1 - first]; }));
+		// Failed backing remains retained even after the final operation returns.
+		assert(owner.BeginCleanup(true, true)
+			== (failureMask == 0 ? Owner::Success : Owner::Busy));
+		if (failureMask == 0)
+			assert(owner.FinishCleanup(true) == Owner::Success);
+	}
+	displayOperation.join();
+	requestOperation.join();
+}
+
 int
 main()
 {
@@ -195,5 +255,12 @@ main()
 		first.join(); second.join();
 		assert(winners == 1 && owner.CurrentState() == Owner::Closing);
 	}
-	puts("Lease transitions and 100 close/operation races passed (state-only harness)");
+	for (unsigned failureMask = 0; failureMask < 4; failureMask++) {
+		for (unsigned first = 0; first < 2; first++) {
+			for (unsigned round = 0; round < 100; round++)
+				CheckRetiringOperations(failureMask, first);
+		}
+	}
+	puts("Lease transitions, 100 close races and 800 paired-retirement cases passed"
+		" (state-only harness)");
 }
