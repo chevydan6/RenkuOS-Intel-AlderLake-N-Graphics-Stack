@@ -1,0 +1,12 @@
+[
+  {
+    "name": "lost_failure",
+    "exit": -6,
+    "stderr": "test: /tmp/renku-owner-adapter-001/owner-adapter-test.cpp:130: void RunCase(unsigned int, bool, bool): Assertion `sState.BeginCleanup(true, true) == (failed && operation != 0 ? Owner::Busy : Owner::Success)' failed.\n"
+  },
+  {
+    "name": "lost_success",
+    "exit": -6,
+    "stderr": "test: /tmp/renku-owner-adapter-001/owner-adapter-test.cpp:130: void RunCase(unsigned int, bool, bool): Assertion `sState.BeginCleanup(true, true) == (failed && operation != 0 ? Owner::Busy : Owner::Success)' failed.\n"
+  }
+]

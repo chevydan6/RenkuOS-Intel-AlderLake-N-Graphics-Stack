@@ -1,0 +1,3 @@
+ad6afc9eedb359a458522764961b3439d1fd0827c80e9a00a8d5f378f5c16a6d  tests/owner-adapter-test.cpp
+adea0412f14056b4cf054707e93accfbb3f37dc8dbcb56ea2311ec51f34dfdd4  tests/IntelApertureLeaseState.h
+04ccc6f3c35db9a70eb764143e2404b5608b713c89535c83b0b5fe6f046d3af3  tests/adapter-under-test.inc

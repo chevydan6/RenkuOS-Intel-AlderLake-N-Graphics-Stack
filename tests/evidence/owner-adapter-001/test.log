@@ -1,0 +1,13 @@
+operation=0 failed=0 initializing=0 passed
+operation=0 failed=0 initializing=1 passed
+operation=0 failed=1 initializing=0 passed
+operation=0 failed=1 initializing=1 passed
+operation=1 failed=0 initializing=0 passed
+operation=1 failed=0 initializing=1 passed
+operation=1 failed=1 initializing=0 passed
+operation=1 failed=1 initializing=1 passed
+operation=2 failed=0 initializing=0 passed
+operation=2 failed=0 initializing=1 passed
+operation=2 failed=1 initializing=0 passed
+operation=2 failed=1 initializing=1 passed
+12 actual-adapter cases passed with mocked kernel/GART; no hardware access.

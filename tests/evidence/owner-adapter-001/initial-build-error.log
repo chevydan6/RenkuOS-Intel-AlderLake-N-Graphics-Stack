@@ -1,0 +1,15 @@
+In file included from /boot/system/develop/headers/posix/errno.h:14,
+                 from /boot/system/develop/headers/bsd/errno.h:9,
+                 from /boot/system/develop/tools/lib/gcc/x86_64-unknown-haiku/13.3.0/include/c++/cerrno:42,
+                 from /boot/system/develop/tools/lib/gcc/x86_64-unknown-haiku/13.3.0/include/c++/x86_64-unknown-haiku/bits/error_constants.h:34,
+                 from /boot/system/develop/tools/lib/gcc/x86_64-unknown-haiku/13.3.0/include/c++/condition_variable:41,
+                 from tests/owner-adapter-test.cpp:6:
+tests/owner-adapter-test.cpp:17:15: error: expected unqualified-id before 'int'
+   17 | constexpr int B_OK = 0, B_BUSY = -1, B_NO_MEMORY = -2, B_BAD_VALUE = -3;
+      |               ^~~~
+tests/owner-adapter-test.cpp:17:15: error: expected ')' before 'int'
+   17 | constexpr int B_OK = 0, B_BUSY = -1, B_NO_MEMORY = -2, B_BAD_VALUE = -3;
+      |               ^~~~
+tests/owner-adapter-test.cpp:17:15: error: expected ')' before 'int'
+   17 | constexpr int B_OK = 0, B_BUSY = -1, B_NO_MEMORY = -2, B_BAD_VALUE = -3;
+      |               ^~~~

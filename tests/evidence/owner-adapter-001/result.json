@@ -1,0 +1,6 @@
+{
+  "exit": 0,
+  "source_sha256": "668dd25e6e6ff9d7560d38590f2bbf10efb30d0ac003b5d8772863a97a7079fc",
+  "header_sha256": "adea0412f14056b4cf054707e93accfbb3f37dc8dbcb56ea2311ec51f34dfdd4",
+  "scope": "Actual Status/Operation/Query/Allocate/Free/FinishDisplay/ReleaseDisplay; mocked kernel mutex and GART. BeginDisplay/module initialization not exercised."
+}

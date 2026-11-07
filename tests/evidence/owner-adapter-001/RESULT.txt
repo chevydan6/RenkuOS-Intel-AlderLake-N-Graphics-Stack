@@ -1,0 +1,18 @@
+ACTUAL OWNER ADAPTER COVERAGE — 2026-11-07
+Implemented tests extracting unchanged Status, Operation, Query, Allocate, Free,
+FinishDisplay and ReleaseDisplay functions from IntelMemoryOwner.cpp. Controlled
+GART calls gate return while another thread releases the display lease; tests
+check status/argument forwarding, stale-call rejection, active pins and failed
+backing retention during initialization and normal ready state (12cases).
+Compiled/tested: host C++17 and native N100 via visible NanoKVM; both12cases pass.
+Native initial build failed on status-constant macro collision; harness corrected
+and rebuilt successfully. Production adapter unchanged. Input hashes verified.
+Simulation: GART and kernel mutex modeled; success/failure injected. Two generated
+host adapter regressions failed expected assertions. No real backend allocation,
+MMIO, module unload, GPU ioctl or GPU command execution in these new tests.
+Physical: N100 ran the userspace harness only; previous physical allocation/free
+evidence unchanged. No new VM test. No hardware acceleration demonstrated.
+Incomplete: BeginDisplay/resource acquisition and module lifecycle are excluded;
+real GART failure/close integration, interrupts, execution memory/cache/context/reset
+remain. Independent review pending; no production integration claimed.
+Evidence: tests/evidence/owner-adapter-001/
