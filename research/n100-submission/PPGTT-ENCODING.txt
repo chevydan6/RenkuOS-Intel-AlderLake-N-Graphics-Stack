@@ -1,0 +1,36 @@
+N100 private GPU page-table encoding candidate
+
+Scope: workstreams/gpu-next/IntelN100Ppgtt.h is an offline 4 KiB system-memory
+encoder and range/index checker. It has no allocation, locking, MMIO, installed
+mapping, invalidation, GPU context or execution API. Production display/GGTT
+code does not include it. This starts the private-VM prerequisite; it does not
+satisfy Phase1 or authorize workloads.
+
+Astra proposed checked39-bit DMA pages, explicit raw PAT0..7, directory cache
+encoding and unsigned48-bit GPU ranges. Terra independently checked the pinned
+Linux sources and accepted offline implementation before code was written.
+Four indices are ordered PML4E,PDPE,PDE,PTE. Input addresses are unsigned GPU
+addresses; sign-extended CPU pointers are rejected. Byte offsets are accepted
+for index lookup; mapping ranges must be page aligned and nonempty. A range
+ending exactly at2^48 is valid. Failed encoders preserve the output value.
+
+PAT indices do not imply hardware cache semantics. Linux programs a Gen12 PAT
+policy; firmware defaults are not accepted as that policy. Before any future
+publication: validate physical/DMA translation, owned page pinning, scratch
+entries, actual PAT/cache programming, visibility barriers, TLB invalidation,
+context setup, permissions, completion/retirement and bounded reset. A clear
+RW bit is an encoding choice, not independently verified write protection.
+Large pages, local memory, later-generation PAT bits and partial table updates
+are intentionally not supported by this first4KiB system-memory component.
+
+References, Linux commit028ef9c96e96197026887c0f092424679298aae8, MIT:
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/gen8_ppgtt.c
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_gtt.h
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/gt/intel_gtt.c
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/i915_pci.c
+
+Tests: tests/n100-ppgtt-test.cpp; literal PAT expected values, both RW settings,
+DMA pages including above4GiB and last39-bit page, invalid addresses/index/cache,
+unchanged outputs,512indices at every level, top GPU address, null outputs,
+exact48-bit range endpoint and overflow. Compilation/runtime evidence recorded
+separately; native execution of this pure code is not a GPU mapping test.

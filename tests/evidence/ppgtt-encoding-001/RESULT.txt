@@ -1,0 +1,19 @@
+OFFLINE PRIVATE GPU PAGE-TABLE ENCODER — 2026-11-07
+Implemented isolated IntelN100Ppgtt.h: checked4KiB system-memory leaf/directory
+encoding, raw PAT selector,39-bit DMA limit,48-bit GPU ranges and four table
+indices. Outputs unchanged on rejection. No production/display integration.
+Terra independently researched pinned i915 and accepted design before coding;
+review caught unfixed enum invalid-value conversion, corrected to uint8_t enum.
+Terra independently reran corrected2150cases with UBSan and accepted offline
+milestone. Source references/design in research/n100-submission/PPGTT-ENCODING.txt.
+Compiled: host C++17 warnings-as-errors+UBSan2150pass; nativeN100 C++17 warnings-
+as-errors2150pass, build/test exit0, exact source/header hashes matched. Build
+and execution visible viaNanoKVM. Physical machine ran CPU-only offline tests.
+Simulation: no GPU simulator; tests check pure encoding/arithmetic. No installed
+GPU mappings, real DMA, GPU workload or hardware-acceleration proof. No new VM test.
+Remaining before hardware publication: owned pinned page backing/DMA translation,
+scratch, actual PAT/cache setup, barriers/TLB invalidation, permissions, context,
+completion/retirement/reset, and outstanding lifetime safety gates. General memory
+close/unload and independent prior physical-evidence review remain incomplete.
+Next: owned private page-table construction using reviewed encoding, still offline
+until resource lifetime and hardware publication contract are validated.
