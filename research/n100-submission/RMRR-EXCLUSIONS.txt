@@ -1,0 +1,35 @@
+REQUIRED FIRMWARE RESERVED-RANGE FILTER — 2026-11-07
+Implemented bounded RMRR extraction and inclusive4K range exclusion. Parser rejects
+malformed/reserved/unknown relevant structures,scope errors and>16ranges; includes
+all RMRRs regardlesssegment/scope conservatively,not a PCI topology resolver.
+Kernel page provider now requires valid copied configuration before acquisition.
+Configuration commits atomically and cannot change while active/live/retained.
+After physical lookup and before tree page writes, collision leaves descriptor
+invalid and all acquired areas quarantined untilreboot; no guessed release. This
+availability limitation is intentional. Kernel VM's own page initialization is
+not excluded by this later check; it does not replace firmware reservation handling
+inside VM. No GPU publication is introduced.
+Host O2UBSan:36filter boundary/structure cases and39provider/mock VM cases passed;
+Terra independently reproduced withASan/UBSan. Early/late collision no-tree-writes
+and no cleanup/admission,unconfigured rejection,failedreconfigure andactive rejection
+are modeled tests. Native kernel build/client and36purefilter cases passed.
+Updated resident fixture version2 uses distinctmodule/node (originalv0 untouched),
+retains cachedDMARdependency,configures actualsnapshot and independently compares
+all allocated physical4K spans against rawRMRR records rather than policy helper.
+PhysicalN100 result:version2,status0,3cases,42areas verified,42exclusion checks,
+1range,allrelease calls succeeded,providerlive0/treeEmpty,cachedidentical,exit0.
+app_server127 unchanged;visibleNanoKVM responsive. Current firmware range is
+0x7c000000..0x803fffff inclusive from priorread-onlyDMARsnapshot. Syntheticcollision
+retention remains host evidence;positive physical run validates allocatedpages only.
+No newVMtest,GT MMIO orGPUcommands. This does not establish deviceDMAownership,
+IOMMU lifetime,cache/PAT/TLB,GTpower/forcewake,context/reset/retirement oracceleration.
+Terra source/oracle review accepted before physical; evidence review requested.
+Next:GTpower/forcewake owner and bounded handshake;keep publication gated.
+
+Reproduce from gpu-driver root:
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -fsanitize=undefined -fno-sanitize-recover=all -I workstreams/gpu-next tests/dmar-reserved-test.cpp -o /tmp/dmar-reserved-test
+/tmp/dmar-reserved-test
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -fsanitize=undefined -fno-sanitize-recover=all -I tests/kernel-pages-host -I workstreams/gpu-next tests/n100-kernel-pages-test.cpp -o /tmp/n100-kernel-pages-test
+/tmp/n100-kernel-pages-test
+Unknown AT SR/RHSA/etc records are presently unsupported by this N100 filter;
+reject rather than silently treating their semantics as no restrictions.

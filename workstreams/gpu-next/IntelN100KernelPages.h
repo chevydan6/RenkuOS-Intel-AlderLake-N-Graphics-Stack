@@ -3,6 +3,7 @@
 #define INTEL_N100_KERNEL_PAGES_H
 #include <KernelExport.h>
 #include "IntelN100PpgttTree.h"
+#include "IntelDmarReserved.h"
 
 // Wired CPU-page provider for OFFLINE table construction, not a GPU DMA mapper.
 // Embed with its tree in a resident kernel module; serialize every operation.
@@ -10,9 +11,17 @@
 // deletion, ID export or CPU alias is permitted. No GPU publication is supported.
 class IntelN100KernelPages {
 public:
-	IntelN100KernelPages() : fSlots(), fNextToken(0), fActive(false), fError(B_OK) {}
+	IntelN100KernelPages() : fSlots(), fNextToken(0), fActive(false), fError(B_OK), fReserved(), fConfigured(false) {}
 	IntelN100PpgttTree::Backend Backend()
 		{ return {this, Retain, Drop, Allocate, Free}; }
+	bool ConfigureReserved(const uint8_t* bytes,size_t size)
+	{
+		if(fActive||LiveAreas()!=0)return false;
+		IntelDmarReserved candidate;
+		if(!intel_dmar_reserved(bytes,size,&candidate))return false;
+		fReserved=candidate;fConfigured=true;return true;
+	}
+	unsigned ReservedRanges() const { return fReserved.count; }
 	status_t LastError() const { return fError; }
 	unsigned LiveAreas() const
 	{
@@ -27,7 +36,7 @@ private:
 	static bool Retain(void* context)
 	{
 		IntelN100KernelPages& self = *(IntelN100KernelPages*)context;
-		if (B_PAGE_SIZE != 4096 || self.fActive || self.LiveAreas() != 0)
+		if (!self.fConfigured || B_PAGE_SIZE != 4096 || self.fActive || self.LiveAreas() != 0)
 			return false;
 		self.fActive = true;
 		self.fError = B_OK;
@@ -69,8 +78,14 @@ private:
 		}
 		// CPU physical only. A future DMA adapter must establish translation
 		// and IOMMU policy before this value can be published to the GPU.
+		if (!intel_n100_ppgtt_page(entry.address)) {
+			self.fError=B_BAD_ADDRESS;return true;
+		}
+		if (!intel_dmar_page_allowed(self.fReserved,entry.address)) {
+			self.fError=B_NOT_ALLOWED;
+			return true; // Keep invalid sentinel; tree retains all pages until reboot.
+		}
 		output.dma = entry.address;
-		if (!intel_n100_ppgtt_page(output.dma)) self.fError = B_BAD_ADDRESS;
 		return true;
 	}
 	static bool Free(void* context, uint64_t token)
@@ -97,5 +112,7 @@ private:
 	uint64_t fNextToken;
 	bool fActive;
 	status_t fError;
+	IntelDmarReserved fReserved;
+	bool fConfigured;
 };
 #endif

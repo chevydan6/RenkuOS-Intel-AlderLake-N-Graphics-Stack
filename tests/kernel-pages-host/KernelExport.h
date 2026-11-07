@@ -10,3 +10,5 @@ struct physical_entry { uint64_t address; size_t size; };
 area_id create_area(const char*,void**,unsigned,size_t,unsigned,unsigned);
 status_t get_memory_map_etc(int,const void*,size_t,physical_entry*,uint32*);
 status_t delete_area(area_id);
+
+constexpr int B_NOT_ALLOWED=-4;

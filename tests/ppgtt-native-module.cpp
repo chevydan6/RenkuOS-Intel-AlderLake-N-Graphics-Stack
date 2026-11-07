@@ -4,6 +4,9 @@
 #include <kernel/lock.h>
 #include "IntelN100KernelPages.h"
 #include "ppgtt-native-protocol.h"
+#include "dmar-native-protocol.h"
+static DmarModule* sDmar;
+static DmarSnapshot sFirmware;
 static mutex sLock;
 static IntelN100KernelPages sProvider;
 static IntelN100PpgttTree sTree;
@@ -15,6 +18,16 @@ static bool Verify(uint64 window, unsigned count)
 	IntelN100PpgttTree::Page pages[24];
 	for (unsigned i=0;i<8+count;i++) {
 		if (!sTree.Describe(i,pages[i])) return false;
+		// Independent physical exclusion oracle: decode raw firmware records,
+		// rather than calling the provider policy's page-allowed helper.
+		for(size_t offset=48;offset<sFirmware.length;
+			offset+=dmar_u16(sFirmware.bytes+offset+2)) {
+			if(dmar_u16(sFirmware.bytes+offset)!=1)continue;
+			uint64 base=dmar_u64(sFirmware.bytes+offset+8);
+			uint64 limit=dmar_u64(sFirmware.bytes+offset+16);
+			if(pages[i].dma<=limit&&base<=pages[i].dma+4095)return false;
+		}
+		sResult.reserved_checked++;
 		area_info info;
 		if (get_area_info(area_for(pages[i].cpu),&info)!=B_OK
 			|| info.address!=pages[i].cpu || info.size!=4096 || info.lock!=B_FULL_LOCK)
@@ -57,8 +70,11 @@ static status_t Run(PpgttTestResult* output)
 	mutex_lock(&sLock);
 	if(!sRan) {
 		sRan=true;
-		sResult.version=1; sResult.status=B_ERROR;
-		for(unsigned test=0;test<3;test++) {
+		sResult.version=2; sResult.status=B_ERROR;
+		bool configured=sDmar->snapshot(&sFirmware)==B_OK&&sFirmware.version==1
+			&&sFirmware.status==B_OK&&sProvider.ConfigureReserved(sFirmware.bytes,sFirmware.length);
+		sResult.reserved_ranges=sProvider.ReservedRanges();
+		for(unsigned test=0;configured&&test<3;test++) {
 			sResult.current_case=test; sResult.stage=1;
 			unsigned count=test==1?16:1;
 			uint64 window=test==2?(1ULL<<48)-(1ULL<<21):0;
@@ -94,7 +110,11 @@ static status_t Run(PpgttTestResult* output)
 }
 static status_t Operations(int32 op,...)
 {
-	if(op==B_MODULE_INIT) {mutex_init(&sLock,"ppgtt resident test");return B_OK;}
+	if(op==B_MODULE_INIT) {
+		status_t status=get_module(DMAR_MODULE,(module_info**)&sDmar);
+		if(status!=B_OK)return status;
+		mutex_init(&sLock,"ppgtt reserved test");return B_OK;
+	}
 	return op==B_MODULE_UNINIT?B_BUSY:B_BAD_VALUE;
 }
 static PpgttTestModule sModule={{PPGTT_TEST_MODULE,B_KEEP_LOADED,Operations},Run};

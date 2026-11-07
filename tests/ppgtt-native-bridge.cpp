@@ -21,5 +21,5 @@ static device_hooks sHooks={Open,Close,Close,Control,nullptr,nullptr,nullptr,nul
 extern "C" status_t init_hardware() {return B_OK;}
 extern "C" status_t init_driver() {return B_OK;}
 extern "C" void uninit_driver() {}
-extern "C" const char** publish_devices() {static const char* names[]={"misc/intel_ppgtt_test",nullptr};return names;}
-extern "C" device_hooks* find_device(const char* name) {return strcmp(name,"misc/intel_ppgtt_test")==0?&sHooks:nullptr;}
+extern "C" const char** publish_devices() {static const char* names[]={"misc/intel_ppgtt_reserved_test",nullptr};return names;}
+extern "C" device_hooks* find_device(const char* name) {return strcmp(name,"misc/intel_ppgtt_reserved_test")==0?&sHooks:nullptr;}
