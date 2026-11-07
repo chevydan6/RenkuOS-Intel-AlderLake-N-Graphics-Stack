@@ -1,0 +1,5 @@
+{
+  "base": "f01e0b782747076cb18d6c9f7952bcc358ee87e8",
+  "patch_sha256": "9b540dfd782fffa19cee4d6c3a7702efefa8528ee4d684c8cb90c7aecf788d59",
+  "production_worktree": "/home/dan/renkuos-development/source/gpu-next-worktree"
+}

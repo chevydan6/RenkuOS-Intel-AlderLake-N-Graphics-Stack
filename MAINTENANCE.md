@@ -1,5 +1,25 @@
 # Maintaining the N100 display path
 
+
+## Current checkpoint: 2026-11-07
+
+The [current progress report](results/2026-11-07-gpu-progress.md) supersedes
+older pending-validation summaries below. A28 completed one controlled physical
+primary-bit forcewake handshake, with source/artifact identities and independent
+review recorded in tests/evidence/physical-forcewake-001/RESULT.txt. This does
+not demonstrate GPU command execution or close the full IRQ/unload lifetime gate.
+
+A29 adds a fixed, bounded, read-only BCS inventory under the retained forcewake
+owner. Host ASan/UBSan and independent review passed; native compilation and
+physical sampling are pending because target transfer and NanoKVM HID stalled.
+No A29 owner was installed. Preserve the A28 owner/recovery artifacts and the
+known-working HDMI configuration when access is restored.
+
+The archive now includes recovery patches 0069–0079, their host harnesses and
+caller audit alongside the later patch series. All patches reconstructed from
+the pinned RenkuOS base for this publication, and the existing host CI checks
+passed. These checks do not substitute for native or physical validation.
+
 The tested baseline is source tag `gpu-hdmi-metal-056` (commit `2580448c`).
 It produced a visible, updating HDMI desktop on the physical N100. Cleanup
 uses source branch `gpu/n100-cleanup` and project branch `gpu/cleanup-hdmi`.
@@ -86,3 +106,37 @@ The path is experimental, opted in through explicit test markers and restricted
 to the verified N100 configuration. Audio, arbitrary layouts, hotplug, repeated
 power transitions and GPU rendering acceleration are not established by the
 HDMI desktop test. Maintainability cleanup does not change those capabilities.
+
+## GART aperture lifetime and recovery
+
+The GART manager owns aperture records, backend references and retained backing.
+Graphics-driver state is not a durable recovery owner across driver unload.
+A failed unmap leaves its record registered and marks cleanup pending. A later
+map may retry that teardown only for the same PCI bus/device/function; an
+active record must never be reclaimed to make a new map succeed. A cleanup
+error must retain the record and prevent backend recreation. Successful cleanup
+removes the old ID before creating a fresh backend. This is teardown/recreation,
+not adoption of old allocations or proof of GPU idleness.
+
+Lock order is manager sLock, then the aperture lock. Every public callback that
+looks up an aperture must hold sLock until its last use of that pointer. Taking
+only the aperture lock after an unprotected lookup cannot prevent deletion in
+between. Backend callbacks must not re-enter the manager while these locks are
+held. Current serialization favors correctness; a later per-record reference
+scheme needs explicit lifetime and lock-order tests before reducing coverage.
+
+Use RemoveUnchecked during registry scans: normal Remove can resize the hash
+table and invalidate the iterator. Keep recovery behavior and callback lifetime
+changes separately reviewable (patches 0070 and 0071). Do not put a second retry
+sequence in the graphics driver, or independently release retained pages there.
+
+Regression entry points in workstreams/gpu-next: gart-recovery-host.py tests
+production map/unmap control flow with mocked records/backend;
+gart-manager-lock-host.py checks all seven lookup guards and exercises the
+production query callback's lock lifetime. Existing lifecycle tests cover
+binding rollback and cleanup. These host checks do not establish concurrent
+kernel stress behavior, real module-unload safety or hardware completion.
+Native build 068 passes the component suite and 17 recovery fixture cases;
+physical deployment remains pending review of caller expectations after failed
+unmap. Legacy caller behavior must not silently be treated as a managed-buffer
+ownership contract.

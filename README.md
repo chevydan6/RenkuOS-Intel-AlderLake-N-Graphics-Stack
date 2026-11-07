@@ -1,18 +1,32 @@
 # RenkuOS Intel GPU development
 
-Astra High #2: private Intel N100 / Alder Lake-N graphics development for RenkuOS.
+Astra High #2: private Intel N100 / Alder Lake-N graphics development for RenkuOS,
+with independent Terra research and validation. Target: `8086:46d1`, revision 00.
 Haiku research, patches and tests are preserved on `gpu/alderlake-n`.
-**Native 1920×1080 HDMI desktop mirroring is demonstrated on the N100.**
-Build `renku-056` booted on the physical laptop from an isolated RenkuTest USB.
-NanoKVM captured the desktop and a live RGB/text validation window; the display
-underrun flags remained zero. This is native display scanout, not accelerated
-2D/3D rendering. The path is experimental and requires explicit test markers.
-See the [hardware report](results/2026-11-06-hdmi-integration.md).
+
+**Current status, 2026-11-07:** native 1920×1080 RGB8 HDMI desktop output is
+physically validated. One physical primary-bit GT forcewake handshake completed
+with ACK `0 → 1 → 0`. **GPU command execution and accelerated rendering have
+not been demonstrated.**
+
+The next candidate reads five fixed BCS registers while forcewake is held. Its
+84 state-machine, 37 sampler and 48 actual-owner mocked cases pass host
+ASan/UBSan checks and independent review. Native compilation, installation and
+physical sampling remain pending: source transfer and NanoKVM HID stalled before
+the build, and a physical laptop reset has been requested. The cause is unknown.
+
+Start with the [current progress and evidence report](results/2026-11-07-gpu-progress.md),
+[task board](coordination/TASK_BOARD.md),
+[hardware results](coordination/HARDWARE_TEST_RESULTS.md), and
+[command-submission design](research/n100-submission/DESIGN.md).
+The [HDMI report](results/2026-11-06-hdmi-integration.md) records the display work;
+the later build 057 remains the known-working display baseline.
 See [MAINTENANCE.md](MAINTENANCE.md) for module boundaries, resource ownership,
 hardware invariants and the cleanup/review workflow.
 
-The following early milestones describe the investigation before that result;
-their former hardware-validation restrictions are historical.
+The following early milestones are historical snapshots. Their patch counts,
+installation state and former hardware-validation restrictions describe those
+earlier checkpoints; use the current report above for present status.
 
 Verified hardware: Intel N100, host bridge `8086:461c`, GPU `8086:46d1`
 revision 00, Fedora 44 / i915. The Haiku beta6 x86_64 VM has QEMU VGA / VESA,
@@ -79,5 +93,5 @@ AI-assisted submissions; this is the user's explicitly requested private
 project. RenkuOS explicitly permits machine assistance with disclosure, testing
 and contributor accountability. No upstream submission has been made.
 
-Raw logs, SSH configuration, credentials, VM images and generated binaries
+Unreviewed raw logs, SSH configuration, credentials, VM images and generated binaries
 are excluded from version control. Only reviewed evidence is committed.
