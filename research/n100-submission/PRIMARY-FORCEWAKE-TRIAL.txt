@@ -1,0 +1,52 @@
+A28 controlled primary GT forcewake transaction
+
+Scope: handshake only, not runtime-PM service, engine initialization or GPU
+execution. No addresses published, no contexts/commands/DMA. A27 established
+UC-mapped read-only ACK samples, not bit ownership. Targeted kernel graphics/
+accelerant/GART audit found no competing named/literal request0xa188 access.
+Palette arithmetic apparent alias resolves to0x4a188 on captured PCH base40000.
+Source paths match archived physical source bundle; firmware/SMM/other privileged
+writers remain outside this operator-controlled no-power/no-PCI-change boot.
+
+Fixed fields: request0xa188, ACK0x130044, exact kernel-bit enable0x10001 and
+clear0x10000. Bit15 must stay clear in every sample and is never written. No
+broad reset mask or fallback branch. Incomplete relative to i915 fallback support.
+All participating callers share retained owner v3 singleton and Request pin.
+
+Algorithm: atomic admission directly into Handshaking after PCI/owner checks.
+Record request attempt before every raw store. Success of raw callback means
+CPU-issued only. SFENCE before and MFENCE after aligned UC volatile32 store;
+mandatory same-device ACK read BEFORE cancellation or further deadline callbacks
+is the posted-write observation. This source-based x86 policy is not a general
+portable accessor contract. Poll stages <=50ms and <=512 iterations; total250ms.
+Set/clear deadlines captured before their stores include mandatory readbacks.
+Reserve100ms before enable and50ms before cleanup; scheduler/callback overruns
+can still make safe cleanup impossible. No software deadline interrupts a CPU
+MMIO fault/hang; external NanoKVM observation/physical reset remains recovery.
+
+Success: observed preclear, enable ACK-set, own clear ACK-clear, final PCI and
+live-display revalidation, then retire pin. Any all-ones, unexpected fallback,
+read/write/clock/power uncertainty blocks with Unknown and keeps request+pin+
+report until reboot. On CPU-issued enable timeout or cancellation, try only the
+owned bit clear while PCI and budget valid; never infer clear on an unreliable
+posting sample. If ACK never set, subsequent zero cannot exclude a late ACK:
+keep Unknown even after clear attempt. No in-place reset/reopen/retry after error.
+Known-no-write failures retire bookkeeping but preserve cached diagnostics/block.
+Persistent callback IO is cleared on return; no stack context pointer escapes.
+
+Validation:67 pure mocked cases (including posting-read ordering, 49/50/51/60ms
+stage boundaries, delayed ACK, frozen/backwards clock, all-ones and exact words).
+37 actual owner-function mocked cases (including close/backing failure during
+issued enable, concurrent v1 End, blocked report without IO, invalid-map and
+final-owner validation failure). Host ASan/UBSan and native N100 runs passed.
+Terra independently found/fixed missing cancellation posting read, readback
+stage-budget gap and adapter report/context-lifetime issues before deployment.
+Physical trial is one client invocation, no auto-retry. Installed/backup/source
+hash checks, fresh boot and visible NanoKVM operation required. Any error stops.
+Implementation milestones split pure state machine, owner/fixture, and evidence.
+
+Primary references:
+https://github.com/torvalds/linux/blob/028ef9c96e96197026887c0f092424679298aae8/drivers/gpu/drm/i915/intel_uncore.c
+https://docs.kernel.org/driver-api/device-io.html
+https://docs.kernel.org/driver-api/io_ordering.html
+RenkuOS headers/private/kernel/arch/x86/64/atomic.h (SFENCE/MFENCE/LFENCE)
