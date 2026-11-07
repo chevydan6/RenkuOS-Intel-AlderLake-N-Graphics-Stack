@@ -1,0 +1,4 @@
+ed7cab91d74c1fe6a1cd68b75e5bf4ced544885f10a567a3384895c90911eabd  /boot/home/config/non-packaged/add-ons/kernel/drivers/bin/intel_extreme
+a0e7ed8ea059da93ed1512d6f0e930864e5f3975d8cb24e6d41712637f1db11e  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+5e39772d29c189b251642739419c5cfff424a837fc55a8d0330da1b0190862be  /boot/system/non-packaged/add-ons/kernel/bus_managers/agp_gart
+82b73c8b03c792b80fb48b0eb9e6ee2a477dbcfcb5b684ca92cd33c8eff891ce  /boot/system/non-packaged/add-ons/kernel/busses/agp_gart/intel

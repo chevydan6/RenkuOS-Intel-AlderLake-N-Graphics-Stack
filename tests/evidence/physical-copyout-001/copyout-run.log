@@ -1,0 +1,3 @@
+readonly ioctl=-1 errno=-2147478783 expected=-2147478783 unchanged=1
+Expected copyout error and follow-up allocation/free passed.
+Not a resource-count, close-race or GPU-execution proof.

@@ -1,0 +1,18 @@
+PHYSICAL ALLOCATION COPY-OUT FAILURE — 2026-11-07
+Implemented memory-copyout.cpp: one readable but nonwritable request/result area,
+then one normal allocation/free. The matched driver source reads the request,
+allocates via retained owner/GART, and on result-copy failure calls normal free.
+Compiled natively on N100 with warnings as errors; help-only and physical run
+completed. No new simulation or VM test. Real physical ioctl returned-1 with
+errno B_BAD_ADDRESS(-2147478783); protected request unchanged; subsequent normal
+allocation/free passed; overall exit0. app_server127 stayed alive and visible
+NanoKVM terminal returned. Four loaded memory/driver hashes match prior native089.
+No copyout rollback failure message found in collected syslog. This is consistent
+with the reviewed rollback path, not independently instrumented branch/resource
+accounting: a backend returning the same error is not separately distinguished.
+No guessed free of hidden buffer, no borrowed mappings, no GPU commands or writes
+to display buffers. This is not leak freedom, actual client-close overlap, engine
+execution, or phase1 completion. Kernel fixture remains unchanged/uninstalled.
+Next: independent review and remaining real close/retirement checks; GPU memory,
+context, cache and reset contracts still gate workload submission.
+Evidence: tests/evidence/physical-copyout-001/
