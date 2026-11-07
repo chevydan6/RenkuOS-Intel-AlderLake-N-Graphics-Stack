@@ -1,0 +1,18 @@
+{
+  "private_evidence": "/home/dan/renkuos-development/installation/private/gpu-memory-physical-002",
+  "files": {
+    "frames.json": "f2eddf871c2200ab65eb0455e4a7b22f6f4fc2eee136033088ef8f0ac6d79df5",
+    "watch-boot.py": "2a24337a89a23024014e835ebc89975cb86cf5482e960c914b639aad0900c297",
+    "repeat-before.log": "c4dabb1ac62c7a6530338e0a337b77c28cff1d0f6d90c93e36a60a534367b9af",
+    "repeat-app.log": "c6fec8e3debcd11bfeaa371ed19a5c57fd95936eeb247bc90983581138465b50",
+    "repeat-after.log": "932088c542a504131f2e6196c45ebc24bafaca8a7bf333ac0608cb0645f612b1",
+    "repeat-syslog.log": "57d80f462a3d1f97201e6db0d9acf305a6b4dc50a0f2f1c4a2349700f4cc6ceb",
+    "visible-preflight.jpg": "a2f9ccfd37d79b7cc9b807f5b5a4d226f555b5dd4e42e9ef057f832dbea17469",
+    "visible-repeat-result.jpg": "d9892bffa37e149a29c2a9aaa1ee4dd766e8acbf344ba47c74306774ae0c43ce",
+    "boot-000.jpg": "6c5940ae6fd50e00f51fe2d9860afd4e68869a3863903956a660ffd080dae511",
+    "boot-007.jpg": "30dab6bd2c92cb19458a96bdda1a5220cf882471642dc4a0d35ce828b02af43a",
+    "boot-008.jpg": "34ad4383bfc0bff2f4ffd963bf870f5b36454d8b350b65f8a6f9b5b5363e5b91"
+  },
+  "prior_build_evidence": "physical-memory-001",
+  "scope": "Second physical warm boot and30 serial owned allocate/free cycles; no GPU execution"
+}

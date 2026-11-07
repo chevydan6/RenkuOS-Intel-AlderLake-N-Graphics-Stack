@@ -1,0 +1,1 @@
+./memory-smoke --run /dev/graphics/intel_extreme_000200 2>&1 | tee repeat-memory.log; result=${PIPESTATUS[0]}; echo "MEMORY_EXIT=$result" | tee repeat-exit.log; ps > repeat-after.log; cat /var/log/syslog > repeat-syslog.log

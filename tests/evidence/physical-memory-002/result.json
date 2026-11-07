@@ -1,0 +1,8 @@
+{
+  "physical_memory_cycles": 30,
+  "exit_status": 0,
+  "app_server_unchanged": true,
+  "physical_gpu_execution": false,
+  "command_transport": "NanoKVM visible keyboard; SSH only copies logs",
+  "boot": "repeat warm reboot; loaded artifacts matched first physical build"
+}
