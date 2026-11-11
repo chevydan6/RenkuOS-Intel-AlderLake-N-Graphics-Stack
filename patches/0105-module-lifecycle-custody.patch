@@ -1,0 +1,142 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -91,6 +91,7 @@
+ 	DependenciesComplete, DependenciesQuarantined };
+ 
+ struct module_image {
++	bool lifecycle_retained; // private custody; never a public reference
+ 	struct module_image* next;
+ 	module_info**		info;		// the module_info we use
+ 	module_dependency*	dependencies;
+@@ -109,6 +110,7 @@
+  */
+ 
+ struct module {
++	bool lifecycle_retained; // failed lifecycle owns metadata and image backing
+ 	struct module*		next;
+ 	::module_image*		module_image;
+ 	char*				name;
+@@ -419,6 +421,7 @@
+ 		goto err1;
+ 	}
+ 
++	moduleImage->lifecycle_retained = false;
+ 	moduleImage->dependency_records = NULL;
+ 	moduleImage->dependency_count = 0;
+ 	moduleImage->dependency_acquired = 0;
+@@ -463,7 +466,7 @@
+ 	TRACE(("unload_module_image(image %p, remove %d)\n", moduleImage, remove));
+ 	ASSERT_LOCKED_RECURSIVE(&sModulesLock);
+ 
+-	if (moduleImage->ref_count != 0) {
++	if (moduleImage->ref_count != 0 || moduleImage->lifecycle_retained) {
+ 		FATAL(("Can't unload %s due to ref_cnt = %" B_PRId32 "\n",
+ 			moduleImage->path, moduleImage->ref_count));
+ 		return B_ERROR;
+@@ -556,6 +559,7 @@
+ 	module->info = info;
+ 	module->offset = offset;
+ 		// record where the module_info can be found in the module_info array
++	module->lifecycle_retained = false;
+ 	module->ref_count = 0;
+ 	module->flags = info->flags;
+ 
+@@ -600,7 +604,8 @@
+ 		struct module* module = sModulesHash->Lookup((*info)->name);
+ 		if (module != NULL) {
+ 			// Module does already exist
+-			if (module->module_image == NULL && module->ref_count == 0) {
++			if (module->module_image == NULL && module->ref_count == 0
++				&& !module->lifecycle_retained) {
+ 				module->info = *info;
+ 				module->offset = index;
+ 				module->flags = (*info)->flags;
+@@ -759,7 +764,9 @@
+ 			if (status < B_OK) {
+ 				// Preserve the parent reference even when no child was acquired.
+ 				module->state = MODULE_ERROR;
+-				module->ref_count++;
++				module->lifecycle_retained = true;
++				if (module->module_image != NULL)
++					module->module_image->lifecycle_retained = true;
+ 				return status;
+ 			}
+ 
+@@ -780,7 +787,9 @@
+ 				if (module->module_image != NULL)
+ 					module->module_image->dependency_state = DependenciesQuarantined;
+ 				module->state = MODULE_ERROR;
+-				module->ref_count++;
++				module->lifecycle_retained = true;
++				if (module->module_image != NULL)
++					module->module_image->lifecycle_retained = true;
+ 			}
+ 
+ 			return status;
+@@ -857,8 +866,9 @@
+ 			if (module->module_image != NULL)
+ 				module->module_image->dependency_state = DependenciesQuarantined;
+ 			module->state = MODULE_ERROR;
+-			module->flags |= B_KEEP_LOADED;
+-			module->ref_count++;
++			module->lifecycle_retained = true;
++			if (module->module_image != NULL)
++				module->module_image->lifecycle_retained = true;
+ 
+ 			return status;
+ 		}
+@@ -1157,6 +1167,7 @@
+ 		goto error;
+ 	}
+ 
++	moduleImage->lifecycle_retained = false;
+ 	moduleImage->dependency_records = NULL;
+ 	moduleImage->dependency_count = 0;
+ 	moduleImage->dependency_acquired = 0;
+@@ -1909,7 +1920,7 @@
+ 	struct module* module;
+ 	while (iterator.HasNext()) {
+ 		module = iterator.Next();
+-		if (module->ref_count == 0
++		if (module->ref_count == 0 && !module->lifecycle_retained
+ 			&& (module->flags & B_BUILT_IN_MODULE) == 0) {
+ 			TRACE(("  module %p, \"%s\" unused, clearing image\n", module,
+ 				module->name));
+@@ -1928,7 +1939,7 @@
+ 	while (imageIterator.HasNext()) {
+ 		struct module_image* image = imageIterator.Next();
+ 
+-		if (image->ref_count == 0) {
++		if (image->ref_count == 0 && !image->lifecycle_retained) {
+ 			// not in use -- unload it
+ 			TRACE(("  module image %p, \"%s\" unused, removing\n", image,
+ 				image->path));
+@@ -2273,7 +2284,7 @@
+ 		module->info = moduleImage->info[module->offset];
+ 		module->module_image = moduleImage;
+ 	} else if ((module->flags & B_BUILT_IN_MODULE) == 0 && gBootDevice < 0
+-		&& module->ref_count == 0) {
++		&& module->ref_count == 0 && !module->lifecycle_retained) {
+ 		// The boot volume isn't available yet. I.e. instead of searching the
+ 		// right module image, we already know it and just increment the ref
+ 		// count.
+@@ -2296,7 +2307,7 @@
+ 		module->ref_count++;
+ 		*_info = module->info;
+ 	} else if ((module->flags & B_BUILT_IN_MODULE) == 0
+-		&& module->ref_count == 0) {
++		&& module->ref_count == 0 && !module->lifecycle_retained) {
+ 		// initialization failed -- release the image reference
+ 		put_module_image(module->module_image);
+ 		if (gBootDevice >= 0)
+@@ -2355,8 +2366,8 @@
+ 			return status;
+ 
+ 		if ((module->flags & B_BUILT_IN_MODULE) == 0
+-			&& module->ref_count == 0) {
+-				// uninit_module() increments the ref count on failure
++			&& module->ref_count == 0 && !module->lifecycle_retained) {
++				// Failed lifecycle custody is never released here.
+ 			put_module_image(module->module_image);
+ 			// Unless we don't have a boot device yet, we clear the module's
+ 			// image pointer if the ref count dropped to 0. get_module() will
