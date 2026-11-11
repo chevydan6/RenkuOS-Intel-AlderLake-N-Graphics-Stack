@@ -11,7 +11,7 @@ enum {MODULE_QUERIED,MODULE_LOADED,MODULE_INIT,MODULE_UNINIT,MODULE_READY,MODULE
 struct module_info {int (*std_ops)(int);};
 struct module_dependency {const char* name;module_info** info;};
 struct module_image;
-struct module {const char* name; int state,flags,ref_count; module_info* info; struct module_image* module_image; int offset; bool lifecycle_retained=false;};
+struct module {const char* name; int state,flags,ref_count; module_info* info; struct module_image* module_image; int offset; bool lifecycle_retained=false; unsigned long long transition_generation=0; bool transition_active=false;};
 module* entries[5]; int callbacks,images,searches,panics,failAt=-1;bool failAlloc,buildingProbe,failInit,nestedAcquire;int gBootDevice=-1,sModulesLock=0;
 struct RecursiveLocker { explicit RecursiveLocker(int&) {} };
 struct Hash {module* Lookup(const char* n) {for(auto m:entries) if(m&&strcmp(n,m->name)==0)return m;return nullptr;}} hash;
@@ -37,6 +37,23 @@ int childCallback(int op){
  assert(op==B_MODULE_INIT);int i=entries[2]->state==MODULE_INIT?0:entries[3]->state==MODULE_INIT?1:2;
  if(buildingProbe){auto image=entries[0]->module_image;int refs=image->ref_count;module_info* out=nullptr;assert(get_module("core",&out)==B_BUSY&&out==nullptr);assert(put_module("root")==B_BUSY);assert(image->ref_count==refs);}
  return i==failAt?B_ERROR:B_OK;
+}
+int staleKind, staleCalls;
+module_image replacementImage;
+module_info replacementInfo{callback};
+int staleCallback(int op) {
+ if(op==B_MODULE_UNINIT) {
+  ++staleCalls;auto target=entries[0];
+  switch(staleKind) {
+   case 0: ++target->transition_generation;break;
+   case 1: target->module_image=&replacementImage;break;
+   case 2: target->info=&replacementInfo;break;
+   case 3: target->state=MODULE_LOADED;break;
+   case 4: target->transition_active=false;break;
+   case 5: target->module_image->transition_pins=0;break;
+  }
+ }
+ return B_OK;
 }
 int main(){
  for(int mode=-2;mode<5;mode++){
@@ -108,5 +125,55 @@ int main(){
  image.dependency_state=DependenciesBuilding;
  auto busy=put_module_internal("typed");
  assert(busy.status==B_BUSY&&busy.consumption==NotConsumed&&m.ref_count==1);
+ // Generation exhaustion rejects INIT and final release without callback/consumption.
+ for(auto& entry:entries) entry=nullptr;
+ module x{"exhausted",MODULE_LOADED,B_BUILT_IN_MODULE,0,&info,nullptr,0};
+ entries[0]=&x;x.transition_generation=~0ULL;module_info* out=nullptr;
+ before=callbacks;assert(get_module("exhausted",&out)==B_BUSY&&!out);
+ assert(callbacks==before&&x.ref_count==0&&!x.transition_active);
+ x.state=MODULE_READY;x.ref_count=1;
+ auto exhausted=put_module_internal("exhausted");
+ assert(exhausted.status==B_BUSY&&exhausted.consumption==NotConsumed);
+ assert(x.ref_count==1&&callbacks==before);
+ // Commit mismatch retains the originally reserved image and prevents replay.
+ module_image pinned{};x.module_image=&pinned;x.transition_generation=0;
+ module_transition ticket;assert(reserve_module_transition(&x,MODULE_INIT,ticket)==B_OK);
+ assert(x.transition_active&&pinned.transition_pins==1);
+ ++x.transition_generation;
+ assert(commit_module_transition(ticket,B_OK)==B_ERROR);
+ assert(x.lifecycle_retained&&pinned.lifecycle_retained&&pinned.transition_pins==1);
+ assert(get_module("exhausted",&out)==B_ERROR&&callbacks==before);
+ // Public get/put executes a successful UNINIT callback with stale identity.
+ for(staleKind=0;staleKind<6;++staleKind) {
+  for(auto& entry:entries) entry=nullptr;
+  gBootDevice=-1;staleCalls=0;replacementImage={};
+  module_info parent{staleCallback};module_info* slot=&info;
+  module_dependency deps[]={{"dependency",&slot},{nullptr,nullptr}};
+  module_info* records[]={&info};
+  module_image shared{};shared.dependencies=deps;shared.dependency_records=records;
+  shared.dependency_count=shared.dependency_acquired=1;
+  shared.dependency_state=DependenciesComplete;shared.dependency_leases=1;
+  shared.ref_count=1;
+  module target{"stale",MODULE_LOADED,0,0,&parent,&shared,0};
+  module child{"dependency",MODULE_READY,B_BUILT_IN_MODULE,1,&info,nullptr,0};
+  entries[0]=&target;entries[1]=&child;
+  out=nullptr;assert(get_module("stale",&out)==B_OK&&out==&parent);
+  assert(shared.dependency_leases==2&&shared.ref_count==2);
+  int detachBefore=images;
+  assert(put_module("stale")==B_ERROR);
+  assert(staleCalls==1&&target.ref_count==0&&target.lifecycle_retained);
+  assert(target.state==MODULE_ERROR&&shared.lifecycle_retained);
+  assert(shared.dependency_state==DependenciesQuarantined);
+  assert(shared.dependency_leases==2&&shared.ref_count==2&&images==detachBefore);
+  assert(shared.dependency_records==records&&records[0]==&info&&slot==&info);
+  assert(shared.dependency_count==1&&shared.dependency_acquired==1&&child.ref_count==1);
+  assert(shared.transition_pins==(staleKind==5?0u:1u));
+  for(int repeat=0;repeat<3;++repeat) {
+   out=nullptr;assert(get_module("stale",&out)==B_ERROR&&!out);
+   assert(put_module("stale")==B_ERROR);
+  }
+  assert(staleCalls==1&&shared.dependency_leases==2&&images==detachBefore);
+ }
+ puts("stale UNINIT: six identity mismatches retain dependency custody and prevent replay");
  puts("allocation/three failure positions, acquired prefixes, Building reentry, root/core reuse, intermediate/final release, replay and search pin balance passed");
 }

@@ -1,0 +1,294 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -91,6 +91,7 @@
+ 	DependenciesComplete, DependenciesQuarantined };
+ 
+ struct module_image {
++	unsigned int transition_pins;
+ 	bool lifecycle_retained; // private custody; never a public reference
+ 	struct module_image* next;
+ 	module_info**		info;		// the module_info we use
+@@ -110,6 +111,8 @@
+  */
+ 
+ struct module {
++	unsigned long long transition_generation;
++	bool transition_active;
+ 	bool lifecycle_retained; // failed lifecycle owns metadata and image backing
+ 	struct module*		next;
+ 	::module_image*		module_image;
+@@ -421,6 +424,7 @@
+ 		goto err1;
+ 	}
+ 
++	moduleImage->transition_pins = 0;
+ 	moduleImage->lifecycle_retained = false;
+ 	moduleImage->dependency_records = NULL;
+ 	moduleImage->dependency_count = 0;
+@@ -466,7 +470,8 @@
+ 	TRACE(("unload_module_image(image %p, remove %d)\n", moduleImage, remove));
+ 	ASSERT_LOCKED_RECURSIVE(&sModulesLock);
+ 
+-	if (moduleImage->ref_count != 0 || moduleImage->lifecycle_retained) {
++	if (moduleImage->ref_count != 0 || moduleImage->lifecycle_retained
++		|| moduleImage->transition_pins != 0) {
+ 		FATAL(("Can't unload %s due to ref_cnt = %" B_PRId32 "\n",
+ 			moduleImage->path, moduleImage->ref_count));
+ 		return B_ERROR;
+@@ -559,6 +564,8 @@
+ 	module->info = info;
+ 	module->offset = offset;
+ 		// record where the module_info can be found in the module_info array
++	module->transition_generation = 0;
++	module->transition_active = false;
+ 	module->lifecycle_retained = false;
+ 	module->ref_count = 0;
+ 	module->flags = info->flags;
+@@ -605,7 +612,7 @@
+ 		if (module != NULL) {
+ 			// Module does already exist
+ 			if (module->module_image == NULL && module->ref_count == 0
+-				&& !module->lifecycle_retained) {
++				&& !module->lifecycle_retained && !module->transition_active) {
+ 				module->info = *info;
+ 				module->offset = index;
+ 				module->flags = (*info)->flags;
+@@ -747,6 +754,77 @@
+ }
+ 
+ 
++// Private, allocation-free reservations. All operations retain sModulesLock.
++// Active metadata and image pins are distinct from public references.
++struct module_transition {
++	module* target;
++	module_image* image;
++	module_info* info;
++	unsigned long long generation;
++	int state;
++};
++
++static status_t
++check_module_transition(module* target)
++{
++	if (target->transition_active || target->lifecycle_retained
++		|| target->transition_generation == ~0ULL
++		|| (target->module_image != NULL
++			&& target->module_image->transition_pins == ~0U))
++		return B_BUSY;
++	return B_OK;
++}
++
++static status_t
++reserve_module_transition(module* target, int state, module_transition& ticket)
++{
++	status_t status = check_module_transition(target);
++	if (status != B_OK)
++		return status;
++	ticket = {target, target->module_image, target->info,
++		++target->transition_generation, state};
++	target->transition_active = true;
++	if (ticket.image != NULL)
++		ticket.image->transition_pins++;
++	target->state = state;
++	return B_OK;
++}
++
++static bool
++validate_module_transition(const module_transition& ticket)
++{
++	module* target = ticket.target;
++	return target->transition_active
++		&& target->transition_generation == ticket.generation
++		&& target->module_image == ticket.image && target->info == ticket.info
++		&& target->state == ticket.state
++		&& (ticket.image == NULL || ticket.image->transition_pins != 0);
++}
++
++static status_t
++commit_module_transition(module_transition& ticket, status_t status)
++{
++	module* target = ticket.target;
++	if (!validate_module_transition(ticket))
++		status = B_ERROR;
++	if (status < B_OK) {
++		// Uncertain identity or callback failure: never release or replay pins.
++		target->lifecycle_retained = true;
++		target->state = MODULE_ERROR;
++		if (ticket.image != NULL) {
++			ticket.image->lifecycle_retained = true;
++			ticket.image->dependency_state = DependenciesQuarantined;
++		}
++		return status;
++	}
++	target->state = ticket.state == MODULE_INIT ? MODULE_READY : MODULE_LOADED;
++	target->transition_active = false;
++	if (ticket.image != NULL)
++		ticket.image->transition_pins--;
++	return status;
++}
++
++
+ /*!	Initializes a loaded module depending on its state */
+ static inline status_t
+ init_module(module* module)
+@@ -755,20 +833,16 @@
+ 		case MODULE_QUERIED:
+ 		case MODULE_LOADED:
+ 		{
+-			status_t status;
+-			module->state = MODULE_INIT;
++			module_transition ticket;
++			status_t status = reserve_module_transition(module, MODULE_INIT, ticket);
++			if (status != B_OK)
++				return status;
+ 
+ 			// resolve dependencies
+ 
+ 			status = get_dependent_modules(module);
+-			if (status < B_OK) {
+-				// Preserve the parent reference even when no child was acquired.
+-				module->state = MODULE_ERROR;
+-				module->lifecycle_retained = true;
+-				if (module->module_image != NULL)
+-					module->module_image->lifecycle_retained = true;
+-				return status;
+-			}
++			if (status < B_OK)
++				return commit_module_transition(ticket, status);
+ 
+ 			// init module
+ 
+@@ -780,19 +854,7 @@
+ 
+ 			TRACE(("...done (%s)\n", strerror(status)));
+ 
+-			if (status >= B_OK)
+-				module->state = MODULE_READY;
+-			else {
+-				// Failed INIT after callback entry has no cessation proof.
+-				if (module->module_image != NULL)
+-					module->module_image->dependency_state = DependenciesQuarantined;
+-				module->state = MODULE_ERROR;
+-				module->lifecycle_retained = true;
+-				if (module->module_image != NULL)
+-					module->module_image->lifecycle_retained = true;
+-			}
+-
+-			return status;
++			return commit_module_transition(ticket, status);
+ 		}
+ 
+ 		case MODULE_READY:
+@@ -842,8 +904,10 @@
+ 
+ 		case MODULE_READY:
+ 		{
+-			status_t status = B_OK;
+-			module->state = MODULE_UNINIT;
++			module_transition ticket;
++			status_t status = reserve_module_transition(module, MODULE_UNINIT, ticket);
++			if (status != B_OK)
++				return status;
+ 
+ 			TRACE(("uninitializing module %s...\n", module->name));
+ 
+@@ -851,26 +915,23 @@
+ 				status = module->info->std_ops(B_MODULE_UNINIT);
+ 
+ 			TRACE(("...done (%s)\n", strerror(status)));
++
++			// Validate before consuming dependency custody, not just at commit.
++			// The recursive lock remains held through release and final commit.
++			if (status == B_OK && !validate_module_transition(ticket))
++				return commit_module_transition(ticket, B_ERROR);
+ 
+ 			if (status == B_OK) {
+ 				status = put_dependent_modules(module);
+ 				if (status == B_OK) {
+-					module->state = MODULE_LOADED;
+-					return B_OK;
++					return commit_module_transition(ticket, B_OK);
+ 				}
+ 			}
+ 
+ 			FATAL(("Error unloading module %s (%s)\n", module->name,
+ 				strerror(status)));
+ 
+-			if (module->module_image != NULL)
+-				module->module_image->dependency_state = DependenciesQuarantined;
+-			module->state = MODULE_ERROR;
+-			module->lifecycle_retained = true;
+-			if (module->module_image != NULL)
+-				module->module_image->lifecycle_retained = true;
+-
+-			return status;
++			return commit_module_transition(ticket, status);
+ 		}
+ 		default:
+ 			return B_ERROR;
+@@ -1167,6 +1228,7 @@
+ 		goto error;
+ 	}
+ 
++	moduleImage->transition_pins = 0;
+ 	moduleImage->lifecycle_retained = false;
+ 	moduleImage->dependency_records = NULL;
+ 	moduleImage->dependency_count = 0;
+@@ -1920,7 +1982,7 @@
+ 	struct module* module;
+ 	while (iterator.HasNext()) {
+ 		module = iterator.Next();
+-		if (module->ref_count == 0 && !module->lifecycle_retained
++		if (module->ref_count == 0 && !module->lifecycle_retained && !module->transition_active
+ 			&& (module->flags & B_BUILT_IN_MODULE) == 0) {
+ 			TRACE(("  module %p, \"%s\" unused, clearing image\n", module,
+ 				module->name));
+@@ -1939,7 +2001,7 @@
+ 	while (imageIterator.HasNext()) {
+ 		struct module_image* image = imageIterator.Next();
+ 
+-		if (image->ref_count == 0 && !image->lifecycle_retained) {
++		if (image->ref_count == 0 && !image->lifecycle_retained && image->transition_pins == 0) {
+ 			// not in use -- unload it
+ 			TRACE(("  module image %p, \"%s\" unused, removing\n", image,
+ 				image->path));
+@@ -2284,7 +2346,7 @@
+ 		module->info = moduleImage->info[module->offset];
+ 		module->module_image = moduleImage;
+ 	} else if ((module->flags & B_BUILT_IN_MODULE) == 0 && gBootDevice < 0
+-		&& module->ref_count == 0 && !module->lifecycle_retained) {
++		&& module->ref_count == 0 && !module->lifecycle_retained && !module->transition_active) {
+ 		// The boot volume isn't available yet. I.e. instead of searching the
+ 		// right module image, we already know it and just increment the ref
+ 		// count.
+@@ -2307,7 +2369,7 @@
+ 		module->ref_count++;
+ 		*_info = module->info;
+ 	} else if ((module->flags & B_BUILT_IN_MODULE) == 0
+-		&& module->ref_count == 0 && !module->lifecycle_retained) {
++		&& module->ref_count == 0 && !module->lifecycle_retained && !module->transition_active) {
+ 		// initialization failed -- release the image reference
+ 		put_module_image(module->module_image);
+ 		if (gBootDevice >= 0)
+@@ -2364,6 +2426,12 @@
+ 		return {B_BAD_VALUE, NotConsumed, NULL};
+ 	}
+ 
++	// Preflight before consuming the last external reference. The lock stays held.
++	if (module->ref_count == 1 && module->state == MODULE_READY) {
++		status_t status = check_module_transition(module);
++		if (status != B_OK)
++			return {status, NotConsumed, NULL};
++	}
+ 	if (--module->ref_count == 0) {
+ 		if ((module->flags & B_KEEP_LOADED) != 0) {
+ 			panic("ref count of B_KEEP_LOADED module %s dropped to 0!",
+@@ -2384,7 +2452,7 @@
+ 		}
+ 
+ 		if ((module->flags & B_BUILT_IN_MODULE) == 0
+-			&& module->ref_count == 0 && !module->lifecycle_retained) {
++			&& module->ref_count == 0 && !module->lifecycle_retained && !module->transition_active) {
+ 				// Failed lifecycle custody is never released here.
+ 			put_module_image(module->module_image);
+ 			// Unless we don't have a boot device yet, we clear the module's
