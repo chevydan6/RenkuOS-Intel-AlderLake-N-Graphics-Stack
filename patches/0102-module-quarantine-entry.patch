@@ -1,0 +1,34 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -2192,6 +2192,15 @@
+ 
+ 	module = sModulesHash->Lookup(path);
+ 
++	// Lifecycle custody is private: neither acquisition nor public release may
++	// consume the reference retained after failed UNINIT or enter a callback.
++	if (module != NULL) {
++		if (module->state == MODULE_ERROR)
++			return B_ERROR;
++		if (module->state == MODULE_INIT || module->state == MODULE_UNINIT)
++			return B_BUSY;
++	}
++
+ 	// if we don't have it cached yet, search for it
+ 	if (module == NULL || ((module->flags & B_BUILT_IN_MODULE) == 0
+ 			&& module->module_image == NULL)) {
+@@ -2248,6 +2257,15 @@
+ 	RecursiveLocker _(sModulesLock);
+ 
+ 	module = sModulesHash->Lookup(path);
++
++	// Lifecycle custody is private: neither acquisition nor public release may
++	// consume the reference retained after failed UNINIT or enter a callback.
++	if (module != NULL) {
++		if (module->state == MODULE_ERROR)
++			return B_ERROR;
++		if (module->state == MODULE_INIT || module->state == MODULE_UNINIT)
++			return B_BUSY;
++	}
+ 	if (module == NULL) {
+ 		FATAL(("module: We don't seem to have a reference to module %s\n",
+ 			path));
