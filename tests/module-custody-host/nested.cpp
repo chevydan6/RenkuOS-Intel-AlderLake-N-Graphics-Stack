@@ -74,7 +74,7 @@ static dpc_module_info dependency{create};static dpc_module_info* gDPC=&dependen
 #include "lifecycle.inc"
 #define B_ACPI_MODULE_NAME "core"
 #include "root.inc"
-static int dependency_ops(int op,...){assert(sModulesLock==(op==B_MODULE_INIT?0:1));return B_OK;}
+static int dependency_ops(int,...){assert(sModulesLock==0);return B_OK;}
 int main(int argc,char** argv){assert(argc==2);failAt=atoi(argv[1]);
  module_info rootInfo{acpi_module_std_ops},coreInfo{acpi_std_ops},depInfo{dependency_ops};
  module_info* infos[]={&rootInfo,&coreInfo};module_info* slots[3]={};

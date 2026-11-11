@@ -1,0 +1,35 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -792,8 +792,7 @@
+ reserve_module_transition(module* target, int state, module_transition& ticket)
+ {
+ 	module_entry* context = current_module_entry();
+-	if (state == MODULE_INIT
+-		&& recursive_lock_get_recursion(&sModulesLock) != 1)
++	if (recursive_lock_get_recursion(&sModulesLock) != 1)
+ 		return B_BUSY;
+ 	if (context == NULL)
+ 		return B_BAD_VALUE;
+@@ -994,8 +993,11 @@
+ 
+ 			TRACE(("uninitializing module %s...\n", module->name));
+ 
+-			if (module->info->std_ops != NULL)
+-				status = module->info->std_ops(B_MODULE_UNINIT);
++			if (ticket.info->std_ops != NULL) {
++				recursive_lock_unlock(&sModulesLock);
++				status = ticket.info->std_ops(B_MODULE_UNINIT);
++				recursive_lock_lock(&sModulesLock);
++			}
+ 
+ 			TRACE(("...done (%s)\n", strerror(status)));
+ 
+@@ -2487,6 +2489,8 @@
+ 
+ 	TRACE(("put_module(path = %s)\n", path));
+ 
++	if (recursive_lock_get_recursion(&sModulesLock) > 0)
++		return {B_BUSY, NotConsumed, NULL};
+ 	RecursiveLocker _(sModulesLock);
+ 	ModuleEntryScope entry(path);
+ 	if (entry.Status() != B_OK)

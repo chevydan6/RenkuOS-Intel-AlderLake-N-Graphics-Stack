@@ -25,6 +25,8 @@ static void pauseAt(int stage){
 static int rootOps(int op){assert(op==B_MODULE_INIT);pauseAt(2);return B_OK;}
 static int childOps(int op){assert(op==B_MODULE_INIT);pauseAt(1);return B_OK;}
 static int otherOps(int op){assert(op==B_MODULE_INIT&&depth==0);return B_OK;}
+static int releaseCalls;
+static int releaseOps(int op){assert(op==B_MODULE_UNINIT&&depth==0);++releaseCalls;pauseAt(3);assert(put_module("b")==B_OK);return B_OK;}
 int main(){
  module_info parent{rootOps},child{childOps},other{otherOps};
  module_info* infos[]={&parent,&other};module_info* slot=nullptr;
@@ -52,5 +54,20 @@ int main(){
  module_info* out=nullptr;assert(get_module("root",&out)==B_OK&&out==&parent);contender.join();
  assert(depth==0&&sModuleEntries==nullptr&&root.ref_count==1&&core.ref_count==1&&a.ref_count==1&&b.ref_count==2);
  assert(image.ref_count==2&&image.dependency_leases==2&&image.dependency_acquired==1&&!root.transition_active&&image.transition_pins==0);
+
+ root.info=&parent;parent.std_ops=releaseOps;
+ std::thread putter([&]{
+  {std::unique_lock<std::mutex> lock(gate);changed.wait(lock,[]{return paused==3;});}
+  module_info* out=nullptr;
+  auto second=put_module_internal("root");assert(second.status==B_BUSY&&second.consumption==NotConsumed);
+  assert(get_module("root",&out)==B_BUSY&&!out);
+  assert(root.ref_count==0&&root.transition_active&&image.transition_pins==1);
+  assert(get_module("b",&out)==B_OK);
+  {std::lock_guard<std::mutex> lock(gate);completed=3;}changed.notify_all();
+ });
+ auto released=put_module_internal("root");putter.join();
+ assert(released.status==B_OK&&released.consumption==ConsumedComplete);
+ assert(releaseCalls==1&&root.ref_count==0&&!root.transition_active&&image.transition_pins==0);
+ assert(image.dependency_leases==1&&depth==0&&sModuleEntries==nullptr);
  std::free(image.dependency_records);puts("two real threads: child/INIT pauses, owner-aware recursion, target/Building busy, unrelated progress, shared leases and context isolation passed");
 }

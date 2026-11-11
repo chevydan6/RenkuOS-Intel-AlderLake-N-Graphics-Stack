@@ -39,7 +39,7 @@ void* test_calloc(size_t n,size_t s){return (failEntryAlloc || (failAlloc && n==
 module_image* searchImage;module* searchTarget;
 void put_module_image(module_image* p){++images;--p->ref_count;assert(p->ref_count>0);}
 module* search_module(const char*,module_image** out){++searches;if(!searchTarget)return nullptr;*out=searchImage;++searchImage->ref_count;return searchTarget;}
-int callback(int op){assert(sModulesLock==(op==B_MODULE_INIT?0:1));++callbacks;
+int callback(int op){assert(sModulesLock==0);++callbacks;
  if(nestedAcquire&&op==B_MODULE_INIT&&entries[0]->state==MODULE_INIT){
  module_info* rejected=nullptr;int refs=entries[0]->ref_count;
  assert(get_module("root",&rejected)==B_BUSY&&!rejected);
@@ -77,6 +77,7 @@ int main(){
  for(int depth : {1,2}) {
   sModulesLock=depth;module_info* out=nullptr;int before=searches;
   failEntryAlloc=true;assert(get_module("absent",&out)==B_BUSY);
+  assert(put_module_internal("absent").consumption==NotConsumed);
   assert(sModulesLock==depth&&sModuleEntries==nullptr&&searches==before);
   failEntryAlloc=false;sModulesLock=0;
  }
