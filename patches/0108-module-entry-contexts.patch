@@ -1,0 +1,132 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -31,6 +31,7 @@
+ #include <Notifications.h>
+ #include <safemode.h>
+ #include <syscalls.h>
++#include <thread.h>
+ #include <util/AutoLock.h>
+ #include <util/Stack.h>
+ #include <vfs.h>
+@@ -754,6 +755,64 @@
+ }
+ 
+ 
++// Private synchronous entries; all associations are protected by sModulesLock.
++// Frames are stack scoped; allocation failure precedes lookup or ref mutation.
++struct module_entry {
++ module_entry* next;
++ thread_id thread;
++ const char* path;
++ unsigned long long identity;
++};
++static module_entry* sModuleEntries;
++static unsigned long long sModuleEntryIdentity;
++
++static module_entry*
++current_module_entry()
++{
++ for (module_entry* entry = sModuleEntries; entry != NULL; entry = entry->next) {
++  if (entry->thread == thread_get_current_thread_id())
++   return entry;
++ }
++ return NULL;
++}
++
++class ModuleEntryScope {
++public:
++ explicit ModuleEntryScope(const char* path) : fEntry(NULL), fStatus(B_OK)
++ {
++  if (path == NULL) { fStatus = B_BAD_VALUE; return; }
++  thread_id thread = thread_get_current_thread_id();
++  for (module_entry* entry = sModuleEntries; entry != NULL; entry = entry->next) {
++   if (entry->thread == thread && strcmp(entry->path, path) == 0) {
++    fStatus = B_BUSY; return;
++   }
++  }
++  if (sModuleEntryIdentity == ~0ULL) { fStatus = B_BUSY; return; }
++  fEntry = (module_entry*)calloc(1, sizeof(module_entry));
++  if (fEntry == NULL) { fStatus = B_NO_MEMORY; return; }
++  fEntry->thread = thread;
++  fEntry->path = path;
++  fEntry->identity = ++sModuleEntryIdentity;
++  fEntry->next = sModuleEntries;
++  sModuleEntries = fEntry;
++ }
++ ~ModuleEntryScope()
++ {
++  if (fEntry == NULL) return;
++  module_entry** link = &sModuleEntries;
++  while (*link != NULL && *link != fEntry) link = &(*link)->next;
++  if (*link == fEntry) *link = fEntry->next;
++  free(fEntry);
++ }
++ status_t Status() const { return fStatus; }
++private:
++ ModuleEntryScope(const ModuleEntryScope&);
++ ModuleEntryScope& operator=(const ModuleEntryScope&);
++ module_entry* fEntry;
++ status_t fStatus;
++};
++
++
+ // Private, allocation-free reservations. All operations retain sModulesLock.
+ // Active metadata and image pins are distinct from public references.
+ struct module_transition {
+@@ -762,6 +821,8 @@
+ 	module_info* info;
+ 	unsigned long long generation;
+ 	int state;
++	module_entry* context;
++	unsigned long long context_identity;
+ };
+ 
+ static status_t
+@@ -778,11 +839,14 @@
+ static status_t
+ reserve_module_transition(module* target, int state, module_transition& ticket)
+ {
++	module_entry* context = current_module_entry();
++	if (context == NULL)
++		return B_BAD_VALUE;
+ 	status_t status = check_module_transition(target);
+ 	if (status != B_OK)
+ 		return status;
+ 	ticket = {target, target->module_image, target->info,
+-		++target->transition_generation, state};
++		++target->transition_generation, state, context, context->identity};
+ 	target->transition_active = true;
+ 	if (ticket.image != NULL)
+ 		ticket.image->transition_pins++;
+@@ -794,7 +858,10 @@
+ validate_module_transition(const module_transition& ticket)
+ {
+ 	module* target = ticket.target;
+-	return target->transition_active
++	module_entry* context = current_module_entry();
++	return context != NULL && context == ticket.context
++		&& context->identity == ticket.context_identity
++		&& target->transition_active
+ 		&& target->transition_generation == ticket.generation
+ 		&& target->module_image == ticket.image && target->info == ticket.info
+ 		&& target->state == ticket.state
+@@ -2309,6 +2376,9 @@
+ 		return B_BAD_VALUE;
+ 
+ 	RecursiveLocker _(sModulesLock);
++	ModuleEntryScope entry(path);
++	if (entry.Status() != B_OK)
++		return entry.Status();
+ 
+ 	module = sModulesHash->Lookup(path);
+ 
+@@ -2399,6 +2469,9 @@
+ 	TRACE(("put_module(path = %s)\n", path));
+ 
+ 	RecursiveLocker _(sModulesLock);
++	ModuleEntryScope entry(path);
++	if (entry.Status() != B_OK)
++		return {entry.Status(), NotConsumed, NULL};
+ 
+ 	module = sModulesHash->Lookup(path);
+ 

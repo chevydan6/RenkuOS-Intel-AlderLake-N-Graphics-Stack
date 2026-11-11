@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+using thread_id=int;
+thread_id thread_get_current_thread_id(){return 1;}
 using status_t=int; using int32=int; using image_id=int;
 const int B_OK=0,B_NO_ERROR=0,B_ERROR=-1,B_BUSY=-2,B_BAD_VALUE=-3,B_ENTRY_NOT_FOUND=-4,B_NO_MEMORY=-5;
 const int B_KEEP_LOADED=1,B_BUILT_IN_MODULE=2,B_MODULE_INIT=1,B_MODULE_UNINIT=2;
@@ -12,7 +14,7 @@ struct module_info {int (*std_ops)(int);};
 struct module_dependency {const char* name;module_info** info;};
 struct module_image;
 struct module {const char* name; int state,flags,ref_count; module_info* info; struct module_image* module_image; int offset; bool lifecycle_retained=false; unsigned long long transition_generation=0; bool transition_active=false;};
-module* entries[5]; int callbacks,images,searches,panics,failAt=-1;bool failAlloc,buildingProbe,failInit,nestedAcquire;int gBootDevice=-1,sModulesLock=0;
+module* entries[5]; int callbacks,images,searches,panics,failAt=-1;bool failEntryAlloc,failAlloc,buildingProbe,failInit,nestedAcquire;int gBootDevice=-1,sModulesLock=0;
 struct RecursiveLocker { explicit RecursiveLocker(int&) {} };
 struct Hash {module* Lookup(const char* n) {for(auto m:entries) if(m&&strcmp(n,m->name)==0)return m;return nullptr;}} hash;
 Hash* sModulesHash=&hash;
@@ -23,7 +25,7 @@ template<class... T> void panic(const char*,T...) {++panics;}
 int atomic_add(int* p,int n) {int old=*p;*p+=n;return old;}
 void put_module_image(module_image*);module* search_module(const char*,module_image**);
 status_t get_module(const char*,module_info**);status_t put_module(const char*);
-void* test_calloc(size_t n,size_t s){return failAlloc?nullptr:std::calloc(n,s);}
+void* test_calloc(size_t n,size_t s){return (failEntryAlloc || (failAlloc && n==3))?nullptr:std::calloc(n,s);}
 #define calloc test_calloc
 #include "production.inc"
 #undef calloc
@@ -31,6 +33,11 @@ module_image* searchImage;module* searchTarget;
 void put_module_image(module_image* p){++images;--p->ref_count;assert(p->ref_count>0);}
 module* search_module(const char*,module_image** out){++searches;if(!searchTarget)return nullptr;*out=searchImage;++searchImage->ref_count;return searchTarget;}
 int callback(int op){++callbacks;
+ if(nestedAcquire&&op==B_MODULE_INIT&&entries[0]->state==MODULE_INIT){
+ module_info* rejected=nullptr;int refs=entries[0]->ref_count;
+ assert(get_module("root",&rejected)==B_BUSY&&!rejected);
+ assert(put_module("root")==B_BUSY&&entries[0]->ref_count==refs);
+ }
  if(nestedAcquire&&op==B_MODULE_INIT&&entries[0]->state==MODULE_INIT&&entries[1]->state!=MODULE_INIT){module_info* out=nullptr;assert(get_module("core",&out)==B_OK);assert(entries[0]->module_image->dependency_leases==2);assert(put_module("core")==B_OK);assert(entries[0]->module_image->dependency_leases==1);}
  return op==B_MODULE_INIT&&failInit?B_ERROR:B_OK;}
 int childCallback(int op){
@@ -51,11 +58,25 @@ int staleCallback(int op) {
    case 3: target->state=MODULE_LOADED;break;
    case 4: target->transition_active=false;break;
    case 5: target->module_image->transition_pins=0;break;
+   case 6: ++current_module_entry()->identity;break;
   }
  }
  return B_OK;
 }
 int main(){
+ { module_info* out=nullptr;failEntryAlloc=true;
+ assert(get_module("absent",&out)==B_NO_MEMORY);
+ assert(put_module_internal("absent").consumption==NotConsumed);
+ assert(sModuleEntries==nullptr&&searches==0);failEntryAlloc=false;
+ }
+ { ModuleEntryScope outer("outer");assert(outer.Status()==B_OK);
+ auto context=current_module_entry();
+ { ModuleEntryScope inner("inner");assert(inner.Status()==B_OK&&current_module_entry()!=context);
+ ModuleEntryScope cycle("outer");assert(cycle.Status()==B_BUSY); }
+ assert(current_module_entry()==context);
+ }
+ assert(sModuleEntries==nullptr);
+
  for(int mode=-2;mode<5;mode++){
  callbacks=images=searches=panics=0;failAt=mode<3?mode:-1;failAlloc=mode==-2;buildingProbe=true;failInit=mode==4;nestedAcquire=mode==3;gBootDevice=-1;
  module_info parent{callback},child{childCallback};module_info* infos[]={&parent};module_info* slots[3]={};
@@ -137,14 +158,17 @@ int main(){
  assert(x.ref_count==1&&callbacks==before);
  // Commit mismatch retains the originally reserved image and prevents replay.
  module_image pinned{};x.module_image=&pinned;x.transition_generation=0;
+ { ModuleEntryScope directScope("direct-reservation");
  module_transition ticket;assert(reserve_module_transition(&x,MODULE_INIT,ticket)==B_OK);
  assert(x.transition_active&&pinned.transition_pins==1);
  ++x.transition_generation;
  assert(commit_module_transition(ticket,B_OK)==B_ERROR);
  assert(x.lifecycle_retained&&pinned.lifecycle_retained&&pinned.transition_pins==1);
  assert(get_module("exhausted",&out)==B_ERROR&&callbacks==before);
+ }
+ assert(sModuleEntries==nullptr);
  // Public get/put executes a successful UNINIT callback with stale identity.
- for(staleKind=0;staleKind<6;++staleKind) {
+ for(staleKind=0;staleKind<7;++staleKind) {
   for(auto& entry:entries) entry=nullptr;
   gBootDevice=-1;staleCalls=0;replacementImage={};
   module_info parent{staleCallback};module_info* slot=&info;
@@ -174,6 +198,7 @@ int main(){
   }
   assert(staleCalls==1&&shared.dependency_leases==2&&images==detachBefore);
  }
- puts("stale UNINIT: six identity mismatches retain dependency custody and prevent replay");
+ assert(sModuleEntries==nullptr);
+ puts("stale UNINIT: seven identity mismatches retain dependency custody and prevent replay");
  puts("allocation/three failure positions, acquired prefixes, Building reentry, root/core reuse, intermediate/final release, replay and search pin balance passed");
 }
