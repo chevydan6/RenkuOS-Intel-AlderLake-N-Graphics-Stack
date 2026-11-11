@@ -31,7 +31,10 @@ record['revision'] = run(['git', '-C', str(a.source), 'rev-parse', base + '^{com
 if record['revision'] != base:
     raise SystemExit('Pinned revision mismatch')
 record['object_type'] = run(['git', '-C', str(a.source), 'cat-file', '-t', base])
-kernel = ['src/system/kernel/module.cpp', 'headers/os/drivers/module.h', 'headers/private/kernel/lock.h']
+kernel = ['src/system/kernel/module.cpp', 'headers/os/drivers/module.h', 'headers/private/kernel/lock.h',
+    'src/add-ons/kernel/generic/dpc/dpc.c', 'headers/os/drivers/dpc.h',
+    *['src/add-ons/kernel/bus_managers/acpi/' + name for name in
+      ('BusManager.cpp', 'ACPIPrivate.h', 'ACPICAHaiku.cpp', 'Module.cpp')]]
 archive = out / 'pinned.tar'
 run(['git', '-C', str(a.source), 'archive', '--format=tar', '-o', str(archive), base, *constants['PATHS'], *kernel])
 record['archive_sha256'] = sha(archive)

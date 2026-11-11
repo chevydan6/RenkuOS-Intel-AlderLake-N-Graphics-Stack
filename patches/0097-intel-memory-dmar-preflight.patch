@@ -1,0 +1,165 @@
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -37,6 +37,12 @@
+ static IntelN100BcsReset sBcsReset;
+ static IntelN100BcsReset::Report sResetReport;
+ static IntelN100ResetSafety sResetSafety;
++// Stable resident storage; a successful provider reference is never put here.
++static acpi_dmar_descriptor_module_info* sDMARProvider;
++static bool sPreflightActive, sPreflightUncertain;
++static uint64 sPreflightLease;
++static IntelApertureLeaseState::Operation sPreflightPin;
++static intel_memory_preflight_report sPreflightReport;
+ 
+ 
+ static status_t
+@@ -250,7 +256,8 @@
+ 		return B_BAD_VALUE;
+ 	OwnerDevice device;
+ 	mutex_lock(&sLock);
+-	if (sObservationBlocked || sObservationPhase != ObservationIdle) {
++	if (sPreflightActive || sPreflightUncertain
++		|| sObservationBlocked || sObservationPhase != ObservationIdle) {
+ 		mutex_unlock(&sLock);
+ 		return B_BUSY;
+ 	}
+@@ -932,6 +939,77 @@
+ 	return B_OK;
+ }
+ 
++// All callbacks and module operations occur outside sLock. The resident
++// request pin excludes reuse; display closure invalidates completion admission.
++static status_t
++PreflightDMAR(intel_memory_preflight_report* output)
++{
++ if (output == NULL)
++  return B_BAD_VALUE;
++ mutex_lock(&sLock);
++ if (sPreflightActive || sPreflightUncertain || sObservationBlocked
++  || sObservationPhase != ObservationIdle) {
++  mutex_unlock(&sLock);
++  return B_BUSY;
++ }
++ status_t status = Status(sState.AcquireRequest(sPreflightLease));
++ if (status != B_OK) {
++  mutex_unlock(&sLock);
++  return status;
++ }
++ status = Status(sState.BeginOperation(sPreflightLease,
++  IntelApertureLeaseState::Query, sPreflightPin));
++ if (status != B_OK) {
++  sState.Release(sPreflightLease);
++  sPreflightLease = 0;
++  mutex_unlock(&sLock);
++  return status;
++ }
++ sPreflightActive = true;
++ const uint64 lease = sPreflightLease;
++ sPreflightReport = {};
++ sPreflightReport.classification = ACPI_DMAR_NOT_READY;
++ acpi_dmar_descriptor_module_info* provider = sDMARProvider;
++ mutex_unlock(&sLock);
++
++ status_t dependency = B_OK;
++ if (provider == NULL)
++  dependency = get_module(ACPI_DMAR_DESCRIPTOR_MODULE_NAME,
++   (module_info**)&provider);
++ // Record custody before invoking provider code, including on close overlap.
++ mutex_lock(&sLock);
++ if (dependency == B_OK)
++  sDMARProvider = provider;
++ mutex_unlock(&sLock);
++ uint32 acpica = 0;
++ acpi_dmar_descriptor_result classification = ACPI_DMAR_NOT_READY;
++ if (dependency == B_OK)
++  classification = provider->classify(&acpica);
++
++ mutex_lock(&sLock);
++ sPreflightReport.dependency_status = dependency;
++ sPreflightReport.classification = classification;
++ sPreflightReport.acpica_status = acpica;
++ // No descriptor outcome establishes immutable bytes or reserved policy.
++ sPreflightReport.configured = false;
++ bool current = sPreflightActive && sPreflightLease == lease
++  && sState.DiagnosticAllowed();
++ sPreflightReport.completed = current;
++ *output = sPreflightReport;
++ if (!current) {
++  // Retain request, operation pin, provider and all backing on uncertainty.
++  sPreflightUncertain = true;
++  mutex_unlock(&sLock);
++  return B_BUSY;
++ }
++ sState.Release(sPreflightLease);
++ sState.EndOperation(sPreflightPin, false);
++ sPreflightLease = 0;
++ sPreflightActive = false;
++ mutex_unlock(&sLock);
++ return dependency == B_OK ? B_ERROR : dependency;
++}
++
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+ // second time: both exports share one lock, PCI/GART references and ownership.
+ static status_t
+@@ -1023,7 +1101,13 @@
+ 	ReadResetSafety
+ };
+ 
++static intel_memory_preflight_module_info sPreflightModule = {
++ { INTEL_MEMORY_PREFLIGHT_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++ PreflightDMAR
++};
++
+ module_info* modules[] = {
++ (module_info*)&sPreflightModule,
+ 	(module_info*)&sModule, (module_info*)&sObservationModule,
+ 	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule,
+ 	(module_info*)&sEngineInventoryModule, (module_info*)&sMediaFuseModule,
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -4,6 +4,7 @@
+ 
+ #include <AGP.h>
+ #include <module.h>
++#include <IntelDmarDescriptor.h>
+ #include <IntelN100PciPower.h>
+ #include <IntelN100GtAck.h>
+ #include <IntelN100Forcewake.h>
+@@ -11,6 +12,20 @@
+ #include <IntelN100ForcewakeGroup.h>
+ #include <IntelN100BcsReset.h>
+ #include <IntelN100ResetSafety.h>
++
++// Separate descriptor-only ABI. Never grants backing or DMA admission.
++#define INTEL_MEMORY_PREFLIGHT_MODULE_NAME "bus_managers/intel_memory_owner/dmar_preflight/v1"
++struct intel_memory_preflight_report {
++ status_t dependency_status;
++ acpi_dmar_descriptor_result classification;
++ uint32 acpica_status;
++ bool completed;
++ bool configured;
++};
++struct intel_memory_preflight_module_info {
++ module_info info;
++ status_t (*preflight)(intel_memory_preflight_report* report);
++};
+ 
+ #define INTEL_MEMORY_OWNER_MODULE_NAME "bus_managers/intel_memory_owner/v0"
+ 
+--- /dev/null
++++ b/headers/private/graphics/intel_extreme/IntelDmarDescriptor.h
+@@ -0,0 +1,14 @@
++// SPDX-License-Identifier: MIT
++#ifndef INTEL_DMAR_DESCRIPTOR_H
++#define INTEL_DMAR_DESCRIPTOR_H
++#include <module.h>
++#define ACPI_DMAR_DESCRIPTOR_MODULE_NAME "bus_managers/acpi/dmar_descriptor/v1"
++enum acpi_dmar_descriptor_result {
++ ACPI_DMAR_ABSENT, ACPI_DMAR_DUPLICATE, ACPI_DMAR_UNSUPPORTED,
++ ACPI_DMAR_NOT_READY, ACPI_DMAR_MUTEX_FAILURE
++};
++typedef struct acpi_dmar_descriptor_module_info {
++ module_info info;
++ acpi_dmar_descriptor_result (*classify)(uint32* acpicaStatus);
++} acpi_dmar_descriptor_module_info;
++#endif

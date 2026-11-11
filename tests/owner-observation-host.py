@@ -19,9 +19,9 @@ globals_start = text.index('struct OwnerDevice {')
 globals_end = text.index('static status_t\nStatus(')
 status_end = text.index('// A ticket is ended', globals_end)
 functions_start = text.index('static bool\nReadConfig(')
-functions_end = text.index('// v1 acquires v0', functions_start)
+functions_end = text.index('// All callbacks and module operations', functions_start)
 (a.output / 'observation-under-test.inc').write_text(
-    text[globals_start:status_end] + text[functions_start:functions_end])
+    text[globals_start:text.index('// Stable resident storage;')] + 'static bool sPreflightActive, sPreflightUncertain;\n' + text[globals_end:status_end] + text[functions_start:functions_end])
 headers = a.source / 'headers/private/graphics/intel_extreme'
 inputs = [source]
 for name in ('IntelApertureLeaseState.h', 'IntelN100PciPower.h', 'IntelN100GtAck.h', 'IntelN100Forcewake.h', 'IntelN100BcsInventory.h', 'IntelN100ResetDomains.h', 'IntelN100ForcewakeGroup.h'):
@@ -37,7 +37,7 @@ test = Path(__file__).with_name('owner-observation-test.cpp')
 shutil.copy2(test, a.output / test.name)
 inputs.append(test)
 command = ['g++', '-std=c++17', '-Wall', '-Wextra', '-Werror', '-pthread',
-           '-fsanitize=address,undefined', '-fno-omit-frame-pointer',
+           '-fsanitize=address,undefined', '-no-pie', '-fno-omit-frame-pointer',
            '-I', str(a.output), str(a.output / test.name), '-o', str(a.output / 'test')]
 r = subprocess.run(command, capture_output=True, text=True, timeout=30)
 (a.output / 'build.log').write_text(r.stdout + r.stderr)

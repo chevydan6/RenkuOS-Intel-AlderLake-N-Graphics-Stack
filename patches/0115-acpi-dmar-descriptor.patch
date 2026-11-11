@@ -1,20 +1,12 @@
 --- a/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
 +++ b/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
-@@ -29,6 +29,18 @@
+@@ -29,6 +29,10 @@
  
  
  __BEGIN_DECLS
 +
 +// Descriptor classification only; no backing bytes or reserved-policy authority.
-+#define ACPI_DMAR_DESCRIPTOR_MODULE_NAME "bus_managers/acpi/dmar_descriptor/v1"
-+enum acpi_dmar_descriptor_result {
-+	ACPI_DMAR_ABSENT, ACPI_DMAR_DUPLICATE, ACPI_DMAR_UNSUPPORTED,
-+	ACPI_DMAR_NOT_READY, ACPI_DMAR_MUTEX_FAILURE
-+};
-+typedef struct acpi_dmar_descriptor_module_info {
-+	module_info info;
-+	acpi_dmar_descriptor_result (*classify)(uint32* acpicaStatus);
-+} acpi_dmar_descriptor_module_info;
++#include <graphics/intel_extreme/IntelDmarDescriptor.h>
 +acpi_dmar_descriptor_result acpi_classify_dmar(uint32* acpicaStatus);
  
  extern device_manager_info* gDeviceManager;
