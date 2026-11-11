@@ -167,7 +167,7 @@ remain mandatory for any separately reviewed physical procedure.
 
 ## Concrete lifecycle integration design (objective 61905358628ee4e2868e)
 
-SOL generation 75; design only, based on published 931023da7c3e687a45bd89a53d5b403f1f97ec76.
+SOL generation 77; corrects generation 75 owner-thread reentry; design only, based on published 931023da7c3e687a45bd89a53d5b403f1f97ec76.
 This section replaces the unspecified lifecycle facility in step 2 above. It does
 not establish immutable backing, implement a provider, or authorize admission.
 
@@ -241,13 +241,57 @@ protocol does not infer shutdown exclusion from that reference.
   returns Busy rather than performing duplicate cleanup.
 * Route both callers through one Haiku termination wrapper; additionally require
   a Haiku-specific entry check at utxface.c:73 before :78 (SubsystemShutdown).
-  It validates the current lifecycle-owner token and drained state; a direct or
-  repeated AcpiTerminate without that token returns failure before touching any
-  ACPICA state. Do not recursively close/drain inside this check. Require the
-  same transaction authorization at utxfinit.c:82 before globals/OS initialization.
-  Private shutdown/mutex helpers remain internal to that authorized transaction;
-  future callers found by coverage must be routed or rejected. No public caller
-  may invoke private teardown independently.
+  At utxfinit.c:82 require the corresponding INIT check before any OS/globals
+  initialization. The owner token and active=0 alone are **not** authorization.
+  Each check must atomically consume the operation-specific, single-use entry
+  permit below, before executing any ACPICA entry body. A rejected call returns
+  failure without reading or modifying ACPICA state. Never recursively drain.
+  Private shutdown/mutex helpers remain internal to that authorized body; direct
+  public access to private teardown is forbidden and must be audited before enablement.
+
+### Single-use entry authorization for no-argument lifecycle APIs
+
+Broker storage additionally owns a permit record {epoch, transaction serial,
+owner thread identity, operation, phase}. Operations are INIT_SUBSYSTEM and
+TERMINATE, never interchangeable. Phases are Unarmed, Armed, Executing, Returned
+and Failed. Serial allocation never wraps; exhaustion quarantines. Owner identity
+must identify the live thread incarnation, not a recycled numeric ID; the owning
+synchronous wrapper retains its lifetime until transaction release. Kernel API
+and thread-identity plumbing remain prerequisites, not existing guarantees.
+
+Only the broker's internal wrapper may arm a permit. Its acquire/arm API is not
+an exported general capability usable by callbacks. After arming, the wrapper
+immediately invokes the designated no-argument ACPICA API, with no intervening
+callback or dispatch. These are synchronous calls on the owner thread; asynchronous
+entry is rejected. The API's first Haiku-specific instruction calls the resident
+broker's TryEnter(operation), which looks up the sole transaction record under C;
+no thread-local ambient token supplied by the caller is trusted. Require matching
+live owner thread, epoch/serial, correct operation, phase Armed, active=0 and the
+appropriate state (Initializing for INIT; Closing or initialization-error cleanup
+for TERMINATE). In that same C critical section change Armed to Executing. That
+transition is the entry linearization point. Release C before any ACPICA body.
+Wrong thread, wrong operation, missing permit, Executing/Returned/Failed or stale
+transaction all reject without mutating the permit or touching ACPICA state.
+
+The outer wrapper alone finalizes Executing after the synchronous API returns,
+including each early error return: record Returned on success or Failed on error.
+No early return restores Armed. A phase mismatch or abnormal/missing return means
+quarantine with resources retained; never infer completion, replay or clear owner.
+The API body and callbacks cannot rearm, finalize or mint permits. The same
+operation is never armed twice in a transaction. INIT success does not authorize
+TERMINATE: after INIT has returned successfully, a later initialization failure
+may arm a distinct TERMINATE permit once, via the outer error-cleanup wrapper.
+An INIT failure instead quarantines without speculative teardown. Normal UNINIT
+uses a new transaction after closure/drain. Clean reinitialization uses a new
+epoch/serial; no previous permit is reused. Remaining initialization calls run
+under the lifecycle owner with no Armed permit; direct INIT/TERMINATE calls from
+their callbacks fail too. Competing lifecycle wrappers cannot claim ownership.
+
+Enforce rejection regardless of whether pinned callbacks actually reenter. The
+shutdown's event/namespace calls (utinit.c:326–341) and subsystem initialization
+calls (utxfinit.c:76–138) are treated as potentially reentrant; no absence-of-callback
+claim is needed. This only designs the two guarded entry points. Coverage of
+private helper callers, exports and other ACPICA APIs remains a pre-enable audit.
 
 After successful complete termination, delete DPC while retaining transaction
 ownership; under C set Closed and release owner. Repeated UNINIT in Closed is
@@ -285,7 +329,11 @@ protocol protects the prospective snapshot, not all unrelated ACPICA APIs.
 | Shutdown during copy or error cleanup | Closing rejects new calls; admitted call performs Put if acquired, unlocks TABLES, decrements active. Only then teardown starts. |
 | Snapshot pauses after unlock before decrement | Teardown still waits; no premature destruction. |
 | Drain deadline expires | Quarantined, no teardown/unload success; retain resource ownership, do not force active to zero. |
-| Two terminators / repeated termination | Only transaction owner may call ACPICA; competitor Busy; Closed repeat is no-op. AcpiGbl_Shutdown is never the guard. |
+| Owner-thread callback during INIT body calls INIT or TERMINATE | INIT permit is Executing, so nested INIT fails; TERMINATE has no Armed permit and fails. Neither reaches globals/OS initialization or teardown; outer INIT retains its permit and runs to return. |
+| Owner-thread callback during TERMINATE body calls TERMINATE or INIT | TERMINATE is Executing, so nested teardown fails before SubsystemShutdown; INIT operation mismatch fails. active=0 and matching owner do not authorize either call. Outer teardown alone reaches mutex/OS destruction once. |
+| Same-thread repeat after body return, before owner release | Permit is Returned/Failed, never Armed; repeat rejects. INIT-to-cleanup needs separately armed TERMINATE after successful INIT; reverse/nested transition is forbidden. |
+| Competing thread while Armed or Executing | Owner-thread mismatch rejects without consuming permit; competing wrapper cannot acquire transaction. Correct owner alone consumes Armed. |
+| Two terminators / repeated termination | Single-use TERMINATE permit allows one body; competitor Busy; Closed repeat is no-op. AcpiGbl_Shutdown is never the guard. |
 | INIT fails before/inside/after subsystem init | Pre-invocation failure returns Closed; inside failure quarantines; later failure uses authorized cleanup with admission never Open. |
 | Clean terminate then reinitialize | old tokens drained before Closed; new epoch opens only after complete new initialization. No stale token can reopen or decrement new state. |
 
