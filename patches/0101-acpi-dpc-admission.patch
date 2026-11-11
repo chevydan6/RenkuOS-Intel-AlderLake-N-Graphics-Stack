@@ -1,0 +1,156 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
+@@ -47,6 +47,103 @@
+ void* gDPCHandle = NULL;
+ 
+ 
++// Image-owned storage: external manager image/dependency custody remains mandatory.
++// Never infer callback cessation or permission to release the image from this block.
++static spinlock sDPCAdmissionLock = B_SPINLOCK_INITIALIZER;
++enum DPCAdmissionPhase { DPCUnused, DPCCreating, DPCOpen, DPCClosed,
++	DPCQuarantined };
++static DPCAdmissionPhase sDPCPhase = DPCUnused;
++static uint32 sDPCProducers = 0;
++static uint64 sDPCGeneration = 0;
++static dpc_module_info* sDPCDependency = NULL;
++static void* sDPCQueue = NULL;
++
++bool
++acpi_acquire_dpc(dpc_module_info** dependency, void** queue)
++{
++	cpu_status irq = disable_interrupts();
++	acquire_spinlock(&sDPCAdmissionLock);
++	bool accepted = sDPCPhase == DPCOpen;
++	if (accepted && sDPCProducers == ~(uint32)0) {
++		sDPCPhase = DPCQuarantined;
++		accepted = false;
++	}
++	if (accepted) {
++		sDPCProducers++;
++		*dependency = sDPCDependency;
++		*queue = sDPCQueue;
++	}
++	release_spinlock(&sDPCAdmissionLock);
++	restore_interrupts(irq);
++	return accepted;
++}
++
++void
++acpi_release_dpc()
++{
++	cpu_status irq = disable_interrupts();
++	acquire_spinlock(&sDPCAdmissionLock);
++	if (sDPCProducers != 0)
++		sDPCProducers--;
++	else
++		sDPCPhase = DPCQuarantined;
++	release_spinlock(&sDPCAdmissionLock);
++	restore_interrupts(irq);
++}
++
++// Private non-destructive snapshot only. No waits, DPC calls or teardown.
++uint32
++acpi_close_dpc_admission()
++{
++	cpu_status irq = disable_interrupts();
++	acquire_spinlock(&sDPCAdmissionLock);
++	if (sDPCPhase != DPCQuarantined)
++		sDPCPhase = DPCClosed;
++	uint32 outstanding = sDPCProducers;
++	release_spinlock(&sDPCAdmissionLock);
++	restore_interrupts(irq);
++	return outstanding;
++}
++
++status_t
++acpi_initialize_dpc()
++{
++	cpu_status irq = disable_interrupts();
++	acquire_spinlock(&sDPCAdmissionLock);
++	if (sDPCPhase != DPCUnused || sDPCGeneration == ~(uint64)0) {
++		if (sDPCPhase == DPCUnused)
++			sDPCPhase = DPCQuarantined;
++		release_spinlock(&sDPCAdmissionLock);
++		restore_interrupts(irq);
++		return B_ERROR;
++	}
++	sDPCGeneration++;
++	sDPCPhase = DPCCreating;
++	// The module manager must retain this dependency/image even on failure.
++	sDPCDependency = gDPC;
++	dpc_module_info* dependency = sDPCDependency;
++	release_spinlock(&sDPCAdmissionLock);
++	restore_interrupts(irq);
++
++	void* queue = NULL;
++	status_t result = dependency->new_dpc_queue(&queue, "acpi_task",
++		B_URGENT_DISPLAY_PRIORITY + 1);
++	irq = disable_interrupts();
++	acquire_spinlock(&sDPCAdmissionLock);
++	// Preserve even ambiguous error handles; never retry construction.
++	sDPCQueue = queue;
++	gDPCHandle = queue;
++	if (sDPCPhase == DPCCreating && result == B_OK && queue != NULL)
++		sDPCPhase = DPCOpen;
++	else {
++		sDPCPhase = DPCQuarantined;
++		result = B_ERROR;
++	}
++	release_spinlock(&sDPCAdmissionLock);
++	restore_interrupts(irq);
++	return result;
++}
++
+ static bool
+ checkAndLogFailure(const ACPI_STATUS status, const char* msg)
+ {
+@@ -205,8 +302,7 @@
+ 				return ENOSYS;
+ 			}
+ 
+-			if (gDPC->new_dpc_queue(&gDPCHandle, "acpi_task",
+-					B_URGENT_DISPLAY_PRIORITY + 1) != B_OK) {
++			if (acpi_initialize_dpc() != B_OK) {
+ 				ERROR("failed to create os execution queue\n");
+ 				return B_ERROR;
+ 			}
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
+@@ -1,3 +1,4 @@
++#include <dpc.h>
+ /*
+  * Copyright 2009, Clemens Zeidler. All rights reserved.
+  * Copyright 2006, Jérôme Duval. All rights reserved.
+@@ -256,7 +257,14 @@
+ 
+ void embedded_controller_probe_ecdt();
+ 
++status_t acpi_initialize_dpc();
++bool acpi_acquire_dpc(dpc_module_info** dependency, void** queue);
++void acpi_release_dpc();
++uint32 acpi_close_dpc_admission();
++
+ __END_DECLS
+ 
+ 
++// Private producer admission; never a callback-cessation certificate.
++// Caller must retain the manager image and dependency before entering these APIs.
+ #endif	/* _ACPI_PRIVATE_H */
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
+@@ -873,7 +873,14 @@
+ 	}
+ */
+ 
+-	if (gDPC->queue_dpc(gDPCHandle, function, context) != B_OK) {
++	dpc_module_info* dependency;
++	void* queue;
++	if (!acpi_acquire_dpc(&dependency, &queue))
++		return AE_BAD_PARAMETER;
++	status_t result = dependency->queue_dpc(queue, function, context);
++	// queue_dpc includes its wakeup; accepted callbacks outlive this lease.
++	acpi_release_dpc();
++	if (result != B_OK) {
+ 		DEBUG_FUNCTION_F("Serious failure in AcpiOsExecute! function: %p",
+ 			function);
+ 		return AE_BAD_PARAMETER;
