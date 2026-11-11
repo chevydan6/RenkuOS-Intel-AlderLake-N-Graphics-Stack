@@ -8,22 +8,22 @@ p='src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp'
 s=subprocess.check_output(['git','--git-dir='+repo,'show',rev+':'+p])
 composed=out/'composed'; target=composed/p; target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(s)
 # Only the patches that touch this file; other files are checked by regression.
-for name in ['0101-acpi-dpc-admission.patch','0111-acpi-callback-custody.patch','0112-acpi-interrupt-identity.patch','0113-acpi-interrupt-admission.patch']:
+for name in ['0101-acpi-dpc-admission.patch','0111-acpi-callback-custody.patch','0112-acpi-interrupt-identity.patch','0113-acpi-interrupt-admission.patch','0114-acpi-table-admission.patch']:
  patch=(root/'patches'/name).read_text()
  sections=patch.split('--- a/')
  selected=''.join('--- a/'+x for x in sections[1:] if x.startswith(p+'\n'))
- subprocess.run(['git','apply'],input=selected,text=True,cwd=composed,check=True)
+ if selected: subprocess.run(['git','apply'],input=selected,text=True,cwd=composed,check=True)
 # Compose lifecycle caller and private declaration as well.
 for filename in ['BusManager.cpp', 'ACPIPrivate.h']:
  path='src/add-ons/kernel/bus_managers/acpi/'+filename
  dest=composed/path; dest.write_bytes(subprocess.check_output(['git','--git-dir='+repo,'show',rev+':'+path]))
- for name in ['0101-acpi-dpc-admission.patch','0104-acpi-lifecycle-retention.patch','0111-acpi-callback-custody.patch','0113-acpi-interrupt-admission.patch']:
+ for name in ['0101-acpi-dpc-admission.patch','0104-acpi-lifecycle-retention.patch','0111-acpi-callback-custody.patch','0113-acpi-interrupt-admission.patch','0114-acpi-table-admission.patch']:
   patch=(root/'patches'/name).read_text()
   selected=''.join('--- a/'+x for x in patch.split('--- a/')[1:] if x.startswith(path+'\n'))
   if selected: subprocess.run(['git','apply'],input=selected,text=True,cwd=composed,check=True)
 bus=(composed/'src/add-ons/kernel/bus_managers/acpi/BusManager.cpp').read_text()
 a=bus.index('static status_t\nacpi_retain_lifecycle(');b=bus.index('\n}\n',a)+3
-(out/'lifecycle.inc').write_text(bus[a:b])
+(out/'lifecycle.inc').write_text(bus[bus.index('enum ACPILifecyclePhase'):bus.index('static uint32 sACPIAttempted')]+bus[a:b])
 assert 'void acpi_close_interrupt_admission();' in (composed/'src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h').read_text()
 s=target.read_text()
 records=s[s.index('// Identity stays reserved'):s.index('#endif',s.index('// Identity stays reserved'))]

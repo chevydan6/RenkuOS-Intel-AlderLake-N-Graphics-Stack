@@ -26,7 +26,7 @@ int install_io_interrupt_handler(int,interrupt_handler,void* c,int){return api(c
 int remove_io_interrupt_handler(int,interrupt_handler,void* c){return api(c);}
 #include "production.inc"
 uint32_t handler(void*){return 0;} uint32_t other(void*){return 0;}
-int sACPILifecycle=0; const int ACPIRetained=1; const int B_ERROR=-1;
+const int B_ERROR=-1;
 int dpcCloses=0; void acpi_close_dpc_admission(){assert(held==0);dpcCloses++;}
 #include "lifecycle.inc"
 void closeLifecycle(){assert(acpi_retain_lifecycle()==B_ERROR);assert(sACPILifecycle==ACPIRetained);assert(held==0);}

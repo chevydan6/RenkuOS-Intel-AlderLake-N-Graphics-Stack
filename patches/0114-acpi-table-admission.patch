@@ -1,0 +1,78 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
+@@ -344,9 +344,10 @@
+ 
+ 
+ // Retained lifecycle evidence is image-owned; module-manager custody backs it.
+-// Serialized by the existing module lifecycle lock. No cessation is inferred.
++// Admission and lifecycle publication use a private lock. No cessation is inferred.
+ enum ACPILifecyclePhase { ACPIUnused, ACPIStarting, ACPIReady, ACPIRetained };
+ static ACPILifecyclePhase sACPILifecycle = ACPIUnused;
++static spinlock sACPILifecycleLock = B_SPINLOCK_INITIALIZER;
+ static uint32 sACPIAttempted = 0;
+ static uint32 sACPICompleted = 0;
+ static ACPI_STATUS sACPIFailure = AE_OK;
+@@ -369,7 +370,11 @@
+ static status_t
+ acpi_retain_lifecycle()
+ {
++	cpu_status irq = disable_interrupts();
++	acquire_spinlock(&sACPILifecycleLock);
+ 	sACPILifecycle = ACPIRetained;
++	release_spinlock(&sACPILifecycleLock);
++	restore_interrupts(irq);
+ 	// Producers are not callbacks. Closing admission neither joins nor waits.
+ 	acpi_close_dpc_admission();
+ 	acpi_close_interrupt_admission();
+@@ -382,9 +387,16 @@
+ 	switch (op) {
+ 		case B_MODULE_INIT:
+ 		{
+-			if (sACPILifecycle != ACPIUnused)
++			cpu_status irq = disable_interrupts();
++			acquire_spinlock(&sACPILifecycleLock);
++			bool ready;
++			bool start = sACPILifecycle == ACPIUnused;
++			if (start)
++				sACPILifecycle = ACPIStarting;
++			release_spinlock(&sACPILifecycleLock);
++			restore_interrupts(irq);
++			if (!start)
+ 				return B_ERROR;
+-			sACPILifecycle = ACPIStarting;
+ 			void *settings;
+ 			bool acpiDisabled = false;
+ 			AcpiGbl_CopyDsdtLocally = true;
+@@ -503,7 +515,15 @@
+ 					sACPINonfatalCompleted |= 2;
+ 			}
+ 
+-			sACPILifecycle = ACPIReady;
++			irq = disable_interrupts();
++			acquire_spinlock(&sACPILifecycleLock);
++			ready = sACPILifecycle == ACPIStarting;
++			if (ready)
++				sACPILifecycle = ACPIReady;
++			release_spinlock(&sACPILifecycleLock);
++			restore_interrupts(irq);
++			if (!ready)
++				return acpi_retain_lifecycle();
+ 			TRACE("ACPI initialized\n");
+ 			return B_OK;
+ 
+@@ -1067,6 +1087,15 @@
+ status_t
+ get_table(const char* signature, uint32 instance, void** tableHeader)
+ {
++	cpu_status irq = disable_interrupts();
++	acquire_spinlock(&sACPILifecycleLock);
++	bool admitted = sACPILifecycle == ACPIReady;
++	release_spinlock(&sACPILifecycleLock);
++	restore_interrupts(irq);
++	if (!admitted)
++		return B_ERROR;
++	// Admission may precede retained closure. Image/dependency custody remains;
++	// returning from this call does not release the escaped table reference.
+ 	return AcpiGetTable((char*)signature, instance,
+ 		(ACPI_TABLE_HEADER**)tableHeader) == AE_OK ? B_OK : B_ERROR;
+ }
