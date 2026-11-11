@@ -1,0 +1,108 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
+@@ -57,6 +57,78 @@
+ static uint64 sDPCGeneration = 0;
+ static dpc_module_info* sDPCDependency = NULL;
+ static void* sDPCQueue = NULL;
++
++// Bounded image-owned reservations: no heap allocation or waits in interrupt context.
++// A zero reference count permits slot reuse, NEVER image/dependency release.
++struct ACPIDPCCallback {
++ void (*function)(void*);
++ void* context;
++ uint32 references;
++};
++static ACPIDPCCallback sDPCCallbacks[64];
++static uint32 sDPCCallbackCount = 0;
++
++static void
++acpi_complete_dpc(void* argument)
++{
++ ACPIDPCCallback* record = (ACPIDPCCallback*)argument;
++ // Producer custody keeps this slot stable even if completion precedes return.
++ record->function(record->context);
++ cpu_status irq = disable_interrupts();
++ acquire_spinlock(&sDPCAdmissionLock);
++ sDPCCallbackCount--;
++ record->references--;
++ release_spinlock(&sDPCAdmissionLock);
++ restore_interrupts(irq);
++}
++
++status_t
++acpi_queue_callback(void (*function)(void*), void* context)
++{
++ if (function == NULL)
++  return B_ERROR;
++ cpu_status irq = disable_interrupts();
++ acquire_spinlock(&sDPCAdmissionLock);
++ ACPIDPCCallback* record = NULL;
++ if (sDPCPhase == DPCOpen && sDPCProducers != ~(uint32)0
++  && sDPCCallbackCount != ~(uint32)0) {
++  for (uint32 i = 0; i < 64; i++) {
++   if (sDPCCallbacks[i].references == 0) {
++    record = &sDPCCallbacks[i];
++    break;
++   }
++  }
++ }
++ if (record == NULL) {
++  release_spinlock(&sDPCAdmissionLock);
++  restore_interrupts(irq);
++  return B_ERROR;
++ }
++ record->function = function;
++ record->context = context;
++ record->references = 2; // Producer return plus callback completion.
++ sDPCProducers++;
++ sDPCCallbackCount++;
++ dpc_module_info* dependency = sDPCDependency;
++ void* queue = sDPCQueue;
++ release_spinlock(&sDPCAdmissionLock);
++ restore_interrupts(irq);
++
++ status_t result = dependency->queue_dpc(queue, acpi_complete_dpc, record);
++ irq = disable_interrupts();
++ acquire_spinlock(&sDPCAdmissionLock);
++ if (result != B_OK) {
++  // Production queue rejection guarantees no publication and no callback.
++  sDPCCallbackCount--;
++  record->references--;
++ }
++ // B_OK retains callback custody even on ambiguous wakeup. Never replay.
++ sDPCProducers--;
++ record->references--;
++ release_spinlock(&sDPCAdmissionLock);
++ restore_interrupts(irq);
++ return result;
++}
+ 
+ bool
+ acpi_acquire_dpc(dpc_module_info** dependency, void** queue)
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
+@@ -258,6 +258,7 @@
+ void embedded_controller_probe_ecdt();
+ 
+ status_t acpi_initialize_dpc();
++status_t acpi_queue_callback(void (*function)(void*), void* context);
+ bool acpi_acquire_dpc(dpc_module_info** dependency, void** queue);
+ void acpi_release_dpc();
+ uint32 acpi_close_dpc_admission();
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
+@@ -873,13 +873,7 @@
+ 	}
+ */
+ 
+-	dpc_module_info* dependency;
+-	void* queue;
+-	if (!acpi_acquire_dpc(&dependency, &queue))
+-		return AE_BAD_PARAMETER;
+-	status_t result = dependency->queue_dpc(queue, function, context);
+-	// queue_dpc includes its wakeup; accepted callbacks outlive this lease.
+-	acpi_release_dpc();
++	status_t result = acpi_queue_callback(function, context);
+ 	if (result != B_OK) {
+ 		DEBUG_FUNCTION_F("Serious failure in AcpiOsExecute! function: %p",
+ 			function);
