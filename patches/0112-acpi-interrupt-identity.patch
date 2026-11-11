@@ -1,0 +1,131 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
+@@ -129,6 +129,7 @@
+ 
+ #	include <boot_item.h>
+ #	include <kernel.h>
++#	include <arch/int.h>
+ #	include <vm/vm.h>
+ #	if defined(__HAIKU_ARCH_ARM) || defined(__HAIKU_ARCH_ARM64)
+ #		include <boot/addr_range.h>
+@@ -188,7 +189,18 @@
+ FILE *AcpiGbl_OutputFile;
+ 
+ static ACPI_PHYSICAL_ADDRESS sACPIRoot = 0;
+-static void *sInterruptHandlerData[32];
++#ifdef _KERNEL_MODE
++// Identity stays reserved across external APIs; failed removal is quarantined.
++enum ACPIInterruptPhase { IRQEmpty, IRQInstalling, IRQInstalled, IRQRemoving,
++ IRQUncertain };
++struct ACPIInterruptRecord {
++ ACPI_OSD_HANDLER handler;
++ void* context;
++ ACPIInterruptPhase phase;
++};
++static ACPIInterruptRecord sInterrupts[NUM_IO_VECTORS];
++static spinlock sInterruptLock = B_SPINLOCK_INITIALIZER;
++#endif
+ 
+ 
+ /******************************************************************************
+@@ -795,23 +807,37 @@
+ AcpiOsInstallInterruptHandler(UINT32 interruptNumber,
+ 		ACPI_OSD_HANDLER serviceRoutine, void *context)
+ {
+-	status_t result;
+-	DEBUG_FUNCTION_F("vector: %" B_PRIu32 "; handler: %p context %p",
+-		(uint32)interruptNumber, serviceRoutine, context);
+-
+-#ifdef _KERNEL_MODE
+-	// It so happens that the Haiku and ACPI-CA interrupt handler routines
+-	// return the same values with the same meanings
+-	sInterruptHandlerData[interruptNumber] = context;
+-	result = install_io_interrupt_handler(interruptNumber,
+-		(interrupt_handler)serviceRoutine, context, 0);
+-
+-	DEBUG_FUNCTION_F("vector: %" B_PRIu32 "; handler: %p context %p returned %" B_PRId32,
+-		(uint32)interruptNumber, serviceRoutine, context, (uint32)result);
+-
+-	return result == B_OK ? AE_OK : AE_BAD_PARAMETER;
+-#else
+-	return AE_BAD_PARAMETER;
++#ifdef _KERNEL_MODE
++ if (interruptNumber >= NUM_IO_VECTORS || serviceRoutine == NULL)
++  return AE_BAD_PARAMETER;
++ cpu_status irq = disable_interrupts();
++ acquire_spinlock(&sInterruptLock);
++ ACPIInterruptRecord& record = sInterrupts[interruptNumber];
++ if (record.phase != IRQEmpty) {
++  release_spinlock(&sInterruptLock);
++  restore_interrupts(irq);
++  return AE_ERROR;
++ }
++ record.handler = serviceRoutine;
++ record.context = context;
++ record.phase = IRQInstalling;
++ release_spinlock(&sInterruptLock);
++ restore_interrupts(irq);
++ status_t result = install_io_interrupt_handler(interruptNumber,
++  (interrupt_handler)serviceRoutine, context, 0);
++ irq = disable_interrupts();
++ acquire_spinlock(&sInterruptLock);
++ // Pinned kernel failures precede insertion, so failed installs own no handler.
++ record.phase = result == B_OK ? IRQInstalled : IRQEmpty;
++ if (result != B_OK) {
++  record.handler = NULL;
++  record.context = NULL;
++ }
++ release_spinlock(&sInterruptLock);
++ restore_interrupts(irq);
++ return result == B_OK ? AE_OK : AE_ERROR;
++#else
++ return AE_BAD_PARAMETER;
+ #endif
+ }
+ 
+@@ -831,14 +857,37 @@
+ AcpiOsRemoveInterruptHandler(UINT32 interruptNumber,
+ 		ACPI_OSD_HANDLER serviceRoutine)
+ {
+-	DEBUG_FUNCTION_F("vector: %" B_PRIu32 "; handler: %p", (uint32)interruptNumber,
+-		serviceRoutine);
+-#ifdef _KERNEL_MODE
+-	return remove_io_interrupt_handler(interruptNumber,
+-		(interrupt_handler)serviceRoutine,
+-		sInterruptHandlerData[interruptNumber]) == B_OK ? AE_OK : AE_ERROR;
+-#else
+-	return AE_ERROR;
++#ifdef _KERNEL_MODE
++ if (interruptNumber >= NUM_IO_VECTORS || serviceRoutine == NULL)
++  return AE_BAD_PARAMETER;
++ cpu_status irq = disable_interrupts();
++ acquire_spinlock(&sInterruptLock);
++ ACPIInterruptRecord& record = sInterrupts[interruptNumber];
++ if (record.phase != IRQInstalled || record.handler != serviceRoutine) {
++  release_spinlock(&sInterruptLock);
++  restore_interrupts(irq);
++  return AE_ERROR;
++ }
++ void* context = record.context;
++ record.phase = IRQRemoving;
++ release_spinlock(&sInterruptLock);
++ restore_interrupts(irq);
++ status_t result = remove_io_interrupt_handler(interruptNumber,
++  (interrupt_handler)serviceRoutine, context);
++ irq = disable_interrupts();
++ acquire_spinlock(&sInterruptLock);
++ // B_OK unlinks this exact pair, not image-wide callback cessation.
++ // Failure preserves identity, forbids replay, and never releases custody.
++ record.phase = result == B_OK ? IRQEmpty : IRQUncertain;
++ if (result == B_OK) {
++  record.handler = NULL;
++  record.context = NULL;
++ }
++ release_spinlock(&sInterruptLock);
++ restore_interrupts(irq);
++ return result == B_OK ? AE_OK : AE_ERROR;
++#else
++ return AE_ERROR;
+ #endif
+ }
+ 
