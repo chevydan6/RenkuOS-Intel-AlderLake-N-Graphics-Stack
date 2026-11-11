@@ -1,0 +1,266 @@
+--- a/src/add-ons/kernel/generic/dpc/dpc.c
++++ b/src/add-ons/kernel/generic/dpc/dpc.c
+@@ -31,6 +31,11 @@
+ 	spinlock	lock;
+ 	int 		size;
+ 	int			count;
++	int			executing;
++	int			wakers;
++	bool		closing;
++	bool		deleting;
++	bool		uncertain;
+ 	int			head;
+ 	int 		tail;
+ 	dpc_slot	slots[0];
+@@ -39,40 +44,41 @@
+ 
+ #define DPC_QUEUE_SIZE 64
+ 
++/* The caller must retain handle/image leases through every API call. */
+ static int32
+ dpc_thread(void *arg)
+ {
+ 	dpc_queue *queue = arg;
+-	dpc_slot dpc;
+-
+-	// Let's wait forever/until semaphore death for new DPC slot to show up
+-	while (acquire_sem(queue->wakeup_sem) == B_OK) {
+-		cpu_status former;
+-
+-		// grab the next dpc slot
+-		former = disable_interrupts();
+-		acquire_spinlock(&queue->lock);
+-
+-		dpc = queue->slots[queue->head];
+-		queue->head = (queue->head + 1) % queue->size;
+-		queue->count--;
+-
+-		release_spinlock(&queue->lock);
+-		restore_interrupts(former);
+-
+-		dpc.function(dpc.arg);
+-	}
+-
+-	// Let's finish the pending DPCs, if any.
+-	// Otherwise, resource could leak...
+-	while (queue->count--) {
+-		dpc = queue->slots[queue->head];
+-		queue->head = (queue->head + 1) % queue->size;
+-		dpc.function(dpc.arg);
+-	}
+-
+-	// Now, let's die quietly, ignored by all... sigh.
+-	return 0;
++	for (;;) {
++		status_t wake = acquire_sem(queue->wakeup_sem);
++		for (;;) {
++			dpc_slot dpc;
++			cpu_status former = disable_interrupts();
++			acquire_spinlock(&queue->lock);
++			if (wake != B_OK && !queue->closing)
++				queue->uncertain = true;
++			if (queue->count == 0) {
++				bool done = queue->closing || wake != B_OK;
++				release_spinlock(&queue->lock);
++				restore_interrupts(former);
++				if (done)
++					return B_OK;
++				break;
++			}
++			dpc = queue->slots[queue->head];
++			queue->head = (queue->head + 1) % queue->size;
++			queue->count--;
++			queue->executing++;
++			release_spinlock(&queue->lock);
++			restore_interrupts(former);
++			dpc.function(dpc.arg);
++			former = disable_interrupts();
++			acquire_spinlock(&queue->lock);
++			queue->executing--;
++			release_spinlock(&queue->lock);
++			restore_interrupts(former);
++		}
++	}
+ }
+ 
+ 
+@@ -85,20 +91,22 @@
+ 	char str[64];
+ 	dpc_queue *queue;
+ 
+-	if (!handle)
++	if (!handle || !name)
+ 		return B_BAD_VALUE;
+ 
++	*handle = NULL;
+ 	queue = malloc(sizeof(dpc_queue) + DPC_QUEUE_SIZE * sizeof(dpc_slot));
+ 	if (!queue)
+ 		return B_NO_MEMORY;
+ 
+ 	queue->head = queue->tail = 0;
+ 	queue->size = DPC_QUEUE_SIZE;
+-	queue->count = 0;
++	queue->count = queue->executing = queue->wakers = 0;
++	queue->closing = queue->deleting = queue->uncertain = false;
+ 	B_INITIALIZE_SPINLOCK(&queue->lock);	// Init the spinlock
+ 
+ 	snprintf(str, sizeof(str), "%.*s_wakeup_sem",
+-		(int) sizeof(str) - 11, name);
++		(int) sizeof(str) - 12, name);
+ 
+ 	queue->wakeup_sem = create_sem(0, str);
+ 	if (queue->wakeup_sem < B_OK) {
+@@ -112,11 +120,26 @@
+ 	queue->thread = spawn_kernel_thread(dpc_thread, name, priority, queue);
+ 	if (queue->thread < 0) {
+ 		status_t status = queue->thread;
+-		delete_sem(queue->wakeup_sem);
++		if (delete_sem(queue->wakeup_sem) != B_OK) {
++			queue->closing = queue->uncertain = true;
++			*handle = queue;
++			return status;
++		}
+ 		free(queue);
+ 		return status;
+ 	}
+-	resume_thread(queue->thread);
++	/* A failed start is ambiguous: do not kill, join or replay this ID.
++	 * Return the retained handle even on error; callers must preserve custody. */
++	status_t started = resume_thread(queue->thread);
++	if (started != B_OK) {
++		cpu_status former = disable_interrupts();
++		acquire_spinlock(&queue->lock);
++		queue->closing = queue->uncertain = true;
++		release_spinlock(&queue->lock);
++		restore_interrupts(former);
++		*handle = queue;
++		return started;
++	}
+ 
+ 	*handle = queue;
+ 
+@@ -128,29 +151,48 @@
+ delete_dpc_queue(void *handle)
+ {
+ 	dpc_queue *queue = handle;
+-	thread_id thread;
+-	status_t exit_value;
++	status_t exit_value = B_ERROR;
+ 	cpu_status former;
+-
++	status_t status;
+ 	if (!queue)
+ 		return B_BAD_VALUE;
+-
+-	// Close the queue: queue_dpc() should know we're closing:
++	/* Self-delete must not close admission or claim deletion ownership. */
++	if (find_thread(NULL) == queue->thread)
++		return B_NOT_ALLOWED;
+ 	former = disable_interrupts();
+ 	acquire_spinlock(&queue->lock);
+-
+-	thread = queue->thread;
+-	queue->thread = -1;
+-
++	if (queue->deleting) {
++		release_spinlock(&queue->lock);
++		restore_interrupts(former);
++		return B_BUSY;
++	}
++	queue->deleting = queue->closing = true;
++	/* No semaphore destruction may overlap a published producer's wakeup.
++	 * External leases must also exclude callers not yet inside this lock.
++	 * Failure is terminal: never retry deletion using uncertain numeric IDs. */
++	if (queue->wakers != 0 || queue->uncertain) {
++		queue->uncertain = true;
++		release_spinlock(&queue->lock);
++		restore_interrupts(former);
++		return B_BUSY;
++	}
+ 	release_spinlock(&queue->lock);
+ 	restore_interrupts(former);
+-
+-	// Wakeup the thread by murdering its favorite semaphore
+-	delete_sem(queue->wakeup_sem);
+-	wait_for_thread(thread, &exit_value);
+-
++	status = delete_sem(queue->wakeup_sem);
++	if (status == B_OK)
++		status = wait_for_thread(queue->thread, &exit_value);
++	former = disable_interrupts();
++	acquire_spinlock(&queue->lock);
++	if (status != B_OK || exit_value != B_OK || queue->count != 0
++		|| queue->executing != 0 || queue->uncertain) {
++		queue->uncertain = true;
++		release_spinlock(&queue->lock);
++		restore_interrupts(former);
++		return status != B_OK ? status : B_ERROR;
++	}
++	release_spinlock(&queue->lock);
++	restore_interrupts(former);
+ 	free(queue);
+-
+ 	return B_OK;
+ }
+ 
+@@ -169,7 +211,7 @@
+ 	former = disable_interrupts();
+ 	acquire_spinlock(&queue->lock);
+ 
+-	if (queue->thread < 0) {
++	if (queue->closing || queue->uncertain) {
+ 		// Queue thread is dying...
+ 		status = B_CANCELED;
+ 	} else if (queue->count == queue->size)
+@@ -180,16 +222,24 @@
+ 		queue->slots[queue->tail].arg      = arg;
+ 		queue->tail = (queue->tail + 1) % queue->size;
+ 		queue->count++;
++		queue->wakers++;
+ 	}
+ 
+ 	release_spinlock(&queue->lock);
+ 	restore_interrupts(former);
+ 
+-	if (status == B_OK)
+-		// Wake up the corresponding dpc thread
+-		// Notice that interrupt handlers should return B_INVOKE_SCHEDULER to
+-		// shorten DPC latency as much as possible...
+-		status = release_sem_etc(queue->wakeup_sem, 1, B_DO_NOT_RESCHEDULE);
++	if (status == B_OK) {
++		/* Publication transferred ownership. A wakeup error is NOT rejection. */
++		status_t wake = release_sem_etc(queue->wakeup_sem, 1,
++			B_DO_NOT_RESCHEDULE);
++		former = disable_interrupts();
++		acquire_spinlock(&queue->lock);
++		if (wake != B_OK)
++			queue->uncertain = true;
++		queue->wakers--;
++		release_spinlock(&queue->lock);
++		restore_interrupts(former);
++	}
+ 
+ 	return status;
+ }
+--- a/headers/os/drivers/dpc.h
++++ b/headers/os/drivers/dpc.h
+@@ -17,6 +17,19 @@
+ 
+ typedef void (*dpc_func) (void *arg);
+ 
++/* Lifetime contract: an external handle/image lease must cover every API call,
++ * including callers paused before acquiring the internal lock. Successful delete
++ * requires exclusive lifecycle custody and no remaining producer leases. Internal
++ * locking does not make raw handles safe after free. Only one delete attempt is
++ * permitted; an error retains queue, callback and module/dependency backing and
++ * forbids replay against recycled thread/semaphore IDs. Self-delete is rejected
++ * without mutation. Callbacks execute unlocked and may requeue while open.
++ * queue_dpc B_OK transfers callback ownership at publication, even if wakeup
++ * subsequently fails. All rejection statuses precede publication. Sticky wakeup
++ * uncertainty prevents successful deletion. new_dpc_queue can return an error
++ * with a non-NULL handle after ambiguous worker start: retain that handle and all
++ * image dependencies; do not retry start or deletion. Layout remains v1.
++ */
+ typedef struct {
+ 	module_info	info;
+ 
