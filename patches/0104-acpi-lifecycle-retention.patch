@@ -1,0 +1,179 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
+@@ -137,7 +137,8 @@
+ 		sDPCPhase = DPCOpen;
+ 	else {
+ 		sDPCPhase = DPCQuarantined;
+-		result = B_ERROR;
++		if (result == B_OK)
++			result = B_ERROR;
+ 	}
+ 	release_spinlock(&sDPCAdmissionLock);
+ 	restore_interrupts(irq);
+@@ -270,12 +271,47 @@
+ //	#pragma mark - ACPI bus manager API
+ 
+ 
++// Retained lifecycle evidence is image-owned; module-manager custody backs it.
++// Serialized by the existing module lifecycle lock. No cessation is inferred.
++enum ACPILifecyclePhase { ACPIUnused, ACPIStarting, ACPIReady, ACPIRetained };
++static ACPILifecyclePhase sACPILifecycle = ACPIUnused;
++static uint32 sACPIAttempted = 0;
++static uint32 sACPICompleted = 0;
++static ACPI_STATUS sACPIFailure = AE_OK;
++static status_t sACPIDPCFailure = B_OK;
++static uint32 sACPINonfatalAttempted = 0;
++static uint32 sACPINonfatalCompleted = 0;
++static ACPI_STATUS sACPINonfatalFailure = AE_OK;
++
++static bool
++acpi_stage_failed(uint32 stage, ACPI_STATUS status, const char* message)
++{
++	if (checkAndLogFailure(status, message)) {
++		sACPIFailure = status;
++		return true;
++	}
++	sACPICompleted |= stage;
++	return false;
++}
++
++static status_t
++acpi_retain_lifecycle()
++{
++	sACPILifecycle = ACPIRetained;
++	// Producers are not callbacks. Closing admission neither joins nor waits.
++	acpi_close_dpc_admission();
++	return B_ERROR;
++}
++
+ static status_t
+ acpi_std_ops(int32 op,...)
+ {
+ 	switch (op) {
+ 		case B_MODULE_INIT:
+ 		{
++			if (sACPILifecycle != ACPIUnused)
++				return B_ERROR;
++			sACPILifecycle = ACPIStarting;
+ 			void *settings;
+ 			bool acpiDisabled = false;
+ 			AcpiGbl_CopyDsdtLocally = true;
+@@ -302,21 +338,26 @@
+ 				return ENOSYS;
+ 			}
+ 
+-			if (acpi_initialize_dpc() != B_OK) {
++			sACPIAttempted |= 1;
++			sACPIDPCFailure = acpi_initialize_dpc();
++			if (sACPIDPCFailure != B_OK) {
+ 				ERROR("failed to create os execution queue\n");
+-				return B_ERROR;
++				return acpi_retain_lifecycle();
+ 			}
+ 
++			sACPICompleted |= 1;
+ #ifdef ACPI_DEBUG_OUTPUT
+ 			AcpiDbgLevel = ACPI_DEBUG_ALL | ACPI_LV_VERBOSE;
+ 			AcpiDbgLayer = ACPI_ALL_COMPONENTS;
+ #endif
+ 
+-			if (checkAndLogFailure(AcpiInitializeSubsystem(),
++			sACPIAttempted |= 2;
++			if (acpi_stage_failed(2, AcpiInitializeSubsystem(),
+ 					"AcpiInitializeSubsystem failed"))
+ 				goto err_dpc;
+ 
+-			if (checkAndLogFailure(AcpiInitializeTables(NULL, 0, TRUE),
++			sACPIAttempted |= 4;
++			if (acpi_stage_failed(4, AcpiInitializeTables(NULL, 0, TRUE),
+ 					"AcpiInitializeTables failed"))
+ 				goto err_acpi;
+ 
+@@ -335,7 +376,8 @@
+ 			}
+ #endif
+ 
+-			if (checkAndLogFailure(AcpiLoadTables(),
++			sACPIAttempted |= 8;
++			if (acpi_stage_failed(8, AcpiLoadTables(),
+ 					"AcpiLoadTables failed"))
+ 				goto err_acpi;
+ 
+@@ -343,14 +385,16 @@
+ 
+ 			arch_init_interrupt_controller();
+ 
+-			if (checkAndLogFailure(AcpiEnableSubsystem(
++			sACPIAttempted |= 16;
++			if (acpi_stage_failed(16, AcpiEnableSubsystem(
+ 						ACPI_FULL_INITIALIZATION),
+ 					"AcpiEnableSubsystem failed"))
+ 				goto err_acpi;
+ 
+ 			embedded_controller_probe_ecdt();
+ 
+-			if (checkAndLogFailure(AcpiInitializeObjects(
++			sACPIAttempted |= 32;
++			if (acpi_stage_failed(32, AcpiInitializeObjects(
+ 						ACPI_FULL_INITIALIZATION),
+ 					"AcpiInitializeObjects failed"))
+ 				goto err_acpi;
+@@ -366,34 +410,38 @@
+ 					ACPI_ALL_NOTIFY, globalNotifyHandler, NULL),
+ 				"Failed to install global Notify-handler.");
+ #endif
+-			checkAndLogFailure(AcpiEnableAllRuntimeGpes(),
+-				"Failed to enable all runtime Gpes");
+-
+-			checkAndLogFailure(AcpiUpdateAllGpes(),
+-				"Failed to update all Gpes");
+-
++			sACPINonfatalAttempted |= 1;
++			{
++				ACPI_STATUS status = AcpiEnableAllRuntimeGpes();
++				if (checkAndLogFailure(status, "Failed to enable all runtime Gpes")) {
++					if (sACPINonfatalFailure == AE_OK)
++						sACPINonfatalFailure = status;
++				} else
++					sACPINonfatalCompleted |= 1;
++			}
++
++			sACPINonfatalAttempted |= 2;
++			{
++				ACPI_STATUS status = AcpiUpdateAllGpes();
++				if (checkAndLogFailure(status, "Failed to update all Gpes")) {
++					if (sACPINonfatalFailure == AE_OK)
++						sACPINonfatalFailure = status;
++				} else
++					sACPINonfatalCompleted |= 2;
++			}
++
++			sACPILifecycle = ACPIReady;
+ 			TRACE("ACPI initialized\n");
+ 			return B_OK;
+ 
+ 		err_acpi:
+-			checkAndLogFailure(AcpiTerminate(), "AcpiTerminate failed");
+-
+ 		err_dpc:
+-			gDPC->delete_dpc_queue(gDPCHandle);
+-			gDPCHandle = NULL;
+-
+-			return B_ERROR;
++			return acpi_retain_lifecycle();
+ 		}
+ 
+ 		case B_MODULE_UNINIT:
+-		{
+-			checkAndLogFailure(AcpiTerminate(),
+-				"Could not bring system out of ACPI mode. Oh well.");
+-
+-			gDPC->delete_dpc_queue(gDPCHandle);
+-			gDPCHandle = NULL;
+-			break;
+-		}
++			// Unlocked teardown and callback cessation are not yet proven.
++			return acpi_retain_lifecycle();
+ 
+ 		default:
+ 			return B_ERROR;
