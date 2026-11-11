@@ -1,0 +1,82 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
+@@ -29,6 +29,18 @@
+ 
+ 
+ __BEGIN_DECLS
++
++// Descriptor classification only; no backing bytes or reserved-policy authority.
++#define ACPI_DMAR_DESCRIPTOR_MODULE_NAME "bus_managers/acpi/dmar_descriptor/v1"
++enum acpi_dmar_descriptor_result {
++	ACPI_DMAR_ABSENT, ACPI_DMAR_DUPLICATE, ACPI_DMAR_UNSUPPORTED,
++	ACPI_DMAR_NOT_READY, ACPI_DMAR_MUTEX_FAILURE
++};
++typedef struct acpi_dmar_descriptor_module_info {
++	module_info info;
++	acpi_dmar_descriptor_result (*classify)(uint32* acpicaStatus);
++} acpi_dmar_descriptor_module_info;
++acpi_dmar_descriptor_result acpi_classify_dmar(uint32* acpicaStatus);
+ 
+ extern device_manager_info* gDeviceManager;
+ extern pci_module_info* gPCIManager;
+--- a/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
+@@ -1138,3 +1138,40 @@
+ 	read_bit_register,
+ 	write_bit_register
+ };
++
++
++// Lifecycle admission retains existing image/dependency custody across closure.
++acpi_dmar_descriptor_result
++acpi_classify_dmar(uint32* acpicaStatus)
++{
++	*acpicaStatus = AE_OK;
++	cpu_status irq = disable_interrupts();
++	acquire_spinlock(&sACPILifecycleLock);
++	bool admitted = sACPILifecycle == ACPIReady;
++	release_spinlock(&sACPILifecycleLock);
++	restore_interrupts(irq);
++	if (!admitted)
++		return ACPI_DMAR_NOT_READY;
++
++	ACPI_STATUS status = AcpiUtAcquireMutex(ACPI_MTX_TABLES);
++	*acpicaStatus = status;
++	if (ACPI_FAILURE(status))
++		return ACPI_DMAR_MUTEX_FAILURE;
++
++	// Address and stored Signature are metadata; never follow Pointer/Address.
++	const UINT32 count = AcpiGbl_RootTableList.CurrentTableCount;
++	acpi_dmar_descriptor_result result = ACPI_DMAR_ABSENT;
++	for (UINT32 i = 0; i < count; i++) {
++		const ACPI_TABLE_DESC* descriptor = &AcpiGbl_RootTableList.Tables[i];
++		if (descriptor->Address == 0
++			|| memcmp(descriptor->Signature.Ascii, "DMAR", 4) != 0)
++			continue;
++		if (result == ACPI_DMAR_UNSUPPORTED) {
++			result = ACPI_DMAR_DUPLICATE;
++			break;
++		}
++		result = ACPI_DMAR_UNSUPPORTED;
++	}
++	AcpiUtReleaseMutex(ACPI_MTX_TABLES);
++	return result;
++}
+--- a/src/add-ons/kernel/bus_managers/acpi/Module.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/Module.cpp
+@@ -345,7 +345,15 @@
+ };
+ 
+ 
++// Uses the existing get_module/put_module core dependency ownership pattern.
++static acpi_dmar_descriptor_module_info sDMARDescriptorModule = {
++	{ ACPI_DMAR_DESCRIPTOR_MODULE_NAME, 0, acpi_module_std_ops },
++	acpi_classify_dmar
++};
++
++
+ module_info* modules[] = {
++	(module_info*)&sDMARDescriptorModule,
+ 	(module_info*)&gACPIModule,
+ 	(module_info*)&sACPIRootModule,
+ 	(module_info*)&acpi_ns_dump_module,
