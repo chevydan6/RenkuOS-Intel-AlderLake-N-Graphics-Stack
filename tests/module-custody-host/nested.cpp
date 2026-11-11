@@ -15,7 +15,10 @@ struct module_dependency {const char* name;module_info** info;};
 struct module_image;
 struct module {const char* name; int state,flags,ref_count; module_info* info; struct module_image* module_image; int offset; bool lifecycle_retained=false; unsigned long long transition_generation=0; bool transition_active=false;};
 module* entries[5]; int callbacks,images,searches,panics,failAt=-1;bool failAlloc,buildingProbe,failInit,nestedAcquire;int gBootDevice=-1,sModulesLock=0;
-struct RecursiveLocker { explicit RecursiveLocker(int&) {} };
+int recursive_lock_get_recursion(int* lock){return *lock ? *lock : -1;}
+void recursive_lock_lock(int* lock){++*lock;}
+void recursive_lock_unlock(int* lock){assert(*lock>0);--*lock;}
+struct RecursiveLocker { int& lock; explicit RecursiveLocker(int& value):lock(value){++lock;} ~RecursiveLocker(){--lock;} };
 struct Hash {module* Lookup(const char* n) {for(auto m:entries) if(m&&strcmp(n,m->name)==0)return m;return nullptr;}} hash;
 Hash* sModulesHash=&hash;
 #define TRACE(x) ((void)0)
@@ -54,7 +57,7 @@ static int calls, creates, locked,archCalls,probeCalls;
 static bool AcpiGbl_CopyDsdtLocally;
 static int disable_interrupts(){return 0;}static void restore_interrupts(int){assert(!locked);}
 static void acquire_spinlock(int*){assert(!locked);locked=1;}static void release_spinlock(int*){assert(locked);locked=0;}
-static int step(){++calls;return calls==failAt?77:AE_OK;}
+static int step(){assert(sModulesLock==0);++calls;return calls==failAt?77:AE_OK;}
 static int AcpiInitializeSubsystem(){return step();}static int AcpiInitializeTables(void*,int,int){return step();}static int AcpiLoadTables(){return step();}static int AcpiEnableSubsystem(int){return step();}static int AcpiInitializeObjects(int){return step();}
 static int AcpiEnableAllRuntimeGpes(){return failAt==8?88:0;}static int AcpiUpdateAllGpes(){return failAt==9?99:0;}
 static int AcpiUpdateInterfaces(int){return 0;}static int AcpiInstallInterface(char*){return 0;}
@@ -71,7 +74,7 @@ static dpc_module_info dependency{create};static dpc_module_info* gDPC=&dependen
 #include "lifecycle.inc"
 #define B_ACPI_MODULE_NAME "core"
 #include "root.inc"
-static int dependency_ops(int,...){return B_OK;}
+static int dependency_ops(int op,...){assert(sModulesLock==(op==B_MODULE_INIT?0:1));return B_OK;}
 int main(int argc,char** argv){assert(argc==2);failAt=atoi(argv[1]);
  module_info rootInfo{acpi_module_std_ops},coreInfo{acpi_std_ops},depInfo{dependency_ops};
  module_info* infos[]={&rootInfo,&coreInfo};module_info* slots[3]={};

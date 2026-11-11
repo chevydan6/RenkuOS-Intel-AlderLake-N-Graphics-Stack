@@ -5,7 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 using thread_id=int;
+#ifndef CONCURRENT_TEST
 thread_id thread_get_current_thread_id(){return 1;}
+#endif
 using status_t=int; using int32=int; using image_id=int;
 const int B_OK=0,B_NO_ERROR=0,B_ERROR=-1,B_BUSY=-2,B_BAD_VALUE=-3,B_ENTRY_NOT_FOUND=-4,B_NO_MEMORY=-5;
 const int B_KEEP_LOADED=1,B_BUILT_IN_MODULE=2,B_MODULE_INIT=1,B_MODULE_UNINIT=2;
@@ -15,7 +17,12 @@ struct module_dependency {const char* name;module_info** info;};
 struct module_image;
 struct module {const char* name; int state,flags,ref_count; module_info* info; struct module_image* module_image; int offset; bool lifecycle_retained=false; unsigned long long transition_generation=0; bool transition_active=false;};
 module* entries[5]; int callbacks,images,searches,panics,failAt=-1;bool failEntryAlloc,failAlloc,buildingProbe,failInit,nestedAcquire;int gBootDevice=-1,sModulesLock=0;
-struct RecursiveLocker { explicit RecursiveLocker(int&) {} };
+#ifndef CONCURRENT_TEST
+int recursive_lock_get_recursion(int* lock){return *lock ? *lock : -1;}
+void recursive_lock_lock(int* lock){++*lock;}
+void recursive_lock_unlock(int* lock){assert(*lock>0);--*lock;}
+struct RecursiveLocker { int& lock; explicit RecursiveLocker(int& value):lock(value){++lock;} ~RecursiveLocker(){--lock;} };
+#endif
 struct Hash {module* Lookup(const char* n) {for(auto m:entries) if(m&&strcmp(n,m->name)==0)return m;return nullptr;}} hash;
 Hash* sModulesHash=&hash;
 #define TRACE(x) ((void)0)
@@ -32,7 +39,7 @@ void* test_calloc(size_t n,size_t s){return (failEntryAlloc || (failAlloc && n==
 module_image* searchImage;module* searchTarget;
 void put_module_image(module_image* p){++images;--p->ref_count;assert(p->ref_count>0);}
 module* search_module(const char*,module_image** out){++searches;if(!searchTarget)return nullptr;*out=searchImage;++searchImage->ref_count;return searchTarget;}
-int callback(int op){++callbacks;
+int callback(int op){assert(sModulesLock==(op==B_MODULE_INIT?0:1));++callbacks;
  if(nestedAcquire&&op==B_MODULE_INIT&&entries[0]->state==MODULE_INIT){
  module_info* rejected=nullptr;int refs=entries[0]->ref_count;
  assert(get_module("root",&rejected)==B_BUSY&&!rejected);
@@ -40,16 +47,18 @@ int callback(int op){++callbacks;
  }
  if(nestedAcquire&&op==B_MODULE_INIT&&entries[0]->state==MODULE_INIT&&entries[1]->state!=MODULE_INIT){module_info* out=nullptr;assert(get_module("core",&out)==B_OK);assert(entries[0]->module_image->dependency_leases==2);assert(put_module("core")==B_OK);assert(entries[0]->module_image->dependency_leases==1);}
  return op==B_MODULE_INIT&&failInit?B_ERROR:B_OK;}
+bool staleChild;
 int childCallback(int op){
- assert(op==B_MODULE_INIT);int i=entries[2]->state==MODULE_INIT?0:entries[3]->state==MODULE_INIT?1:2;
+ assert(op==B_MODULE_INIT&&sModulesLock==0);int i=entries[2]->state==MODULE_INIT?0:entries[3]->state==MODULE_INIT?1:2;
  if(buildingProbe){auto image=entries[0]->module_image;int refs=image->ref_count;module_info* out=nullptr;assert(get_module("core",&out)==B_BUSY&&out==nullptr);assert(put_module("root")==B_BUSY);assert(image->ref_count==refs);}
+ if(staleChild) ++entries[0]->transition_generation;
  return i==failAt?B_ERROR:B_OK;
 }
-int staleKind, staleCalls;
+int staleKind, staleCalls;bool staleInit;
 module_image replacementImage;
 module_info replacementInfo{callback};
 int staleCallback(int op) {
- if(op==B_MODULE_UNINIT) {
+ if(op==(staleInit?B_MODULE_INIT:B_MODULE_UNINIT)) {
   ++staleCalls;auto target=entries[0];
   switch(staleKind) {
    case 0: ++target->transition_generation;break;
@@ -64,6 +73,13 @@ int staleCallback(int op) {
  return B_OK;
 }
 int main(){
+ // Caller-owned recursion must remain intact and precede all entry allocation.
+ for(int depth : {1,2}) {
+  sModulesLock=depth;module_info* out=nullptr;int before=searches;
+  failEntryAlloc=true;assert(get_module("absent",&out)==B_BUSY);
+  assert(sModulesLock==depth&&sModuleEntries==nullptr&&searches==before);
+  failEntryAlloc=false;sModulesLock=0;
+ }
  { module_info* out=nullptr;failEntryAlloc=true;
  assert(get_module("absent",&out)==B_NO_MEMORY);
  assert(put_module_internal("absent").consumption==NotConsumed);
@@ -96,6 +112,23 @@ int main(){
  // Rejected search must balance its temporary pin without publishing the parent.
  gBootDevice=1;core.module_image=nullptr;searchTarget=&core;searchImage=&image;int pins=image.ref_count;assert(get_module("core",&out)<0&&image.ref_count==pins&&core.module_image==nullptr);searchTarget=nullptr;
  assert(panics==0);std::free(image.dependency_records);
+ }
+ // A successful child returned to a stale parent stays accounted and unpublished.
+ {
+  for(auto& entry:entries) entry=nullptr;
+  module_info parent{callback},child{childCallback};module_info* slot=nullptr;
+  module_dependency deps[]={{"a",&slot},{nullptr,nullptr}};
+  module_image image{};image.dependencies=deps;
+  module root{"root",MODULE_LOADED,0,0,&parent,&image,0};
+  module a{"a",MODULE_LOADED,B_BUILT_IN_MODULE,0,&child,nullptr,0};
+  entries[0]=&root;entries[2]=&a;staleChild=true;buildingProbe=false;
+  failAt=-1;failInit=false;failAlloc=false;nestedAcquire=false;gBootDevice=-1;
+  module_info* out=nullptr;assert(get_module("root",&out)==B_ERROR&&!out);
+  assert(a.ref_count==1&&image.dependency_acquired==1);
+  assert(image.dependency_records[0]==&child&&!slot);
+  assert(image.dependency_state==DependenciesQuarantined&&image.transition_pins==1);
+  assert(root.lifecycle_retained&&root.ref_count==0&&image.ref_count==1);
+  staleChild=false;std::free(image.dependency_records);
  }
  // Successful built-in behavior and genuine keep-loaded policy stay separate.
  for(int keep=0;keep<2;keep++) {
@@ -158,13 +191,13 @@ int main(){
  assert(x.ref_count==1&&callbacks==before);
  // Commit mismatch retains the originally reserved image and prevents replay.
  module_image pinned{};x.module_image=&pinned;x.transition_generation=0;
- { ModuleEntryScope directScope("direct-reservation");
+ { RecursiveLocker lock(sModulesLock); ModuleEntryScope directScope("direct-reservation");
  module_transition ticket;assert(reserve_module_transition(&x,MODULE_INIT,ticket)==B_OK);
  assert(x.transition_active&&pinned.transition_pins==1);
  ++x.transition_generation;
  assert(commit_module_transition(ticket,B_OK)==B_ERROR);
  assert(x.lifecycle_retained&&pinned.lifecycle_retained&&pinned.transition_pins==1);
- assert(get_module("exhausted",&out)==B_ERROR&&callbacks==before);
+ assert(get_module("exhausted",&out)==B_BUSY&&callbacks==before);
  }
  assert(sModuleEntries==nullptr);
  // Public get/put executes a successful UNINIT callback with stale identity.
@@ -199,6 +232,24 @@ int main(){
   assert(staleCalls==1&&shared.dependency_leases==2&&images==detachBefore);
  }
  assert(sModuleEntries==nullptr);
+ // INIT commit mismatches cannot publish a public reference or replay callbacks.
+ staleInit=true;
+ for(staleKind=0;staleKind<7;++staleKind) {
+  for(auto& entry:entries) entry=nullptr;
+  staleCalls=0;replacementImage={};
+  module_info parent{staleCallback};module_image original{};
+  module target{"stale-init",MODULE_LOADED,0,0,&parent,&original,0};
+  entries[0]=&target;out=nullptr;
+  assert(get_module("stale-init",&out)==B_ERROR&&!out);
+  assert(staleCalls==1&&target.ref_count==0&&target.lifecycle_retained);
+  assert(original.lifecycle_retained&&original.ref_count==1);
+  assert(original.transition_pins==(staleKind==5?0u:1u));
+  assert(get_module("stale-init",&out)==B_ERROR&&!out&&staleCalls==1);
+ }
+ staleInit=false;
+ assert(sModuleEntries==nullptr);
+ puts("stale INIT: seven identity mismatches retain original image and prevent publication/replay");
  puts("stale UNINIT: seven identity mismatches retain dependency custody and prevent replay");
  puts("allocation/three failure positions, acquired prefixes, Building reentry, root/core reuse, intermediate/final release, replay and search pin balance passed");
+return 0;
 }

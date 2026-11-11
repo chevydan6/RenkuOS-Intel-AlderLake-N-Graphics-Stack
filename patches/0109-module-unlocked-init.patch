@@ -1,0 +1,165 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -704,54 +704,6 @@
+ 	}
+ 	image->dependency_state = DependenciesQuarantined;
+ 	return B_ERROR;
+-}
+-
+-
+-static status_t
+-get_dependent_modules(struct module* module)
+-{
+-	module_image* image = module->module_image;
+-	if (image == NULL || image->dependencies == NULL)
+-		return B_OK;
+-	if (image->dependency_state == DependenciesComplete) {
+-		if (image->dependency_leases == 0x7fffffff)
+-			return B_BUSY;
+-		image->dependency_leases++;
+-		return B_OK;
+-	}
+-	if (image->dependency_state != DependenciesEmpty)
+-		return B_BUSY;
+-
+-	image->dependency_state = DependenciesBuilding;
+-	module_dependency* dependencies = image->dependencies;
+-	size_t count = 0;
+-	while (dependencies[count].name != NULL)
+-		count++;
+-	image->dependency_count = count;
+-	if (count != 0) {
+-		image->dependency_records = (module_info**)calloc(count,
+-			sizeof(module_info*));
+-		if (image->dependency_records == NULL) {
+-			image->dependency_state = DependenciesQuarantined;
+-			return B_NO_MEMORY;
+-		}
+-	}
+-	for (size_t i = 0; i < count; i++) {
+-		status_t status = get_module(dependencies[i].name,
+-			&image->dependency_records[i]);
+-		if (status < B_OK) {
+-			// The acquired prefix remains owned, unpublished and non-replayable.
+-			image->dependency_records[i] = NULL;
+-			image->dependency_state = DependenciesQuarantined;
+-			return status;
+-		}
+-		image->dependency_acquired++;
+-	}
+-	for (size_t i = 0; i < count; i++)
+-		*dependencies[i].info = image->dependency_records[i];
+-	image->dependency_leases = 1;
+-	image->dependency_state = DependenciesComplete;
+-	return B_OK;
+ }
+ 
+ 
+@@ -840,6 +792,9 @@
+ reserve_module_transition(module* target, int state, module_transition& ticket)
+ {
+ 	module_entry* context = current_module_entry();
++	if (state == MODULE_INIT
++		&& recursive_lock_get_recursion(&sModulesLock) != 1)
++		return B_BUSY;
+ 	if (context == NULL)
+ 		return B_BAD_VALUE;
+ 	status_t status = check_module_transition(target);
+@@ -892,6 +847,64 @@
+ }
+ 
+ 
++static status_t
++get_dependent_modules(struct module* module, const module_transition& ticket)
++{
++	module_image* image = module->module_image;
++	if (image == NULL || image->dependencies == NULL)
++		return B_OK;
++	if (image->dependency_state == DependenciesComplete) {
++		if (image->dependency_leases == 0x7fffffff)
++			return B_BUSY;
++		image->dependency_leases++;
++		return B_OK;
++	}
++	if (image->dependency_state != DependenciesEmpty)
++		return B_BUSY;
++
++	image->dependency_state = DependenciesBuilding;
++	module_dependency* dependencies = image->dependencies;
++	size_t count = 0;
++	while (dependencies[count].name != NULL)
++		count++;
++	image->dependency_count = count;
++	if (count != 0) {
++		image->dependency_records = (module_info**)calloc(count,
++			sizeof(module_info*));
++		if (image->dependency_records == NULL) {
++			image->dependency_state = DependenciesQuarantined;
++			return B_NO_MEMORY;
++		}
++	}
++	for (size_t i = 0; i < count; i++) {
++		recursive_lock_unlock(&sModulesLock);
++		status_t status = get_module(dependencies[i].name,
++			&image->dependency_records[i]);
++		recursive_lock_lock(&sModulesLock);
++		// Account for successful child custody even if the parent is stale.
++		if (status >= B_OK)
++			image->dependency_acquired++;
++		if (!validate_module_transition(ticket)) {
++			image->dependency_state = DependenciesQuarantined;
++			return B_ERROR;
++		}
++		if (status < B_OK) {
++			// The acquired prefix remains owned, unpublished and non-replayable.
++			image->dependency_records[i] = NULL;
++			image->dependency_state = DependenciesQuarantined;
++			return status;
++		}
++	}
++	if (!validate_module_transition(ticket))
++		return B_ERROR;
++	for (size_t i = 0; i < count; i++)
++		*dependencies[i].info = image->dependency_records[i];
++	image->dependency_leases = 1;
++	image->dependency_state = DependenciesComplete;
++	return B_OK;
++}
++
++
+ /*!	Initializes a loaded module depending on its state */
+ static inline status_t
+ init_module(module* module)
+@@ -907,7 +918,7 @@
+ 
+ 			// resolve dependencies
+ 
+-			status = get_dependent_modules(module);
++			status = get_dependent_modules(module, ticket);
+ 			if (status < B_OK)
+ 				return commit_module_transition(ticket, status);
+ 
+@@ -916,8 +927,11 @@
+ 			TRACE(("initializing module %s (at %p)... \n", module->name,
+ 				module->info->std_ops));
+ 
+-			if (module->info->std_ops != NULL)
+-				status = module->info->std_ops(B_MODULE_INIT);
++			if (ticket.info->std_ops != NULL) {
++				recursive_lock_unlock(&sModulesLock);
++				status = ticket.info->std_ops(B_MODULE_INIT);
++				recursive_lock_lock(&sModulesLock);
++			}
+ 
+ 			TRACE(("...done (%s)\n", strerror(status)));
+ 
+@@ -2375,6 +2389,9 @@
+ 	if (path == NULL)
+ 		return B_BAD_VALUE;
+ 
++	// Never unwind a caller-owned recursive acquisition.
++	if (recursive_lock_get_recursion(&sModulesLock) > 0)
++		return B_BUSY;
+ 	RecursiveLocker _(sModulesLock);
+ 	ModuleEntryScope entry(path);
+ 	if (entry.Status() != B_OK)

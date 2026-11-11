@@ -9,7 +9,7 @@ def run(args,cwd=None):
 paths=['src/system/kernel/module.cpp','src/add-ons/kernel/bus_managers/acpi/BusManager.cpp','src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h','src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp','src/add-ons/kernel/generic/dpc/dpc.c','headers/os/drivers/dpc.h','src/add-ons/kernel/bus_managers/acpi/Module.cpp']
 for name in paths:
  data=subprocess.check_output(['git','--git-dir='+repo,'show',rev+':'+name]);p=source/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data);hashes[name]={'pinned':hashlib.sha256(data).hexdigest()}
-for name in ['0100-dpc-truthful-ownership.patch','0101-acpi-dpc-admission.patch','0102-module-quarantine-entry.patch','0103-image-dependency-custody.patch','0104-acpi-lifecycle-retention.patch','0105-module-lifecycle-custody.patch','0106-module-release-outcomes.patch','0107-module-transition-pins.patch','0108-module-entry-contexts.patch']:
+for name in ['0100-dpc-truthful-ownership.patch','0101-acpi-dpc-admission.patch','0102-module-quarantine-entry.patch','0103-image-dependency-custody.patch','0104-acpi-lifecycle-retention.patch','0105-module-lifecycle-custody.patch','0106-module-release-outcomes.patch','0107-module-transition-pins.patch','0108-module-entry-contexts.patch','0109-module-unlocked-init.patch']:
  run(['git','apply','--check',root/'patches'/name],source);run(['git','apply',root/'patches'/name],source)
 for name in paths:hashes[name]['composed']=hashlib.sha256((source/name).read_bytes()).hexdigest()
 s=(source/paths[0]).read_text()
@@ -18,7 +18,7 @@ def extract(marker):
  while depth:
   depth+=(s[i]=='{')-(s[i]=='}');i+=1
  return s[start:i]+(';' if marker in ('enum dependency_phase ', 'struct module_image ') else '')+'\n'
-(out/'production.inc').write_text(extract('enum dependency_phase ')+extract('struct module_image ')+extract('static status_t\nput_dependent_modules(')+extract('static status_t\nget_dependent_modules(')+s[s.index('// Private synchronous entries;'):s.index('// Private, allocation-free reservations.')]+extract('struct module_transition ')+ ';\n'+extract('static status_t\ncheck_module_transition(')+extract('static status_t\nreserve_module_transition(')+extract('static bool\nvalidate_module_transition(')+extract('static status_t\ncommit_module_transition(')+extract('static inline status_t\ninit_module(')+extract('static inline int\nuninit_module(')+'status_t\n'+extract('get_module(const char* path, module_info** _info)')+extract('enum module_release_consumption ')+ ';\n'+extract('struct module_release_result ')+ ';\n'+extract('static module_release_result\nput_module_internal(')+'status_t\n'+extract('put_module(const char* path)'))
+(out/'production.inc').write_text(extract('enum dependency_phase ')+extract('struct module_image ')+extract('static status_t\nput_dependent_modules(')+s[s.index('// Private synchronous entries;'):s.index('// Private, allocation-free reservations.')]+extract('struct module_transition ')+ ';\n'+extract('static status_t\ncheck_module_transition(')+extract('static status_t\nreserve_module_transition(')+extract('static bool\nvalidate_module_transition(')+extract('static status_t\ncommit_module_transition(')+extract('static status_t\nget_dependent_modules(')+extract('static inline status_t\ninit_module(')+extract('static inline int\nuninit_module(')+'status_t\n'+extract('get_module(const char* path, module_info** _info)')+extract('enum module_release_consumption ')+ ';\n'+extract('struct module_release_result ')+ ';\n'+extract('static module_release_result\nput_module_internal(')+'status_t\n'+extract('put_module(const char* path)'))
 run(['g++','-std=c++14','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-fno-omit-frame-pointer','-g','-no-pie','-I'+str(out),root/'tests/module-custody-host/harness.cpp','-o',out/'test']);run([out/'test'])
 bus=(source/paths[1]).read_text()
 s=bus
@@ -31,6 +31,7 @@ s=(source/paths[-1]).read_text()
 (out/'root.inc').write_text(extract('static int32\nacpi_module_std_ops('))
 run(['g++','-std=c++14','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-fno-omit-frame-pointer','-g','-no-pie','-I'+str(out),root/'tests/module-custody-host/nested.cpp','-o',out/'nested'])
 for case in range(10): run([out/'nested',str(case)])
+run(['g++','-std=c++14','-Wall','-Wextra','-Werror','-pthread','-fsanitize=address,undefined','-g','-no-pie','-I'+str(out),root/'tests/module-custody-host/concurrent.cpp','-o',out/'concurrent']);run([out/'concurrent'])
 s=(source/paths[0]).read_text()
 (out/'unload.inc').write_text(extract('static status_t\nunload_module_image('))
 run(['g++','-std=c++14','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-no-pie','-I'+str(out),root/'tests/module-custody-host/teardown.cpp','-o',out/'teardown']);run([out/'teardown'])
