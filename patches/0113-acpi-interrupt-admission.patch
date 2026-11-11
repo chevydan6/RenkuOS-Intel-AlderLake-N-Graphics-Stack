@@ -1,0 +1,51 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/BusManager.cpp
+@@ -372,6 +372,7 @@
+ 	sACPILifecycle = ACPIRetained;
+ 	// Producers are not callbacks. Closing admission neither joins nor waits.
+ 	acpi_close_dpc_admission();
++	acpi_close_interrupt_admission();
+ 	return B_ERROR;
+ }
+ 
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h
+@@ -262,6 +262,7 @@
+ bool acpi_acquire_dpc(dpc_module_info** dependency, void** queue);
+ void acpi_release_dpc();
+ uint32 acpi_close_dpc_admission();
++void acpi_close_interrupt_admission();
+ 
+ __END_DECLS
+ 
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
+@@ -200,6 +200,19 @@
+ };
+ static ACPIInterruptRecord sInterrupts[NUM_IO_VECTORS];
+ static spinlock sInterruptLock = B_SPINLOCK_INITIALIZER;
++// Monotonic admission only: retained registrations keep their exact identity.
++static bool sInterruptAdmissionClosed = false;
++
++void
++acpi_close_interrupt_admission()
++{
++ cpu_status irq = disable_interrupts();
++ acquire_spinlock(&sInterruptLock);
++ // Linearizes against reservations; no removal, wait or custody release.
++ sInterruptAdmissionClosed = true;
++ release_spinlock(&sInterruptLock);
++ restore_interrupts(irq);
++}
+ #endif
+ 
+ 
+@@ -813,7 +826,7 @@
+  cpu_status irq = disable_interrupts();
+  acquire_spinlock(&sInterruptLock);
+  ACPIInterruptRecord& record = sInterrupts[interruptNumber];
+- if (record.phase != IRQEmpty) {
++ if (sInterruptAdmissionClosed || record.phase != IRQEmpty) {
+   release_spinlock(&sInterruptLock);
+   restore_interrupts(irq);
+   return AE_ERROR;
