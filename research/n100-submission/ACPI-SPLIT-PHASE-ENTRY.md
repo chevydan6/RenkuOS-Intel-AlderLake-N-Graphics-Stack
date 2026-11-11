@@ -277,3 +277,24 @@ source identities/caller searches and challenge every interleaving before ASTRA
 acceptance. Host analysis proves neither GPU execution nor completion of any
 remote operation. No hardware/lock change, deployment or cleanup; uncertain DMA
 backing remains owned. Zero automatic recoveries used; protected failures stop.
+
+
+## Bounded production release accounting (generation 121)
+
+Patch 0106 routes public put_module through private put_module_internal. Its
+module_release_result distinguishes NotConsumed (missing, quarantined, busy,
+zero-reference or keep-loaded rejection), ConsumedComplete (one caller reference
+released, including intermediate releases), and ConsumedRetained (reference
+consumed but lifecycle teardown refused). The public status_t ABI and status
+values remain unchanged. All decisions, decrement and retained-custody publication
+occur under the existing recursive sModulesLock; this does not implement unlocked
+callbacks, waiting or dependency cleanup.
+
+ConsumedRetained carries the exact existing module pointer. The module and its
+image receive lifecycle_retained before returning; existing guarded detach/reuse
+paths preserve that identity without allocating after consumption. This private
+identity is observational custody, not a new public reference or authorization to
+release backing. Repeated release returns NotConsumed without replaying std_ops.
+The production root Module.cpp acpi_module_std_ops and BusManager.cpp acpi_std_ops
+remain unchanged and their nested lifecycle tests still exercise public put_module.
+Host sanitizer results cannot establish GPU execution or callback cessation.

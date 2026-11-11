@@ -1,0 +1,92 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -2318,8 +2318,19 @@
+ }
+ 
+ 
+-status_t
+-put_module(const char* path)
++// Private release accounting. A retained identity names the existing module;
++// lifecycle_retained prevents its metadata/image from being detached or reused.
++// The result is committed while sModulesLock is held; no public ABI is changed.
++enum module_release_consumption { NotConsumed, ConsumedComplete, ConsumedRetained };
++struct module_release_result {
++	status_t status;
++	module_release_consumption consumption;
++	module* retained;
++};
++
++
++static module_release_result
++put_module_internal(const char* path)
+ {
+ 	module* module;
+ 
+@@ -2333,24 +2344,24 @@
+ 	// consume the reference retained after failed UNINIT or enter a callback.
+ 	if (module != NULL) {
+ 		if (module->state == MODULE_ERROR)
+-			return B_ERROR;
++			return {B_ERROR, NotConsumed, NULL};
+ 		if (module->state == MODULE_INIT || module->state == MODULE_UNINIT)
+-			return B_BUSY;
++			return {B_BUSY, NotConsumed, NULL};
+ 	}
+ 	if (module == NULL) {
+ 		FATAL(("module: We don't seem to have a reference to module %s\n",
+ 			path));
+-		return B_BAD_VALUE;
++		return {B_BAD_VALUE, NotConsumed, NULL};
+ 	}
+ 
+ 	if (module->module_image != NULL
+ 		&& (module->module_image->dependency_state == DependenciesBuilding
+ 			|| module->module_image->dependency_state == DependenciesQuarantined))
+-		return B_BUSY;
++		return {B_BUSY, NotConsumed, NULL};
+ 
+ 	if (module->ref_count == 0) {
+ 		panic("module %s has no references.\n", path);
+-		return B_BAD_VALUE;
++		return {B_BAD_VALUE, NotConsumed, NULL};
+ 	}
+ 
+ 	if (--module->ref_count == 0) {
+@@ -2358,12 +2369,19 @@
+ 			panic("ref count of B_KEEP_LOADED module %s dropped to 0!",
+ 				module->name);
+ 			module->ref_count++;
+-			return B_BAD_VALUE;
++			return {B_BAD_VALUE, NotConsumed, NULL};
+ 		}
+ 
+ 		status_t status = uninit_module(module);
+-		if (status != B_OK)
+-			return status;
++		if (status != B_OK) {
++			// The public reference is gone. Custody is anchored in the existing
++			// module before returning, with no allocation or unlock in between.
++			module->lifecycle_retained = true;
++			module->state = MODULE_ERROR;
++			if (module->module_image != NULL)
++				module->module_image->lifecycle_retained = true;
++			return {status, ConsumedRetained, module};
++		}
+ 
+ 		if ((module->flags & B_BUILT_IN_MODULE) == 0
+ 			&& module->ref_count == 0 && !module->lifecycle_retained) {
+@@ -2377,5 +2395,12 @@
+ 		}
+ 	}
+ 
+-	return B_OK;
+-}
++	return {B_OK, ConsumedComplete, NULL};
++}
++
++
++status_t
++put_module(const char* path)
++{
++	return put_module_internal(path).status;
++}

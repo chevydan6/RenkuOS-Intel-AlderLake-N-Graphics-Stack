@@ -71,5 +71,42 @@ int main(){
   assert(put_module("plain")==B_OK);assert(!m.lifecycle_retained);
   assert(m.ref_count==(keep?1:0));assert(callbacks==before+(keep?1:2));
  }
+ // Typed outcomes exercise the same private implementation used by public put.
+ for(auto& entry:entries) entry=nullptr;
+ auto missing=put_module_internal("missing");
+ assert(missing.status==B_BAD_VALUE&&missing.consumption==NotConsumed&&!missing.retained);
+ module_info info{callback}; failInit=false;nestedAcquire=false;
+ module m{"typed",MODULE_READY,B_BUILT_IN_MODULE,2,&info,nullptr,0}; entries[0]=&m;
+ for(int state : {MODULE_ERROR,MODULE_INIT,MODULE_UNINIT}) {
+  m.state=state;auto result=put_module_internal("typed");
+  assert(result.status==(state==MODULE_ERROR?B_ERROR:B_BUSY));
+  assert(result.consumption==NotConsumed&&!result.retained&&m.ref_count==2);
+ }
+ m.state=MODULE_READY;
+ auto intermediate=put_module_internal("typed");
+ assert(intermediate.status==B_OK&&intermediate.consumption==ConsumedComplete&&!intermediate.retained&&m.ref_count==1);
+ auto complete=put_module_internal("typed");
+ assert(complete.status==B_OK&&complete.consumption==ConsumedComplete&&!complete.retained&&m.ref_count==0);
+ m.state=MODULE_READY;m.ref_count=1;m.flags|=B_KEEP_LOADED;
+ auto keep=put_module_internal("typed");
+ assert(keep.status==B_BAD_VALUE&&keep.consumption==NotConsumed&&!keep.retained&&m.ref_count==1);
+ m.flags=B_BUILT_IN_MODULE;m.info=nullptr;
+ module_info refused{[](int){++callbacks;return B_ERROR;}};m.info=&refused;
+ int before=callbacks;
+ auto retained=put_module_internal("typed");
+ assert(retained.status==B_ERROR&&retained.consumption==ConsumedRetained&&retained.retained==&m);
+ assert(m.ref_count==0&&m.lifecycle_retained&&callbacks==before+1);
+ for(int i=0;i<3;i++) {
+  auto repeat=put_module_internal("typed");
+  assert(repeat.status==B_ERROR&&repeat.consumption==NotConsumed&&!repeat.retained);
+  assert(retained.retained==&m&&m.lifecycle_retained&&m.ref_count==0&&callbacks==before+1);
+ }
+ module_image image{};m.module_image=&image;m.state=MODULE_READY;m.ref_count=1;
+ image.dependency_state=DependenciesQuarantined;
+ auto quarantine=put_module_internal("typed");
+ assert(quarantine.status==B_BUSY&&quarantine.consumption==NotConsumed&&!quarantine.retained&&m.ref_count==1);
+ image.dependency_state=DependenciesBuilding;
+ auto busy=put_module_internal("typed");
+ assert(busy.status==B_BUSY&&busy.consumption==NotConsumed&&m.ref_count==1);
  puts("allocation/three failure positions, acquired prefixes, Building reentry, root/core reuse, intermediate/final release, replay and search pin balance passed");
 }
