@@ -164,3 +164,143 @@ hardware, deployment, replay or lock changes occurred. ASan was not run; future
 runs require ASAN_OPTIONS=detect_leaks=0 and disclosure of disabled leak checks.
 Uncertain GPU DMA backing remains owned; installed equivalence/recovery gates
 remain mandatory for any separately reviewed physical procedure.
+
+## Concrete lifecycle integration design (objective 61905358628ee4e2868e)
+
+SOL generation 75; design only, based on published 931023da7c3e687a45bd89a53d5b403f1f97ec76.
+This section replaces the unspecified lifecycle facility in step 2 above. It does
+not establish immutable backing, implement a provider, or authorize admission.
+
+### Pinned caller coverage and cleanup asymmetry
+
+`tests/evidence/acpi-lifecycle-075/sources.json` pins and hashes each matched file
+from a reproducible Git grep across the entire pinned `src` and `headers` trees.
+`coverage.txt` retains all 71 matches (12 files), including declarations/comments.
+This finds one production initialization caller sequence, BusManager.cpp:219,
+223,242,250,257, and two AcpiTerminate call sites, :283 error cleanup and :294
+UNINIT. No other direct lifecycle caller appears in that scope. This does not
+prove absence of indirect calls, external modules or out-of-tree callers.
+Module.cpp's B_KEEP_DRIVER_LOADED flag is not used as a lifetime proof.
+
+utxfinit.c:76–138 initializes OS, globals, mutexes, namespace and interfaces,
+returning immediately on each failure. BusManager.cpp:221 goes directly to
+err_dpc on InitializeSubsystem failure; subsequent failures go to err_acpi.
+Thus a subsystem-init failure may leave partial resources without AcpiTerminate.
+Existing code is not a proven reusable partial-initialization unwinder.
+utxface.c:67–86 always calls SubsystemShutdown, MutexTerminate and OsTerminate.
+utinit.c:311–315 only guards SubsystemShutdown with AcpiGbl_Shutdown; it does
+not suppress the later mutex/OS teardown in AcpiTerminate. utmutex.c:75 onward
+can fail partway through mutex/lock creation. A repeated Terminate therefore
+cannot be justified merely by that global flag. Neither flag is admission.
+
+### Storage, state and exact prospective hooks
+
+Choose a **kernel-resident broker**, not an ACPI-module static gate. Add future
+`src/system/kernel/acpi_snapshot_gate.cpp` to KernelMergeObject in kernel/Jamfile
+(adjacent to module.cpp); expose a private kernel API, with export/build wiring
+reviewed before implementation. The pinned lock.h static MUTEX_INITIALIZER
+supports a kernel-lifetime control mutex. Broker state is boot-static and never
+destroyed/reset by AcpiUtInitGlobals, AcpiTerminate, module UNINIT or reload.
+This is an explicit new production dependency; it is absent today. No replacement
+kernel is proposed or built by this task.
+
+Broker owns control mutex C, state {Closed, Initializing, Open, Closing,
+Quarantined}, nonwrapping epoch, active count and a single lifecycle transaction
+owner. Only short state/count updates occur under C. No ACPICA pointer or module
+function pointer is kept in broker storage. Snapshot executes via the caller's
+normal valid module entry; stale arbitrary function pointers after module unload
+are outside this protocol and remain a separate module-ABI requirement. The
+protocol does not infer shutdown exclusion from that reference.
+
+* BusManager.cpp:181 INIT: before CopyDsdtLocally/settings/DPC/any ACPICA access,
+  claim lifecycle owner under C, requiring Closed and active=0. Set Initializing,
+  allocate a fresh epoch; reject concurrent INIT/UNINIT as Busy without ACPICA
+  calls. Never wrap epoch; exhaustion quarantines. Disabled-ACPI or DPC failure
+  before subsystem invocation returns Closed and releases owner.
+* Before :219 record subsystem invocation. Any failure from this call takes a
+  new quarantined failure exit, still deleting the owned DPC queue as appropriate,
+  but never reopening admission or retrying initialization. Partial ACPICA cleanup
+  is not guessed: preserve uncertain resources until a separately reviewed
+  stage-aware unwind exists. This changes proposed retry policy, not current code.
+* At :280, immediately before successful B_OK after final initialization work,
+  publish Open under C and release lifecycle owner. Failure after successful
+  InitializeSubsystem (:223–259) retains Initializing (no snapshots admitted),
+  routes through the same termination wrapper as normal teardown, then deletes
+  DPC. Any uncertain cleanup result leaves Quarantined, never Closed.
+* Adjacent to get_table at :851, add a separate bounded snapshot API (do not
+  silently change the existing lossy wrapper). Under C test Open and epoch,
+  reject counter overflow, increment active and create a call-local token. This
+  increment is the admission linearization point. Release C before TABLES.
+  No rejected path calls any ACPICA function, including status/mutex helpers.
+* BusManager.cpp:282 err_acpi and :292 UNINIT use broker lifecycle transactions.
+  Normal UNINIT atomically sets Closing under C **before** AcpiTerminate and DPC
+  deletion. Wait for active=0 without holding C or any ACPICA/owner lock. Use
+  bounded sleep/poll with C rechecks, not spinning or a destructible ACPI event.
+  Timeout leaves admission closed, resources retained and Quarantined; no teardown,
+  DPC deletion or unload-success report is permitted. A competing transaction
+  returns Busy rather than performing duplicate cleanup.
+* Route both callers through one Haiku termination wrapper; additionally require
+  a Haiku-specific entry check at utxface.c:73 before :78 (SubsystemShutdown).
+  It validates the current lifecycle-owner token and drained state; a direct or
+  repeated AcpiTerminate without that token returns failure before touching any
+  ACPICA state. Do not recursively close/drain inside this check. Require the
+  same transaction authorization at utxfinit.c:82 before globals/OS initialization.
+  Private shutdown/mutex helpers remain internal to that authorized transaction;
+  future callers found by coverage must be routed or rejected. No public caller
+  may invoke private teardown independently.
+
+After successful complete termination, delete DPC while retaining transaction
+ownership; under C set Closed and release owner. Repeated UNINIT in Closed is
+an idempotent no-op, with no ACPICA or DPC call. A clean next INIT may claim a
+new epoch. Closed is published only following proven complete teardown, never
+on partial-init failure, timeout or uncertain OS termination. Quarantined has
+no automatic reinitialization/cleanup escape. The stage-aware partial-init
+unwinder and kernel exports are unresolved implementation prerequisites, explicitly
+not supplied by a module reference or this design document.
+
+### Ordering and interleavings
+
+Snapshot holds no C while acquiring/holding TABLES. On every path after admission,
+finish successful private Get with exactly one private Put, then unlock TABLES,
+then under C decrement active using its epoch token exactly once. A TABLES
+acquisition failure still releases admission, with no Get/Put or mutex unlock.
+Use structured cleanup, never a timeout that discards an executing token. Release
+of TABLES precedes publication of active=0; mutex synchronization through C gives
+teardown a happens-before edge. Tokens cannot survive into another epoch.
+
+Lock ordering: caller reserves under sLock then releases it; broker C is short
+and unnested with TABLES/sLock; admitted operation takes TABLES only. Shutdown
+holds no C/TABLES/sLock while draining or invoking ACPICA teardown. No callbacks
+under sLock, C or snapshot TABLES; any required callback occurs outside those
+locks, with module/custody ownership retained. Reentrant termination during an
+admitted snapshot must fail Busy (detect call-local admission) rather than wait
+for itself. Lifecycle INIT/teardown callbacks cannot acquire another lifecycle
+transaction. Existing ACPICA internal callbacks require their own audit; this
+protocol protects the prospective snapshot, not all unrelated ACPICA APIs.
+
+| Interleaving | Required order and outcome |
+| --- | --- |
+| Shutdown wins C before admission | Closing is observed; reject without querying ACPICA globals, TABLES handle or status. Mutexes may already be gone. |
+| Admission wins C, pauses before TABLES | active=1; shutdown closes but cannot call SubsystemShutdown/MutexTerminate until that token drains. TABLES still exists. |
+| Shutdown during copy or error cleanup | Closing rejects new calls; admitted call performs Put if acquired, unlocks TABLES, decrements active. Only then teardown starts. |
+| Snapshot pauses after unlock before decrement | Teardown still waits; no premature destruction. |
+| Drain deadline expires | Quarantined, no teardown/unload success; retain resource ownership, do not force active to zero. |
+| Two terminators / repeated termination | Only transaction owner may call ACPICA; competitor Busy; Closed repeat is no-op. AcpiGbl_Shutdown is never the guard. |
+| INIT fails before/inside/after subsystem init | Pre-invocation failure returns Closed; inside failure quarantines; later failure uses authorized cleanup with admission never Open. |
+| Clean terminate then reinitialize | old tokens drained before Closed; new epoch opens only after complete new initialization. No stale token can reopen or decrement new state. |
+
+Required future production-seam checks pause at each row's boundaries, including
+TABLES acquisition failure, failed Get, copy rejection, token overflow, epoch
+exhaustion, teardown failure and reentry. These are acceptance obligations, not
+new reference fixtures or executed tests. Inspect actual kernel API/export and
+unload-error semantics before implementing; if those cannot preserve retained
+resources on quarantine, do not enable the seam. Pinned sources do not establish
+that system-wide guarantee today.
+
+IntelMemoryOwner.cpp:954–978 display INIT stays PCI/GART+sLock only; v0 driver
+release/free/allocate dispatch remains unchanged. Provider callbacks stay outside
+sLock. ConfigureReserved/BeginCpuBacking remain unreachable from untrusted DMAR:
+Unsupported admission continues until independent accessible extent and immutable
+backing contracts are supplied. Lifecycle exclusion alone advances no GPU execution,
+DMA retirement or installed-artifact claim. No production edits, compilation,
+hardware operations, replay, deployment or canonical lock changes occurred.
