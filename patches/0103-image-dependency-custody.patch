@@ -1,0 +1,240 @@
+--- a/src/system/kernel/module.cpp
++++ b/src/system/kernel/module.cpp
+@@ -87,10 +87,18 @@
+  * a little bit slower, but would lower the memory foot print quite a lot.
+  */
+ 
++enum dependency_phase { DependenciesEmpty, DependenciesBuilding,
++	DependenciesComplete, DependenciesQuarantined };
++
+ struct module_image {
+ 	struct module_image* next;
+ 	module_info**		info;		// the module_info we use
+ 	module_dependency*	dependencies;
++	module_info** dependency_records;
++	size_t dependency_count;
++	size_t dependency_acquired;
++	int32 dependency_leases;
++	dependency_phase dependency_state;
+ 	char*				path;		// the full path for the module
+ 	image_id			image;
+ 	int32				ref_count;	// how many ref's to this file
+@@ -411,6 +419,11 @@
+ 		goto err1;
+ 	}
+ 
++	moduleImage->dependency_records = NULL;
++	moduleImage->dependency_count = 0;
++	moduleImage->dependency_acquired = 0;
++	moduleImage->dependency_leases = 0;
++	moduleImage->dependency_state = DependenciesEmpty;
+ 	moduleImage->dependencies = NULL;
+ 	get_image_symbol(image, "module_dependencies", B_SYMBOL_TYPE_DATA,
+ 		(void**)&moduleImage->dependencies);
+@@ -661,24 +674,23 @@
+ }
+ 
+ 
++// sModulesLock serializes ledger transitions. No child release is safe until
++// callback cessation and reference-consumption reporting are available.
+ static status_t
+ put_dependent_modules(struct module* module)
+ {
+ 	module_image* image = module->module_image;
+-	module_dependency* dependencies;
+-
+-	// built-in modules don't have a module_image structure
+-	if (image == NULL
+-		|| (dependencies = image->dependencies) == NULL)
++	if (image == NULL || image->dependencies == NULL)
+ 		return B_OK;
+-
+-	for (int32 i = 0; dependencies[i].name != NULL; i++) {
+-		status_t status = put_module(dependencies[i].name);
+-		if (status < B_OK)
+-			return status;
+-	}
+-
+-	return B_OK;
++	if (image->dependency_state != DependenciesComplete
++		|| image->dependency_leases <= 0)
++		return B_ERROR;
++	if (image->dependency_leases > 1) {
++		image->dependency_leases--;
++		return B_OK;
++	}
++	image->dependency_state = DependenciesQuarantined;
++	return B_ERROR;
+ }
+ 
+ 
+@@ -686,25 +698,46 @@
+ get_dependent_modules(struct module* module)
+ {
+ 	module_image* image = module->module_image;
+-	module_dependency* dependencies;
+-
+-	// built-in modules don't have a module_image structure
+-	if (image == NULL
+-		|| (dependencies = image->dependencies) == NULL)
++	if (image == NULL || image->dependencies == NULL)
+ 		return B_OK;
+-
+-	TRACE(("resolving module dependencies...\n"));
+-
+-	for (int32 i = 0; dependencies[i].name != NULL; i++) {
++	if (image->dependency_state == DependenciesComplete) {
++		if (image->dependency_leases == 0x7fffffff)
++			return B_BUSY;
++		image->dependency_leases++;
++		return B_OK;
++	}
++	if (image->dependency_state != DependenciesEmpty)
++		return B_BUSY;
++
++	image->dependency_state = DependenciesBuilding;
++	module_dependency* dependencies = image->dependencies;
++	size_t count = 0;
++	while (dependencies[count].name != NULL)
++		count++;
++	image->dependency_count = count;
++	if (count != 0) {
++		image->dependency_records = (module_info**)calloc(count,
++			sizeof(module_info*));
++		if (image->dependency_records == NULL) {
++			image->dependency_state = DependenciesQuarantined;
++			return B_NO_MEMORY;
++		}
++	}
++	for (size_t i = 0; i < count; i++) {
+ 		status_t status = get_module(dependencies[i].name,
+-			dependencies[i].info);
++			&image->dependency_records[i]);
+ 		if (status < B_OK) {
+-			dprintf("loading dependent module %s of %s failed!\n",
+-				dependencies[i].name, module->name);
++			// The acquired prefix remains owned, unpublished and non-replayable.
++			image->dependency_records[i] = NULL;
++			image->dependency_state = DependenciesQuarantined;
+ 			return status;
+ 		}
+-	}
+-
++		image->dependency_acquired++;
++	}
++	for (size_t i = 0; i < count; i++)
++		*dependencies[i].info = image->dependency_records[i];
++	image->dependency_leases = 1;
++	image->dependency_state = DependenciesComplete;
+ 	return B_OK;
+ }
+ 
+@@ -724,7 +757,9 @@
+ 
+ 			status = get_dependent_modules(module);
+ 			if (status < B_OK) {
+-				module->state = MODULE_LOADED;
++				// Preserve the parent reference even when no child was acquired.
++				module->state = MODULE_ERROR;
++				module->ref_count++;
+ 				return status;
+ 			}
+ 
+@@ -741,8 +776,11 @@
+ 			if (status >= B_OK)
+ 				module->state = MODULE_READY;
+ 			else {
+-				put_dependent_modules(module);
+-				module->state = MODULE_LOADED;
++				// Failed INIT after callback entry has no cessation proof.
++				if (module->module_image != NULL)
++					module->module_image->dependency_state = DependenciesQuarantined;
++				module->state = MODULE_ERROR;
++				module->ref_count++;
+ 			}
+ 
+ 			return status;
+@@ -806,14 +844,18 @@
+ 			TRACE(("...done (%s)\n", strerror(status)));
+ 
+ 			if (status == B_OK) {
+-				module->state = MODULE_LOADED;
+-				put_dependent_modules(module);
+-				return B_OK;
++				status = put_dependent_modules(module);
++				if (status == B_OK) {
++					module->state = MODULE_LOADED;
++					return B_OK;
++				}
+ 			}
+ 
+ 			FATAL(("Error unloading module %s (%s)\n", module->name,
+ 				strerror(status)));
+ 
++			if (module->module_image != NULL)
++				module->module_image->dependency_state = DependenciesQuarantined;
+ 			module->state = MODULE_ERROR;
+ 			module->flags |= B_KEEP_LOADED;
+ 			module->ref_count++;
+@@ -1115,6 +1157,11 @@
+ 		goto error;
+ 	}
+ 
++	moduleImage->dependency_records = NULL;
++	moduleImage->dependency_count = 0;
++	moduleImage->dependency_acquired = 0;
++	moduleImage->dependency_leases = 0;
++	moduleImage->dependency_state = DependenciesEmpty;
+ 	moduleImage->dependencies = NULL;
+ 	get_image_symbol(image->id, "module_dependencies", B_SYMBOL_TYPE_DATA,
+ 		(void**)&moduleImage->dependencies);
+@@ -2201,6 +2248,11 @@
+ 			return B_BUSY;
+ 	}
+ 
++	if (module != NULL && module->module_image != NULL
++		&& (module->module_image->dependency_state == DependenciesBuilding
++			|| module->module_image->dependency_state == DependenciesQuarantined))
++		return B_BUSY;
++
+ 	// if we don't have it cached yet, search for it
+ 	if (module == NULL || ((module->flags & B_BUILT_IN_MODULE) == 0
+ 			&& module->module_image == NULL)) {
+@@ -2208,6 +2260,14 @@
+ 		if (module == NULL) {
+ 			FATAL(("module: Search for %s failed.\n", path));
+ 			return B_ENTRY_NOT_FOUND;
++		}
++
++		if (moduleImage->dependency_state == DependenciesBuilding
++			|| moduleImage->dependency_state == DependenciesQuarantined) {
++			// search_module acquired a temporary image reference. Existing
++			// dependency custody retains its own pin; drop only this search pin.
++			put_module_image(moduleImage);
++			return B_BUSY;
+ 		}
+ 
+ 		module->info = moduleImage->info[module->offset];
+@@ -2272,6 +2332,11 @@
+ 		return B_BAD_VALUE;
+ 	}
+ 
++	if (module->module_image != NULL
++		&& (module->module_image->dependency_state == DependenciesBuilding
++			|| module->module_image->dependency_state == DependenciesQuarantined))
++		return B_BUSY;
++
+ 	if (module->ref_count == 0) {
+ 		panic("module %s has no references.\n", path);
+ 		return B_BAD_VALUE;
+@@ -2285,7 +2350,9 @@
+ 			return B_BAD_VALUE;
+ 		}
+ 
+-		uninit_module(module);
++		status_t status = uninit_module(module);
++		if (status != B_OK)
++			return status;
+ 
+ 		if ((module->flags & B_BUILT_IN_MODULE) == 0
+ 			&& module->ref_count == 0) {
