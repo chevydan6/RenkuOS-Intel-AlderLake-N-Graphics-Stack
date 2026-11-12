@@ -1,0 +1,13 @@
+--- a/src/system/boot/platform/efi/acpi.cpp
++++ b/src/system/boot/platform/efi/acpi.cpp
+@@ -101,8 +101,8 @@
+ 			&& strncmp(rsdt->signature, ACPI_XSDT_SIGNATURE, 4) != 0) {
+ 			rsdt = NULL;
+ 			TRACE(("acpi: invalid extended system description table\n"));
+-		} else
+-			usingXsdt = true;
++		}
++		usingXsdt = rsdt != NULL;
+ 	}
+ 
+ 	// if we're ACPI v1 or we fail to map the XSDT for some reason,
