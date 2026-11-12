@@ -1,0 +1,19 @@
+--- a/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
++++ b/src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp
+@@ -265,9 +265,13 @@
+ #ifdef _KERNEL_MODE
+ 	DEBUG_FUNCTION();
+ 	if (sACPIRoot == 0) {
+-		phys_addr_t* acpiRootPointer = (phys_addr_t*)get_boot_item("ACPI_ROOT_POINTER", NULL);
+-		if (acpiRootPointer != NULL)
+-			sACPIRoot = *acpiRootPointer;
++		size_t size = 0;
++		const void* acpiRootPointer = get_boot_item("ACPI_ROOT_POINTER", &size);
++		if (acpiRootPointer != NULL && size >= sizeof(phys_addr_t)) {
++			phys_addr_t root;
++			memcpy(&root, acpiRootPointer, sizeof(root));
++			sACPIRoot = root;
++		}
+ 	}
+ 	return sACPIRoot;
+ #else
