@@ -1,0 +1,40 @@
+--- a/src/system/boot/platform/efi/acpi.cpp
++++ b/src/system/boot/platform/efi/acpi.cpp
+@@ -71,8 +71,13 @@
+ 
+ 
+ static status_t
+-acpi_validate_rsdt(acpi_descriptor_header* rsdt)
+-{
++acpi_validate_rsdt(acpi_descriptor_header* rsdt, size_t entrySize)
++{
++	if (rsdt->length < sizeof(acpi_descriptor_header)
++		|| (rsdt->length - sizeof(acpi_descriptor_header)) % entrySize != 0) {
++		return B_BAD_DATA;
++	}
++
+ 	const char* data = (const char*)rsdt;
+ 	unsigned char checksum = 0;
+ 	for (uint32 i = 0; i < rsdt->length; i++)
+@@ -124,7 +129,8 @@
+ 	}
+ 
+ 	if (rsdt != NULL) {
+-		if (acpi_validate_rsdt(rsdt) != B_OK) {
++		if (acpi_validate_rsdt(rsdt, usingXsdt ? sizeof(uint64) : sizeof(uint32))
++			!= B_OK) {
+ 			TRACE(("acpi: rsdt failed checksum validation\n"));
+ 			return B_ERROR;
+ 		} else {
+@@ -146,7 +152,10 @@
+ acpi_descriptor_header*
+ acpi_find_table_generic(const char* signature, acpi_descriptor_header* acpiSdt)
+ {
+-	if (acpiSdt == NULL)
++	if (acpiSdt == NULL
++		|| acpiSdt->length < sizeof(acpi_descriptor_header)
++		|| (acpiSdt->length - sizeof(acpi_descriptor_header))
++			% sizeof(PointerType) != 0)
+ 		return NULL;
+ 
+ 	if (sNumEntries == -1) {

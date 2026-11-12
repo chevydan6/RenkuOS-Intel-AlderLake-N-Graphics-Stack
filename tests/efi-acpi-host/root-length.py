@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Exercise unchanged production EFI root selection and lookup under sanitizers."""
+import pathlib, subprocess, sys, os, json, hashlib
+root=pathlib.Path(__file__).resolve().parents[2]
+out=pathlib.Path(sys.argv[1]).resolve(); out.mkdir(parents=True,exist_ok=True)
+repo=sys.argv[2]; path='src/system/boot/platform/efi/acpi.cpp'
+original=subprocess.check_output(['git','--git-dir='+repo,'show','4799bb5a188c4bb6bbef967287640cc21a061a0d:'+path])
+composed=out/'composed'; target=composed/path; target.parent.mkdir(parents=True,exist_ok=True); target.write_bytes(original)
+subprocess.run(['git','init','-q',str(composed)],check=True)
+for patch in sorted((root/'patches').glob('*.patch')):
+ if ('+++ b/'+path) in patch.read_text():
+  if patch.name == '0120-efi-acpi-root-length.patch': preChange=target.read_text()
+  subprocess.run(['git','apply','--check',str(patch)],cwd=composed,check=True)
+  subprocess.run(['git','apply',str(patch)],cwd=composed,check=True)
+source=target.read_text()
+prelude='\n#include <cassert>\n#include <cstdint>\n#include <cstring>\n#include <cstdlib>\nusing uint8=uint8_t; using uint32=uint32_t; using uint64=uint64_t; using int32=int32_t; using addr_t=uintptr_t; using status_t=int;\n#define TRACE(x) ((void)0)\n#define B_OK 0\n#define B_ERROR -1\n#define B_BAD_DATA -2\n#define ACPI_XSDT_SIGNATURE "XSDT"\n#define ACPI_RSDT_SIGNATURE "RSDT"\nstruct __attribute__((packed)) acpi_descriptor_header {char signature[4]; uint32 length; uint8 revision,checksum; char rest[26];};\nstruct __attribute__((packed)) acpi_rsdp_legacy {char signature[8]; uint8 checksum; char oem_id[6]; uint8 revision; uint32 rsdt_address;};\nstruct __attribute__((packed)) acpi_rsdp_extended {char signature[8]; uint8 checksum; char oem_id[6]; uint8 revision; uint32 rsdt_address; uint32 length; uint64 xsdt_address; uint8 extended_checksum; uint8 reserved[3];};\nusing acpi_rsdp=acpi_rsdp_extended;\nstatic_assert(sizeof(acpi_descriptor_header)==36,"header");\nalignas(8) unsigned char rsdtData[48];\n// Naturally aligned root headers leave the XSDT payload unaligned for uint64.\nalignas(8) unsigned char xsdtData[60];\nacpi_descriptor_header child, other;\nvoid checksum(void* p,size_t n,size_t offset) {auto b=(uint8*)p; b[offset]=0; uint8 sum=0; for(size_t i=0;i<n;i++)sum+=b[i]; b[offset]=-sum;}\n\n#include <sys/mman.h>\n#include <unistd.h>\n'
+main='\nint main(int argc,char** argv) {\n assert(argc==3); bool wide=!strcmp(argv[1],"64"); const char* c=argv[2];\n sAcpiRsdt=nullptr;sAcpiXsdt=nullptr;sNumEntries=-1;\n auto h=(acpi_descriptor_header*)(wide?xsdtData:rsdtData);\n memcpy(h->signature,wide?"XSDT":"RSDT",4);\n uint32 width=wide?8:4; h->length=36+3*width;\n memcpy(child.signature,"TEST",4);memcpy(other.signature,"SKIP",4);\n uint32 e32[]={0,(uint32)(uintptr_t)&other,(uint32)(uintptr_t)&child};\n uint64 e64[]={0,(uint64)(uintptr_t)&other,(uint64)(uintptr_t)&child};\n memcpy((uint8*)h+36,wide?(void*)e64:(void*)e32,3*width);\n bool valid=!strcmp(c,"header") || !strcmp(c,"multi");\n if(!strcmp(c,"zero"))h->length=0;\n else if(!strcmp(c,"short"))h->length=35;\n else if(!strcmp(c,"partial"))h->length=36+width-1;\n else if(!strcmp(c,"header"))h->length=36;\n else if(!strcmp(c,"guard") || !strcmp(c,"direct-guard")) {\n  size_t page=sysconf(_SC_PAGESIZE);\n  auto mem=(uint8*)mmap(nullptr,page*2,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS|MAP_32BIT,-1,0);\n  assert(mem!=MAP_FAILED);assert(mprotect(mem+page,page,PROT_NONE)==0);\n  h=(acpi_descriptor_header*)(mem+page-36);memcpy(h->signature,wide?"XSDT":"RSDT",4);h->length=37;\n } else assert(!strcmp(c,"multi"));\n if(strcmp(c,"guard") && strcmp(c,"direct-guard"))checksum(h,h->length,9);\n if(!strcmp(c,"direct-guard")) {\n  // Even an already-populated count must not bypass structural validation.\n  for(int n : {-1,3}) {sNumEntries=n; assert((wide?acpi_find_table_generic<uint64>("TEST",h):acpi_find_table_generic<uint32>("TEST",h))==nullptr);assert(sNumEntries==n);}\n  return 0;\n }\n acpi_rsdp rsdp={};rsdp.revision=wide?2:0;\n if(wide)rsdp.xsdt_address=(uintptr_t)h;else rsdp.rsdt_address=(uintptr_t)h;\n checksum(&rsdp,20,8);checksum(&rsdp,sizeof(rsdp),32);\n int result=acpi_check_rsdt(&rsdp);\n#ifdef PRE_CHANGE\n assert(!valid);assert(result==B_OK);assert(sAcpiRsdt==h || sAcpiXsdt==h);\n // Never traverse malformed pre-change roots.\n#else\n assert((result==B_OK)==valid);\n if(valid) {assert((wide?sAcpiXsdt:sAcpiRsdt)==h);assert(acpi_find_table("TEST")==(!strcmp(c,"multi")?&child:nullptr));assert(acpi_find_table("NONE")==nullptr);assert(sNumEntries==(!strcmp(c,"multi")?3:0));}\n else {assert(!sAcpiRsdt && !sAcpiXsdt);assert(sNumEntries==-1);if(strcmp(c,"guard"))assert((wide?acpi_find_table_generic<uint64>("TEST",h):acpi_find_table_generic<uint32>("TEST",h))==nullptr);assert(sNumEntries==-1);}\n#endif\n}\n'
+results=[]
+for label,data in [('patched',source),('pre-change',preChange)]:
+ functions=data[data.index('static acpi_descriptor_header*'):data.index('void __attribute__((weak))')]
+ unit=out/(label+'.cpp');unit.write_text(prelude+'\n#include <initializer_list>\n'+functions+main);binary=out/label
+ cmd=['g++','-std=c++11','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-fno-omit-frame-pointer','-no-pie',str(unit),'-o',str(binary)]
+ if label=='pre-change':cmd.insert(1,'-DPRE_CHANGE')
+ subprocess.run(cmd,check=True)
+ for width in ['32','64']:
+  for case in (['zero','short','partial','header','multi','guard','direct-guard'] if label=='patched' else ['zero','short','partial']):
+   run=subprocess.run([str(binary),width,case],capture_output=True,text=True,timeout=5,env={**os.environ,'ASAN_OPTIONS':'detect_leaks=0','UBSAN_OPTIONS':'halt_on_error=1'})
+   results.append(dict(source=label,width=width,case=case,exitCode=run.returncode,output=run.stdout+run.stderr))
+   assert run.returncode==0,(label,width,case,run.stderr)
+(out/'results.json').write_text(json.dumps(dict(hostOnly=True,leakDetection=False,limitation='LeakSanitizer disabled for traced runtime restriction; no allocation bounds or GPU execution proved',preparedSourceSha256=hashlib.sha256(target.read_bytes()).hexdigest(),cases=results),indent=2)+'\n')
+print('14 patched sanitizer cases and six bounded pre-change malformed-acceptance controls passed.')
