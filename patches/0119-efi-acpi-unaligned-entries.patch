@@ -1,0 +1,21 @@
+--- a/src/system/boot/platform/efi/acpi.cpp
++++ b/src/system/boot/platform/efi/acpi.cpp
+@@ -163,12 +163,15 @@
+ 	TRACE(("acpi: searching %" B_PRId32 " entries for table '%.4s'\n", sNumEntries,
+ 		signature));
+ 
+-	PointerType* pointer = (PointerType*)((uint8*)acpiSdt
++	const uint8* pointer = ((const uint8*)acpiSdt
+ 		+ sizeof(acpi_descriptor_header));
+ 
+ 	acpi_descriptor_header* header = NULL;
+-	for (int32 j = 0; j < sNumEntries; j++, pointer++) {
+-		header = (acpi_descriptor_header*)(addr_t)*pointer;
++	for (int32 j = 0; j < sNumEntries; j++, pointer += sizeof(PointerType)) {
++		// XSDT entries start at byte 36 and may be unaligned for uint64.
++		PointerType address;
++		memcpy(&address, pointer, sizeof(address));
++		header = (acpi_descriptor_header*)(addr_t)address;
+ 		if (header != NULL && strncmp(header->signature, signature, 4) == 0) {
+ 			TRACE(("acpi: Found '%.4s' @ %p\n", signature, pointer));
+ 			return header;
