@@ -18,7 +18,16 @@ PATHS = [
     'src/add-ons/kernel/bus_managers/Jamfile',
     'src/add-ons/kernel/drivers/graphics/intel_extreme',
     'src/add-ons/kernel/drivers/graphics/common',
+    # Ordered patches also modify DPC lifetime, module retention and ACPI.
+    'src/add-ons/kernel/generic/dpc/dpc.c', 'headers/os/drivers/dpc.h',
+    'src/system/kernel/module.cpp', 'headers/os/drivers/module.h',
+    'headers/private/kernel/lock.h',
+    'src/add-ons/kernel/bus_managers/acpi/BusManager.cpp',
+    'src/add-ons/kernel/bus_managers/acpi/ACPIPrivate.h',
+    'src/add-ons/kernel/bus_managers/acpi/ACPICAHaiku.cpp',
+    'src/add-ons/kernel/bus_managers/acpi/Module.cpp',
     'src/system/kernel/util/kernel_cpp.cpp',
+    'src/system/boot/platform/efi/acpi.cpp',
     'src/add-ons/accelerants/intel_extreme', 'src/add-ons/accelerants/common',
 ]
 PROJECT = pathlib.Path(__file__).resolve().parents[1]
