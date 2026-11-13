@@ -1,0 +1,12 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+build/i915_linux_dma_test.driver: OK
+build/linux_dma_probe: OK
+evidence=LINUX_DMA_API_NATIVE_BACKEND gpu_submission=false
+run=0 checks=45116 failures=0 coherent=4/4 sg=4/4
+run=1 checks=45116 failures=0 coherent=4/4 sg=4/4
+run=2 checks=45116 failures=0 coherent=4/4 sg=4/4
+run=3 checks=45116 failures=0 coherent=4/4 sg=4/4
+PASS Linux DMA API on native bus_dma; no GPU transfer tested
+KERN: I915_LINUX_DMA_INIT status=0
+KERN: I915_LINUX_DMA_UNINIT status=0
+LINUX_DMA_NATIVE_TEST_EXIT=0 results=validation/dma.Lfjt5f

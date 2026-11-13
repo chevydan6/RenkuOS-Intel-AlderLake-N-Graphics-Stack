@@ -1,0 +1,6 @@
+{
+  "renkuRevision": "4799bb5a188c4bb6bbef967287640cc21a061a0d",
+  "linuxRevision": "ffc253263a1375a65fa6c9f62a893e9767fbebfa",
+  "nativeSourcesModified": false,
+  "scope": "Linux DMA API compatibility; no PCI attachment or GPU submission"
+}

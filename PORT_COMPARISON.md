@@ -115,3 +115,11 @@ algorithm is imported. It reduces the experiment's missing backing/CPU-access
 surface, but establishes neither per-device DMA admission nor execution-ready
 engine translations, caches, context, submission or retirement. No GPU workload
 or performance has been measured and full LinuxKPI superiority remains unproven.
+
+## Linux DMA compatibility result
+
+Original i915 GEM source now has tested coherent/streaming DMA API prerequisites
+backed by existing RenkuOS bus_dma. New work is OS adaptation; GPU algorithms stay
+upstream. Four native N100 runs pass 180,464 checks and unload cleanly. Whole GEM
+source still fails on the remaining Linux/DRM closure. This advances portability
+but supplies no GPU workload, throughput measurement or Mesa readiness claim.

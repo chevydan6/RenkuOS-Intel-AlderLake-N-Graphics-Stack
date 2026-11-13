@@ -479,3 +479,27 @@ GT/context, cache visibility and completion/reset lifetime contracts exist.
 Session cleanup completed: the dedicated transfer SSH listener was stopped,
 the physical lease released, and the original custom NanoKVM image attachment
 verified. The actual HDMI Terminal remains running with successful results.
+
+## Linux DMA API port checkpoint — 2026-11-13
+
+Continue the original i915 port through OS compatibility rather than adding
+native GPU algorithms. Five additional byte-exact Linux files bring the verified
+import set to 30, including original i915 GEM GTT/physical objects and SG code.
+Their full translation units still fail; actual compiler diagnostics are retained.
+
+The new Linux DMA API adapter delegates to existing unchanged RenkuOS bus_dma
+and malloc implementations. Native callback addresses, coherent order alignment,
+mask/lifetime checks and partial chained-SG rollback are implemented. It supports
+the scoped x86 direct/coherent path; no PCI attachment, IOMMU programming or GPU
+execution is implied. The page view is limited to caller-owned wired backing.
+
+A reproducible bundle builds in actual N100 fullscreen Terminal with GCC13.3 and
+SDK518. Four runs ×45,116 checks =180,464 pass with zero failures, real teardown
+and unchanged graphics publication. Host ASan/UBSan API tests and two mutation
+controls pass. A lazy coherent-alias mapping panic was corrected and preserved.
+See experimental/i915/dma/README.md and evidence/physical-linux-dma-001/.
+
+The next original-i915 boundary is complete GEM/ring dependency compilation:
+compiler annotations/bit helpers, rwlocks/completion, DRM/GEM/VM objects and real
+PCI lifecycle. Hardware algorithms should remain in upstream i915. Neither these
+DMA CPU tests nor earlier native GGTT tests establish a GPU store or Mesa support.

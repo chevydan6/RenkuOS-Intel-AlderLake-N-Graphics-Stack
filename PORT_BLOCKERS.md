@@ -61,3 +61,17 @@ faulted under SMAP; a native kernel-only clone fixes that while preserving WC/UC
 and original GART free addresses. Final physical mapping runs pass 8 × 38,927 checks.
 The diagnostic's asynchronous devfs removal now has a bounded wait for current
 unload evidence and an absent device. No functional mapping assertion was removed.
+
+## Linux DMA port boundary
+
+Linux coherent allocation/free and chained SG map/unmap now have an actual native
+bus_dma backend with physical kernel tests. This resolves the absence of those
+scoped API adapters, not i915 PCI attachment or GPU DMA activity. Atomic coherent
+allocation, general Linux page/folio and SG allocators, IRQ-safe streaming maps,
+IOMMU setup and full device teardown integration remain unsupported.
+
+Complete original i915 GEM builds still fail: whole-gtt-001.log reaches missing
+gfp_t propagation, log2/bit helpers and compiler-header collisions; whole-phys-001
+reaches annotation collision and asm/linkage.h. Complete-ring builds still need
+rwlock/completion and the broader DRM/GEM dependency closure. Keep those source
+files unchanged as compatibility work proceeds. No complete i915 driver loads.

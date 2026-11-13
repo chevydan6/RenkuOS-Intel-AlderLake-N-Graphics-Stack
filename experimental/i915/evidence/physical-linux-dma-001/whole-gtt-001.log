@@ -1,0 +1,71 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 8f4679ab718d709354e153f8717bf8153f37fda2a9b1bdfd7defcdfd4481cba6
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gem -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_gtt.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/complete-gem-i915_gem_gtt.c.o
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_gtt.c:9:
+/tmp/i915-linux-source/include/linux/fault-inject.h:94:29: error: unknown type name ‘gfp_t’
+   94 | bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order);
+      |                             ^~~~~
+/tmp/i915-linux-source/include/linux/fault-inject.h:99:45: error: unknown type name ‘gfp_t’
+   99 | static inline bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
+      |                                             ^~~~~
+/tmp/i915-linux-source/include/linux/fault-inject.h:105:43: error: unknown type name ‘gfp_t’
+  105 | int should_failslab(struct kmem_cache *s, gfp_t gfpflags);
+      |                                           ^~~~~
+/tmp/i915-linux-source/include/linux/fault-inject.h:109:60: error: unknown type name ‘gfp_t’
+  109 | static inline bool __should_failslab(struct kmem_cache *s, gfp_t gfpflags)
+      |                                                            ^~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_gtt.c:10:
+/tmp/i915-linux-source/include/linux/log2.h: In function ‘__ilog2_u32’:
+/tmp/i915-linux-source/include/linux/log2.h:24:16: error: implicit declaration of function ‘fls’; did you mean ‘ffs’? [-Wimplicit-function-declaration]
+   24 |         return fls(n) - 1;
+      |                ^~~
+      |                ffs
+/tmp/i915-linux-source/include/linux/log2.h: In function ‘__ilog2_u64’:
+/tmp/i915-linux-source/include/linux/log2.h:32:16: error: implicit declaration of function ‘fls64’ [-Wimplicit-function-declaration]
+   32 |         return fls64(n) - 1;
+      |                ^~~~~
+/tmp/i915-linux-source/include/linux/log2.h: At top level:
+/tmp/i915-linux-source/include/linux/log2.h:45:6: error: conflicting types for ‘is_power_of_2’; have ‘_Bool(long unsigned int)’
+   45 | bool is_power_of_2(unsigned long n)
+      |      ^~~~~~~~~~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/slab.h:3,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_gtt.c:7:
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:84:20: note: previous definition of ‘is_power_of_2’ with type ‘_Bool(long long unsigned int)’
+   84 | static inline bool is_power_of_2(unsigned long long x) { return x && !(x & (x - 1)); }
+      |                    ^~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/log2.h: In function ‘__roundup_pow_of_two’:
+/tmp/i915-linux-source/include/linux/log2.h:57:23: error: implicit declaration of function ‘fls_long’ [-Wimplicit-function-declaration]
+   57 |         return 1UL << fls_long(n - 1);
+      |                       ^~~~~~~~
+/tmp/i915-linux-source/include/linux/log2.h: At top level:
+/tmp/i915-linux-source/include/linux/log2.h:198:34: error: expected ‘;’ before ‘int’
+  198 | static inline __attribute_const__
+      |                                  ^
+      |                                  ;
+  199 | int __order_base_2(unsigned long n)
+      | ~~~                               
+In file included from /tmp/i915-linux-source/include/linux/kernel.h:14,
+                 from /tmp/i915-linux-source/include/linux/random.h:7,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_gtt.c:11:
+/tmp/i915-linux-source/include/linux/stdarg.h:6:9: error: ‘va_start’ redefined [-Werror]
+    6 | #define va_start(v, l)  __builtin_va_start(v, l)
+      |         ^~~~~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:7:
+/usr/lib/gcc/x86_64-redhat-linux/16/include/stdarg.h:51:9: note: this is the location of the previous definition
+   51 | #define va_start(v,l)   __builtin_va_start(v,l)
+      |         ^~~~~~~~
+/tmp/i915-linux-source/include/linux/stdarg.h:8:9: error: ‘va_arg’ redefined [-Werror]
+    8 | #define va_arg(v, T)    __builtin_va_arg(v, T)
+      |         ^~~~~~
+/usr/lib/gcc/x86_64-redhat-linux/16/include/stdarg.h:54:9: note: this is the location of the previous definition
+   54 | #define va_arg(v,l)     __builtin_va_arg(v,l)
+      |         ^~~~~~
+/tmp/i915-linux-source/include/linux/stdarg.h:9:9: error: ‘va_copy’ redefined [-Werror]
+    9 | #define va_copy(d, s)   __builtin_va_copy(d, s)
+      |         ^~~~~~~
+/usr/lib/gcc/x86_64-redhat-linux/16/include/stdarg.h:57:9: note: this is the location of the previous definition
+   57 | #define va_copy(d,s)    __builtin_va_copy(d,s)
+      |         ^~~~~~~
+compilation terminated due to -fmax-errors=12.
+
+compiler exit: 1

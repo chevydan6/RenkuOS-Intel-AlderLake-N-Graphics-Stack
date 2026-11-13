@@ -1,0 +1,18 @@
+{
+  "runs": 4,
+  "checks_per_run": 45116,
+  "total_checks": 180464,
+  "failures": 0,
+  "gpu_submission": false,
+  "gpu_dma_transfer": false,
+  "pci_device_attached": false,
+  "coherent_allocations": 16,
+  "streaming_entries_mapped": 16,
+  "archives": {
+    "/home/dan/i915-vm/linux-dma-002/payload.tar.gz": "3c9c5544293e9e47cbdfff46d2496c7a1bff6ab479b9a607ff649d3b6eb27edf",
+    "/home/dan/i915-vm/linux-dma-002/native-results.tar.gz": "30e081b60987b28c03a07a6d119bc0f0cd50c2ee82c8c05350c3524757c1bf6e",
+    "/home/dan/i915-vm/linux-dma-001/failure-007-native.tar.gz": "fe852b10a1056befb28b32b9ce3b80532c0484add04584210bc18e6b4b864850"
+  },
+  "failure_screenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794564422741739872-0.jpg",
+  "success_screenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794564934457157174-0.jpg"
+}

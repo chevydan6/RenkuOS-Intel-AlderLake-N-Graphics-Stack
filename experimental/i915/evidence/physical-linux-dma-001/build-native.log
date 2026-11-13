@@ -1,0 +1,53 @@
+In file included from source/src/libs/compat/freebsd_network/compat/sys/mutex.h:11,
+                 from source/src/libs/compat/freebsd_network/bus_dma.cpp:13:
+source/src/libs/compat/freebsd_network/compat/sys/systm.h:88:20: warning: declaration of 'void log(int, const char*, ...)' conflicts with built-in declaration 'double log(double)' [-Wbuiltin-declaration-mismatch]
+   88 | static inline void log(int level, const char *fmt, ...) { }
+      |                    ^~~
+source/src/libs/compat/freebsd_network/bus_dma.cpp: In function 'int _allocate_dmamem(bus_dma_tag_t, phys_size_t, void**, int)':
+source/src/libs/compat/freebsd_network/bus_dma.cpp:254:77: warning: format '%x' expects argument of type 'unsigned int', but argument 2 has type 'phys_size_t' {aka 'long unsigned int'} [-Wformat=]
+  254 |                 dprintf("bus_dmamem_alloc: failed to align memory: wanted %#x, got %#x\n",
+      |                                                                           ~~^
+      |                                                                             |
+      |                                                                             unsigned int
+      |                                                                           %#lx
+  255 |                         dmat->alignment, vtophys(vaddr));
+      |                         ~~~~~~~~~~~~~~~                                      
+      |                               |
+      |                               phys_size_t {aka long unsigned int}
+source/src/libs/compat/freebsd_network/bus_dma.cpp:254:86: warning: format '%x' expects argument of type 'unsigned int', but argument 3 has type 'vm_paddr_t' {aka 'long unsigned int'} [-Wformat=]
+  254 |                 dprintf("bus_dmamem_alloc: failed to align memory: wanted %#x, got %#x\n",
+      |                                                                                    ~~^
+      |                                                                                      |
+      |                                                                                      unsigned int
+      |                                                                                    %#lx
+source/src/libs/compat/freebsd_network/bus_dma.cpp: In function 'int _bus_load_buffer(bus_dma_tag_t, void*, bus_size_t, int, bus_addr_t&, bus_dma_segment_t*, int&, bool)':
+source/src/libs/compat/freebsd_network/bus_dma.cpp:382:40: warning: comparison of integer expressions of different signedness: 'int' and 'uint32' {aka 'unsigned int'} [-Wsign-compare]
+  382 |                         else if (++seg >= dmat->maxsegments)
+      |                                  ~~~~~~^~~~~~~~~~~~~~~~~~~~
+source/src/libs/compat/freebsd_network/bus_dma.cpp: In function 'int bus_dmamap_load_mbuf_sg(bus_dma_tag_t, bus_dmamap_t, mbuf*, bus_dma_segment_t*, int*, int)':
+source/src/libs/compat/freebsd_network/bus_dma.cpp:448:30: warning: comparison of integer expressions of different signedness: 'int' and 'phys_size_t' {aka 'long unsigned int'} [-Wsign-compare]
+  448 |         if (mb->m_pkthdr.len > dmat->maxsize)
+      |             ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+                 U acquire_sem@KERNEL_BASE
+                 U area_for@KERNEL_BASE
+                 U calloc@KERNEL_BASE
+                 U clone_area@KERNEL_BASE
+                 U create_area_etc@KERNEL_BASE
+                 U create_area@KERNEL_BASE
+                 U create_sem@KERNEL_BASE
+                 U delete_area@KERNEL_BASE
+                 U delete_sem@KERNEL_BASE
+                 U dprintf@KERNEL_BASE
+                 U dvprintf@KERNEL_BASE
+                 U free@KERNEL_BASE
+                 U get_memory_map_etc@KERNEL_BASE
+                 U get_memory_map@KERNEL_BASE
+                 U memalign_etc@KERNEL_BASE
+                 U memset@KERNEL_BASE
+                 U panic@KERNEL_BASE
+                 U release_sem@KERNEL_BASE
+                 U snprintf@KERNEL_BASE
+                 U strcmp@KERNEL_BASE
+                 U strrchr@KERNEL_BASE
+                 U user_memcpy@KERNEL_BASE
+                 U vm_page_max_address@KERNEL_BASE

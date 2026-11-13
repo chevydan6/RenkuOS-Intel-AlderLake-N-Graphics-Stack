@@ -101,3 +101,17 @@ This extends the native foundation; it imports no additional Linux source body
 and leaves the existing 25 Linux imports unchanged. It does not expose general
 Linux GEM/VMA or DMA services. A caller must finish every CPU access before end;
 GPU use is prohibited through this memory-only interface.
+
+## Original i915 DMA API prerequisites
+
+The DMA adapter supports the Linux API used by the byte-exact imported
+i915_gem_gtt.c and i915_gem_phys.c. Unchanged Linux SG layout/sg_next/sg_init_table
+are used; RenkuOS bus_dma supplies native callback addresses. Coherent allocations
+have CPU/DMA containing-order alignment and strict lifetime checks. Streaming
+mapping requires wired contiguous per-entry spans and rolls back partial failure.
+
+Physical evidence: four ×45,116 CPU/API checks, no failures, actual unload. The
+opaque device test key has no PCI attachment; this is not GPU DMA proof. General
+Linux page/folio allocation, remaining SG functions, PCI integration and full
+GEM/ring compilation remain dependencies. See dma/README.md and the preserved
+whole-source compiler errors in evidence/physical-linux-dma-001/.
