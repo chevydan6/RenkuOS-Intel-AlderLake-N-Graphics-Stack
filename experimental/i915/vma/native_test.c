@@ -9,6 +9,7 @@ int32 api_version = B_CUR_DRIVER_API_VERSION;
 struct worker_group {
 	struct rw_stress stress;
 	struct renku_kpi_completion ready, gate, done;
+	unsigned second_reader_entered;
 };
 struct worker_arg { struct worker_group *group; bool writer; };
 static void Fatal(status_t status)
@@ -22,6 +23,44 @@ static status_t Worker(void *cookie)
 	rw_stress_run(&group->stress, arg->writer);
 	if (renku_kpi_completion_signal(&group->done) != B_OK) Fatal(B_ERROR);
 	return B_OK;
+}
+struct reader_arg { struct worker_group *group; unsigned index; };
+static status_t ReaderRendezvous(void *cookie)
+{
+	struct reader_arg *arg = cookie;
+	struct worker_group *group = arg->group;
+	read_lock(&group->stress.lock);
+	unsigned readers = __atomic_add_fetch(&group->stress.readers, 1, __ATOMIC_RELAXED);
+	unsigned maximum = __atomic_load_n(&group->stress.max_readers, __ATOMIC_RELAXED);
+	while (maximum < readers && !__atomic_compare_exchange_n(&group->stress.max_readers,
+		&maximum, readers, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {}
+	if (arg->index == 0) {
+		/* Both threads were created while IRQs were enabled. Publish that the
+		 * first reader owns the lock, then the controller resumes the second.
+		 * No semaphore wait or allocation occurs in this bounded IRQ-off loop. */
+		if (renku_kpi_completion_signal(&group->ready) != B_OK) Fatal(B_ERROR);
+		bigtime_t deadline = system_time() + 100000;
+		while (!__atomic_load_n(&group->second_reader_entered, __ATOMIC_ACQUIRE)) {
+			if (system_time() >= deadline) {
+				__atomic_fetch_add(&group->stress.errors, 1, __ATOMIC_RELAXED);
+				break;
+			}
+			__asm__ volatile("pause" ::: "memory");
+		}
+	} else __atomic_store_n(&group->second_reader_entered, 1, __ATOMIC_RELEASE);
+	__atomic_fetch_sub(&group->stress.readers, 1, __ATOMIC_RELAXED);
+	read_unlock(&group->stress.lock);
+	if (renku_kpi_completion_signal(&group->done) != B_OK) Fatal(B_ERROR);
+	return B_OK;
+}
+static void Join(thread_id id)
+{
+	status_t returned;
+	status_t status = wait_for_thread_etc(id, B_RELATIVE_TIMEOUT, 10000000, &returned);
+	if (status == B_BAD_THREAD_ID) {
+		thread_info info;
+		if (get_thread_info(id, &info) != B_BAD_THREAD_ID) Fatal(status);
+	} else if (status != B_OK || returned != B_OK) Fatal(status);
 }
 static void Run(struct vma_native_report *out)
 {
@@ -63,6 +102,21 @@ static void Run(struct vma_native_report *out)
 		if (status != B_OK) break;
 	}
 	if (initialized != 3) goto cleanup;
+	struct reader_arg readers[] = {{&group, 0}, {&group, 1}};
+	thread_id reader_ids[2];
+	for (unsigned i = 0; i < 2; i++) {
+		reader_ids[i] = spawn_kernel_thread(ReaderRendezvous, "i915 VMA reader overlap", B_NORMAL_PRIORITY, &readers[i]);
+		if (reader_ids[i] < B_OK) Fatal(reader_ids[i]);
+	}
+	if (resume_thread(reader_ids[0]) != B_OK) Fatal(B_ERROR);
+	if (renku_kpi_completion_wait(&group.ready, 10000000) != B_OK) Fatal(B_TIMED_OUT);
+	if (resume_thread(reader_ids[1]) != B_OK) Fatal(B_ERROR);
+	for (unsigned i = 0; i < 2; i++) {
+		if (renku_kpi_completion_wait(&group.done, 10000000) != B_OK) Fatal(B_TIMED_OUT);
+		Join(reader_ids[i]);
+	}
+	VMA_CHECK(r, group.stress.max_readers == 2 && group.second_reader_entered == 1);
+	VMA_CHECK(r, group.stress.errors == 0 && group.stress.readers == 0);
 	struct worker_arg args[] = {{&group, false}, {&group, false}, {&group, true}};
 	thread_id threads[3];
 	unsigned spawned = 0;
@@ -80,12 +134,7 @@ static void Run(struct vma_native_report *out)
 		if (renku_kpi_completion_signal(&group.gate) != B_OK) Fatal(B_ERROR);
 	for (unsigned i = 0; i < spawned; i++) {
 		if (renku_kpi_completion_wait(&group.done, 10000000) != B_OK) Fatal(B_TIMED_OUT);
-		status_t returned;
-		status_t status = wait_for_thread_etc(threads[i], B_RELATIVE_TIMEOUT, 10000000, &returned);
-		if (status == B_BAD_THREAD_ID) {
-			thread_info info;
-			if (get_thread_info(threads[i], &info) != B_BAD_THREAD_ID) Fatal(status);
-		} else if (status != B_OK || returned != B_OK) Fatal(status);
+		Join(threads[i]);
 	}
 	out->iterations = group.stress.value * 3;
 	out->max_readers = group.stress.max_readers;

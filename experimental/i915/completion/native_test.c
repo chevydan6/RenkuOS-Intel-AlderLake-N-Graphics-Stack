@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 #include <Drivers.h>
 #include "cases.h"
+#include <native_irq_scopes.h>
 int32 api_version = B_CUR_DRIVER_API_VERSION;
 static sem_id sRun = -1;
 static DECLARE_COMPLETION(sSignal);
@@ -43,14 +44,17 @@ static device_hooks hooks = {Open, Close, Close, Control, NULL, NULL, NULL, NULL
 status_t init_hardware(void) { return B_OK; }
 status_t init_driver(void)
 {
+	status_t status = renku_linux_irq_backend_init();
+	if (status != B_OK) return status;
 	sRun = create_sem(1, "i915 completion tests");
-	if (sRun < B_OK) return sRun;
+	if (sRun < B_OK) { renku_linux_irq_backend_uninit(); return sRun; }
 	dprintf("I915_LINUX_COMPLETION_INIT status=0\n"); return B_OK;
 }
 void uninit_driver(void)
 {
 	if (!renku_linux_tasks_empty() || Queued(&sSignal)) Fatal();
 	status_t status = delete_sem(sRun);
+	if (status == B_OK) status = renku_linux_irq_backend_uninit();
 	dprintf("I915_LINUX_COMPLETION_UNINIT status=%d\n", status);
 }
 const char **publish_devices(void)

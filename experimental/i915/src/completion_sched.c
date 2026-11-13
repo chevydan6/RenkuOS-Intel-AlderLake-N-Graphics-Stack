@@ -157,3 +157,7 @@ long schedule_timeout(long ticks)
 }
 long io_schedule_timeout(long ticks)
 { return schedule_timeout(ticks); /* Native has no Linux blkio wait accounting. */ }
+
+/* Header users may reach the sleep annotation before linux/kernel.h defines
+ * its macro. Keep that declaration connected to the same native check. */
+void might_sleep(void) { renku_linux_might_sleep(); }

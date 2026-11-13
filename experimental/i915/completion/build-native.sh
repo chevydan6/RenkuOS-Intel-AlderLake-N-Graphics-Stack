@@ -12,7 +12,7 @@ flags=(-std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter
  -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion)
 objects=()
 for source in upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c \
- src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_diagnostics.c completion/native_test.c; do
+ src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_diagnostics.c completion/native_test.c; do
  object="build/$(basename "${source%.c}").o"
  extra=()
  case "$source" in upstream/kernel/*) extra=(-include include/completion_port.h);; esac

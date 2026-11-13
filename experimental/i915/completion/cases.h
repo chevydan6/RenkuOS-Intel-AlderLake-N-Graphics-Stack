@@ -17,6 +17,10 @@ _Static_assert(IS_ENABLED(TEST_BUILTIN) && IS_ENABLED(TEST_MOD) && !IS_ENABLED(T
 _Static_assert(sizeof(__kernel_long_t) == 8 && sizeof(__kernel_old_uid_t) == 2, "original x86-64 UAPI widths");
 #define CHECK(r, x) do { (r)->checks++; if (!(x)) { (r)->failures++; \
 	if (!(r)->first_line) (r)->first_line = __LINE__; } } while (0)
+#include "namespace_cases.h"
+#ifdef RENKU_NATIVE
+#include "preempt_cases.h"
+#endif
 static s64 NowUS(void) {
 #ifdef RENKU_NATIVE
 	return system_time();
@@ -112,6 +116,10 @@ static void RunCases(struct completion_report *r)
 	*r = (struct completion_report){.version = 1};
 	struct task_struct task;
 	if (!renku_linux_task_register(&task)) Fatal();
+	NamespaceCases(r);
+#ifdef RENKU_NATIVE
+	PreemptCases(r);
+#endif
 	u64 numerator = 100;
 	u32 divisor = 7;
 	CHECK(r, do_div(numerator, divisor++) == 2 && numerator == 14 && divisor == 8);

@@ -12,7 +12,7 @@ flags=(-std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter
  -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivma)
 objects=()
 for source in upstream/drm/drm_vma_manager.c upstream/drm/drm_mm.c upstream/lib/rbtree.c \
- src/native_rwlocks.c src/native_alloc.c src/native_services.c src/native_diagnostics.c vma/native_test.c; do
+ src/native_rwlocks.c src/native_irq_scopes.c src/native_alloc.c src/native_services.c src/native_diagnostics.c vma/native_test.c; do
  object="build/$(basename "${source%.c}").o"
  gcc "${flags[@]}" -c "$source" -o "$object"
  objects+=("$object")

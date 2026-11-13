@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "native_test_ioctl.h"
 #include <native_services.h>
+#include <native_irq_scopes.h>
 #include <linux/kref.h>
 #include <linux/mutex.h>
 #include <linux/ww_mutex.h>
@@ -233,13 +234,17 @@ static device_hooks hooks = { open_device, close_device, close_device, control,
 status_t init_hardware(void) { return B_OK; }
 status_t init_driver(void)
 {
+	status_t status = renku_linux_irq_backend_init();
+	if (status != B_OK) return status;
 	run_lock = create_sem(1, "i915 kpi test run");
+	if (run_lock < B_OK) renku_linux_irq_backend_uninit();
 	dprintf("I915_LINUXKPI_TEST_INIT status=%d\n", run_lock < 0 ? run_lock : B_OK);
 	return run_lock < 0 ? run_lock : B_OK;
 }
 void uninit_driver(void)
 {
 	status_t error = run_lock >= 0 ? delete_sem(run_lock) : B_OK;
+	if (error == B_OK) error = renku_linux_irq_backend_uninit();
 	dprintf("I915_LINUXKPI_TEST_UNINIT status=%d\n", error);
 }
 const char **publish_devices(void) { return devices; }

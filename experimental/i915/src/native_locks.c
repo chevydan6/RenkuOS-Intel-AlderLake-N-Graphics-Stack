@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 #include <linux/mutex.h>
 #include <linux/spinlock.h>
+#include <native_irq_scopes.h>
 #ifndef RENKU_NATIVE
 #error This adapter requires real RenkuOS kernel interfaces
 #endif
@@ -44,34 +45,37 @@ void renku_linux_spin_init(spinlock_t *lock)
 }
 unsigned long renku_linux_spin_lock_irqsave(spinlock_t *lock)
 {
-	cpu_status saved = disable_interrupts();
+	cpu_status saved = renku_linux_local_irq_save();
+	renku_linux_irq_mask_enter(false);
 	acquire_spinlock(&lock->native);
 	return saved;
 }
 void renku_linux_spin_unlock_irqrestore(spinlock_t *lock, unsigned long saved)
 {
 	release_spinlock(&lock->native);
-	restore_interrupts(saved);
+	renku_linux_irq_mask_leave(false);
+	renku_linux_local_irq_restore(saved);
 }
 void renku_linux_spin_lock(spinlock_t *lock)
 {
-	/* Native spinlocks require IRQ exclusion. Stronger than Linux spin_lock. */
-	lock->saved_interrupts = renku_linux_spin_lock_irqsave(lock);
+	renku_linux_irq_mask_enter(false);
+	acquire_spinlock(&lock->native);
 }
 void renku_linux_spin_unlock(spinlock_t *lock)
 {
-	/* Copy before release; the next owner may overwrite the saved state. */
-	cpu_status saved = lock->saved_interrupts;
-	renku_linux_spin_unlock_irqrestore(lock, saved);
+	release_spinlock(&lock->native);
+	renku_linux_irq_mask_leave(false);
 }
 void renku_linux_spin_lock_irq(spinlock_t *lock)
 {
-	disable_interrupts();
+	renku_linux_local_irq_save();
+	renku_linux_irq_mask_enter(false);
 	acquire_spinlock(&lock->native);
 }
 void renku_linux_spin_unlock_irq(spinlock_t *lock)
 {
 	release_spinlock(&lock->native);
-	/* Linux _irq requires IRQ-enabled entry and unconditionally enables here. */
-	restore_interrupts(1);
+	renku_linux_irq_mask_leave(false);
+	/* Request IRQ enable, deferred until all native exclusion scopes end. */
+	renku_linux_local_irq_restore(1);
 }

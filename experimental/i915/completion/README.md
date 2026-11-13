@@ -43,6 +43,42 @@ The same checkpoint adds original x86-64 UAPI scalar types, generic do_div,
 kconfig helpers and lockdep-off types, plus real atomic bit operations/raw IRQ
 locking. Instrumented lockdep and PREEMPT_RT builds fail explicitly.
 
+## Native preemption and shared IRQ scopes
+
+Native spinlocks, reader/writer locks and preemption exclusion share one wired
+per-CPU scope table. Initialize it once per diagnostic/driver before using these
+interfaces; exclude new users before shutdown. CPU topology must remain fixed.
+Shutdown rejects live scopes. The old rwlock/preemption lifecycle names delegate
+to this same backend and must not be initialized separately.
+
+`preempt_disable` uses actual native IRQ masking. This is stronger exclusion
+than Linux task preemption alone: sections must remain short and nonblocking.
+Nested IRQ requests are recorded separately from physical masking, so an inner
+`spin_unlock_irq` cannot enable physical IRQs inside an outer preemption or read
+lock. IRQ-save flags are opaque restore tokens. Scope count includes these
+adapted locks; Linux hardirq/softirq/NMI counter encodings are not synthesized.
+Interrupt-context classification remains unresolved pending real IRQ entry
+integration. There is no simulated Linux scheduler behind these interfaces.
+
+Original Linux compiler attributes, build_bug, minmax, alignment, arithmetic and
+byteorder helpers replace conflicting local spellings. Native libc declarations
+are loaded before the Linux namespace. These remain byte-exact upstream imports.
+
+The physical continuation passes four 149-check completion/preemption runs,
+four 648-check VMA runs and four 62-check older kernel-service runs. It covers
+nested and overlapping lock/preemption lifetimes, explicit IRQ requests, active
+scope teardown rejection and original helper semantics. See
+../evidence/physical-preempt-001 for results, earlier failed attempts and limits.
+
+The additional host model compiles the actual native adapter sources against
+the target headers with ASan/UBSan. Its serialized two-CPU native-service model
+checks state transitions and rejects a premature-IRQ-enable mutation; it does
+not demonstrate hardware concurrency:
+
+```sh
+python3 experimental/i915/tests/run-irq-scope-model.py --output NEW_DIRECTORY
+```
+
 Host sanitizer test and a lost-count mutation control:
 
 ```sh
@@ -60,9 +96,13 @@ python3 experimental/i915/completion/prepare-bundle.py \
 sha256sum -c payload.sha256
 bash completion/build-native.sh > build-native.log 2>&1
 bash completion/run-native-tests.sh
+bash vma/build-native.sh > vma-build.log 2>&1
+bash vma/run-native-tests.sh
+bash vm/build-native.sh > kpi-build.log 2>&1
+bash completion/run-kpi-regression.sh
 bash completion/attempt-whole-native.sh
 ```
 
 The final command preserves real compiler failures for the complete original GEM
 and ring files. They still fail; successful completion-library tests do not mean
-the full i915 driver compiles. See ../evidence/physical-completion-001.
+the full i915 driver compiles. See ../evidence/physical-preempt-001.

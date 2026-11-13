@@ -18,8 +18,13 @@ pin = json.loads((root/'upstream-manifest.json').read_text())['linuxRevision']
 if subprocess.check_output(['git', '-C', str(a.linux_source), 'rev-parse', 'HEAD'], text=True).strip() != pin:
     p.error('Linux revision mismatch')
 a.output.mkdir(parents=True, exist_ok=False)
-for name in ('include', 'src', 'upstream', 'completion'):
+for script in ('extract.py', 'extract-emitter.py'):
+    subprocess.run(['python3', str(root/script)], check=True)
+for name in ('include', 'src', 'upstream', 'completion', 'vma', 'vm'):
     shutil.copytree(root/name, a.output/name, ignore=shutil.ignore_patterns('__pycache__'))
+(a.output/'build').mkdir()
+for name in ('intel_ring_slice.c', 'gen8_engine_slice.c'):
+    shutil.copyfile(root/'build'/name, a.output/'build'/name)
 for name in ('upstream-manifest.json', 'verify-upstream.py', 'PROVENANCE.md'):
     shutil.copyfile(root/name, a.output/name)
 # Reference headers and full i915 dependencies are byte-exact pinned files for

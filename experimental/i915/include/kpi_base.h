@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <linux/kconfig.h>
 #include <linux/compiler_types.h>
 #ifdef RENKU_NATIVE
@@ -14,6 +16,7 @@
 #else
 extern void panic(const char *, ...);
 #endif
+#include <linux/compiler_attributes.h>
 typedef uint8_t u8;
 typedef int8_t s8;
 typedef uint16_t u16;
@@ -33,16 +36,11 @@ struct list_head { struct list_head *next, *prev; };
 struct hlist_node { struct hlist_node *next, **pprev; };
 struct hlist_head { struct hlist_node *first; };
 _Static_assert(sizeof(unsigned long) == 8, "This experimental port targets x86-64");
-#ifndef __always_inline
-#define __always_inline inline __attribute__((always_inline))
-#endif
-#define __aligned(x) __attribute__((aligned(x)))
-#define __maybe_unused __attribute__((unused))
-#define __must_check __attribute__((warn_unused_result))
 #define __cond_acquires(x)
-#ifndef __attribute_const__
-#define __attribute_const__ __attribute__((__const__))
+#ifndef __cold
+#define __cold __attribute__((__cold__))
 #endif
+#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
@@ -51,7 +49,6 @@ _Static_assert(sizeof(unsigned long) == 8, "This experimental port targets x86-6
 #define smp_load_acquire(p) __atomic_load_n((p), __ATOMIC_ACQUIRE)
 #define container_of(p, t, m) ((t *)((char *)(p) - offsetof(t, m)))
 #define container_of_const(p, t, m) container_of(p, t, m)
-#define BUILD_BUG_ON_INVALID(x) ((void)sizeof((long)(x)))
 #define BUG_ON(x) do { if (x) panic("LinuxKPI assertion: %s", #x); } while (0)
 extern bool renku_kpi_warn(const char *, ...);
 #define WARN(c, ...) ({ bool _warn = !!(c); if (_warn) renku_kpi_warn(__VA_ARGS__); _warn; })
@@ -78,14 +75,10 @@ extern bool renku_kpi_warn(const char *, ...);
 #define LIST_POISON2 ((void *)0x122)
 #define U64_MAX (~0ULL)
 #define BIT(n) (1UL << (n))
-#define lower_32_bits(n) ((u32)(n))
+#define lower_32_bits(n) ((u32)((n) & 0xffffffff))
 /* Linux errno namespace, deliberately separate from RenkuOS status_t. */
 #undef ENOSPC
 #define ENOSPC 28
-#undef min
-#undef max
-#define min(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a < _b ? _a : _b; })
-#define max(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })
 /* GCC bit-scan primitives: guard zero before invoking undefined clz(0). */
 static inline int fls(int value)
 { return value ? 32 - __builtin_clz(value) : 0; }
@@ -106,4 +99,6 @@ static inline u64 div64_u64_rem(u64 n, u64 d, u64 *r)
 /* Tree RCU publication only; no grace-period or reclamation API is provided. */
 #define rcu_assign_pointer(p, v) smp_store_release(&(p), (v))
 #include <linux/log2.h>
+#include <linux/build_bug.h>
+#include <linux/minmax.h>
 #endif

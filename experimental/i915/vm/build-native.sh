@@ -22,7 +22,7 @@ kernel_flags=(-std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter
     -I/boot/system/develop/headers/os/support)
 objects=()
 for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c \
-    src/native_locks.c src/task_identity.c src/time.c src/native_services.c \
+    src/native_locks.c src/native_irq_scopes.c src/task_identity.c src/time.c src/native_services.c \
     src/native_diagnostics.c vm/native_test_driver.c; do
     object="build/native/$(basename "${unit%.c}").o"
     gcc "${kernel_flags[@]}" -MMD -c "$unit" -o "$object"

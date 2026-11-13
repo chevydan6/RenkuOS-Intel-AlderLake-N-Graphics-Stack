@@ -4,6 +4,7 @@ import argparse
 import os
 from pathlib import Path
 import resource
+import json
 import shlex
 import subprocess
 
@@ -42,6 +43,22 @@ build()
 r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
 (a.output/'run.log').write_text(r.stdout+r.stderr)
 r.check_returncode()
+# The canonical helpers must still reject broken assumptions and mixed types.
+controls = []
+for name, body, should_pass in [
+    ('helper_positive', 'BUILD_BUG_ON(sizeof(unsigned long) != 8); return min(3, 7);', True),
+    ('build_bug_rejected', 'BUILD_BUG_ON(1); return 0;', False),
+    ('mixed_min_rejected', 'int a = 1; unsigned long b = 2; return min(a, b);', False),
+]:
+    source = a.output/(name+'.c')
+    source.write_text('#include <linux/minmax.h>\n#include <linux/build_bug.h>\nint check(void) {'+body+'}\n')
+    cmd = flags+['-c', str(source), '-o', str(a.output/(name+'.o'))]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    (a.output/(name+'.log')).write_text(result.stdout+result.stderr)
+    assert (result.returncode == 0) == should_pass
+    if not should_pass: assert 'error:' in result.stderr
+    controls.append({'name': name, 'exit': result.returncode})
+(a.output/'helper-controls.json').write_text(json.dumps(controls, indent=2)+'\n')
 resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 before = 'x->done--;'
 assert original.count(before) == 2

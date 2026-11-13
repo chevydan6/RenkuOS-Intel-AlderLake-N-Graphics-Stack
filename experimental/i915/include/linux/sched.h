@@ -39,6 +39,7 @@ struct task_struct *renku_linux_current(void);
 #define TASK_KILLABLE (TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
 #define TASK_NORMAL (TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
 void renku_linux_might_sleep(void);
+void might_sleep(void);
 void renku_linux_set_current_state(unsigned int);
 int renku_linux_signal_pending_state(unsigned int, struct task_struct *);
 int try_to_wake_up(struct task_struct *, unsigned int, int);

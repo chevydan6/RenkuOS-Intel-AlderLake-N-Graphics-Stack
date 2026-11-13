@@ -9,12 +9,14 @@ It does not map userspace pages or implement the broader GEM object lifecycle.
 
 The OS adapters use RenkuOS's existing native reader/writer spinlocks. IRQ
 exclusion is stronger than Linux's plain read_lock/write_lock, as required by
-the native primitives. Saved IRQ state and nested lock depth are per CPU,
+the native primitives. Shared IRQ restore requests and scope depth are per CPU,
 allowing concurrent readers without sharing or racing on one saved-state field.
 Startup allocates a wired scope table sized from the native CPU count; lock
 initialization itself does not allocate. Module startup/shutdown must be
 serialized and shutdown must exclude new users. The current CPU topology is
 fixed for that lifetime. Shutdown rejects active scopes and frees the table.
+Native spinlocks and preemption exclusion now use this same scope manager;
+initialize it once per driver, not once per lock kind.
 
 Sleeping `kmalloc` uses the native heap and rejects atomic/IRQ-disabled requests.
 `kfree` uses native deferred_free when IRQs are disabled: upstream VMA revocation
@@ -50,11 +52,19 @@ bash vma/run-native-tests.sh
 ```
 
 The native test installs only `i915_linux_vma_test`, runs the complete VMA module
-and three real kernel workers, then checks diagnostic unload and unchanged
+and three stress workers, then checks diagnostic unload and unchanged
 graphics-device publication. It verifies range capacity/lookups, reference-counted
 and allow-once access, revocation, original log2 boundaries, concurrent readers,
 writer exclusion, nested IRQ restoration, zeroed allocation and IRQ/atomic
 allocation rejection. It never touches GPU registers or submits a GPU command.
 
-Physical evidence is in ../evidence/physical-vma-001. Complete GEM/ring builds
+Two additional native readers rendezvous before the stress phase to require
+observable overlap on the same read lock. Both threads are created before IRQ
+masking; their IRQ-disabled rendezvous is bounded to 100ms. This removes reliance
+on incidental scheduling to exercise reader overlap while retaining the original
+overlap and writer/data assertions. The first continuation run missed overlap
+and failed its assertion; that result and the old fixture are preserved. With
+the rendezvous, all four 648-check runs pass, including 48,000 stress operations.
+
+Physical evidence is in ../evidence/physical-vma-001 and ../evidence/physical-preempt-001. Complete GEM/ring builds
 still fail on later compatibility dependencies, preserved alongside that evidence.
