@@ -12,7 +12,7 @@
 | BIT, power-of-two, min/max, div64 remainder | implemented | Scalar helpers, alignments tested in actual allocator |
 | READ/WRITE_ONCE, acquire/release | implemented for reached scalar types | Compiler atomics, also used by RenkuOS SupportDefs; not a general Linux memory-model port |
 | test_bit, non-atomic set/clear, clear_bit_unlock | implemented | Atomic relaxed read/release clear; caller serializes drm_mm mutations |
-| RCU pointer publication | implemented publication only | Release store; RCU grace periods/reclamation unresolved; allocator uses non-RCU tree routines |
+| RCU publication/read/grace | scoped native adapter | Release/acquire publication and synchronous native RW exclusion; restricted task-only readers; callback reclamation remains unsupported; physical-rcu-001 |
 | __iomem | implemented annotation only | Does not map MMIO or make ordinary loads ordered I/O |
 | ERR_PTR | implemented in ring slice | Internal Linux error pointer; no native status conversion yet |
 | Linux ENOSPC | implemented internal namespace | 28, separate from negative RenkuOS status_t; no exported ioctl boundary |
@@ -201,3 +201,24 @@ original __bitmap_equal body is extracted for linking. No general bitmap allocat
 parser is supplied. Host mutation/oracle and native evidence are in raw-lock-host-001
 and physical-raw-lock-001. Later dependencies are VM bounds/page layout, logging/
 task declarations, and physical-GEM RCU/device-number integration.
+
+
+## 2026-11-14: scoped RCU, logging and device IDs
+
+Native reader/grace-period exclusion, bounded printk, real task-name snapshots
+and original unsigned Linux device-ID helpers now pass physical N100 testing.
+All107 upstream imports remain unchanged. Four completion runs of46934 checks,
+plus four VMA/KPI regression runs, total190576 checks with zero failures and
+actual diagnostic unload. Eight RCU workers exercise nested readers, waiting
+grace periods and four real frees after exclusion. Host sanitizer/model and
+mutation controls pass; evidence records the exact sources and scope.
+
+RCU is restricted to short nonblocking task readers with IRQ-enabled,
+preemptible outer entry and fixed topology. It uses stronger native RW locking;
+callback queues and general Linux RCU progress semantics remain unsupported.
+All three complete original ring/GEM compiler attempts now reach Linux
+VM generated/bounds.h. The earlier RCU-read, logging/task-name and device-number
+errors are resolved at this boundary. Real VM/page-layout integration is next;
+full i915 compilation and GPU execution remain unproven. See
+experimental/i915/evidence/physical-rcu-001 and completion/README.md under the
+experiment for exact contracts, unsupported services and validation evidence.

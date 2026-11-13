@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-14",
+  "nativeDirectory": "/boot/home/i915-rcu-002",
+  "checksPerRun": {
+    "rcuLoggingDeviceAndPrior": 46934,
+    "vma": 648,
+    "kpi": 62
+  },
+  "runsEach": 4,
+  "total": 190576,
+  "failures": 0,
+  "rcuWorkersTotal": 8,
+  "objectsFreedAfterGracePeriod": 4,
+  "bitCriticalSections": 32000,
+  "priorWaiterWorkers": 96,
+  "vmaStressOperations": 48000,
+  "nativeLogMarkers": 4,
+  "rcuProfile": "outer task entry preemptible/IRQ-enabled; short nonblocking readers; native RW grace wait; callbacks unsupported",
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "archivesSHA256": {
+    "/home/dan/i915-vm/rcu-port-001/native-bundle-002/payload.tar.gz": "ff1bee104379750ec0fb5b66c1ef61f2b23bdcab4df839aa46b1fd6396b4d2d2",
+    "/home/dan/i915-vm/rcu-port-001/native-bundle-003/payload.tar.gz": "99e067eb13465212a53559e1f185c535442b29928f690ac97a864a4747e8f1b8",
+    "/home/dan/i915-vm/rcu-port-001/native-results-002.tar.gz": "bee0951331dc71499b3686e26721a23fab44395dd81ff2c28b83a922601aaca1"
+  }
+}

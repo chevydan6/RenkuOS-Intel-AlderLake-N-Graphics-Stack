@@ -1,0 +1,12 @@
+In file included from reference/include/linux/mmzone.h:20,
+                 from reference/include/linux/gfp.h:7,
+                 from reference/include/linux/xarray.h:15,
+                 from reference/include/linux/radix-tree.h:21,
+                 from reference/include/linux/idr.h:15,
+                 from reference/include/drm/drm_file.h:35,
+                 from reference/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from upstream/gt/intel_ring.c:8:
+reference/include/linux/page-flags-layout.h:6:10: fatal error: generated/bounds.h: No such file or directory
+    6 | #include <generated/bounds.h>
+      |          ^~~~~~~~~~~~~~~~~~~~
+compilation terminated.

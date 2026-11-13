@@ -1,0 +1,8 @@
+In file included from reference/include/linux/dcache.h:14,
+                 from reference/include/linux/fs.h:8,
+                 from reference/include/linux/highmem.h:5,
+                 from upstream/gem/i915_gem_phys.c:7:
+reference/include/linux/lockref.h:19:10: fatal error: generated/bounds.h: No such file or directory
+   19 | #include <generated/bounds.h>
+      |          ^~~~~~~~~~~~~~~~~~~~
+compilation terminated.

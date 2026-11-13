@@ -1,0 +1,11 @@
+{
+  "source": {
+    "path": "lib/bitmap.c",
+    "linuxPath": "lib/bitmap.c",
+    "gitBlob": "ddb31015e38ae23baf7b44b8aea0b5c53b3989aa",
+    "sha256": "16cfcb28ff653a239eee4048d194cc6a1da70ff54beedbb531552e50f00c73a7"
+  },
+  "function": "__bitmap_equal",
+  "originalFunctionSHA256": "0c01ec86f151954e21160904859cb60d2fd41d03466e536c25a56eda98b889fa",
+  "completeLibBitmapPort": false
+}

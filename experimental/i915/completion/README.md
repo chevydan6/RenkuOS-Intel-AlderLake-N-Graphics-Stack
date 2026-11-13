@@ -246,3 +246,49 @@ The original complete GEM/ring compiler attempts still fail on RenkuOS. Raw-lock
 type and bit-unlock errors are resolved; later failures include Linux VM bounds/
 page layout, logging/task-name declarations and physical-GEM RCU/device-number
 integration. No invented bounds or page structures were used to hide errors.
+
+
+## 2026-11-14: scoped RCU, logging and device IDs
+
+A synchronous RCU bridge now uses actual native reader/writer spin exclusion
+and the shared IRQ scope manager. Outer read entry requires IRQ-enabled,
+preemptible task context outside other atomic/spin scopes. Nested reads skip
+lock reacquisition, including while a writer waits. Readers must be short and
+nonblocking; topology is fixed. synchronize_rcu acquires native writer exclusion
+and waits for preexisting readers with IRQs disabled. This stronger exclusion
+can also block new readers; it does not provide general Linux nonblocking RCU
+or bounded grace latency under continuous readers. Init/uninit are serialized;
+the owner must exclude new and running users before shutdown. Depth checks do
+not supply unload references. Callback queues, call_rcu, rcu_barrier, encoded
+frees, IRQ/NMI/BH readers and expedited grace periods remain unsupported.
+Unimplemented callback symbols have a private prefix to prevent accidental
+binding to another kernel implementation.
+
+The printk bridge emits through native dvprintf with a 512-byte formatting
+buffer. Common C integer/string/character/plain-pointer formats and levels0–7
+are supported. Unsupported prefixes (including KERN_CONT), %pV and other Linux
+pointer extensions, %n and floating formats return -EINVAL with a diagnostic;
+truncation returns -ENOSPC. CONFIG_PRINTK selects real device-printk declarations;
+their implementations remain unresolved. Registered task comm is a real native
+thread-name snapshot (16 bytes), queried before taking the registry lock. It is
+not a complete Linux task ABI. Original kernel device-number helpers operate on
+unsigned Linux IDs, with a scoped dev_t rename; native filesystem IDs retain
+their own type and are not mapped by this adapter. The UAPI include selects its
+kernel branch locally without globally enabling Linux __KERNEL__.
+
+All 107 original imports remain unchanged. On the physical N100, native GCC13.3
+and SDK518 built the final diagnostic module/client. Four runs pass 46934 checks
+each, including eight RCU workers and four real heap frees after grace periods.
+The test verifies a waiting writer, a nested reader behind it, unlinking and
+safe reclamation. Four VMA/KPI regression runs bring the total to 190576 checks,
+zero failures, with actual module unload. Four native logging markers were
+observed. Host ASan/UBSan passes 46879 checks; the separate target-header RCU
+model rejects omitted grace waits and two forbidden context entries. There are
+64 header-order controls and eight additional native-source object probes.
+
+The complete original ring, GEM GTT and physical-GEM native compiler attempts
+now all stop at generated/bounds.h through Linux VM/page-layout dependencies.
+Earlier RCU-read, logging/task-name and device-number errors are resolved at
+this compiler boundary. No page layout or bounds were fabricated. Full i915
+compilation and GPU execution remain unproven. See evidence/physical-rcu-001
+and evidence/rcu-host-001 (relative to the experiment root).

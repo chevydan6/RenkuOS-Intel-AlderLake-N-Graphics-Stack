@@ -1,0 +1,18 @@
+In file included from reference/include/linux/mmzone.h:20,
+                 from reference/include/linux/gfp.h:7,
+                 from reference/include/linux/xarray.h:15,
+                 from reference/include/linux/radix-tree.h:21,
+                 from reference/include/linux/idr.h:15,
+                 from reference/include/linux/kernfs.h:12,
+                 from reference/include/linux/sysfs.h:16,
+                 from reference/include/linux/kobject.h:20,
+                 from reference/include/linux/energy_model.h:7,
+                 from reference/include/linux/device.h:16,
+                 from reference/include/linux/node.h:18,
+                 from reference/include/linux/cpu.h:17,
+                 from reference/include/linux/stop_machine.h:5,
+                 from upstream/gem/i915_gem_gtt.c:13:
+reference/include/linux/page-flags-layout.h:6:10: fatal error: generated/bounds.h: No such file or directory
+    6 | #include <generated/bounds.h>
+      |          ^~~~~~~~~~~~~~~~~~~~
+compilation terminated.

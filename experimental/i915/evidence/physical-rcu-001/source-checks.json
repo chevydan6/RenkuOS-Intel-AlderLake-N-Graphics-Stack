@@ -1,0 +1,14 @@
+{
+  "baseFilesVerified": 7068,
+  "finalNonMarkdownFilesVerified": 7064,
+  "failures": 0,
+  "baseManifestSHA256": "fc1e92aa6f14d24d87864174323f57da4f66cd09c17aa1754237aab5ae694f84",
+  "finalManifestSHA256": "8670710122cfc7d45669cb9f879f042ef4eea3f2225b64d149af671c7a2afd35",
+  "finalCheckLogSHA256": "e63600a0250572545c59183783e5fb5f4b9d18e2d7805369b75d96e9b4a35d95",
+  "overlay": [
+    "src/printk_bridge.c",
+    "completion/port_context_cases.h"
+  ],
+  "overlayPurpose": "reject unsupported continuation prefix; final native builds/tests rerun",
+  "laterChanges": "documentation/evidence only"
+}

@@ -162,3 +162,24 @@ Current native whole-file failures remain VM generated bounds/page layout, GTT
 logging/task-name/va_format declarations, and physical-GEM device-number namespace/
 RCU lifetime dependencies. See physical-raw-lock-001/whole-build. Do not create
 fake bounds, substitute page layouts, or make RCU a no-op to advance compilation.
+
+
+## 2026-11-14: scoped RCU, logging and device IDs
+
+Native reader/grace-period exclusion, bounded printk, real task-name snapshots
+and original unsigned Linux device-ID helpers now pass physical N100 testing.
+All107 upstream imports remain unchanged. Four completion runs of46934 checks,
+plus four VMA/KPI regression runs, total190576 checks with zero failures and
+actual diagnostic unload. Eight RCU workers exercise nested readers, waiting
+grace periods and four real frees after exclusion. Host sanitizer/model and
+mutation controls pass; evidence records the exact sources and scope.
+
+RCU is restricted to short nonblocking task readers with IRQ-enabled,
+preemptible outer entry and fixed topology. It uses stronger native RW locking;
+callback queues and general Linux RCU progress semantics remain unsupported.
+All three complete original ring/GEM compiler attempts now reach Linux
+VM generated/bounds.h. The earlier RCU-read, logging/task-name and device-number
+errors are resolved at this boundary. Real VM/page-layout integration is next;
+full i915 compilation and GPU execution remain unproven. See
+experimental/i915/evidence/physical-rcu-001 and completion/README.md under the
+experiment for exact contracts, unsupported services and validation evidence.

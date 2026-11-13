@@ -1,0 +1,34 @@
+[
+  {
+    "source": "src/native_rcu.c",
+    "exit": 0
+  },
+  {
+    "source": "src/printk_bridge.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_diagnostics.c",
+    "exit": 0
+  },
+  {
+    "source": "src/task_identity.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_alloc.c",
+    "exit": 0
+  },
+  {
+    "source": "completion/native_test.c",
+    "exit": 0
+  },
+  {
+    "source": "vma/native_test.c",
+    "exit": 0
+  },
+  {
+    "source": "vm/native_test_driver.c",
+    "exit": 0
+  }
+]
