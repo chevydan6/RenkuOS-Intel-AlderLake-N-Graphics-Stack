@@ -1,0 +1,15 @@
+[
+  "native-config-provenance.json",
+  "payload.sha256",
+  "native-config/ReadMe",
+  "native-config/apps_debugger_config.h",
+  "native-config/kernel_debug_config.h",
+  "native-config/kernel_debugger_config.h",
+  "native-config/paranoia_config.h",
+  "native-config/support_kit_config.h",
+  "native-config/tracing_config.h",
+  "native-config/License.md",
+  "completion/build-native.sh",
+  "completion/prepare-bundle.py",
+  "completion/README.md"
+]

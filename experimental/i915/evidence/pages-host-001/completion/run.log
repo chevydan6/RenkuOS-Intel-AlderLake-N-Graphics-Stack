@@ -1,0 +1,4 @@
+PASS original completion/swait: 47231 checks, 12 phases, 24 waiters; real host signal interruption
+[i915-linux 4] I915_PORT_LOG task=test value=915
+[i915-linux 3] unsupported Linux log format: [i915-linux 3] %n[i915-linux 3] unsupported Linux log format: [i915-linux 3] %pV[i915-linux 3] unsupported Linux log prefix
+[i915-linux d]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                [i915-linux 3] [previous log truncated]

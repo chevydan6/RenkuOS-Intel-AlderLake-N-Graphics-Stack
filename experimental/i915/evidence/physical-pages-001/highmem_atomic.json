@@ -1,0 +1,23 @@
+{
+  "source": {
+    "path": "linux/highmem-internal.h",
+    "linuxPath": "include/linux/highmem-internal.h",
+    "gitBlob": "a3028e400a9c65254f9f15e4071264975dc7b1d2",
+    "sha256": "0485b13d2915965e9aab0469ac41cbb760d270c04d2a63020b4e563c7b437760"
+  },
+  "functions": [
+    {
+      "signature": "static inline void *kmap_atomic(struct page *page)",
+      "sha256": "bdfec61bc44ee046798e00052be708302b1532b60cf247fc436b9ce0c72030ba"
+    },
+    {
+      "signature": "static inline void __kunmap_atomic(const void *addr)",
+      "sha256": "1dffb6ee9b6254dbf19fc981f19670dfe869649e56fed08088cb8e6d7d3ce0b4"
+    },
+    {
+      "signature": "#define kunmap_atomic(__addr)\t\t\t\t\t\\",
+      "sha256": "8d9915136acab8888b842cc94f30aeed065b364cf4ec9c464de249e4fc38777b"
+    }
+  ],
+  "completeHighmemPort": false
+}

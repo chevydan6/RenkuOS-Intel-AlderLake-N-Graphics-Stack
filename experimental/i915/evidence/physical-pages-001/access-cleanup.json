@@ -1,0 +1,10 @@
+{
+  "sshStoppedVisibleExit": 0,
+  "ssh2222AfterStop": "connection refused",
+  "lease": "released",
+  "leaseEndEpoch": 1794599837.8177328,
+  "media": "/root/renku-gpu-test-004/disk.img",
+  "ro": 0,
+  "cdrom": 0,
+  "udc": "configured"
+}

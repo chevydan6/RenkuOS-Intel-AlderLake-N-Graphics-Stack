@@ -1,0 +1,21 @@
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/spinlock_types.h:3,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/spinlock.h:4,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/lockref.h:4,
+                 from /home/dan/i915-vm/pages-port-001/header-controls-001/host-rt_rejected.c:2:
+/home/dan/haiku-intel-gpu/experimental/i915/include/asm/spinlock_types.h:6:2: error: #error RT/debug-spinlock semantics are not supplied by this native adapter
+    6 | #error RT/debug-spinlock semantics are not supplied by this native adapter
+      |  ^~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/spinlock_types.h:48,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/spinlock_types.h:4:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/rtmutex.h:7:2: error: #error PREEMPT_RT mutex support is excluded from this experiment
+    7 | #error PREEMPT_RT mutex support is excluded from this experiment
+      |  ^~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/spinlock_types.h:51:33: error: field ‘lock’ has incomplete type
+   51 |         struct rt_mutex_base    lock;
+      |                                 ^~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/rwlock_types.h:2,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/spinlock_types.h:74:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/rwlock_types.h:55:10: fatal error: linux/rwbase_rt.h: No such file or directory
+   55 | #include <linux/rwbase_rt.h>
+      |          ^~~~~~~~~~~~~~~~~~~
+compilation terminated.

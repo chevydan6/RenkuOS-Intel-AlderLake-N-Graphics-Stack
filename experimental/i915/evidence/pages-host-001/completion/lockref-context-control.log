@@ -1,0 +1,2 @@
+exit=-6
+LinuxKPI assertion: !spin_is_locked(&lockref->lock)

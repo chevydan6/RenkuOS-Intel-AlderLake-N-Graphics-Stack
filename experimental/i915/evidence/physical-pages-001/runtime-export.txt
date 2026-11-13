@@ -1,0 +1,2 @@
+Full source native-bundle-002; omitted 6783 reference files byte-identical to native seqlock bundle001. Full payload manifest retained and checked through reference symlink.
+SHA256 feb40e18cb39e06df4c46e0c2ba59d52367e819d27b1b879121a7dd034f30d3a

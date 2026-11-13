@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-14",
+  "native": "N100 hrev60072+518 GCC13.3 SDK518; GPU8086:46d1 untouched",
+  "nativeDirectory": "/boot/home/i915-pages-001",
+  "completionChecksEach": 47294,
+  "vmaChecksEach": 650,
+  "runsEach": 4,
+  "total": 191776,
+  "failures": 0,
+  "pageRunsAllocatedAndDeleted": 20,
+  "ordersExercised": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "pageWorkers": 8,
+  "pageWorkerIterations": 2048,
+  "vmaStressOperations": 48000,
+  "originalImportsUnchanged": 114,
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "sourceSnapshots": "runtime bundle002 plus native-only test correction003, native SDK config004 and platform include005; final runtime matches bundle005",
+  "archivesSHA256": {
+    "/home/dan/i915-vm/pages-port-001/native-bundle-005/payload.tar.gz": "c481e61a7e4a1ff28b23c1199099e6ae4b9c7d5c1322ddc7d62e8e3911ce5c9b",
+    "/home/dan/i915-vm/pages-port-001/runtime-payload-002.tar.gz": "feb40e18cb39e06df4c46e0c2ba59d52367e819d27b1b879121a7dd034f30d3a",
+    "/home/dan/i915-vm/pages-port-001/fix-overlay-003.tar.gz": "611e74a710a43e9e6e182d0af16daa76abdbb7048b3887a14a504c1fe0813be2",
+    "/home/dan/i915-vm/pages-port-001/config-overlay-004.tar.gz": "e67be136bbfa4063334ed297ae267c1b662751d5d11c0283f6594fd9e2a758eb",
+    "/home/dan/i915-vm/pages-port-001/platform-overlay-005.tar.gz": "3c109cf6ef6e04fcb8535493efd507e56e9bfcf9fec3a7721ca3881923e5e0e7",
+    "/home/dan/i915-vm/pages-port-001/native-results-001.tar.gz": "8ccabb92866a698242a7b1c09d151cc4fcde08ffc2ce14625123dca4c025a5e1"
+  }
+}

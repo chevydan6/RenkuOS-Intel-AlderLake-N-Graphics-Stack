@@ -1,0 +1,5 @@
+be3bd52e2839f7b1325016d0e7bfff91db2b7932ac4d297d2440d91fe192bc5e  /boot/system/develop/headers/private/kernel/vm/vm.h
+b530647e58691878e53940a4acb933ef433be87d7a2af0e1b373046c3f6683d6  /boot/system/develop/headers/private/kernel/vm/vm_types.h
+ffffffff80145d80 T create_area_etc@@KERNEL_BASE
+ffffffff8013ddf0 T forbid_page_faults@@KERNEL_BASE
+ffffffff8013ddd0 T permit_page_faults@@KERNEL_BASE

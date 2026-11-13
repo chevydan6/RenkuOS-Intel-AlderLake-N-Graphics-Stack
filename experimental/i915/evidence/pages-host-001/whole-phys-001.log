@@ -1,0 +1,114 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 71b594d0a3254c48cf05878d70f806bcbd11ff6650b43c1932d3ee242ab90cd2
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gem -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -I/tmp/i915-linux-source/include/uapi -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_phys.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/complete-gem-i915_gem_phys.c.o
+In file included from /tmp/i915-linux-source/include/linux/page-flags-layout.h:6,
+                 from /tmp/i915-linux-source/include/linux/mmzone.h:20,
+                 from /tmp/i915-linux-source/include/linux/swap.h:7,
+                 from /tmp/i915-linux-source/include/linux/shmem_fs.h:6,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_phys.c:8:
+/home/dan/haiku-intel-gpu/experimental/i915/include/generated/bounds.h:6:2: error: #error Linux VM generated bounds are not supplied by the native lockref adapter
+    6 | #error Linux VM generated bounds are not supplied by the native lockref adapter
+      |  ^~~~~
+In file included from /tmp/i915-linux-source/include/linux/page-flags.h:14,
+                 from /tmp/i915-linux-source/include/linux/mmzone.h:23:
+/home/dan/haiku-intel-gpu/experimental/i915/include/generated/bounds.h:6:2: error: #error Linux VM generated bounds are not supplied by the native lockref adapter
+    6 | #error Linux VM generated bounds are not supplied by the native lockref adapter
+      |  ^~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/mm.h:4,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/highmem.h:4,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_phys.c:7:
+/tmp/i915-linux-source/include/linux/page-flags.h: In function ‘_compound_head’:
+/tmp/i915-linux-source/include/linux/page-flags.h:247:44: error: ‘const struct page’ has no member named ‘compound_head’
+  247 |         unsigned long head = READ_ONCE(page->compound_head);
+      |                                            ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:48:40: note: in definition of macro ‘READ_ONCE’
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+/tmp/i915-linux-source/include/linux/page-flags.h: In function ‘PageTail’:
+/tmp/i915-linux-source/include/linux/page-flags.h:286:30: error: ‘struct page’ has no member named ‘compound_head’
+  286 |         return READ_ONCE(page->compound_head) & 1 || page_is_fake_head(page);
+      |                              ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:48:40: note: in definition of macro ‘READ_ONCE’
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/bitops.h:4,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:90:
+/tmp/i915-linux-source/include/linux/page-flags.h: In function ‘PageCompound’:
+/tmp/i915-linux-source/include/linux/page-flags.h:291:39: error: ‘struct page’ has no member named ‘flags’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:50:44: note: in definition of macro ‘bitop’
+   50 |           __builtin_constant_p((uintptr_t)(addr) != (uintptr_t)NULL) && \
+      |                                            ^~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:16: note: in expansion of macro ‘test_bit’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:39: error: ‘struct page’ has no member named ‘flags’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:51:23: note: in definition of macro ‘bitop’
+   51 |           (uintptr_t)(addr) != (uintptr_t)NULL &&                       \
+      |                       ^~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:16: note: in expansion of macro ‘test_bit’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:39: error: ‘struct page’ has no member named ‘flags’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:52:57: note: in definition of macro ‘bitop’
+   52 |           __builtin_constant_p(*(const unsigned long *)(addr))) ?       \
+      |                                                         ^~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:16: note: in expansion of macro ‘test_bit’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:39: error: ‘struct page’ has no member named ‘flags’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:53:24: note: in definition of macro ‘bitop’
+   53 |          const##op(nr, addr) : op(nr, addr))
+      |                        ^~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:16: note: in expansion of macro ‘test_bit’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:39: error: ‘struct page’ has no member named ‘flags’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:53:39: note: in definition of macro ‘bitop’
+   53 |          const##op(nr, addr) : op(nr, addr))
+      |                                       ^~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:291:16: note: in expansion of macro ‘test_bit’
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:292:30: error: ‘struct page’ has no member named ‘compound_head’
+  292 |                READ_ONCE(page->compound_head) & 1;
+      |                              ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:48:40: note: in definition of macro ‘READ_ONCE’
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+/tmp/i915-linux-source/include/linux/page-flags.h: In function ‘PagePoisoned’:
+/tmp/i915-linux-source/include/linux/page-flags.h:298:30: error: ‘const struct page’ has no member named ‘flags’
+  298 |         return READ_ONCE(page->flags) == PAGE_POISON_PATTERN;
+      |                              ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:48:40: note: in definition of macro ‘READ_ONCE’
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:88:
+/tmp/i915-linux-source/include/linux/page-flags.h: In function ‘folio_flags’:
+/tmp/i915-linux-source/include/linux/page-flags.h:314:60: error: ‘struct page’ has no member named ‘flags’
+  314 |         VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags), page);
+      |                                                            ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/../upstream/linux/build_bug.h:30:63: note: in definition of macro ‘BUILD_BUG_ON_INVALID’
+   30 | #define BUILD_BUG_ON_INVALID(e) ((void)(sizeof((__force long)(e))))
+      |                                                               ^
+/tmp/i915-linux-source/include/linux/page-flags.h:314:9: note: in expansion of macro ‘VM_BUG_ON_PGFLAGS’
+  314 |         VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags), page);
+      |         ^~~~~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:61:41: note: in expansion of macro ‘bitop’
+   61 | #define test_bit(nr, addr)              bitop(_test_bit, nr, addr)
+      |                                         ^~~~~
+/tmp/i915-linux-source/include/linux/page-flags.h:314:37: note: in expansion of macro ‘test_bit’
+  314 |         VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags), page);
+      |                                     ^~~~~~~~
+compilation terminated due to -fmax-errors=12.
+
+compiler exit: 1

@@ -1,0 +1,43 @@
+{
+  "revision": "4799bb5a188c4bb6bbef967287640cc21a061a0d",
+  "files": [
+    {
+      "source": "build/config_headers/ReadMe",
+      "gitBlob": "7faa09c28e75ce5d3a439a254020a0a42b6e88bc",
+      "sha256": "fe1d482a7a0ef59d5e648abe67854b1696f821cdb93ab57f51e7b0ba03cbc89e"
+    },
+    {
+      "source": "build/config_headers/apps_debugger_config.h",
+      "gitBlob": "ce50fd21305ef0f250a1e096a95fc068ede5f002",
+      "sha256": "6aadc1fc4cace116e41f280b1046f2eefc2676bd82b982dfda12f6ae8e1b15a8"
+    },
+    {
+      "source": "build/config_headers/kernel_debug_config.h",
+      "gitBlob": "404cb94e487e3e61ea6e660ea8f941282dc1a59b",
+      "sha256": "3729e1c542faaea24e00d5b9ec796031860acb0fb1372103f1486673af5ed9ce"
+    },
+    {
+      "source": "build/config_headers/kernel_debugger_config.h",
+      "gitBlob": "b4e9c954069873fcc8bede4a74b9ca6af577f021",
+      "sha256": "ce1aa3ed1ac8d690e68035c9b36c15e1dc3f9fab0f7a2d80332c70bbdb8b3871"
+    },
+    {
+      "source": "build/config_headers/paranoia_config.h",
+      "gitBlob": "c581bfcc66ee74e60b80bba087bd4dee64ab8d8f",
+      "sha256": "c0aabf7729d984a05e4e9fc8bbe4f17f3d485f015ab782e51ede92675965452a"
+    },
+    {
+      "source": "build/config_headers/support_kit_config.h",
+      "gitBlob": "a907b302e38042d17611b8323e9853b5728247c8",
+      "sha256": "7b01ea5530238edffdd84c4a0459ec92589345a102e4a8ff68549231480a345a"
+    },
+    {
+      "source": "build/config_headers/tracing_config.h",
+      "gitBlob": "2cbab809a57c11d16a551d6d5d647037937762c2",
+      "sha256": "13ffad2acf0ecbd30b53f3bdb0bdae22c11486a97be9ed3616601b3392f8d705"
+    }
+  ],
+  "sourcesModified": false,
+  "licenseSHA256": "8dd7908c3fcf600b4d378d5f425eebe45663e0d0d8df1004e1317d4580ce7f10",
+  "purpose": "configuration needed by installed native SDK private VM headers; actual VM restriction structs come from that SDK"
+}

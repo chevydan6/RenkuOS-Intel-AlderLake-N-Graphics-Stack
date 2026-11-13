@@ -1,0 +1,20 @@
+KERN: driver "i915_linux_completion_test" added
+Last message repeated 1 time
+KERN: devfs: reload driver "i915_linux_completion_test" (3, 3704413)
+KERN: I915_LINUX_COMPLETION_INIT status=0
+KERN: [i915-linux 4] I915_PORT_LOG task=linux_completio value=915
+KERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %nKERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %pVKERN: [i915-linux 3] unsupported Linux log prefix
+KERN: [i915-linux d]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                KERN: [i915-linux 3] [previous log truncated]
+KERN: [i915-linux 4] I915_PORT_LOG task=linux_completio value=915
+KERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %nKERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %pVKERN: [i915-linux 3] unsupported Linux log prefix
+KERN: [i915-linux d]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                KERN: [i915-linux 3] [previous log truncated]
+KERN: [i915-linux 4] I915_PORT_LOG task=linux_completio value=915
+KERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %nKERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %pVKERN: [i915-linux 3] unsupported Linux log prefix
+KERN: [i915-linux d]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                KERN: [i915-linux 3] [previous log truncated]
+KERN: [i915-linux 4] I915_PORT_LOG task=linux_completio value=915
+KERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %nKERN: [i915-linux 3] unsupported Linux log format: KERN: [i915-linux 3] %pVKERN: [i915-linux 3] unsupported Linux log prefix
+KERN: [i915-linux d]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                KERN: [i915-linux 3] [previous log truncated]
+KERN: driver "i915_linux_completion_test" removed
+Last message repeated 1 time
+KERN: devfs: reload driver "i915_linux_completion_test" (3, 3704417)
+KERN: I915_LINUX_COMPLETION_UNINIT status=0

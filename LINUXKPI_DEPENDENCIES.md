@@ -3,6 +3,8 @@
 
 | Interface | Status | Actual implementation / evidence |
 |---|---|---|
+| Owned kernel pages/references | native tested for supported modes | Real aligned wired areas, original refcount, compound ownership, queued release/joined shutdown; no reclaim/global memmap |
+| kmap_atomic/kunmap_atomic | wired task profile native tested | Complete original direct-map helpers, real native fault allowance and preemption; user-copy/IRQ/NMI integration remains separate |
 | Original seqcount/seqlock | scoped native tested | Complete original non-RT algorithms over native spin/preempt/IRQ scopes and x86 RAM fences; BH/IRQ/NMI integration outside validated scope |
 | Original lockref | native completion tested | Complete spin fallback;188224 native checks; Linux filesystem lifetime remains separate |
 | GFP vocabulary/blocking predicate | native allocator integrated | Original flags and unchanged extracted predicate; unsupported flags fail; no Linux zones/page allocator |
@@ -268,3 +270,20 @@ remain unresolved. See experimental/i915/evidence/physical-seqlock-001.
 Native physical GEM now stops at asm/stat.h, with sequence type errors resolved.
 Ring/GTT still need real process-mm/task integration in sched/mm.h. Linux page/
 filesystem lifetime, full i915 compilation and GPU execution remain unfinished.
+
+
+## 2026-11-14: owned-page VM bridge
+
+Real native wired page runs, original Linux refcounts, balanced atomic mappings
+and a joined asynchronous release worker now pass actual RenkuOS tests. Four
+completion runs of47294 and four VMA runs of650 total191776 passing checks.
+Native area queries prove20 allocations/deletions; eight page workers perform
+2048 map/reference iterations. Host lifetime/failure/mutation and header controls
+pass. All114 Linux originals remain unchanged. See experimental/i915/evidence/
+physical-pages-001 and completion/README.md for contracts and unsupported modes.
+
+This supplies managed kernel backing, not general Linux folios, reclaim,
+page cache, global memmap or user-copy fixup semantics. Physical GEM now fails
+on page-flags/folio metadata and VM bounds through shmem; ring/GTT still need
+real process-mm/task integration. Full original i915 build and GPU execution
+remain unfinished; the full port objective stays active.

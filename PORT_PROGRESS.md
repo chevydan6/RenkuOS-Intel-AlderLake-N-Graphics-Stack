@@ -778,3 +778,63 @@ asm/stat.h. Ring/GTT still fail on real process-mm/task integration in sched/mm.
 No full i915 build or GPU execution is claimed. Evidence is in
 experimental/i915/evidence/physical-seqlock-001 and seqlock-host-001, relative to
 the repository root. Temporary SSH is stopped, lease released, media preserved.
+
+
+## 2026-11-14: native owned pages and atomic mappings
+
+Linux alloc_pages now owns real native wired backing through create_area_etc,
+using SDK virtual/physical restriction structures and verified alignment and
+physical extents. Order0 and explicitly compound higher-order runs are supported
+for GFP_KERNEL, optional __GFP_ZERO/__GFP_COMP. Other zones, atomic reserves,
+ordinary higher-order splitting, reclaim and migration are not implemented;
+unsupported modes fail allocation. Backing stays wired for its entire lifetime.
+The existing two-field page view remains the descriptor ABI; a separate owner
+registry holds the actual area and original Linux saturating refcount. Tail
+references resolve to the compound head. virt_to_page/nth_page operate only on
+registered managed runs; they do not fabricate a global Linux physical memmap.
+Borrowed DMA views remain caller-owned and cannot acquire managed references.
+Lookup is currently linear in the number of live runs.
+
+Last put_page removes the run from lookups and queues release without sleeping,
+including under atomic exclusion. A dedicated native worker deletes the actual
+area and metadata. Drain accounts for pending work; shutdown rejects live or
+pending runs, then wakes and JOINS the worker before destroying events or
+allowing module unload. Lifecycle is serialized and the module owner must
+exclude new/running callers during shutdown. Borrowed lookup results require
+the caller to retain backing ownership; DMA mappings do not gain implicit pins.
+
+Complete original non-highmem kmap_atomic/__kunmap_atomic and its type-checking
+macro are extracted unchanged with hashes from the114th original import.
+Registered task scopes track balanced fault nesting and cannot unregister with
+an outstanding fault scope. The bridge calls real native forbid/permit_page_faults
+and existing preempt exclusion. Native fault prohibition is not Linux user-copy
+exception-table/fixup behavior; this profile uses valid wired RAM only. User-copy
+methods remain uniquely unresolved. Highmem, local mapping slots, RT, cache-alias
+flush profiles and general IRQ/NMI mapping entry are not supported by this bridge.
+This is not a complete folio/page-cache or Linux VM layout implementation.
+
+The native C++ bridge requires installed SDK private headers plus original build
+configuration headers, exported unchanged from the pinned native source (with
+License.md and provenance). prepare-bundle.py now also requires --renku-source.
+Actual SDK vm.h/vm_types.h hashes match the pinned headers; structures are not
+re-created. All114 Linux imports remain unchanged. The native-only missing-area
+test now uses actual B_BAD_TEAM_ID/B_BAD_VALUE results; early failed builds are
+retained along with SDK include-path failures and the final passing build.
+
+Four actual N100 GCC/G++13.3/SDK518 completion runs pass47294 checks each; four
+VMA runs pass650 each, totaling191776 with zero failures and actual unload.
+Twenty area runs were allocated/deleted, eight page-user workers perform2048
+reference/map iterations, and actual native area queries prove final release.
+Original scatterlist helpers verify offsets and physical IDs on managed runs.
+Host ASan/UBSan47231 checks pass; omitted reference release/native deletion and
+prior mutations are rejected. Ninety header-order cases,14 configuration/type
+rejections, two unresolved-BH link controls and host DMA regressions pass.
+All7102 payload entries verify before/after native testing, including shared
+unchanged references; final runtime sources match bundle005. Evidence is in
+experimental/i915/evidence/physical-pages-001 and pages-host-001 (repository root).
+
+Whole native original builds still fail: physical GEM now reaches real page-
+flags/folio metadata and generated VM bounds through shmem; ring/GTT retain
+process-mm/task integration errors. No page flags, VM bounds or process objects
+were fabricated. Full i915 compilation and GPU execution remain unproven, and
+the overall port goal remains active. Temporary SSH is stopped and lease released.

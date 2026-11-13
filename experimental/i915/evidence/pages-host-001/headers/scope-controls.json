@@ -1,0 +1,72 @@
+[
+  {
+    "mode": "host",
+    "control": "vm_bounds_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "cmpxchg_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "kcsan_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "rt_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "highmem_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "local_slots_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "unmap_page_type_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "vm_bounds_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "cmpxchg_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "kcsan_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "rt_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "highmem_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "local_slots_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "unmap_page_type_rejected",
+    "exit": 1
+  }
+]

@@ -1,0 +1,4 @@
+In file included from /home/dan/i915-vm/pages-port-001/header-controls-001/host-highmem_rejected.c:3:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/highmem.h:8:2: error: #error This backend requires non-RT wired direct-map pages without highmem/cache aliases
+    8 | #error This backend requires non-RT wired direct-map pages without highmem/cache aliases
+      |  ^~~~~

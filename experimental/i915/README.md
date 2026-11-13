@@ -1,17 +1,17 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Bounded Linux i915 compatibility experiment
 
-Latest: evidence/physical-seqlock-001 records190948 passing native checks,
-including original sequence-lock algorithms, stale-read retry controls and
-passing VMA regressions after recovery. All113 original imports remain unchanged.
-Complete original ring/GEM builds still fail; see the latest compiler logs.
+Latest: evidence/physical-pages-001 records191776 passing native checks,
+including real owned page allocation/references, original atomic mapping helpers,
+joined release-worker teardown and VMA regressions. All114 original imports
+remain unchanged. Full original i915 builds still fail at VM/folio/process services.
 
 No GPU execution has been demonstrated. The current port compiles and runs
 complete original Linux completion/swait, DRM VMA and drm_mm/rbtree modules
 through native OS adapters, plus bounded ring/emitter slices. Linux DMA adapters
 use existing native bus_dma. Shared IRQ/preemption integration and original
 compiler/arithmetic/endian helpers pass physical N100 regressions; the manifest
-verifies 113 unchanged upstream files. Complete original GEM/ring builds still
+verifies 114 unchanged upstream files. Complete original GEM/ring builds still
 fail at later dependencies. See evidence/physical-preempt-001 for current native
 results and compiler errors. Original bitops/bitmap-search/weight helpers now
 pass native oracle tests too; see evidence/physical-bitmap-001 for the newest

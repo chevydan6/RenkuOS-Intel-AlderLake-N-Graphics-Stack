@@ -1,0 +1,16 @@
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:88,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/minmax.h:4,
+                 from /home/dan/i915-vm/pages-port-001/host-004/invalid_genmask_rejected.c:1:
+/home/dan/i915-vm/pages-port-001/host-004/invalid_genmask_rejected.c: In function ‘check’:
+/home/dan/haiku-intel-gpu/experimental/i915/include/../upstream/linux/build_bug.h:16:51: error: negative width in bit-field ‘<anonymous>’
+   16 | #define BUILD_BUG_ON_ZERO(e) ((int)(sizeof(struct { int:(-!!(e)); })))
+      |                                                   ^
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bits.h:23:10: note: in expansion of macro ‘BUILD_BUG_ON_ZERO’
+   23 |         (BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
+      |          ^~~~~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bits.h:37:10: note: in expansion of macro ‘GENMASK_INPUT_CHECK’
+   37 |         (GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
+      |          ^~~~~~~~~~~~~~~~~~~
+/home/dan/i915-vm/pages-port-001/host-004/invalid_genmask_rejected.c:3:25: note: in expansion of macro ‘GENMASK’
+    3 | int check(void) {return GENMASK(2, 3);}
+      |                         ^~~~~~~

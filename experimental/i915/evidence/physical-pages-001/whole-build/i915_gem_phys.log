@@ -1,0 +1,109 @@
+In file included from reference/include/linux/page-flags-layout.h:6,
+                 from reference/include/linux/mmzone.h:20,
+                 from reference/include/linux/swap.h:7,
+                 from reference/include/linux/shmem_fs.h:6,
+                 from upstream/gem/i915_gem_phys.c:8:
+include/generated/bounds.h:6:2: error: #error Linux VM generated bounds are not supplied by the native lockref adapter
+    6 | #error Linux VM generated bounds are not supplied by the native lockref adapter
+      |  ^~~~~
+In file included from reference/include/linux/page-flags.h:14,
+                 from reference/include/linux/mmzone.h:23:
+include/generated/bounds.h:6:2: error: #error Linux VM generated bounds are not supplied by the native lockref adapter
+    6 | #error Linux VM generated bounds are not supplied by the native lockref adapter
+      |  ^~~~~
+In file included from include/linux/mm.h:4,
+                 from include/linux/highmem.h:4,
+                 from upstream/gem/i915_gem_phys.c:7:
+reference/include/linux/page-flags.h: In function '_compound_head':
+reference/include/linux/page-flags.h:247:44: error: 'const struct page' has no member named 'compound_head'
+  247 |         unsigned long head = READ_ONCE(page->compound_head);
+      |                                            ^~
+include/kpi_base.h:48:40: note: in definition of macro 'READ_ONCE'
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+reference/include/linux/page-flags.h: In function 'PageTail':
+reference/include/linux/page-flags.h:286:30: error: 'struct page' has no member named 'compound_head'
+  286 |         return READ_ONCE(page->compound_head) & 1 || page_is_fake_head(page);
+      |                              ^~
+include/kpi_base.h:48:40: note: in definition of macro 'READ_ONCE'
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+In file included from include/linux/bitops.h:4,
+                 from include/kpi_base.h:90:
+reference/include/linux/page-flags.h: In function 'PageCompound':
+reference/include/linux/page-flags.h:291:39: error: 'struct page' has no member named 'flags'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+include/linux/../../upstream/linux/bitops.h:50:44: note: in definition of macro 'bitop'
+   50 |           __builtin_constant_p((uintptr_t)(addr) != (uintptr_t)NULL) && \
+      |                                            ^~~~
+reference/include/linux/page-flags.h:291:16: note: in expansion of macro 'test_bit'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+reference/include/linux/page-flags.h:291:39: error: 'struct page' has no member named 'flags'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+include/linux/../../upstream/linux/bitops.h:51:23: note: in definition of macro 'bitop'
+   51 |           (uintptr_t)(addr) != (uintptr_t)NULL &&                       \
+      |                       ^~~~
+reference/include/linux/page-flags.h:291:16: note: in expansion of macro 'test_bit'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+reference/include/linux/page-flags.h:291:39: error: 'struct page' has no member named 'flags'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+include/linux/../../upstream/linux/bitops.h:52:57: note: in definition of macro 'bitop'
+   52 |           __builtin_constant_p(*(const unsigned long *)(addr))) ?       \
+      |                                                         ^~~~
+reference/include/linux/page-flags.h:291:16: note: in expansion of macro 'test_bit'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+reference/include/linux/page-flags.h:291:39: error: 'struct page' has no member named 'flags'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+include/linux/../../upstream/linux/bitops.h:53:24: note: in definition of macro 'bitop'
+   53 |          const##op(nr, addr) : op(nr, addr))
+      |                        ^~~~
+reference/include/linux/page-flags.h:291:16: note: in expansion of macro 'test_bit'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+reference/include/linux/page-flags.h:291:39: error: 'struct page' has no member named 'flags'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                                       ^~
+include/linux/../../upstream/linux/bitops.h:53:39: note: in definition of macro 'bitop'
+   53 |          const##op(nr, addr) : op(nr, addr))
+      |                                       ^~~~
+reference/include/linux/page-flags.h:291:16: note: in expansion of macro 'test_bit'
+  291 |         return test_bit(PG_head, &page->flags) ||
+      |                ^~~~~~~~
+reference/include/linux/page-flags.h:292:30: error: 'struct page' has no member named 'compound_head'
+  292 |                READ_ONCE(page->compound_head) & 1;
+      |                              ^~
+include/kpi_base.h:48:40: note: in definition of macro 'READ_ONCE'
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+reference/include/linux/page-flags.h: In function 'PagePoisoned':
+reference/include/linux/page-flags.h:298:30: error: 'const struct page' has no member named 'flags'
+  298 |         return READ_ONCE(page->flags) == PAGE_POISON_PATTERN;
+      |                              ^~
+include/kpi_base.h:48:40: note: in definition of macro 'READ_ONCE'
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+In file included from include/kpi_base.h:88:
+reference/include/linux/page-flags.h: In function 'folio_flags':
+reference/include/linux/page-flags.h:314:60: error: 'struct page' has no member named 'flags'
+  314 |         VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags), page);
+      |                                                            ^~
+include/../upstream/linux/build_bug.h:30:63: note: in definition of macro 'BUILD_BUG_ON_INVALID'
+   30 | #define BUILD_BUG_ON_INVALID(e) ((void)(sizeof((__force long)(e))))
+      |                                                               ^
+reference/include/linux/page-flags.h:314:9: note: in expansion of macro 'VM_BUG_ON_PGFLAGS'
+  314 |         VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags), page);
+      |         ^~~~~~~~~~~~~~~~~
+include/linux/../../upstream/linux/bitops.h:61:41: note: in expansion of macro 'bitop'
+   61 | #define test_bit(nr, addr)              bitop(_test_bit, nr, addr)
+      |                                         ^~~~~
+reference/include/linux/page-flags.h:314:37: note: in expansion of macro 'test_bit'
+  314 |         VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags), page);
+      |                                     ^~~~~~~~
+compilation terminated due to -fmax-errors=12.
