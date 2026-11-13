@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 static _Thread_local bool enabled = true;
 void panic(const char *format, ...)
 { va_list args; va_start(args, format); vfprintf(stderr, format, args); va_end(args); abort(); }
@@ -24,3 +25,12 @@ void renku_linux_raw_spin_unlock_irq(raw_spinlock_t *l)
 
 void renku_linux_log_emit(char level, const char *text)
 { fprintf(stderr, "[i915-linux %c] %s", level, text); }
+
+bool renku_linux_spin_is_locked(spinlock_t *lock)
+{
+	int status = pthread_mutex_trylock(&lock->rlock.raw_lock.native);
+	if (status == EBUSY) return true;
+	if (status != 0) panic("host spin query failed: %d", status);
+	if (pthread_mutex_unlock(&lock->rlock.raw_lock.native)) panic("host spin query unlock");
+	return false;
+}

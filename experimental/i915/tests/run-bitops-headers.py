@@ -20,7 +20,7 @@ headers = ['linux/bitops.h', 'linux/bits.h', 'linux/bitmap.h', 'linux/types.h',
            'linux/spinlock_types_raw.h', 'linux/spinlock_types.h',
            'linux/spinlock.h', 'asm/spinlock_types.h', 'linux/bit_spinlock.h',
            'linux/rcupdate.h', 'linux/printk.h', 'linux/kern_levels.h',
-           'linux/kdev_t.h', 'uapi/linux/kdev_t.h']
+           'linux/kdev_t.h', 'uapi/linux/kdev_t.h', 'linux/gfp.h', 'linux/gfp_types.h', 'linux/lockref.h']
 manifest = json.loads((root/'build/target/manifest.json').read_text())
 native = manifest['objects'][0]['command']
 native = native[:native.index('-MMD')]
@@ -40,3 +40,20 @@ for mode, flags in [('host', host), ('target', native)]:
 (a.output/'results.json').write_text(json.dumps(results, indent=2)+'\n')
 assert all(x['exit'] == 0 for x in results), 'Inspect header controls logs'
 print('PASS', len(results), 'first/repeated-include combinations with host and real target headers')
+
+# Scope checks run after a successful lockref include, catching leaked guards.
+controls = []
+for mode, flags in [('host', host), ('target', native)]:
+    for name, prefix, suffix in [
+        ('vm_bounds_rejected', '', '#include <generated/bounds.h>\n'),
+        ('cmpxchg_rejected', '#define CONFIG_ARCH_USE_CMPXCHG_LOCKREF 1\n', ''),
+    ]:
+        source = a.output/(mode+'-'+name+'.c')
+        source.write_text(prefix+'#include <linux/lockref.h>\n'+suffix)
+        r = subprocess.run(flags+['-c', str(source), '-o', str(source.with_suffix('.o'))],
+                           capture_output=True, text=True, timeout=30)
+        source.with_suffix('.log').write_text(r.stdout+r.stderr)
+        assert r.returncode != 0 and 'error:' in r.stderr
+        controls.append({'mode': mode, 'control': name, 'exit': r.returncode})
+(a.output/'scope-controls.json').write_text(json.dumps(controls, indent=2)+'\n')
+print('PASS VM bounds and unsupported cmpxchg branch remain rejected in both modes')

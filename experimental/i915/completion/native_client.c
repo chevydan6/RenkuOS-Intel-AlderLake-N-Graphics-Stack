@@ -66,7 +66,8 @@ int main(void)
 		printf("cpu_count=%u online=%u online_mask=%#lx\n", report.cpu_count, report.online_count, report.online_bits);
 		printf("bit_workers=%u bit_iterations=%u\n", report.bit_workers, report.bit_iterations);
 		printf("rcu_workers=%u rcu_frees=%u\n", report.rcu_workers, report.rcu_frees);
-		if (report.version != 4 || report.failures || report.checks < 100 || !report.cpu_count || !report.online_count || report.online_count > report.cpu_count || report.bit_workers != 2 || report.bit_iterations != 8000 || report.rcu_workers != 2 || report.rcu_frees != 1 || report.phases != 12 || report.workers != 24) { failed = 1; break; }
+		printf("lockref_workers=%u lockref_iterations=%u\n", report.lockref_workers, report.lockref_iterations);
+		if (report.version != 5 || report.failures || report.checks < 100 || !report.cpu_count || !report.online_count || report.online_count > report.cpu_count || report.bit_workers != 2 || report.bit_iterations != 8000 || report.rcu_workers != 2 || report.rcu_frees != 1 || report.lockref_workers != 2 || report.lockref_iterations != 8000 || report.phases != 12 || report.workers != 24) { failed = 1; break; }
 	}
 	if (!failed) failed |= SignalTest(fd, COMPLETION_INTERRUPTIBLE);
 	if (!failed) failed |= SignalTest(fd, COMPLETION_KILLABLE);

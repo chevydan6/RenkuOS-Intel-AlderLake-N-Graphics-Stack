@@ -4,11 +4,18 @@
 #include <signal.h>
 static volatile sig_atomic_t received;
 static void OnSignal(int signal) { (void)signal; received = 1; }
-int main(void)
+int main(int argc, char **argv)
 {
+	(void)argv;
+	if (argc > 1) {
+		struct lockref ref; spin_lock_init(&ref.lock); ref.count = 1;
+		lockref_mark_dead(&ref); /* Must reject an unlocked reference. */
+		return 90;
+	}
 	assert(renku_linux_cpumask_publish(4, 0x5) == 0);
 	struct completion_report report;
 	RunCases(&report);
+	assert(report.version == 5 && report.lockref_workers == 2 && report.lockref_iterations == 8000);
 	assert(!report.failures && report.phases == 12 && report.workers == 24);
 	struct sigaction handler = {.sa_handler = OnSignal};
 	sigemptyset(&handler.sa_mask);

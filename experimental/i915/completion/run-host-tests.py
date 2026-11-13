@@ -15,6 +15,7 @@ a.output.mkdir(parents=True, exist_ok=False)
 root = Path(__file__).resolve().parents[1]
 subprocess.run(['python3', str(root/'verify-upstream.py')], check=True)
 subprocess.run(['python3', str(root/'extract-bitmap.py')], check=True)
+subprocess.run(['python3', str(root/'extract-gfp.py')], check=True)
 original = (root/'upstream/kernel/sched/completion.c').read_text()
 copy = a.output/'completion.c'
 copy.write_text(original)
@@ -24,6 +25,9 @@ find_copy.write_text(find_original)
 equal_original = (root/'build/bitmap_equal_slice.c').read_text()
 equal_copy = a.output/'bitmap_equal_slice.c'
 equal_copy.write_text(equal_original)
+lockref_original = (root/'upstream/lib/lockref.c').read_text()
+lockref_copy = a.output/'lockref.c'
+lockref_copy.write_text(lockref_original)
 flags = ['gcc', '-D_GNU_SOURCE', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror',
          '-Wno-unused-parameter', '-Wno-sign-compare', '-fno-strict-overflow', '-pthread',
          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
@@ -32,7 +36,7 @@ objects = []
 def build():
     units = [copy, root/'upstream/kernel/sched/swait.c', root/'src/completion_sched.c',
              root/'src/task_identity.c', root/'src/printk_bridge.c', root/'src/time.c', root/'completion/host_backend.c',
-             root/'completion/host_test.c', root/'src/cpumask_state.c', equal_copy, find_copy, root/'upstream/lib/hweight.c']
+             root/'completion/host_test.c', root/'src/cpumask_state.c', equal_copy, find_copy, root/'upstream/lib/hweight.c', lockref_copy]
     log = ''
     for i, source in enumerate(units):
         obj = a.output/(str(i)+'.o')
@@ -77,7 +81,8 @@ copy.write_text(original.replace(before, 'x->done = 0;'))
 build()
 r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
 (a.output/'negative-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
-assert r.returncode == -6 and 'Assertion' in r.stderr
+assert r.returncode == -6 and ('Assertion' in r.stderr
+    or 'i915 completion test worker lifetime failure' in r.stderr)
 copy.write_text(original)
 # A search that ignores the first-word offset must be rejected by the oracle.
 before_find = 'mask = MUNGE(BITMAP_FIRST_WORD_MASK(__start));'
@@ -98,3 +103,17 @@ assert r.returncode == -6 and 'Assertion' in r.stderr
 equal_copy.write_text(equal_original)
 build()
 print('PASS original completion/swait under ASan/UBSan; lost completion-count regression rejected')
+
+r = subprocess.run([str(a.output/'test'), 'unlocked-mark-dead'], capture_output=True, text=True, timeout=30)
+(a.output/'lockref-context-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+assert r.returncode == -6 and 'assertion' in r.stderr
+# Missing dead-reference rejection must fail the behavioral oracle.
+before_lockref = 'if (lockref->count >= 0) {'
+assert lockref_original.count(before_lockref) == 1
+lockref_copy.write_text(lockref_original.replace(before_lockref, 'if (1) {'))
+build()
+r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
+(a.output/'lockref-negative-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+assert r.returncode == -6 and 'Assertion' in r.stderr
+lockref_copy.write_text(lockref_original); build()
+print('PASS original lockref fallback, real host concurrency and rejected dead-reference mutation')
