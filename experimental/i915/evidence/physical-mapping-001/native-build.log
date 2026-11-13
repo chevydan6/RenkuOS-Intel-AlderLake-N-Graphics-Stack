@@ -1,0 +1,31 @@
++ set -eu
+++ uname -s
++ test Haiku = Haiku
+++ uname -m
++ test x86_64 = x86_64
++ mkdir -p build
++ graphics=source/headers/private/graphics
++ private=/boot/system/develop/headers/private
++ flags=(-std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC -fno-exceptions -fno-rtti -D_KERNEL_MODE=1 -I"$graphics" -I"$graphics/intel_extreme" -I"$graphics/common" -I"$private" -I"$private/kernel" -I"$private/drivers" -I"$private/shared" -I"$private/system" -I"$private/kernel/arch/x86" -I"$private/kernel/boot/platform/bios_ia32" -I"$private/system/arch/x86_64" -Isource/build/config_headers -ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing -fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer)
++ g++ -std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC -fno-exceptions -fno-rtti -D_KERNEL_MODE=1 -Isource/headers/private/graphics -Isource/headers/private/graphics/intel_extreme -Isource/headers/private/graphics/common -I/boot/system/develop/headers/private -I/boot/system/develop/headers/private/kernel -I/boot/system/develop/headers/private/drivers -I/boot/system/develop/headers/private/shared -I/boot/system/develop/headers/private/system -I/boot/system/develop/headers/private/kernel/arch/x86 -I/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32 -I/boot/system/develop/headers/private/system/arch/x86_64 -Isource/build/config_headers -ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing -fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer -c source/src/system/kernel/util/kernel_cpp.cpp -o build/kernel_cpp.o
++ for unit in owner gart test
++ case "$unit" in
++ source_file=source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++ g++ -std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC -fno-exceptions -fno-rtti -D_KERNEL_MODE=1 -Isource/headers/private/graphics -Isource/headers/private/graphics/intel_extreme -Isource/headers/private/graphics/common -I/boot/system/develop/headers/private -I/boot/system/develop/headers/private/kernel -I/boot/system/develop/headers/private/drivers -I/boot/system/develop/headers/private/shared -I/boot/system/develop/headers/private/system -I/boot/system/develop/headers/private/kernel/arch/x86 -I/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32 -I/boot/system/develop/headers/private/system/arch/x86_64 -Isource/build/config_headers -ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing -fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer -c source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp -o build/owner.o
++ g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 -o build/owner.addon build/owner.o build/kernel_cpp.o -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
++ for unit in owner gart test
++ case "$unit" in
++ source_file=source/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
++ g++ -std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC -fno-exceptions -fno-rtti -D_KERNEL_MODE=1 -Isource/headers/private/graphics -Isource/headers/private/graphics/intel_extreme -Isource/headers/private/graphics/common -I/boot/system/develop/headers/private -I/boot/system/develop/headers/private/kernel -I/boot/system/develop/headers/private/drivers -I/boot/system/develop/headers/private/shared -I/boot/system/develop/headers/private/system -I/boot/system/develop/headers/private/kernel/arch/x86 -I/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32 -I/boot/system/develop/headers/private/system/arch/x86_64 -Isource/build/config_headers -ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing -fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer -c source/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp -o build/gart.o
++ g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 -o build/gart.addon build/gart.o build/kernel_cpp.o -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
++ for unit in owner gart test
++ case "$unit" in
++ source_file=mapping/native_driver.cpp
++ g++ -std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC -fno-exceptions -fno-rtti -D_KERNEL_MODE=1 -Isource/headers/private/graphics -Isource/headers/private/graphics/intel_extreme -Isource/headers/private/graphics/common -I/boot/system/develop/headers/private -I/boot/system/develop/headers/private/kernel -I/boot/system/develop/headers/private/drivers -I/boot/system/develop/headers/private/shared -I/boot/system/develop/headers/private/system -I/boot/system/develop/headers/private/kernel/arch/x86 -I/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32 -I/boot/system/develop/headers/private/system/arch/x86_64 -Isource/build/config_headers -ffreestanding -fno-use-cxa-atexit -fno-tree-vectorize -fno-strict-aliasing -fno-delete-null-pointer-checks -mno-red-zone -fno-omit-frame-pointer -c mapping/native_driver.cpp -o build/test.o
++ g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 -o build/test.addon build/test.o build/kernel_cpp.o -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
++ g++ -std=c++17 -O2 -Wall -Wextra -Werror mapping/native_client.cpp -o build/i915_mapping_probe
++ sha256sum build/gart.addon build/owner.addon build/test.addon build/i915_mapping_probe
++ uname -a
++ g++ --version
++ echo 'Mapping candidate built; no installation or tests performed by this script.'
+Mapping candidate built; no installation or tests performed by this script.

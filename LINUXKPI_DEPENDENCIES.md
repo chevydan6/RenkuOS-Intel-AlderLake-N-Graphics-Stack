@@ -86,3 +86,18 @@ Physical checkpoint: the same native service suite passes on the actual N100
 hrev60072+518 with matching SDK/GCC13.3; see evidence/physical-n100-001 under
 experimental/i915. This validates the scoped page/lock/task/deadline/module
 adapters, not DMA mapping, Linux waitqueues or GPU execution.
+
+## Memory-only native GGTT bridge
+
+| Interface | Status | Evidence |
+|---|---|---|
+| Coordinated owned GGTT backing | implemented isolated candidate, N100 tested | Existing native owner/GART reused; own Request lease, four checked non-reserved ranges; physical-mapping-001 |
+| Kernel CPU aperture alias | implemented, N100 tested | clone_area of same device cache, kernel-only protection; WC/UC preserved; original GART free addresses retained |
+| N100 GGTT invalidation callback | implemented native candidate | UC0x101008 bit0 write/posting read, existing native wbinvd retained; actual CPU aperture tests, not engine/GuC TLB validation |
+| Mapping cleanup ownership | implemented memory-only scope | Per-object successful-free records, alias deletion, retained failures; UBSan fault tests and8×38927 actual native checks |
+| Per-device DMA/cache/execution lifetime | unresolved | No CPU-physical=DMA substitution, publication API, valid context, submission or retirement |
+
+This extends the native foundation; it imports no additional Linux source body
+and leaves the existing 25 Linux imports unchanged. It does not expose general
+Linux GEM/VMA or DMA services. A caller must finish every CPU access before end;
+GPU use is prohibited through this memory-only interface.

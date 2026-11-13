@@ -1,0 +1,2 @@
+PASS actual mapping adapter: ownership, overlap/bounds, all allocation/free failures,
+retry without double free, reentry, close overlap and unchanged failed outputs.

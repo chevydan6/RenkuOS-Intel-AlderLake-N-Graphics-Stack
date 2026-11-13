@@ -5,7 +5,7 @@
   fails in DRM VMA manager interfaces: rwlock_t, read_lock/read_unlock/rwlock_init,
   then __user/raw_spinlock completion and IDR/radix-tree header compatibility (062).
   Earlier memset/__u64/VM-area declarations from 046 are now supplied. The native page constants
-  are checked, but VM mapping/unmapping/DMA allocation is not implemented.
+  are checked, but Linux VM mapping/unmapping and DMA allocation are not implemented.
 - Original ww inline code emits an ELF object, but ww_mutex_lock and
   ww_mutex_lock_interruptible remain undefined in the actual partial link (047).
   Deadlock avoidance, waiter wakeup/cancellation, RCU lifetime and real fence
@@ -16,8 +16,10 @@
   objects or task references. Scoped task/time/lock paths now pass actual guest
   kernel worker tests; GPU retirement remains unimplemented.
 - Native-compiled execution object still imports i915_request_timeline and
-  renku_ring_wait_for_space (native-vm-006/execution-imports.txt). No GPU backing
-  mappings, real context submission or completion connects that object.
+  renku_ring_wait_for_space (native-vm-006/execution-imports.txt). No execution-ready
+  backing, real context submission or completion connects that object. The new
+  memory-only native GGTT sandbox validates coordinated owned ranges and CPU
+  aperture readback/release, but deliberately prohibits device publication.
 
 Resolved, evidence retained:
 - Missing VM/toolchain: actual RenkuOS build00081 runs under KVM with matching
@@ -48,3 +50,14 @@ Resolved, evidence retained:
   construction (056/057), but still use private request/ring layouts. They lack
   real GT/context/mapping/submission/completion integration and cannot be passed
   full Linux i915 request objects or counted as GPU command execution.
+
+- The mapping sandbox exposes no per-device DMA address or submission lifetime.
+  Its successful CPU aperture access does not establish IOMMU identity, engine/GuC
+  TLB behavior, PAT/MOCS/cache visibility or retirement/reset ownership. Existing
+  native GT/context work still needs integration; first GPU execution is absent.
+
+Mapping-specific resolved failures (physical-mapping-001): direct aperture access
+faulted under SMAP; a native kernel-only clone fixes that while preserving WC/UC
+and original GART free addresses. Final physical mapping runs pass 8 × 38,927 checks.
+The diagnostic's asynchronous devfs removal now has a bounded wait for current
+unload evidence and an absent device. No functional mapping assertion was removed.

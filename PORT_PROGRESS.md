@@ -416,3 +416,66 @@ This resolves physical validation of the selected CPU kernel-services subset.
 No GPU commands, engine initialization, GPU mappings or Intel-driver replacement
 occurred. The execution object's timeline/space-wait imports remain unresolved;
 the next implementation task above is unchanged. gpu_exec_probe is not present.
+
+## Owned GGTT mapping candidate — continuation 2026-11-13
+
+Implementation is under experimental/i915/mapping/, outside the native global
+patch series. It reconstructs the pinned native baseline plus 0001..0096, adds
+N100 UC GGTT invalidation to the GART callback, and exposes a private memory-only
+owner interface. One new Request lease owns four non-reserved allocations,
+private CPU aliases, checked GGTT offsets and explicit cleanup. No second GART
+owner, display-lease borrowing, direct experimental PTE writer or GPU publication
+is introduced. Existing Linux imports remain byte-identical (25 verified files).
+
+The source and ABI deliberately expose neither CPU physical nor per-device DMA
+addresses. This does not establish DMA admission, engine cache/TLB correctness,
+context setup, submission or retirement. The ring/timeline imports remain open.
+The four buffer names are backing roles, not valid hardware structures.
+
+Actual owner bodies pass UBSan host checks for bounds/overlap, reentry, every
+allocation/free failure, failed-output preservation, display closure, kernel
+alias permissions, alias deletion failure and cleanup retries. Three generated
+address-domain/double-free regressions are rejected. Evidence: mapping-host-001.
+
+Two candidates compiled visibly on the real N100 with its matching SDK/GCC13.3.
+The first physical test panicked on the first CPU store: SMAP rejected access to
+the existing user-permission aperture. Trace screenshot/raw source archive are
+preserved under /home/dan/i915-vm. The corrected owner clones the same aperture
+cache into a kernel-only alias (native VM preserves WC/UC attributes), keeps
+original GART addresses separately, and deletes the alias after all frees.
+
+Before the corrected hardware test, NanoKVM HID writes and target filesystem
+reads stalled before its run script started. Recovery used SSH shutdown requests,
+a gadget rebind and the official HID-reset endpoint. The latter unexpectedly
+selected the default NanoKVM media; the original /root/renku-gpu-test-004/disk.img
+and ro=0/cdrom=0 attachment were restored and checked immediately. Do not use
+HID reset without preserving/restoring the custom media. Dan manually restarted
+the N100; the original external RenkuTest boot path and
+candidate hashes were verified again before testing. No results are attributed
+to that interrupted attempt.
+
+The corrected mapping probe then passed eight runs of 38,927 checks each: 311,416
+checks, zero failures. Each set owns 19 pages in four GART objects, with offsets
+0x3c00000/0x3c01000/0x3c02000/0x3c03000 and sizes 4K/4K/4K/64K. All words
+pass two CPU-pattern write/read rounds through the kernel aperture alias. This
+establishes owned native GGTT backing and CPU aperture access/release, not a GPU
+command, per-device DMA mapping or an engine translation/cache contract.
+
+The first wrapper returned 1 after four successful runs because asynchronous
+devfs removal had not finished and its unload grep matched historical messages.
+That failure remains recorded. The corrected runner's next four runs and bounded
+cleanup return 0, with new INIT/UNINIT status 0 and absent diagnostic files/device.
+Native GART logs record binding/unbinding. Final strict postchecks pass and HDMI
+remains live. Evidence: experimental/i915/evidence/physical-mapping-001/.
+
+Final owner/GART candidates remain installed on the external test volume. The
+native display driver, accelerant and kernel were not replaced. Original owner
+and Intel GART binaries remain under /boot/home/i915-mapping-001/recovery/.
+A checked rollback-to-original.sh is in /boot/home/i915-mapping-002/; it restores
+those originals on disk and requires reboot. It was not executed. Future work
+must retain the memory-only API prohibition on device publication until DMA,
+GT/context, cache visibility and completion/reset lifetime contracts exist.
+
+Session cleanup completed: the dedicated transfer SSH listener was stopped,
+the physical lease released, and the original custom NanoKVM image attachment
+verified. The actual HDMI Terminal remains running with successful results.

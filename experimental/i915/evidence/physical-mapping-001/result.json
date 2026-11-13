@@ -1,0 +1,17 @@
+{
+  "runs": 8,
+  "checks_per_run": 38927,
+  "total_checks": 311416,
+  "failures": 0,
+  "gpu_submission": false,
+  "cpu_stores": true,
+  "pages_per_set": 19,
+  "sets": 8,
+  "source_payload_sha256": "c543ef81834db3ab873b0e1d3832d72ada69577405e3ac39946d73583e0418b8",
+  "raw_archive_sha256": "c41e8dd547f5ee7a9b9804076b15ce69ad24ee902d5b42a02502b7d005ffdd5d",
+  "raw_archive": "/home/dan/i915-vm/evidence/mapping-physical-results-001.tar.gz",
+  "raw_results": "/home/dan/i915-vm/evidence/mapping-physical-001",
+  "final_run_directory": "/home/dan/i915-vm/evidence/mapping-physical-001/i915-mapping-002/validation/mapping.EiiwJV",
+  "smap_panic_screenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794560177658367542-0.jpg",
+  "final_screenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794561349458588806-0.jpg"
+}

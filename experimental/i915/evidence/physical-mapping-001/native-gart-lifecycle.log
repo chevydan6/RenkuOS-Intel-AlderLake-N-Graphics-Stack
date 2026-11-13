@@ -1,0 +1,86 @@
+KERN: driver "i915_mapping_test" added
+KERN: devfs: reload driver "i915_mapping_test" (3, 3670267)
+KERN: I915_MAPPING_TEST_INIT status=0
+KERN: [36mAGP:[0m create memory 0xffffffff9e603540, base ffffffffa3c00000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c00000
+KERN: [36mAGP:[0m create memory 0xffffffff9dd41940, base ffffffffa3c01000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c01000
+KERN: [36mAGP:[0m create memory 0xffffffff809ea940, base ffffffffa3c02000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c02000
+KERN: [36mAGP:[0m create memory 0xffffffff9e287500, base ffffffffa3c03000, size 10000, flags 1
+KERN: [36mAGP:[0m allocate 65536 bytes out of 65536
+KERN: [36mAGP:[0m bind 65536 bytes at ffffffffa3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e287500
+KERN: [36mAGP:[0m unbind 65536 bytes at 3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff809ea940
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c02000
+KERN: [36mAGP:[0m delete memory 0xffffffff9dd41940
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c01000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e603540
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c00000
+KERN: [36mAGP:[0m create memory 0xffffffff9e2a7e40, base ffffffffa3c00000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c00000
+KERN: [36mAGP:[0m create memory 0xffffffff9e297400, base ffffffffa3c01000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c01000
+KERN: [36mAGP:[0m create memory 0xffffffff9e2a70c0, base ffffffffa3c02000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c02000
+KERN: [36mAGP:[0m create memory 0xffffffff9e2a20c0, base ffffffffa3c03000, size 10000, flags 1
+KERN: [36mAGP:[0m allocate 65536 bytes out of 65536
+KERN: [36mAGP:[0m bind 65536 bytes at ffffffffa3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e2a20c0
+KERN: [36mAGP:[0m unbind 65536 bytes at 3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e2a70c0
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c02000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e297400
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c01000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e2a7e40
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c00000
+KERN: [36mAGP:[0m create memory 0xffffffff9e297980, base ffffffffa3c00000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c00000
+KERN: [36mAGP:[0m create memory 0xffffffff9e2a75c0, base ffffffffa3c01000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c01000
+KERN: [36mAGP:[0m create memory 0xffffffff81564000, base ffffffffa3c02000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c02000
+KERN: [36mAGP:[0m create memory 0xffffffff809ed6c0, base ffffffffa3c03000, size 10000, flags 1
+KERN: [36mAGP:[0m allocate 65536 bytes out of 65536
+KERN: [36mAGP:[0m bind 65536 bytes at ffffffffa3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff809ed6c0
+KERN: [36mAGP:[0m unbind 65536 bytes at 3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff81564000
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c02000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e2a75c0
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c01000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e297980
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c00000
+KERN: [36mAGP:[0m create memory 0xffffffff81b1f280, base ffffffffa3c00000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c00000
+KERN: [36mAGP:[0m create memory 0xffffffff81b1fdc0, base ffffffffa3c01000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c01000
+KERN: [36mAGP:[0m create memory 0xffffffff9e297a40, base ffffffffa3c02000, size 1000, flags 1
+KERN: [36mAGP:[0m allocate 4096 bytes out of 4096
+KERN: [36mAGP:[0m bind 4096 bytes at ffffffffa3c02000
+KERN: [36mAGP:[0m create memory 0xffffffff9e2a7940, base ffffffffa3c03000, size 10000, flags 1
+KERN: [36mAGP:[0m allocate 65536 bytes out of 65536
+KERN: [36mAGP:[0m bind 65536 bytes at ffffffffa3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e2a7940
+KERN: [36mAGP:[0m unbind 65536 bytes at 3c03000
+KERN: [36mAGP:[0m delete memory 0xffffffff9e297a40
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c02000
+KERN: [36mAGP:[0m delete memory 0xffffffff81b1fdc0
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c01000
+KERN: [36mAGP:[0m delete memory 0xffffffff81b1f280
+KERN: [36mAGP:[0m unbind 4096 bytes at 3c00000
+KERN: driver "i915_mapping_test" removed
+KERN: devfs: reload driver "i915_mapping_test" (3, 3670268)
+KERN: I915_MAPPING_TEST_UNINIT status=0

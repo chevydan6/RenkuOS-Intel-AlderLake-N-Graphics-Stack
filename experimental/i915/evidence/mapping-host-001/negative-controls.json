@@ -1,0 +1,17 @@
+[
+  {
+    "name": "wrong_cpu_domain",
+    "exit": -6,
+    "stderr": "test: /home/dan/haiku-intel-gpu/experimental/i915/mapping/host-test.cpp:133: int main(): Assertion `output.buffers[0].cpu_aperture==aliasBase+output.buffers[0].ggtt_offset' failed.\n"
+  },
+  {
+    "name": "wrong_free_domain",
+    "exit": -6,
+    "stderr": "test: /home/dan/haiku-intel-gpu/experimental/i915/mapping/host-test.cpp:93: status_t Free(uint64, addr_t): Assertion `base >= aperture.base && base < aperture.base+aperture.size && live>0' failed.\n"
+  },
+  {
+    "name": "lost_free_record",
+    "exit": -6,
+    "stderr": "test: /home/dan/haiku-intel-gpu/experimental/i915/mapping/host-test.cpp:93: status_t Free(uint64, addr_t): Assertion `base >= aperture.base && base < aperture.base+aperture.size && live>0' failed.\n"
+  }
+]

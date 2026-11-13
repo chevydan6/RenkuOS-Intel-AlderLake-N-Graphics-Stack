@@ -1,0 +1,141 @@
++ uname -a
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
++ sha256sum -c build/binaries.sha256
+build/gart.addon: OK
+build/owner.addon: OK
+build/test.addon: OK
+build/i915_mapping_probe: OK
++ driver=/boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_mapping_test
++ link=/boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_mapping_test
++ test '!' -e /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_mapping_test
++ test '!' -L /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_mapping_test
++ test '!' -e /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_mapping_test
++ test '!' -L /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_mapping_test
+++ wc -l
++ syslog_line=694
++ ls /dev/graphics
++ installed=0
++ trap cleanup EXIT
++ cp build/test.addon /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_mapping_test
++ ln -s ../../bin/i915_mapping_test /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_mapping_test
++ installed=1
++ sync
++ published=0
++ for attempt in {1..100}
++ ls /dev/misc
++ '[' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ '[' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ '[' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ '[' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ '[' -e /dev/misc/i915_mapping_test ']'
++ published=1
++ break
++ test 1 = 1
++ build/i915_mapping_probe
+evidence=NATIVE_GGTT_MEMORY_ONLY gpu_submission=false cpu_stores=true
+run=0 version=1 module=0 begin=0 end=0 checks=38927 failures=0
+slot=0 ggtt_offset=0x3c00000 bytes=4096
+slot=1 ggtt_offset=0x3c01000 bytes=4096
+slot=2 ggtt_offset=0x3c02000 bytes=4096
+slot=3 ggtt_offset=0x3c03000 bytes=65536
+run=1 version=1 module=0 begin=0 end=0 checks=38927 failures=0
+slot=0 ggtt_offset=0x3c00000 bytes=4096
+slot=1 ggtt_offset=0x3c01000 bytes=4096
+slot=2 ggtt_offset=0x3c02000 bytes=4096
+slot=3 ggtt_offset=0x3c03000 bytes=65536
+run=2 version=1 module=0 begin=0 end=0 checks=38927 failures=0
+slot=0 ggtt_offset=0x3c00000 bytes=4096
+slot=1 ggtt_offset=0x3c01000 bytes=4096
+slot=2 ggtt_offset=0x3c02000 bytes=4096
+slot=3 ggtt_offset=0x3c03000 bytes=65536
+run=3 version=1 module=0 begin=0 end=0 checks=38927 failures=0
+slot=0 ggtt_offset=0x3c00000 bytes=4096
+slot=1 ggtt_offset=0x3c01000 bytes=4096
+slot=2 ggtt_offset=0x3c02000 bytes=4096
+slot=3 ggtt_offset=0x3c03000 bytes=65536
+PASS owned GGTT aperture CPU readback and release; no GPU execution
++ cleanup
++ status=0
++ trap - EXIT
++ '[' 1 = 1 ']'
++ cmp build/test.addon /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_mapping_test
+++ readlink /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_mapping_test
++ '[' ../../bin/i915_mapping_test = ../../bin/i915_mapping_test ']'
++ rm /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_mapping_test /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_mapping_test
++ removed=0
++ for attempt in {1..100}
++ ls /dev/misc
++ tail -n +695 /var/log/syslog
++ grep I915_MAPPING_TEST_ validation/mapping.EiiwJV/new-syslog.log
+++ tail -n 1 validation/mapping.EiiwJV/module-lifecycle.log
++ last_event='KERN: I915_MAPPING_TEST_INIT status=0'
++ '[' '!' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ tail -n +695 /var/log/syslog
++ grep I915_MAPPING_TEST_ validation/mapping.EiiwJV/new-syslog.log
+++ tail -n 1 validation/mapping.EiiwJV/module-lifecycle.log
++ last_event='KERN: I915_MAPPING_TEST_INIT status=0'
++ '[' '!' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ tail -n +695 /var/log/syslog
++ grep I915_MAPPING_TEST_ validation/mapping.EiiwJV/new-syslog.log
+++ tail -n 1 validation/mapping.EiiwJV/module-lifecycle.log
++ last_event='KERN: I915_MAPPING_TEST_INIT status=0'
++ '[' '!' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ tail -n +695 /var/log/syslog
++ grep I915_MAPPING_TEST_ validation/mapping.EiiwJV/new-syslog.log
+++ tail -n 1 validation/mapping.EiiwJV/module-lifecycle.log
++ last_event='KERN: I915_MAPPING_TEST_INIT status=0'
++ '[' '!' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ tail -n +695 /var/log/syslog
++ grep I915_MAPPING_TEST_ validation/mapping.EiiwJV/new-syslog.log
+++ tail -n 1 validation/mapping.EiiwJV/module-lifecycle.log
++ last_event='KERN: I915_MAPPING_TEST_INIT status=0'
++ '[' '!' -e /dev/misc/i915_mapping_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ tail -n +695 /var/log/syslog
++ grep I915_MAPPING_TEST_ validation/mapping.EiiwJV/new-syslog.log
+++ tail -n 1 validation/mapping.EiiwJV/module-lifecycle.log
++ last_event='KERN: I915_MAPPING_TEST_UNINIT status=0'
++ '[' '!' -e /dev/misc/i915_mapping_test ']'
++ [[ KERN: I915_MAPPING_TEST_UNINIT status=0 == *I915_MAPPING_TEST_UNINIT status=0 ]]
++ removed=1
++ break
++ test 1 = 1
++ cat validation/mapping.EiiwJV/module-lifecycle.log
+KERN: I915_MAPPING_TEST_INIT status=0
+KERN: I915_MAPPING_TEST_UNINIT status=0
++ grep -q 'I915_MAPPING_TEST_INIT status=0' validation/mapping.EiiwJV/module-lifecycle.log
++ test '!' -e /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_mapping_test
++ test '!' -L /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_mapping_test
++ ls /dev/graphics
++ cmp validation/mapping.EiiwJV/graphics-before.log validation/mapping.EiiwJV/graphics-after.log
++ echo 0
++ echo 'MAPPING_NATIVE_TEST_EXIT=0 results=validation/mapping.EiiwJV'
+MAPPING_NATIVE_TEST_EXIT=0 results=validation/mapping.EiiwJV
++ sync
++ exit 0

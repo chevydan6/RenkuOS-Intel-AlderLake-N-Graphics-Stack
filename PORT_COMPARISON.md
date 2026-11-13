@@ -98,3 +98,20 @@ dependent on the newer guest SDK. GPU-address ownership, GT/context setup,
 submission, retirement and the broader Linux dependencies remain unresolved.
 Physical CPU-service success still does not establish GPU performance overhead
 or a shorter path to Mesa, and does not select the full Linux port as superior.
+
+## Owned native GGTT integration result
+
+The isolated experiment now reuses the native retained owner and GART to supply
+four owned non-reserved GGTT buffers and kernel CPU aperture aliases. The N100
+passes 8 × 38,927 checks for CPU-pattern readback, range separation and release, with
+actual diagnostic unload and persistent HDMI. Runtime exposed an SMAP permission
+boundary; native device-cache cloning fixes it without treating the original
+user-permission aperture as ordinary kernel RAM. Failure/retry tests preserve
+resident ownership, including separate original allocation and CPU alias domains.
+
+This progress comes from the existing native memory foundation, plus a scoped
+interface and a native N100 GGTT invalidation correction. No additional Linux
+algorithm is imported. It reduces the experiment's missing backing/CPU-access
+surface, but establishes neither per-device DMA admission nor execution-ready
+engine translations, caches, context, submission or retirement. No GPU workload
+or performance has been measured and full LinuxKPI superiority remains unproven.

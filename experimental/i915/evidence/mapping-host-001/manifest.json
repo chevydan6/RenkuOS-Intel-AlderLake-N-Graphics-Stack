@@ -1,0 +1,18 @@
+{
+  "scope": "Actual owner mapping bodies and real lease class; mocked GART/native area services; UBSan. Not hardware evidence.",
+  "baseline": "4799bb5a188c4bb6bbef967287640cc21a061a0d + patches0001..0096",
+  "files": {
+    "experimental/i915/mapping/README.md": "b5179e1683d9ec911b465b8dcf8fdd50e552e71f31e5709a34614eced46c8943",
+    "experimental/i915/mapping/build-native.sh": "abc3827238d4f31001106839fcc4d027f85ff29a478716be272646f19be086c2",
+    "experimental/i915/mapping/gart-invalidation.patch": "6a458bbcdafe92c3df6ee00e4c8bc3d1f507aaa8d9da2ceef065881860574f8c",
+    "experimental/i915/mapping/host-test.cpp": "c5d9842f619abc6a47617247ebac9f2193322e32f53a53b683b267ae13b5b5dd",
+    "experimental/i915/mapping/native_client.cpp": "b0aca4f2519b6ea32b4d861276a49eb6cedf18d3bc1720122de7e03aa5e03ee7",
+    "experimental/i915/mapping/native_driver.cpp": "8378a411be2d56528a8a5205e782197ed11179f625f04006ec0d307f86ed3230",
+    "experimental/i915/mapping/native_probe.h": "7258b0aad36856dee182f2a67c6eb3f830b9fda031d321de954f92d13f79826a",
+    "experimental/i915/mapping/owner-mapping.patch": "27f6aa701e292daff4bb72e28e288d5055aa1f76c180122492816a1d6e229ca4",
+    "experimental/i915/mapping/prepare-bundle.py": "ad6fd42758548656d49cc71838476f4c4605922baa37a4099376c3bfd91887e3",
+    "experimental/i915/mapping/run-host-tests.py": "800c55e5cc5a472137012f283742576ffb5086e415ff3028b53ddb10f81f561c",
+    "experimental/i915/mapping/run-native-tests.sh": "25a9830157c1c7bfc937a3e672001d6c2025b18b11155dd39465ea9ccfc73295"
+  },
+  "adapter_source_sha256": "bb097546e9e6fa8f0cf18fcd173c0d959ce208c35b9087f8ee4ad8f0b661b894"
+}
