@@ -1,0 +1,38 @@
+name: Repository structure audit
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'patches/**'
+      - 'tools/audit-repository.py'
+      - '*.md'
+      - '.github/workflows/repository-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run read-only inventory
+        run: python3 tools/audit-repository.py --output repository-audit.json
+      - name: Check patch inventory invariants
+        run: |
+          python3 - <<'PY'
+          import json
+          d = json.load(open('repository-audit.json'))
+          assert d['patch_count'] == 118, 'Unexpected numbered patch count'
+          assert not [p for p in d['patches'] if p['missing_targets']], 'Patch without diff targets'
+          print('Patch inventory verified. Legacy Markdown links are reported, not gated.')
+          PY
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-audit
+          path: repository-audit.json
+          if-no-files-found: warn
