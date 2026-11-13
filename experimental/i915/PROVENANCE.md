@@ -438,3 +438,23 @@ Ported-from-license: GPL-2.0
 
 Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/highmem-internal.h
 Ported-from-license: GPL-2.0
+
+`linux/mm.h` remains byte-exact; only manifested pure helpers are selected from mm/page-flags.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/mm.h
+Ported-from-license: GPL-2.0
+
+`linux/page-flags.h` remains byte-exact; only manifested pure helpers are selected from mm/page-flags.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/page-flags.h
+Ported-from-license: GPL-2.0
+
+`linux/pagevec.h` remains byte-exact and supplies the complete folio-batch header.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/pagevec.h
+Ported-from-license: GPL-2.0
+
+Complete `gem/i915_gem_shmem.c` is preserved unchanged for actual whole-source porting and compiler validation.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+Ported-from-license: MIT

@@ -684,6 +684,30 @@
       "linuxPath": "include/linux/highmem-internal.h",
       "gitBlob": "a3028e400a9c65254f9f15e4071264975dc7b1d2",
       "sha256": "0485b13d2915965e9aab0469ac41cbb760d270c04d2a63020b4e563c7b437760"
+    },
+    {
+      "path": "linux/mm.h",
+      "linuxPath": "include/linux/mm.h",
+      "gitBlob": "bf5d0b1b16f4341e8851d9bdfef30df631f62226",
+      "sha256": "121c7be41ff209217062a471084536136b72589459611f47c292109360462c52"
+    },
+    {
+      "path": "linux/page-flags.h",
+      "linuxPath": "include/linux/page-flags.h",
+      "gitBlob": "5c02720c53a5848e37f03beeadb2ac787a6a91f4",
+      "sha256": "f76ea1ac64390582a10223d9a747df2f284300bcefc9025d907011149c59c3b9"
+    },
+    {
+      "path": "linux/pagevec.h",
+      "linuxPath": "include/linux/pagevec.h",
+      "gitBlob": "87cc678adc850b12f144052fc7b4cf50d32ad107",
+      "sha256": "fc9cdfcc5dc4b59508716fe8d3abd36ec3ed4b5872a0e18a3d35fa5f961238ab"
+    },
+    {
+      "path": "gem/i915_gem_shmem.c",
+      "linuxPath": "drivers/gpu/drm/i915/gem/i915_gem_shmem.c",
+      "gitBlob": "73a4a4eb29e08689fdac30acd3a88739f3205a12",
+      "sha256": "9b2258ef7a62aa4a5276e3c1836dde33d3deb2049b9665cb224d19704243efd0"
     }
   ]
 }
