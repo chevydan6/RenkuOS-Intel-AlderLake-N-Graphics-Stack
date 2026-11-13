@@ -1,0 +1,28 @@
+diff --git a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+index 281ef60..eaf2d94 100644
+--- a/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
++++ b/src/add-ons/kernel/busses/agp_gart/intel_gart.cpp
+@@ -1025,8 +1025,21 @@ intel_unbind_page(void* aperture, uint32 offset)
+ void
+ intel_flush_tlbs(void* aperture)
+ {
+-	read_gtt_entry(sInfo, sInfo.gtt_entries - 1);
+-	asm("wbinvd;");
++	if (sInfo.type->InGroup(INTEL_GROUP_ALD)) {
++		// Linux v6.6 intel_ggtt.c gen8_ggtt_invalidate: the uncached
++		// GFX_FLSH_CNTL_GEN6 store orders GGTT writes before invalidation.
++		// Both this register and the PTE table have strong UC mappings on
++		// ALD. The manager serializes this with bind/unbind under its lock.
++		// Preserve native cache writeback for newly cleared WB backing.
++		asm volatile("wbinvd" ::: "memory");
++		write32(sInfo.registers + (0x101008 / 4), 1);
++		// Drain the posted store before the manager may reclaim backing.
++		(void)read32(sInfo.registers + (0x101008 / 4));
++		asm volatile("" ::: "memory");
++	} else {
++		read_gtt_entry(sInfo, sInfo.gtt_entries - 1);
++		asm volatile("wbinvd" ::: "memory");
++	}
+ }
+ 
+ 
