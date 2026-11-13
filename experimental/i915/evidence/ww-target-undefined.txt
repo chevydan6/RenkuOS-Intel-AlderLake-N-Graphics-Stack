@@ -1,0 +1,16 @@
+                 U acquire_sem
+                 U acquire_spinlock
+                 U create_sem
+                 U delete_sem
+                 U disable_interrupts
+                 U dvprintf
+                 U find_thread
+                 U i915_request_timeline
+                 U panic
+                 U release_sem
+                 U release_spinlock
+                 U renku_ring_wait_for_space
+                 U restore_interrupts
+                 U system_time_nsecs
+                 U ww_mutex_lock
+                 U ww_mutex_lock_interruptible

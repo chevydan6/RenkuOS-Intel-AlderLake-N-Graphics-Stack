@@ -40,3 +40,28 @@ identity and dma-fence machinery into the closure. These are now compiler-derive
 dependencies rather than a speculative inventory. They remain more work than
 simple typedefs or no-op wrappers. The evidence still does not select full
 LinuxKPI over native execution or establish a reduced path to GPU/Mesa execution.
+
+## Wound/wait prerequisite result
+Original ww context code now compiles to a target-header ELF object and passes
+CPU context tests after adding native stamp, semaphore state and scoped task
+identity services. Error-pointer helpers also execute correctly on the host with
+native-header error-domain preservation. This is a concrete dependency reduction.
+
+The linker still requires real ww lock algorithms; header/context compatibility
+has not solved multi-object deadlock avoidance. Fence waiting/RCU and DRM VMA
+memory interfaces remain actual boundaries. Native task-scope lifetime and IRQ
+semantics also need kernel runtime evidence. No reduction in measured time to
+GPU execution or Mesa has been established; no path superiority is claimed.
+
+## Direct execution-component reuse result
+Two complete original Linux batch-start emitter bodies now compile against
+RenkuOS headers and feed the existing original ring reservation code. Literal
+packet/guard/wrap tests pass both under sanitizers and using the target-built
+objects. This is command-construction reuse, not just generic compatibility code.
+
+The selected extraction needs only a software request attribute and the ring
+interface, while whole-file compilation still pulls in GEM, VMA, IDR, completion,
+ww locking and RCU/VM services. This is evidence that the adaptation boundary
+substantially changes the dependency burden. It does not measure first-command
+hardware effort: native GT/context/mapping/submission/completion integration is
+still missing, so neither full LinuxKPI nor the extracted path is declared better.

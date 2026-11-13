@@ -1,0 +1,62 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_complete.o
+In file included from /tmp/i915-linux-source/include/drm/drm_gem.h:42,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:53:9: error: unknown type name ‘rwlock_t’; did you mean ‘clock_t’?
+   53 |         rwlock_t vm_lock;
+      |         ^~~~~~~~
+      |         clock_t
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:60:9: error: unknown type name ‘rwlock_t’; did you mean ‘clock_t’?
+   60 |         rwlock_t vm_lock;
+      |         ^~~~~~~~
+      |         clock_t
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h: In function ‘drm_vma_offset_lock_lookup’:
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:124:9: error: implicit declaration of function ‘read_lock’; did you mean ‘read_port’? [-Wimplicit-function-declaration]
+  124 |         read_lock(&mgr->vm_lock);
+      |         ^~~~~~~~~
+      |         read_port
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h: In function ‘drm_vma_offset_unlock_lookup’:
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:135:9: error: implicit declaration of function ‘read_unlock’ [-Wimplicit-function-declaration]
+  135 |         read_unlock(&mgr->vm_lock);
+      |         ^~~~~~~~~~~
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h: In function ‘drm_vma_node_reset’:
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:150:9: error: implicit declaration of function ‘memset’ [-Wimplicit-function-declaration]
+  150 |         memset(node, 0, sizeof(*node));
+      |         ^~~~~~
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:31:1: note: ‘memset’ is defined in header ‘<string.h>’; this is probably fixable by adding ‘#include <string.h>’
+   30 | #include <linux/types.h>
+  +++ |+#include <string.h>
+   31 | 
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:152:9: error: implicit declaration of function ‘rwlock_init’; did you mean ‘spin_lock_init’? [-Wimplicit-function-declaration]
+  152 |         rwlock_init(&node->vm_lock);
+      |         ^~~~~~~~~~~
+      |         spin_lock_init
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h: At top level:
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:203:15: error: unknown type name ‘__u64’; did you mean ‘u64’?
+  203 | static inline __u64 drm_vma_node_offset_addr(struct drm_vma_offset_node *node)
+      |               ^~~~~
+      |               u64
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h: In function ‘drm_vma_node_offset_addr’:
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:205:18: error: ‘__u64’ undeclared (first use in this function); did you mean ‘u64’?
+  205 |         return ((__u64)node->vm_node.start) << PAGE_SHIFT;
+      |                  ^~~~~
+      |                  u64
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:205:18: note: each undeclared identifier is reported only once for each function it appears in
+/tmp/i915-linux-source/include/drm/drm_vma_manager.h:205:24: error: expected ‘)’ before ‘node’
+  205 |         return ((__u64)node->vm_node.start) << PAGE_SHIFT;
+      |                ~       ^~~~
+      |                        )
+/tmp/i915-linux-source/include/drm/drm_gem.h: At top level:
+/tmp/i915-linux-source/include/drm/drm_gem.h:186:56: error: ‘struct vm_area_struct’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  186 |         int (*mmap)(struct drm_gem_object *obj, struct vm_area_struct *vma);
+      |                                                        ^~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/drm/drm_gem.h:469:29: error: ‘struct vm_area_struct’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  469 | void drm_gem_vm_open(struct vm_area_struct *vma);
+      |                             ^~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/drm/drm_gem.h:470:30: error: ‘struct vm_area_struct’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  470 | void drm_gem_vm_close(struct vm_area_struct *vma);
+      |                              ^~~~~~~~~~~~~~
+compilation terminated due to -fmax-errors=12.
+
+compiler exit: 1

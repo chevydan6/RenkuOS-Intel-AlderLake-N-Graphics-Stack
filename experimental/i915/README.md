@@ -73,3 +73,41 @@ python3 whole-ring-attempt.py --linux-source /path/to/linux --log /path/to/new-l
 This command intentionally returns the actual compiler failure, currently at
 wound/wait task/locking dependencies and dma-fence errno definitions. The
 PREEMPT_RT branch is excluded explicitly; no RT mutex interface is simulated.
+
+Wound/wait prerequisites now include caller-owned task registration, 64-bit
+stamp increments and named mutex held-state. Register a task record before
+original code uses `current`; retain it until every referencing acquire context
+has finished, then unregister it on the owning thread. No scheduler, task
+reference API, wait/wakeup or full wound/wait locking implementation is supplied.
+
+```sh
+make ww-context-test SANITIZER_LDFLAGS='<matching sanitizer library flags if needed>'
+```
+
+This runs original Linux context initialization with real host thread identity
+and mutexes. It tests prerequisites only. `build/target/ww_mutex.o` is compiled
+from unchanged ww_mutex.h with `-x c -fkeep-inline-functions`; unresolved
+ww_mutex_lock methods are retained in the partial-link dependency inventory.
+
+The native clock adapter calls system_time_nsecs. Error-pointer tests also check
+that Linux errno installation preserves the native B_* status aliases. RCU
+metadata and acquire pointer loads do not supply read-side lifetime protection,
+grace periods or callback reclamation. PAGE_SHIFT is checked against native page
+size; unmap_mapping_range is declared but unimplemented. The current whole-ring
+failure is now in DRM VMA rwlock/VM declarations (evidence 046).
+
+Original batch-start emitter integration:
+
+```sh
+make emitter-test SANITIZER_LDFLAGS='<matching sanitizer library flags if needed>'
+make target-emitter-test RENKU_SOURCE=/path/to/pinned/renku-source
+```
+
+Both gen8_emit_bb_start functions are extracted unchanged and use the real
+ported intel_ring_begin. Packet tests include ring wrap, guards and a batch
+address above 4 GiB. The target-object test executes CPU packet construction;
+its missing timeline/wait backends abort if called. Neither test submits work
+or writes a GPU result. Ring/request layouts remain private slice interfaces,
+with an explicit software nopreempt property; they cannot be mixed with full
+i915 request objects. Full-file compilation still fails at the native rwlock/
+completion/IDR/VMA boundary (evidence 062).

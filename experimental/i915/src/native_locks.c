@@ -7,24 +7,36 @@
 
 void renku_linux_mutex_init(struct mutex *lock)
 {
-	lock->semaphore = create_sem(1, "i915 LinuxKPI mutex");
-	if (lock->semaphore < B_OK) panic("i915: create mutex: %d", lock->semaphore);
+	renku_linux_mutex_init_named(lock, "i915 LinuxKPI mutex", NULL);
+}
+void renku_linux_mutex_init_named(struct mutex *lock, const char *name, struct lock_class_key *key)
+{
+	(void)key; /* Lockdep disabled; the real semaphore still carries its name. */
+	lock->held = 0;
+	lock->semaphore = create_sem(1, name);
+	if (lock->semaphore < B_OK) {
+		panic("i915: create mutex: %d", lock->semaphore);
+		__builtin_trap();
+	}
 }
 void renku_linux_mutex_destroy(struct mutex *lock)
 {
 	status_t error = delete_sem(lock->semaphore);
-	if (error != B_OK) panic("i915: delete mutex: %d", error);
+	if (error != B_OK) { panic("i915: delete mutex: %d", error); __builtin_trap(); }
 }
 void renku_linux_mutex_lock(struct mutex *lock)
 {
 	status_t error;
 	do { error = acquire_sem(lock->semaphore); } while (error == B_INTERRUPTED);
-	if (error != B_OK) panic("i915: lock mutex: %d", error);
+	if (error != B_OK) { panic("i915: lock mutex: %d", error); __builtin_trap(); }
+	__atomic_store_n(&lock->held, 1, __ATOMIC_RELEASE);
 }
 void renku_linux_mutex_unlock(struct mutex *lock)
 {
+	/* Clear before waking another owner, who can immediately set it again. */
+	__atomic_store_n(&lock->held, 0, __ATOMIC_RELEASE);
 	status_t error = release_sem(lock->semaphore);
-	if (error != B_OK) panic("i915: unlock mutex: %d", error);
+	if (error != B_OK) { panic("i915: unlock mutex: %d", error); __builtin_trap(); }
 }
 void renku_linux_spin_init(spinlock_t *lock)
 {

@@ -1,0 +1,6 @@
+python3 verify-upstream.py
+Verified 25 unchanged Linux v6.6 files
+mkdir -p build
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fsanitize=address,undefined -fno-omit-frame-pointer -Iinclude -Iupstream upstream/drm/drm_mm.c upstream/lib/rbtree.c tests/drm_mm_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/drm_mm_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/drm_mm_test
+CPU allocator: 20000 transitions; 6979 allocations, 6067 full; clean teardown

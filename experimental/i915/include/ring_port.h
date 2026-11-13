@@ -1,25 +1,13 @@
 /* SPDX-License-Identifier: MIT */
 #ifndef RENKU_RING_PORT_H
 #define RENKU_RING_PORT_H
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#ifdef RENKU_NATIVE
-#include <KernelExport.h>
-#else
-/* Declaration only: kernel link must resolve the real RenkuOS panic. */
-extern void panic(const char *, ...);
-#endif
-typedef uint32_t u32;
-typedef uint64_t u64;
+#include <kpi_base.h>
+#include <linux/err.h>
 #define CACHELINE_BYTES 64u
 #define GEM_BUG_ON(x) do { if (x) panic("i915 ring assertion: %s", #x); } while (0)
-#define unlikely(x) __builtin_expect(!!(x), 0)
 #define IS_ALIGNED(x, a) (((x) & ((a) - 1)) == 0)
-#define IS_ENABLED(x) 0
 #define CONFIG_DRM_I915_DEBUG_GEM 0
 #define POISON_INUSE 0x5a5a5a5au
-#define ERR_PTR(x) ((void *)(intptr_t)(x))
 /* Private slice layouts, NOT the complete Linux object layouts or ABI. */
 struct intel_ring {
 	u32 head, tail, emit, size, effective_size, space;
@@ -28,6 +16,7 @@ struct intel_ring {
 struct i915_request {
 	struct intel_ring *ring;
 	unsigned int reserved_space;
+	bool nopreempt; /* Native slice's software request attribute. */
 };
 struct intel_timeline;
 extern struct intel_timeline *i915_request_timeline(struct i915_request *);
@@ -35,7 +24,6 @@ extern struct intel_timeline *i915_request_timeline(struct i915_request *);
 extern int renku_ring_wait_for_space(struct intel_ring *,
 	struct intel_timeline *, unsigned int);
 #define wait_for_space renku_ring_wait_for_space
-static inline bool is_power_of_2(unsigned int x) { return x && !(x & (x - 1)); }
 static inline void *memset64(void *p, u64 value, size_t count)
 {
 	u64 *out = p;

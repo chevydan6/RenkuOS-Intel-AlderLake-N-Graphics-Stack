@@ -1,0 +1,15 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_complete.o
+In file included from /tmp/i915-linux-source/include/linux/mmzone.h:13,
+                 from /tmp/i915-linux-source/include/linux/gfp.h:7,
+                 from /tmp/i915-linux-source/include/linux/mm.h:7,
+                 from /tmp/i915-linux-source/include/drm/drm_vma_manager.h:27,
+                 from /tmp/i915-linux-source/include/drm/drm_gem.h:42,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/linux/cache.h:5:10: fatal error: uapi/linux/kernel.h: No such file or directory
+    5 | #include <uapi/linux/kernel.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+
+compiler exit: 1

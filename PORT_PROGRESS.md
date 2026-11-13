@@ -168,7 +168,7 @@ revision, removes stale output and refuses to overwrite previous evidence.
 Updated object hashes/commands/dependencies: evidence/refcount-target-manifest.json
 and refcount-target-dependencies.json. Objects remain in build/target.
 
-## Next implementation task
+## Previous checkpoint next task (progress below)
 Continue the non-RT ww_mutex/dma_resv dependency boundary from evidence/033.
 Implement atomic_long operations and actual mutex state/named initialization,
 then resolve stable native task identity and Linux deadlock-avoidance semantics.
@@ -177,3 +177,138 @@ with real dma-fence and errno headers to expose the following dependencies.
 Native kernel runtime and actual GPU execution remain unavailable/unperformed.
 Request timeline/wait/retirement, GPU mappings/context/submission and completion
 are still unimplemented. No HDMI source or device state was changed.
+
+## Wound/wait prerequisites and fence type checkpoint — 2026-11-13
+
+Implemented from actual failures in 033:
+- atomic_long_t stamp increments use native atomic_add64, preserving 64-bit wrap.
+- Named mutex initialization creates a real native named semaphore. An atomic
+  held-state indicator backs mutex_is_locked; unlock clears it before publishing
+  the semaphore to the next owner. It is an advisory snapshot, not an acquisition.
+- Native current-task identity has scoped registration keyed by find_thread(NULL).
+  The caller owns the task record and must keep its scope alive through every
+  referencing Linux context. Duplicate registrations are rejected; access outside
+  a registered scope panics/traps. There is no fake singleton, fake scheduler or
+  claimed task-reference/grace-period support.
+- A monotonic nanosecond adapter uses real system_time_nsecs in native builds and
+  real CLOCK_MONOTONIC in host tests. Native runtime is still untested.
+- The original Linux ww_mutex.h now compiles with -x c -fkeep-inline-functions to
+  a genuine ELF ww_mutex.o, preserving original inline context and slowpath code.
+  This is not a precompiled header. The partial link explicitly leaves
+  ww_mutex_lock and ww_mutex_lock_interruptible unresolved. No deadlock avoidance
+  or wounding operation has been replaced by ordinary successful locking.
+
+Additional compilation-driven interfaces:
+- Original Linux error-pointer and errno headers imported; all 4095 encoded error
+  pointers tested in the target-header CPU probe. Native B_* statuses that expand
+  through errno names are captured before installing Linux's internal errno domain;
+  all six retain their native values. No ioctl status conversion is claimed.
+- asm/current uses the real scope getter. wait.h's reached smp_mb is a real
+  sequentially-consistent fence. bitops exposes only existing actual scalar helpers.
+- DMA-fence timestamp/metadata declarations now parse. RCU callback representation
+  and pointer-load operations exist; RCU readers, grace periods and reclamation
+  do NOT. The unused printk/seqlock includes provide no runtime interfaces.
+- linux/mm.h provides checked native 4-KiB page constants and an unresolved
+  unmap_mapping_range declaration, not a recreated Linux VM or successful unmap.
+
+Real tests and artifacts:
+- 047: all target objects plus original ww inline ELF compile/partial-link; actual
+  target-header atomic/errno probe executes on host (native atomic branch).
+- 048: 40000 original ww_acquire_init/done/fini contexts on eight real host threads
+  have unique ordered stamps and stable registered identities; mutex initialization,
+  held-state and unregister/re-register checks pass under ASan+UBSan. Monotonic
+  clock checks also pass. This tests prerequisites, not ww_mutex_lock/deadlocks.
+- 049: original refcount's 400000 concurrent get/put pairs, final-release ordering,
+  five saturation classes and lock-assisted host releases still pass ASan+UBSan.
+- 050: original drm_mm's 20000 allocation/free transitions still pass ASan+UBSan.
+- 23 imports (including upstream COPYING) are byte-exact with pinned Linux v6.6 Git blob/SHA256 verification.
+  Latest hashes, commands, dependency closure and symbol lists are preserved in
+  ww-prerequisites-target-manifest.json, ww-prerequisites-dependencies.json,
+  ww-header-symbols.txt and ww-target-undefined.txt under evidence/.
+
+Whole-file attempts 034–046 are retained. Current failure 046 is now in
+DRM VMA manager: rwlock_t/read_lock/read_unlock/rwlock_init, memset declaration,
+__u64, and VM area prototypes. Full Linux MM is not needed merely for PAGE_SHIFT;
+no native page/DMA allocator has been simulated to move past this boundary.
+
+FreeBSD comparison inspected ww_mutex.h blob
+9219755bb78e3edbe593e34ecb6bba05c919053b and linux_lock.c blob
+3cebfc6ae3bbf8db622bc35ac0c4bcf96d481e90. Its wrapper uses native sx/CV services
+and a global waiter cycle check, illustrating that context/header compatibility
+alone does not provide the lock algorithm. No FreeBSD code was copied here.
+The attempted linux_ww_mutex.c path was absent; implementation is linux_lock.c.
+
+Reproduce from experimental/i915:
+    make target-atomic-test RENKU_SOURCE=/home/dan/renkuos-i915-source
+    make ww-context-test SANITIZER_LDFLAGS='<local runtime flags in evidence/048>'
+    make refcount-test SANITIZER_LDFLAGS='<same local runtime flags>'
+    make allocator-test SANITIZER_LDFLAGS='<same local runtime flags>'
+    python3 whole-ring-attempt.py --linux-source /tmp/i915-linux-source --log <new-log>
+
+## Full-compatibility next task (still pending)
+Implement actual ww_mutex lock/unlock/trylock with native contention/wakeup and
+correct -EDEADLK/-EALREADY semantics, retaining source algorithms where practical.
+The registered task scope supplies identity, not task lifetime/scheduling; any
+waiter must retain valid storage throughout blocking and cancellation.
+In parallel, narrow the newly reached DRM VMA rwlock/VM interface from 046 without
+building the entire Linux VM. Real DMA-fence waiting/signaling and RCU lifetime
+remain unresolved. Compile headers without confusing them with executable services.
+No native kernel run, driver install, GT/MMIO operation, GPU mapping, submission,
+completion or hardware result occurred. HDMI sources remain unchanged.
+
+## Original Linux batch-start emitter checkpoint — 2026-11-13
+
+Added actual hardware command-construction code alongside the full-file
+LinuxKPI experiment: unchanged gen8_emit_bb_start_noarb and gen8_emit_bb_start
+from Linux v6.6 gen8_engine_cs.c now compile/link with the existing ring slice.
+The extraction retains the complete bodies and original intel_ring_advance
+checks, and imports the full original intel_gpu_commands.h definitions.
+Linux's execlists source selects these emitters for the pre-12.50 graphics path;
+no engine has actually been initialized or selected on hardware here.
+
+Compiler evidence 054 exposed conflicting u64/IS_ENABLED/power-of-two definitions
+between the initial isolated ring shim and the accumulated compatibility layer.
+The ring now consumes the common native-width types and original Linux error
+helpers; command-header sign-extension/mask helpers are real arithmetic.
+No hardware opcode/packet algorithm was rewritten. The private request adds a
+native software nopreempt attribute as the query boundary. These private layouts
+are still NOT complete Linux request structs; do not mix them with full i915
+request objects. Secure dispatch is an internal trusted flag, not a userspace ABI.
+
+Artifacts/tests:
+- 055: both original emitter functions compile as an object referencing actual
+  intel_ring_begin plus panic.
+- 056: 16 ASan/UBSan integration cases cover normal/noarb paths, software
+  nopreempt, trusted dispatch selectors, >4-GiB batch addresses, ring wrapping,
+  guard regions and no implicit publication of the software tail.
+- 057: the same tests pass while linked to the actual target-header-built
+  emitter/ring objects. This executes CPU command construction, not GPU work.
+  Any attempted timeline/wait in the test aborts; no simulated completion exists.
+- 058–061: ring compilation, 40000 ww context transitions, 400000 refcount pairs
+  and 20000 allocator transitions still pass (the CPU tests retain ASan+UBSan).
+- 053 additionally verifies target-header atomics, errno/error pointers after the
+  native failure paths were made trap if a debugger resumes after panic.
+- 25 imported files verify unchanged. Updated emitted object/dependency evidence:
+  emitter-target-manifest.json, emitter-target-dependencies.json and
+  emitter-target-symbols.txt under evidence/; binaries remain under build/.
+
+The latest full intel_ring.c attempt 062 still fails: real rwlock APIs/types
+in drm_vma_manager, then __user/raw_spinlock completion and IDR/radix-tree header
+compatibility. The simpler memset declaration, __u64 and VM-area forward types
+from 046 were supplied using native C headers/declarations. No mmap, unmap,
+completion, ID allocator or rwlock operation has been faked to pass compilation.
+
+Reproduce from experimental/i915:
+    make emitter-test SANITIZER_LDFLAGS='<local runtime flags from evidence/056>'
+    make target-emitter-test RENKU_SOURCE=/home/dan/renkuos-i915-source
+    make host-object
+
+## Next implementation task
+For the full LinuxKPI path, implement actual ww lock/deadlock/wakeup semantics and
+native rwlock support from 062, then continue the GEM/VMA dependency closure.
+For the bounded execution slice, reuse the existing native pinned-memory/context
+results to design the backing/mapping integration before attaching this emitter
+to a real engine. Required GT setup, context, batch/result mappings, submission
+and completion remain absent. Do not treat CPU packet construction as a store
+executed by the GPU or create gpu_exec_probe until those services exist.
+No full-port superiority, native kernel runtime or GPU success is claimed.

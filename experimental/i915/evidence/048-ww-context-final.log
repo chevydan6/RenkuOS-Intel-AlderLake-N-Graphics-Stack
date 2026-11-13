@@ -1,0 +1,7 @@
+python3 verify-upstream.py
+Verified 22 unchanged Linux v6.6 files
+mkdir -p build
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -pthread -Iinclude -Iupstream src/task_identity.c src/time.c tests/host_locks.c tests/ww_context_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/ww_context_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/ww_context_test
+CPU ww prerequisites: 40000 unique context stamps, registered task identity and mutex state; pass
+ww deadlock avoidance and native kernel execution: NOT TESTED

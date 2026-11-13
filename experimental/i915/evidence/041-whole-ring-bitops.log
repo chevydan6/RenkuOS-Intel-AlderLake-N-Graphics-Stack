@@ -1,0 +1,70 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_complete.o
+In file included from /tmp/i915-linux-source/include/linux/printk.h:5,
+                 from /tmp/i915-linux-source/include/linux/dma-fence.h:22,
+                 from /tmp/i915-linux-source/include/linux/dma-resv.h:43,
+                 from /tmp/i915-linux-source/include/drm/drm_gem.h:38,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/linux/stdarg.h:6:9: error: ‘va_start’ redefined [-Werror]
+    6 | #define va_start(v, l)  __builtin_va_start(v, l)
+      |         ^~~~~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:7,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/types.h:3,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_internal.h:9,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:6:
+/usr/lib/gcc/x86_64-redhat-linux/16/include/stdarg.h:51:9: note: this is the location of the previous definition
+   51 | #define va_start(v,l)   __builtin_va_start(v,l)
+      |         ^~~~~~~~
+/tmp/i915-linux-source/include/linux/stdarg.h:8:9: error: ‘va_arg’ redefined [-Werror]
+    8 | #define va_arg(v, T)    __builtin_va_arg(v, T)
+      |         ^~~~~~
+/usr/lib/gcc/x86_64-redhat-linux/16/include/stdarg.h:54:9: note: this is the location of the previous definition
+   54 | #define va_arg(v,l)     __builtin_va_arg(v,l)
+      |         ^~~~~~
+/tmp/i915-linux-source/include/linux/stdarg.h:9:9: error: ‘va_copy’ redefined [-Werror]
+    9 | #define va_copy(d, s)   __builtin_va_copy(d, s)
+      |         ^~~~~~~
+/usr/lib/gcc/x86_64-redhat-linux/16/include/stdarg.h:57:9: note: this is the location of the previous definition
+   57 | #define va_copy(d,s)    __builtin_va_copy(d,s)
+      |         ^~~~~~~
+In file included from /tmp/i915-linux-source/include/linux/init.h:5,
+                 from /tmp/i915-linux-source/include/linux/printk.h:6:
+/tmp/i915-linux-source/include/linux/build_bug.h:30:9: error: ‘BUILD_BUG_ON_INVALID’ redefined [-Werror]
+   30 | #define BUILD_BUG_ON_INVALID(e) ((void)(sizeof((__force long)(e))))
+      |         ^~~~~~~~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:44:9: note: this is the location of the previous definition
+   44 | #define BUILD_BUG_ON_INVALID(x) ((void)sizeof((long)(x)))
+      |         ^~~~~~~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/init.h:53:35: error: expected declaration specifiers or ‘...’ before string constant
+   53 | #define __initdata      __section(".init.data")
+      |                                   ^~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/init.h:146:13: note: in expansion of macro ‘__initdata’
+  146 | extern char __initdata boot_command_line[];
+      |             ^~~~~~~~~~
+/tmp/i915-linux-source/include/linux/init.h:52:35: error: expected declaration specifiers or ‘...’ before string constant
+   52 | #define __init          __section(".init.text") __cold  __latent_entropy __noinitretpoline
+      |                                   ^~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/init.h:154:6: note: in expansion of macro ‘__init’
+  154 | void __init init_rootfs(void);
+      |      ^~~~~~
+/tmp/i915-linux-source/include/linux/init.h:52:35: error: expected declaration specifiers or ‘...’ before string constant
+   52 | #define __init          __section(".init.text") __cold  __latent_entropy __noinitretpoline
+      |                                   ^~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/init.h:381:6: note: in expansion of macro ‘__init’
+  381 | void __init parse_early_param(void);
+      |      ^~~~~~
+/tmp/i915-linux-source/include/linux/init.h:52:35: error: expected declaration specifiers or ‘...’ before string constant
+   52 | #define __init          __section(".init.text") __cold  __latent_entropy __noinitretpoline
+      |                                   ^~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/init.h:382:6: note: in expansion of macro ‘__init’
+  382 | void __init parse_early_options(char *cmdline);
+      |      ^~~~~~
+In file included from /tmp/i915-linux-source/include/linux/printk.h:8:
+/tmp/i915-linux-source/include/linux/linkage.h:8:10: fatal error: asm/linkage.h: No such file or directory
+    8 | #include <asm/linkage.h>
+      |          ^~~~~~~~~~~~~~~
+compilation terminated.
+cc1: all warnings being treated as errors
+
+compiler exit: 1

@@ -48,6 +48,17 @@ static inline bool renku_linux_try_cmpxchg(atomic_t *v, int *old, int n)
 		__ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 #endif
 }
+typedef struct { int64_t counter; } atomic_long_t;
+#define ATOMIC_LONG_INIT(n) { .counter = (n) }
+static inline long atomic_long_inc_return_relaxed(atomic_long_t *v)
+{
+#ifdef RENKU_NATIVE
+	int64_t previous = atomic_add64(&v->counter, 1);
+#else
+	int64_t previous = __atomic_fetch_add(&v->counter, 1, __ATOMIC_RELAXED);
+#endif
+	return (long)((uint64_t)previous + 1);
+}
 /* RenkuOS's pointer-based atomic_set name must remain intact above. */
 #define atomic_set renku_linux_atomic_set
 #define atomic_read renku_linux_atomic_read

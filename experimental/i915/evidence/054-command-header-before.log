@@ -1,0 +1,31 @@
+In file included from experimental/i915/include/linux/bitops.h:5,
+                 from experimental/i915/upstream/gt/intel_gpu_commands.h:9,
+                 from experimental/i915/build/command_header_probe.c:2:
+experimental/i915/include/kpi_base.h:18:28: error: conflicting types for ‘u64’; have ‘long long unsigned int’
+   18 | typedef unsigned long long u64;
+      |                            ^~~
+In file included from experimental/i915/build/command_header_probe.c:1:
+experimental/i915/include/ring_port.h:14:18: note: previous declaration of ‘u64’ with type ‘u64’ {aka ‘long unsigned int’}
+   14 | typedef uint64_t u64;
+      |                  ^~~
+experimental/i915/include/kpi_base.h:70:9: error: ‘IS_ENABLED’ redefined [-Werror]
+   70 | #define IS_ENABLED(x) (x)
+      |         ^~~~~~~~~~
+experimental/i915/include/ring_port.h:19:9: note: this is the location of the previous definition
+   19 | #define IS_ENABLED(x) 0
+      |         ^~~~~~~~~~
+experimental/i915/include/kpi_base.h:83:20: error: conflicting types for ‘is_power_of_2’; have ‘_Bool(long long unsigned int)’
+   83 | static inline bool is_power_of_2(unsigned long long x) { return x && !(x & (x - 1)); }
+      |                    ^~~~~~~~~~~~~
+experimental/i915/include/ring_port.h:38:20: note: previous definition of ‘is_power_of_2’ with type ‘_Bool(unsigned int)’
+   38 | static inline bool is_power_of_2(unsigned int x) { return x && !(x & (x - 1)); }
+      |                    ^~~~~~~~~~~~~
+experimental/i915/upstream/gt/intel_gpu_commands.h: In function ‘gen8_canonical_addr’:
+experimental/i915/upstream/gt/intel_gpu_commands.h:458:16: error: implicit declaration of function ‘sign_extend64’ [-Wimplicit-function-declaration]
+  458 |         return sign_extend64(address, GEN8_HIGH_ADDRESS_BIT);
+      |                ^~~~~~~~~~~~~
+experimental/i915/upstream/gt/intel_gpu_commands.h: In function ‘gen8_noncanonical_addr’:
+experimental/i915/upstream/gt/intel_gpu_commands.h:463:26: error: implicit declaration of function ‘GENMASK_ULL’ [-Wimplicit-function-declaration]
+  463 |         return address & GENMASK_ULL(GEN8_HIGH_ADDRESS_BIT, 0);
+      |                          ^~~~~~~~~~~
+cc1: all warnings being treated as errors

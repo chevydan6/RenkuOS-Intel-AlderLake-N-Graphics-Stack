@@ -1,0 +1,8 @@
+python3 verify-upstream.py
+Verified 25 unchanged Linux v6.6 files
+python3 extract.py
+python3 extract-emitter.py
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -Iinclude -Iupstream build/intel_ring_slice.c build/gen8_engine_slice.c tests/emitter_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/emitter_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/emitter_test
+CPU batch-start encoding: 16 branch/wrap cases, 64-bit addresses and guards; pass
+No GPU command was submitted or completed.

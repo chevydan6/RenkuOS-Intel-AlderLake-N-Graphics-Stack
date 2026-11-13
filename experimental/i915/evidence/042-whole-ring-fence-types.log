@@ -1,0 +1,55 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_complete.o
+In file included from /tmp/i915-linux-source/include/linux/dma-resv.h:43,
+                 from /tmp/i915-linux-source/include/drm/drm_gem.h:38,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/linux/dma-fence.h:87:17: error: unknown type name ‘ktime_t’; did you mean ‘time_t’?
+   87 |                 ktime_t timestamp;
+      |                 ^~~~~~~
+      |                 time_t
+/tmp/i915-linux-source/include/linux/dma-fence.h:89:33: error: field ‘rcu’ has incomplete type
+   89 |                 struct rcu_head rcu;
+      |                                 ^~~
+/tmp/i915-linux-source/include/linux/dma-fence.h:279:55: error: unknown type name ‘ktime_t’; did you mean ‘time_t’?
+  279 |         void (*set_deadline)(struct dma_fence *fence, ktime_t deadline);
+      |                                                       ^~~~~~~
+      |                                                       time_t
+/tmp/i915-linux-source/include/linux/dma-fence.h:280:1: error: no semicolon at end of struct or union [-Werror]
+  280 | };
+      | ^
+/tmp/i915-linux-source/include/linux/dma-fence.h:287:57: error: ‘struct seq_file’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  287 | void dma_fence_describe(struct dma_fence *fence, struct seq_file *seq);
+      |                                                         ^~~~~~~~
+/tmp/i915-linux-source/include/linux/dma-fence.h:344:47: error: expected ‘;’, ‘,’ or ‘)’ before ‘*’ token
+  344 | dma_fence_get_rcu_safe(struct dma_fence __rcu **fencep)
+      |                                               ^
+/tmp/i915-linux-source/include/linux/dma-fence.h:392:57: error: unknown type name ‘ktime_t’; did you mean ‘time_t’?
+  392 | int dma_fence_signal_timestamp(struct dma_fence *fence, ktime_t timestamp);
+      |                                                         ^~~~~~~
+      |                                                         time_t
+/tmp/i915-linux-source/include/linux/dma-fence.h:394:39: error: unknown type name ‘ktime_t’; did you mean ‘time_t’?
+  394 |                                       ktime_t timestamp);
+      |                                       ^~~~~~~
+      |                                       time_t
+/tmp/i915-linux-source/include/linux/dma-fence.h: In function ‘__dma_fence_is_later’:
+/tmp/i915-linux-source/include/linux/dma-fence.h:481:22: error: implicit declaration of function ‘lower_32_bits’ [-Wimplicit-function-declaration]
+  481 |         return (int)(lower_32_bits(f1) - lower_32_bits(f2)) > 0;
+      |                      ^~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/dma-fence.h: In function ‘dma_fence_is_later’:
+/tmp/i915-linux-source/include/linux/dma-fence.h:495:13: error: implicit declaration of function ‘WARN_ON’; did you mean ‘WARN_ONCE’? [-Wimplicit-function-declaration]
+  495 |         if (WARN_ON(f1->context != f2->context))
+      |             ^~~~~~~
+      |             WARN_ONCE
+/tmp/i915-linux-source/include/linux/dma-fence.h: At top level:
+/tmp/i915-linux-source/include/linux/dma-fence.h:579:15: error: unknown type name ‘ktime_t’; did you mean ‘time_t’?
+  579 | static inline ktime_t dma_fence_timestamp(struct dma_fence *fence)
+      |               ^~~~~~~
+      |               time_t
+/tmp/i915-linux-source/include/linux/dma-fence.h: In function ‘dma_fence_timestamp’:
+/tmp/i915-linux-source/include/linux/dma-fence.h:582:24: error: implicit declaration of function ‘ktime_get’ [-Wimplicit-function-declaration]
+  582 |                 return ktime_get();
+      |                        ^~~~~~~~~
+compilation terminated due to -fmax-errors=12.
+
+compiler exit: 1

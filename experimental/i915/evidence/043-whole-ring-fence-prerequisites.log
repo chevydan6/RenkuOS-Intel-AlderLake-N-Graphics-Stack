@@ -1,0 +1,54 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_complete.o
+In file included from /tmp/i915-linux-source/include/linux/kcsan-checks.h:13,
+                 from /tmp/i915-linux-source/include/linux/seqlock.h:17,
+                 from /tmp/i915-linux-source/include/linux/dma-resv.h:45,
+                 from /tmp/i915-linux-source/include/drm/drm_gem.h:38,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/linux/compiler_attributes.h:33:9: error: ‘__aligned’ redefined [-Werror]
+   33 | #define __aligned(x)                    __attribute__((__aligned__(x)))
+      |         ^~~~~~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/types.h:3,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_internal.h:9,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:6:
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:34:9: note: this is the location of the previous definition
+   34 | #define __aligned(x) __attribute__((aligned(x)))
+      |         ^~~~~~~~~
+/tmp/i915-linux-source/include/linux/compiler_attributes.h:55:9: error: ‘__always_inline’ redefined [-Werror]
+   55 | #define __always_inline                 inline __attribute__((__always_inline__))
+      |         ^~~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:32:9: note: this is the location of the previous definition
+   32 | #define __always_inline inline __attribute__((always_inline))
+      |         ^~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/compiler_attributes.h:344:9: error: ‘__maybe_unused’ redefined [-Werror]
+  344 | #define __maybe_unused                  __attribute__((__unused__))
+      |         ^~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:35:9: note: this is the location of the previous definition
+   35 | #define __maybe_unused __attribute__((unused))
+      |         ^~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/compiler_attributes.h:356:9: error: ‘__must_check’ redefined [-Werror]
+  356 | #define __must_check                    __attribute__((__warn_unused_result__))
+      |         ^~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:36:9: note: this is the location of the previous definition
+   36 | #define __must_check __attribute__((warn_unused_result))
+      |         ^~~~~~~~~~~~
+In file included from /tmp/i915-linux-source/include/linux/lockdep.h:13,
+                 from /tmp/i915-linux-source/include/linux/seqlock.h:18:
+/tmp/i915-linux-source/include/linux/lockdep_types.h:206:8: error: redefinition of ‘struct lock_class_key’
+  206 | struct lock_class_key { };
+      |        ^~~~~~~~~~~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/upstream/linux/ww_mutex.h:20,
+                 from /tmp/i915-linux-source/include/linux/dma-resv.h:42:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/mutex.h:22:8: note: originally defined here
+   22 | struct lock_class_key { unsigned char identity; };
+      |        ^~~~~~~~~~~~~~
+In file included from /tmp/i915-linux-source/include/linux/smp.h:10,
+                 from /tmp/i915-linux-source/include/linux/lockdep.h:14:
+/tmp/i915-linux-source/include/linux/errno.h:5:10: fatal error: uapi/linux/errno.h: No such file or directory
+    5 | #include <uapi/linux/errno.h>
+      |          ^~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+cc1: all warnings being treated as errors
+
+compiler exit: 1

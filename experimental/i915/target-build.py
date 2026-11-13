@@ -18,6 +18,7 @@ if revision != '4799bb5a188c4bb6bbef967287640cc21a061a0d':
     p.error('expected the GPU branch RenkuOS source baseline 4799bb5')
 subprocess.run(['python3', str(root / 'verify-upstream.py')], check=True)
 subprocess.run(['python3', str(root / 'extract.py')], check=True)
+subprocess.run(['python3', str(root / 'extract-emitter.py')], check=True)
 gcc_include = subprocess.check_output([a.cc, '-print-file-name=include'], text=True).strip()
 flags = ['-std=gnu11', '-O2', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter',
          '-Wno-sign-compare', '-fno-strict-overflow',
@@ -31,11 +32,15 @@ flags += ['-I' + str(root / 'include'), '-I' + str(root / 'upstream')]
 build = root / 'build/target'
 build.mkdir(exist_ok=True)
 records = []
-for unit in ['build/intel_ring_slice.c', 'upstream/drm/drm_mm.c',
+for unit in ['build/intel_ring_slice.c', 'build/gen8_engine_slice.c', 'upstream/drm/drm_mm.c',
              'upstream/lib/rbtree.c', 'upstream/lib/refcount.c',
-             'src/native_locks.c', 'src/native_diagnostics.c']:
+             'upstream/linux/ww_mutex.h',
+             'src/native_locks.c', 'src/task_identity.c', 'src/time.c', 'src/native_diagnostics.c']:
     obj = build / (Path(unit).stem + '.o')
     cmd = [a.cc, *flags, '-MMD', '-c', str(root / unit), '-o', str(obj)]
+    if unit.endswith('.h'):
+        # Emit the unchanged header's real inline code, not a precompiled header.
+        cmd[1:1] = ['-x', 'c', '-fkeep-inline-functions']
     print(' '.join(cmd), flush=True)
     subprocess.run(cmd, check=True)
     records.append({'source': unit, 'object': obj.name,

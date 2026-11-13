@@ -28,8 +28,19 @@
 | Linux mutex init/lock/unlock/destroy | implemented, native runtime untested | Native semaphores; retries interruption, panics on other failures |
 | spin_lock/init/unlock and IRQ-save/restore | implemented, native runtime untested | Native spinlocks with IRQ exclusion; plain spin_lock is stronger than Linux |
 | PREEMPT_RT/rt_mutex | excluded configuration | No RT methods provided; non-RT ww_mutex uses struct mutex; RT build fails |
-| atomic_long/ww_mutex/task identity | unresolved | Whole-ring 033 exposes actual required declarations and semantics |
-| dma-fence errno interfaces | unresolved | Next include path reaches asm/errno.h (033) |
+| atomic_long stamp increment | implemented | Native atomic_add64; target-header wrap check passes |
+| ww acquire context/header | compiled original inline code, CPU context tested | ww_mutex.o is ELF; 40000 original contexts on 8 host threads |
+| ww_mutex_lock/interruptible/unlock/trylock | unresolved | No ordinary-lock success substitution; lock symbols undefined |
+| Named mutex init/state | implemented, native runtime untested | Named native semaphore; atomic held-state snapshot |
+| current / task identity | implemented scoped identity | Real find_thread ID with caller-owned registration record; not a scheduler/task lifetime service |
+| Linux errno/error pointers | implemented | Byte-exact headers; 4095 pointer codes and 6 native status aliases tested |
+| ktime_get/ktime_t | implemented, native runtime untested | system_time_nsecs; host CLOCK_MONOTONIC test |
+| RCU callback metadata/acquire pointer loads | represented/implemented only | Reader protection, grace periods and reclamation unresolved |
+| smp_mb/cpu_relax | implemented | Real CPU/compiler seq-cst barrier and x86 pause |
+| printk/seqlock | excluded APIs | Reached headers call no methods; wrappers expose no fake logging/sequence operations |
+| Native PAGE_SIZE/PAGE_SHIFT | implemented constants | Compile-time check against B_PAGE_SIZE; no page allocation |
+| unmap_mapping_range | unresolved | Declaration only; no successful unmap stub |
+| DRM VMA rwlock and VM interfaces | unresolved | Current compiler errors in 062; basic memset/__u64/VM-area forward declarations supplied |
 | PCI/MMIO/DMA/GT initialization/contexts/execlists | unresolved integration | Not provided by CPU allocator; no speculative adapter implementations |
 
 Caller must serialize drm_mm operations. No full Linux locking family, page allocation,
@@ -46,3 +57,23 @@ Upstream signedness diagnostics are excluded with -Wno-sign-compare, not source
 rewrites. kref/refcount original headers retain all saturation checks. Locked
 refcount host tests execute pthread backends, not native kernel primitives;
 userspace IRQ paths abort. Public/native syscall status conversion remains absent.
+
+Native errno aliases B_BUFFER_OVERFLOW/B_TOO_MANY_ARGS/B_FILE_TOO_LARGE/
+B_RESULT_NOT_REPRESENTABLE/B_DEVICE_NOT_FOUND/B_NOT_SUPPORTED are frozen before
+Linux errno definitions replace E* names. This preserves native statuses within
+a mixed translation unit; external ioctl/syscall conversion is still unresolved.
+Task registration must span every referencing acquire context. There is no
+implicit task allocation/cache, fake current pointer, schedule or wakeup API.
+
+| Execution-slice interface | Status | Evidence |
+|---|---|---|
+| gen8_emit_bb_start/noarb | compiled original bodies, CPU tested | Real ring_begin integration; 056/057 |
+| intel_ring_advance | original inline body retained | Exact bounds/alignment assertions |
+| intel_gpu_commands definitions | imported original | Byte-exact source; no rewritten opcodes |
+| nopreempt query | adapted software property | Private request attribute, not a general scheduling implementation |
+| trusted I915_DISPATCH_SECURE flag | adapted constant | Linux v6.6 intel_engine_types.h BIT(0), no public userspace dispatch |
+| sign_extend64/GENMASK/upper-lower bits | implemented arithmetic | Original canonical-address helpers and >4-GiB packets tested |
+
+The slice's test-only timeline/wait definitions abort if reached. They are not
+linked into the native component set and do not emulate completion. Native ring
+waiting/retirement is still unresolved. The full i915 request layout is distinct.

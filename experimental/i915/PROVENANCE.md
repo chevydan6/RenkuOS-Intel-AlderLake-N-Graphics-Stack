@@ -58,3 +58,46 @@ Ported-from-license: GPL-2.0-only
 
 Ported-from: Linux/v6.6/include/linux/kref.h
 Ported-from-license: GPL-2.0-only
+
+## Wound/wait and errno imports
+
+Ported-from: Linux/v6.6/include/linux/ww_mutex.h
+Ported-from-license: GPL-2.0-only
+
+Ported-from: Linux/v6.6/include/linux/err.h
+Ported-from-license: GPL-2.0-only
+
+Ported-from: Linux/v6.6/include/linux/errno.h
+Ported-from-license: GPL-2.0-only
+
+Ported-from: Linux/v6.6/include/uapi/asm-generic/errno-base.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/uapi/asm-generic/errno.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/uapi/linux/errno.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note (upstream COPYING; wrapper has no file-specific SPDX)
+
+Ported-from: Linux/v6.6/include/uapi/linux/wait.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+The original Linux syscall exception text is retained in
+upstream/licenses/Linux-syscall-note. Native task/time/lock adapters are new MIT
+code. FreeBSD ww_mutex/linux_lock code was consulted, not imported.
+
+upstream/COPYING retains Linux's root license declaration, including the
+syscall exception applicable to the one-line UAPI errno include wrapper.
+
+## Batch-start execution slice
+
+Ported-from: Linux/v6.6/drivers/gpu/drm/i915/gt/gen8_engine_cs.c
+Ported-from-license: MIT
+
+Ported-from: Linux/v6.6/drivers/gpu/drm/i915/gt/intel_gpu_commands.h
+Ported-from-license: MIT
+
+I915_DISPATCH_SECURE in emitter_port.h retains BIT(0) from Linux v6.6
+intel_engine_types.h (MIT, Intel Corporation 2019). Original emitter bodies and
+intel_ring_advance are extracted unchanged; native object/query interfaces and
+CPU integration tests are new MIT code. Tests are not GPU execution evidence.

@@ -4,11 +4,11 @@ CFLAGS = -std=gnu11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-builtin -mno-r
 .PHONY: host-object native-object
 host-object:
 	python3 extract.py
-	$(CC) $(CFLAGS) -Iinclude -MMD -c build/intel_ring_slice.c -o build/intel_ring_slice.o
+	$(CC) $(CFLAGS) -Iinclude -Iupstream -MMD -c build/intel_ring_slice.c -o build/intel_ring_slice.o
 	nm -u build/intel_ring_slice.o
 native-object:
 	python3 extract.py
-	$(CC) $(CFLAGS) $(NATIVE_CPPFLAGS) -DRENKU_NATIVE -Iinclude -MMD -c build/intel_ring_slice.c -o build/intel_ring_slice.native.o
+	$(CC) $(CFLAGS) $(NATIVE_CPPFLAGS) -DRENKU_NATIVE -Iinclude -Iupstream -MMD -c build/intel_ring_slice.c -o build/intel_ring_slice.native.o
 
 .PHONY: allocator-test target-objects
 allocator-test:
@@ -30,3 +30,21 @@ refcount-test:
 target-atomic-test: target-objects
 	$(CC) -std=gnu11 -Wall -Wextra -Werror tests/native_atomic_runner.c build/target/native_atomic_probe.o -o build/native_atomic_test
 	./build/native_atomic_test
+
+.PHONY: ww-context-test
+ww-context-test:
+	python3 verify-upstream.py
+	mkdir -p build
+	$(CC) -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -pthread -Iinclude -Iupstream src/task_identity.c src/time.c tests/host_locks.c tests/ww_context_test.c $(SANITIZER_LDFLAGS) -o build/ww_context_test
+	UBSAN_OPTIONS=halt_on_error=1 ./build/ww_context_test
+
+.PHONY: emitter-test target-emitter-test
+emitter-test:
+	python3 verify-upstream.py
+	python3 extract.py
+	python3 extract-emitter.py
+	$(CC) -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -Iinclude -Iupstream build/intel_ring_slice.c build/gen8_engine_slice.c tests/emitter_test.c $(SANITIZER_LDFLAGS) -o build/emitter_test
+	UBSAN_OPTIONS=halt_on_error=1 ./build/emitter_test
+target-emitter-test: target-objects
+	$(CC) -std=gnu11 -Wall -Wextra -Werror -Iinclude -Iupstream tests/emitter_test.c build/target/intel_ring_slice.o build/target/gen8_engine_slice.o -o build/target_emitter_test
+	./build/target_emitter_test

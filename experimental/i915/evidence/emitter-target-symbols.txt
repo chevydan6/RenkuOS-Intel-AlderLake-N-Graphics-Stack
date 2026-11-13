@@ -1,0 +1,4 @@
+00000000000000a0 T gen8_emit_bb_start
+0000000000000000 T gen8_emit_bb_start_noarb
+                 U intel_ring_begin
+                 U panic
