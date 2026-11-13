@@ -1,3 +1,7 @@
 /* SPDX-License-Identifier: MIT */
-/* Scoped drm_mm build: only interfaces in kpi_base.h are supported. */
+#ifndef RENKU_LINUX_COMPILER_H
+#define RENKU_LINUX_COMPILER_H
 #include <kpi_base.h>
+/* Compiler-only barrier, matching Linux's GCC compiler barrier contract. */
+#define barrier() __asm__ __volatile__("" ::: "memory")
+#endif

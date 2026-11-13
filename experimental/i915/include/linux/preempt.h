@@ -19,7 +19,7 @@ bool renku_linux_in_atomic(void);
 #define preempt_enable renku_linux_preempt_enable
 #define preempt_enable_notrace renku_linux_preempt_enable
 #define preempt_count renku_linux_preempt_count
-#define preemptible renku_linux_preemptible
+#define preemptible() renku_linux_preemptible()
 #define in_atomic renku_linux_in_atomic
 /* Interrupt-context classification needs the actual driver IRQ entry path.
  * Keep it unresolved rather than reporting fictitious task/IRQ context. */

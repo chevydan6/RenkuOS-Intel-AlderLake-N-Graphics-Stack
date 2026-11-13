@@ -27,6 +27,15 @@ static inline void renku_linux_spin_unlock_irqrestore(spinlock_t *l, unsigned lo
 bool renku_linux_spin_is_locked(spinlock_t *);
 #define spin_is_locked renku_linux_spin_is_locked
 #define assert_spin_locked(l) BUG_ON(!spin_is_locked(l))
+static inline void renku_linux_spin_lock_irq(spinlock_t *l) { raw_spin_lock_irq(&l->rlock); }
+static inline void renku_linux_spin_unlock_irq(spinlock_t *l) { raw_spin_unlock_irq(&l->rlock); }
+#define spin_lock_irq renku_linux_spin_lock_irq
+#define spin_unlock_irq renku_linux_spin_unlock_irq
+/* Linux BH masking is a separate service; never substitute IRQ success. */
+void renku_linux_spin_lock_bh(spinlock_t *);
+void renku_linux_spin_unlock_bh(spinlock_t *);
+#define spin_lock_bh renku_linux_spin_lock_bh
+#define spin_unlock_bh renku_linux_spin_unlock_bh
 #define spin_lock_init renku_linux_spin_init
 #define spin_lock renku_linux_spin_lock
 #define spin_unlock renku_linux_spin_unlock

@@ -51,8 +51,5 @@ long io_schedule_timeout(long);
 #define set_current_state renku_linux_set_current_state
 #define __set_current_state renku_linux_set_current_state
 #define signal_pending_state renku_linux_signal_pending_state
-static inline void cpu_relax(void)
-{
-	__asm__ __volatile__("pause" ::: "memory");
-}
+#include <asm/processor.h>
 #endif
