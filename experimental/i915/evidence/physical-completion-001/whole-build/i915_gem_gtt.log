@@ -1,0 +1,81 @@
+In file included from reference/include/linux/kernel.h:15,
+                 from reference/include/linux/random.h:7,
+                 from upstream/gem/i915_gem_gtt.c:11:
+reference/include/linux/align.h:8: error: "ALIGN" redefined [-Werror]
+    8 | #define ALIGN(x, a)             __ALIGN_KERNEL((x), (a))
+      | 
+In file included from /boot/system/develop/headers/os/storage/StorageDefs.h:10,
+                 from /boot/system/develop/headers/os/kernel/OS.h:14,
+                 from /boot/system/develop/headers/os/drivers/KernelExport.h:10,
+                 from include/kpi_base.h:13,
+                 from include/linux/slab.h:3,
+                 from upstream/gem/i915_gem_gtt.c:7:
+/boot/system/develop/headers/bsd/sys/param.h:21: note: this is the location of the previous definition
+   21 | #define ALIGN(p)        _ALIGN(p)
+      | 
+In file included from reference/include/linux/kernel.h:26:
+reference/include/linux/math.h:59: error: "roundup" redefined [-Werror]
+   59 | #define roundup(x, y) (                                 \
+      | 
+/boot/system/develop/headers/bsd/sys/param.h:27: note: this is the location of the previous definition
+   27 | #define roundup(x, y)   ((((x)+((y)-1))/(y))*(y))
+      | 
+reference/include/linux/math.h:73: error: "rounddown" redefined [-Werror]
+   73 | #define rounddown(x, y) (                               \
+      | 
+/boot/system/develop/headers/bsd/sys/param.h:28: note: this is the location of the previous definition
+   28 | #define rounddown(x, y)  (((x)/(y))*(y))
+      | 
+In file included from reference/include/linux/kernel.h:27:
+reference/include/linux/minmax.h:68: error: "min" redefined [-Werror]
+   68 | #define min(x, y)       __careful_cmp(x, y, <)
+      | 
+include/kpi_base.h:87: note: this is the location of the previous definition
+   87 | #define min(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a < _b ? _a : _b; })
+      | 
+reference/include/linux/minmax.h:75: error: "max" redefined [-Werror]
+   75 | #define max(x, y)       __careful_cmp(x, y, >)
+      | 
+include/kpi_base.h:88: note: this is the location of the previous definition
+   88 | #define max(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })
+      | 
+In file included from reference/include/linux/panic.h:5,
+                 from reference/include/linux/kernel.h:29:
+reference/include/linux/compiler_attributes.h:33: error: "__aligned" redefined [-Werror]
+   33 | #define __aligned(x)                    __attribute__((__aligned__(x)))
+      | 
+include/kpi_base.h:39: note: this is the location of the previous definition
+   39 | #define __aligned(x) __attribute__((aligned(x)))
+      | 
+reference/include/linux/compiler_attributes.h:55: error: "__always_inline" redefined [-Werror]
+   55 | #define __always_inline                 inline __attribute__((__always_inline__))
+      | 
+include/kpi_base.h:37: note: this is the location of the previous definition
+   37 | #define __always_inline inline __attribute__((always_inline))
+      | 
+reference/include/linux/compiler_attributes.h:344: error: "__maybe_unused" redefined [-Werror]
+  344 | #define __maybe_unused                  __attribute__((__unused__))
+      | 
+include/kpi_base.h:40: note: this is the location of the previous definition
+   40 | #define __maybe_unused __attribute__((unused))
+      | 
+reference/include/linux/compiler_attributes.h:356: error: "__must_check" redefined [-Werror]
+  356 | #define __must_check                    __attribute__((__warn_unused_result__))
+      | 
+include/kpi_base.h:41: note: this is the location of the previous definition
+   41 | #define __must_check __attribute__((warn_unused_result))
+      | 
+reference/include/linux/panic.h:12:45: error: expected ',' or ';' before '__cold'
+   12 | void panic(const char *fmt, ...) __noreturn __cold;
+      |                                             ^~~~~~
+reference/include/linux/panic.h:43:8: error: unknown type name 'atomic_t'
+   43 | extern atomic_t panic_cpu;
+      |        ^~~~~~~~
+In file included from reference/include/linux/kernel.h:31:
+reference/include/linux/build_bug.h:30: error: "BUILD_BUG_ON_INVALID" redefined [-Werror]
+   30 | #define BUILD_BUG_ON_INVALID(e) ((void)(sizeof((__force long)(e))))
+      | 
+include/kpi_base.h:54: note: this is the location of the previous definition
+   54 | #define BUILD_BUG_ON_INVALID(x) ((void)sizeof((long)(x)))
+      | 
+compilation terminated due to -fmax-errors=12.

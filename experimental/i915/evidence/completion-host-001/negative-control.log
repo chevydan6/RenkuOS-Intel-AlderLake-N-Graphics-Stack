@@ -1,0 +1,2 @@
+exit=-6
+test: /home/dan/haiku-intel-gpu/experimental/i915/completion/host_test.c:11: main: Assertion `!report.failures && report.phases == 12 && report.workers == 24' failed.

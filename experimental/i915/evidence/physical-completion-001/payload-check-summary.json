@@ -1,0 +1,7 @@
+{
+  "expected_files": 6916,
+  "verified_files": 6916,
+  "non_success_lines": [],
+  "full_log_sha256": "dc8ad334f7a16f579c65f000cb4b92739ed62cb70801ae8b0d5997ee6c4b9ce7",
+  "full_log_location": "native-results-001.tar.gz:payload-check.log"
+}

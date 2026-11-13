@@ -87,3 +87,19 @@ Later whole GEM/ring failures are retained in physical-vma-001: missing s8/u16/
 s16/s32 aliases, asm/div64.h, raw spinlock/wait interfaces, lock_class_key collision
 and missing external sparse-checkout UAPI headers. VMA offset management does not
 implement user mmap, page faults, GEM lifecycle, fences or request retirement.
+
+## Completion continuation
+
+Complete original Linux completion/swait algorithms now have a tested native
+event/deadline backend for caller-owned registered entry scopes. Timeout, counted
+wake/broadcast and real interruptible/ordinary-signal killable behavior pass on
+the N100. This is not a general Linux scheduler/signal subsystem, task-reference
+model, GPU fence integration or proof of cancellation teardown. First wait-event
+allocation still fails fatally on resource exhaustion; production entry/error
+handling and scope ownership must be wired before a full driver is exposed.
+
+Whole GEM/ring files still fail with the actual RenkuOS compiler. Current errors
+include macro/attribute namespace collisions, early init/might_sleep declarations
+and missing architecture/preemption interfaces. See physical-completion-001/
+whole-build/. The earlier scalar types/division/raw-spin/class-key obstacles are
+resolved for the tested compilation environment. GPU submission remains absent.

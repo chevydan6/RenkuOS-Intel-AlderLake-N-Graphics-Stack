@@ -1,0 +1,31 @@
+In file included from reference/include/linux/radix-tree.h:15,
+                 from reference/include/linux/idr.h:15,
+                 from reference/include/drm/drm_file.h:35,
+                 from reference/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from upstream/gt/intel_ring.c:8:
+reference/include/linux/math.h:59: error: "roundup" redefined [-Werror]
+   59 | #define roundup(x, y) (                                 \
+      | 
+In file included from /boot/system/develop/headers/os/storage/StorageDefs.h:10,
+                 from /boot/system/develop/headers/os/kernel/OS.h:14,
+                 from /boot/system/develop/headers/os/drivers/KernelExport.h:10,
+                 from include/kpi_base.h:13,
+                 from include/linux/types.h:3,
+                 from reference/drivers/gpu/drm/i915/gem/i915_gem_internal.h:9,
+                 from upstream/gt/intel_ring.c:6:
+/boot/system/develop/headers/bsd/sys/param.h:27: note: this is the location of the previous definition
+   27 | #define roundup(x, y)   ((((x)+((y)-1))/(y))*(y))
+      | 
+reference/include/linux/math.h:73: error: "rounddown" redefined [-Werror]
+   73 | #define rounddown(x, y) (                               \
+      | 
+/boot/system/develop/headers/bsd/sys/param.h:28: note: this is the location of the previous definition
+   28 | #define rounddown(x, y)  (((x)/(y))*(y))
+      | 
+In file included from reference/include/linux/percpu.h:6,
+                 from reference/include/linux/radix-tree.h:16:
+reference/include/linux/preempt.h:79:10: fatal error: asm/preempt.h: No such file or directory
+   79 | #include <asm/preempt.h>
+      |          ^~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+compilation terminated.

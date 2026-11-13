@@ -132,3 +132,13 @@ and 48,000 lock operations, including overlapping readers and IRQ restoration.
 This reduces the actual i915 dependency work without rewriting GPU algorithms.
 Complete GEM/ring builds still fail on later compatibility interfaces; no GPU
 execution or Mesa support follows from this CPU-only DRM module result.
+
+## Original completion reuse result
+
+The complete Linux completion and simple-wait-queue algorithms now execute on
+the N100 over existing native semaphore/IRQ/time services. Four runs pass 476
+checks with 96 kernel waiter workers, plus real user-thread interruption and
+ordinary-signal killable-wait controls. This supplies driver synchronization
+semantics while retaining original algorithms; it does not establish GPU fence
+completion or reduce a measured time-to-Mesa estimate. Native whole GEM/ring
+compilation still exposes later compatibility dependencies.

@@ -125,3 +125,17 @@ shutdown rejects live scopes. Sleeping kmalloc/native deferred kfree support
 VMA access records; atomic allocation and general slab caches remain unsupported.
 Original compiler_types/log2 imports plus compiler stdarg/ABI wrappers resolve
 earlier header collisions. See vma/README.md and physical-vma-001 evidence.
+
+## Original completion and simple wait queues
+
+Whole completion.c/swait.c and original headers now build/run through native IRQ
+locks, semaphore events, monotonic deadlines and registered entry scopes. The
+actual N100 tests cover counted wakes, multiple waiters, broadcasts/reuse, timeout
+and user-thread signal handling; no GPU completion is connected. Scopes own
+lazily created native events and destroy them before unregister/unload. HZ=1000
+is explicit; general task/signal scheduling and Linux blkio accounting are not
+implemented. See completion/README.md for exact limitations and reproduction.
+
+Original generic division/kconfig/lockdep-off/UAPI helpers and native atomic-bit
+operations reduce the next whole-source dependency set. Fully materialized
+reference headers are verified against the pin before native compiler attempts.

@@ -1,0 +1,91 @@
+In file included from reference/include/linux/fs.h:6,
+                 from reference/include/linux/highmem.h:5,
+                 from upstream/gem/i915_gem_phys.c:7:
+reference/include/linux/wait_bit.h:34:20: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'wait_bit_init'
+   34 | extern void __init wait_bit_init(void);
+      |                    ^~~~~~~~~~~~~
+reference/include/linux/wait_bit.h: In function 'wait_on_bit':
+reference/include/linux/wait_bit.h:73:9: error: implicit declaration of function 'might_sleep' [-Werror=implicit-function-declaration]
+   73 |         might_sleep();
+      |         ^~~~~~~~~~~
+In file included from reference/include/linux/fs.h:7:
+reference/include/linux/kdev_t.h: At top level:
+reference/include/linux/kdev_t.h:10: error: "MAJOR" redefined [-Werror]
+   10 | #define MAJOR(dev)      ((unsigned int) ((dev) >> MINORBITS))
+      | 
+In file included from reference/include/linux/kdev_t.h:5:
+reference/include/uapi/linux/kdev_t.h:10: note: this is the location of the previous definition
+   10 | #define MAJOR(dev)      ((dev)>>8)
+      | 
+reference/include/linux/kdev_t.h:11: error: "MINOR" redefined [-Werror]
+   11 | #define MINOR(dev)      ((unsigned int) ((dev) & MINORMASK))
+      | 
+reference/include/uapi/linux/kdev_t.h:11: note: this is the location of the previous definition
+   11 | #define MINOR(dev)      ((dev) & 0xff)
+      | 
+reference/include/linux/kdev_t.h:12: error: "MKDEV" redefined [-Werror]
+   12 | #define MKDEV(ma,mi)    (((ma) << MINORBITS) | (mi))
+      | 
+reference/include/uapi/linux/kdev_t.h:12: note: this is the location of the previous definition
+   12 | #define MKDEV(ma,mi)    ((ma)<<8 | (mi))
+      | 
+In file included from reference/include/linux/dcache.h:7,
+                 from reference/include/linux/fs.h:8:
+reference/include/linux/math.h:59: error: "roundup" redefined [-Werror]
+   59 | #define roundup(x, y) (                                 \
+      | 
+In file included from /boot/system/develop/headers/os/storage/StorageDefs.h:10,
+                 from /boot/system/develop/headers/os/kernel/OS.h:14,
+                 from /boot/system/develop/headers/os/drivers/KernelExport.h:10,
+                 from include/kpi_base.h:13,
+                 from include/linux/export.h:3,
+                 from reference/include/linux/linkage.h:7,
+                 from reference/include/linux/fs.h:5:
+/boot/system/develop/headers/bsd/sys/param.h:27: note: this is the location of the previous definition
+   27 | #define roundup(x, y)   ((((x)+((y)-1))/(y))*(y))
+      | 
+reference/include/linux/math.h:73: error: "rounddown" redefined [-Werror]
+   73 | #define rounddown(x, y) (                               \
+      | 
+/boot/system/develop/headers/bsd/sys/param.h:28: note: this is the location of the previous definition
+   28 | #define rounddown(x, y)  (((x)/(y))*(y))
+      | 
+In file included from reference/include/linux/kernel.h:15,
+                 from reference/include/linux/bit_spinlock.h:5,
+                 from reference/include/linux/list_bl.h:6,
+                 from reference/include/linux/rculist_bl.h:8,
+                 from reference/include/linux/dcache.h:9:
+reference/include/linux/align.h:8: error: "ALIGN" redefined [-Werror]
+    8 | #define ALIGN(x, a)             __ALIGN_KERNEL((x), (a))
+      | 
+/boot/system/develop/headers/bsd/sys/param.h:21: note: this is the location of the previous definition
+   21 | #define ALIGN(p)        _ALIGN(p)
+      | 
+In file included from reference/include/linux/kernel.h:27:
+reference/include/linux/minmax.h:68: error: "min" redefined [-Werror]
+   68 | #define min(x, y)       __careful_cmp(x, y, <)
+      | 
+include/kpi_base.h:87: note: this is the location of the previous definition
+   87 | #define min(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a < _b ? _a : _b; })
+      | 
+reference/include/linux/minmax.h:75: error: "max" redefined [-Werror]
+   75 | #define max(x, y)       __careful_cmp(x, y, >)
+      | 
+include/kpi_base.h:88: note: this is the location of the previous definition
+   88 | #define max(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })
+      | 
+In file included from reference/include/linux/panic.h:5,
+                 from reference/include/linux/kernel.h:29:
+reference/include/linux/compiler_attributes.h:33: error: "__aligned" redefined [-Werror]
+   33 | #define __aligned(x)                    __attribute__((__aligned__(x)))
+      | 
+include/kpi_base.h:39: note: this is the location of the previous definition
+   39 | #define __aligned(x) __attribute__((aligned(x)))
+      | 
+reference/include/linux/compiler_attributes.h:55: error: "__always_inline" redefined [-Werror]
+   55 | #define __always_inline                 inline __attribute__((__always_inline__))
+      | 
+include/kpi_base.h:37: note: this is the location of the previous definition
+   37 | #define __always_inline inline __attribute__((always_inline))
+      | 
+compilation terminated due to -fmax-errors=12.

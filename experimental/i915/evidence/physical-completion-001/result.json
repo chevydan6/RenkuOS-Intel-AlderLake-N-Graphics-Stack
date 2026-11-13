@@ -1,0 +1,21 @@
+{
+  "runs": 4,
+  "checks_per_run": 119,
+  "checks_total": 476,
+  "failures": 0,
+  "phases_per_run": 12,
+  "waiter_workers_per_run": 24,
+  "waiter_workers_total": 96,
+  "interruptible_sigusr1_result": -512,
+  "killable_ordinary_signal_ignored": true,
+  "killable_completion_remaining_ticks": 1949,
+  "actual_kill_tested": false,
+  "gpu_submission": false,
+  "full_i915_compiles": false,
+  "unique_linux_imports": 48,
+  "payload_sha256": "640f0447d66929d9a33cb21521840f36d0881ff9ebd2a2f4b24b8c0264c68511",
+  "native_results_archive": "/home/dan/i915-vm/gem-port-001/native-results-001.tar.gz",
+  "native_results_sha256": "95b6e3684f1db09f26f1847a69d255a4340946997e003cf7b1886dda1285d4f7",
+  "success_screenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794568269528454856-0.jpg",
+  "whole_build_screenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794568335516673476-0.jpg"
+}

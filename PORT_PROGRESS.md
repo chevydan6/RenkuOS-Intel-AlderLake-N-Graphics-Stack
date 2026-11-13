@@ -525,3 +525,26 @@ Whole GEM/ring builds advance past those earlier errors but still fail at later
 Linux type/architecture helpers, raw spin/wait/lockdep integration and missing
 external sparse-checkout UAPI headers. Their failed compiler logs are preserved.
 Continue porting those reached services; do not replace original GPU algorithms.
+
+## Original completion and simple-wait-queue port — 2026-11-13
+
+The complete original Linux completion.c and swait.c algorithms and public
+headers compile and run on RenkuOS through native semaphore/deadline/IRQ/task
+scope adapters. Original do_div, kconfig, lockdep-off and x86-64 UAPI helpers
+resolve earlier scalar/arithmetic/raw-spin/class-key issues. The manifest now
+verifies 48 unique files and rejects duplicate paths. No GPU algorithm changed.
+
+Actual N100 GCC13.3/SDK518 compilation is warning-free. Four 119-check runs pass
+with zero failures and 96 kernel waiter workers. Counted wakeups, two queued
+waiters, broadcasts/reinitialization, timeouts, IRQ-disabled completion and
+scoped-event cleanup pass. Real user-thread SIGUSR1 interrupts an interruptible
+wait with -ERESTARTSYS; a killable wait ignores that ordinary signal and finishes
+on completion. Killing a waiter is not tested. Actual diagnostic unload 0 and
+unchanged graphics publication pass. Evidence: physical-completion-001.
+
+Host ASan/UBSan completion tests and a lost-count mutation control pass; existing
+allocator/refcount/ww/emitter, DMA, VMA and target-header probes also pass. Native
+whole GEM/ring attempts are now performed on RenkuOS as well as the development
+host. All still fail at later header namespace and architecture/preemption
+interfaces; their real exits and errors are retained. No full i915 build or GPU
+execution is claimed. Continue integrating original code with real OS services.
