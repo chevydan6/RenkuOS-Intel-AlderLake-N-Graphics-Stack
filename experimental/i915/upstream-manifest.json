@@ -180,6 +180,30 @@
       "linuxPath": "lib/scatterlist.c",
       "gitBlob": "68b45c82c37a6981bb72cc79ab4c4fcac8e2e489",
       "sha256": "3ffa1026d765bd504bbc7951f817d9657c27b7e990868ce02da20d0f988cfe99"
+    },
+    {
+      "path": "linux/compiler_types.h",
+      "linuxPath": "include/linux/compiler_types.h",
+      "gitBlob": "c523c6683789d89d941a8dcd18c495f504d4e660",
+      "sha256": "5f474132e58ddd5b760384a89821a8718f68c8e5f3a823d44520d834a3c102f6"
+    },
+    {
+      "path": "linux/log2.h",
+      "linuxPath": "include/linux/log2.h",
+      "gitBlob": "9f30d087a128143b238b04e68b452b3647252d6b",
+      "sha256": "7e351b76b0f6067ef10aa01e0fea3e390a4d6a680d1ab9b03aeb9a58c6cbc1da"
+    },
+    {
+      "path": "drm/drm_vma_manager.c",
+      "linuxPath": "drivers/gpu/drm/drm_vma_manager.c",
+      "gitBlob": "83229a031af0f829691934c8dae72d3ba6686853",
+      "sha256": "b9813a35186f67f01d85a5b3b412b45d80279ee3d4f07f1aa830380977adbdb7"
+    },
+    {
+      "path": "drm/drm_vma_manager.h",
+      "linuxPath": "include/drm/drm_vma_manager.h",
+      "gitBlob": "6c2a2f21dbf00dfe9b2522b7973281ac06df4384",
+      "sha256": "76497508aeee275b309dd61c2480adf6086dab998fd52e5f30ecb735923418d8"
     }
   ]
 }

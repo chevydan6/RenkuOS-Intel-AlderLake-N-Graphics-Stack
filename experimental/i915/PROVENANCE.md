@@ -130,3 +130,23 @@ Ported-from-license: MIT
 
 Ported-from: RenkuOS/4799bb5a188c4bb6bbef967287640cc21a061a0d/src/libs/compat/freebsd_network/malloc.cpp
 Ported-from-license: MIT
+
+## Compiler helpers and DRM VMA offset manager
+
+Ported-from: Linux/v6.6/include/linux/compiler_types.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/log2.h
+Ported-from-license: GPL-2.0-or-later
+
+Ported-from: Linux/v6.6/drivers/gpu/drm/drm_vma_manager.c
+Ported-from-license: GPL-2.0 OR MIT
+
+Ported-from: Linux/v6.6/include/drm/drm_vma_manager.h
+Ported-from-license: MIT
+
+These four imports are byte-exact and manifest-verified. The VMA manager builds
+as a complete translation unit with native reader/writer and heap adapters;
+it does not provide actual user address-space mapping or a GEM object manager.
+New wrappers use GCC bit-scan primitives and RenkuOS's existing rw_spinlock,
+IRQ, wired-area and deferred-free services. No native lock algorithm is copied.
