@@ -1,0 +1,36 @@
+python3 target-build.py --source "/home/dan/renkuos-i915-source" --cc "gcc"
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -MMD -c /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_slice.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/target/intel_ring_slice.o
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -MMD -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/drm/drm_mm.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/target/drm_mm.o
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/export.h:3,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/drm/drm_mm.c:45:
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:47:9: error: ‘ENOSPC’ redefined [-Werror]
+   47 | #define ENOSPC 28
+      |         ^~~~~~
+In file included from /home/dan/renkuos-i915-source/headers/os/support/SupportDefs.h:13,
+                 from /home/dan/renkuos-i915-source/headers/os/drivers/KernelExport.h:9,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:9:
+/home/dan/renkuos-i915-source/headers/os/support/Errors.h:219:9: note: this is the location of the previous definition
+  219 | #define ENOSPC                  B_TO_POSIX_ERROR(B_DEVICE_FULL)
+      |         ^~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:48:9: error: ‘min’ redefined [-Werror]
+   48 | #define min(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a < _b ? _a : _b; })
+      |         ^~~
+/home/dan/renkuos-i915-source/headers/os/support/SupportDefs.h:209:24: note: this is the location of the previous definition
+  209 | #               define min(a,b) ((a)>(b)?(b):(a))
+      |                        ^~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:49:9: error: ‘max’ redefined [-Werror]
+   49 | #define max(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })
+      |         ^~~
+/home/dan/renkuos-i915-source/headers/os/support/SupportDefs.h:212:24: note: this is the location of the previous definition
+  212 | #               define max(a,b) ((a)>(b)?(a):(b))
+      |                        ^~~
+cc1: all warnings being treated as errors
+Traceback (most recent call last):
+  File "/home/dan/haiku-intel-gpu/experimental/i915/target-build.py", line 37, in <module>
+    subprocess.run(cmd, check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['gcc', '-std=gnu11', '-O2', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter', '-ffreestanding', '-fno-builtin', '-fno-stack-protector', '-mno-red-zone', '-fno-tree-vectorize', '-mgeneral-regs-only', '-nostdinc', '-isystem', '/usr/lib/gcc/x86_64-redhat-linux/16/include', '-DRENKU_NATIVE', '-I/home/dan/renkuos-i915-source/headers', '-I/home/dan/renkuos-i915-source/headers/os', '-I/home/dan/renkuos-i915-source/headers/os/support', '-I/home/dan/renkuos-i915-source/headers/os/kernel', '-I/home/dan/renkuos-i915-source/headers/os/storage', '-I/home/dan/renkuos-i915-source/headers/os/drivers', '-I/home/dan/renkuos-i915-source/headers/posix', '-I/home/dan/haiku-intel-gpu/experimental/i915/include', '-I/home/dan/haiku-intel-gpu/experimental/i915/upstream', '-MMD', '-c', '/home/dan/haiku-intel-gpu/experimental/i915/upstream/drm/drm_mm.c', '-o', '/home/dan/haiku-intel-gpu/experimental/i915/build/target/drm_mm.o']' returned non-zero exit status 1.
+make: *** [Makefile:19: target-objects] Error 1

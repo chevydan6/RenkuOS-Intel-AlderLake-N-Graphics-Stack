@@ -14,3 +14,16 @@ completion remain unintegrated. Native build validation is also outstanding.
 Next comparison should measure dependencies and adapter code needed to compile
 the complete ring file and wire real request retirement, alongside equivalent
 existing native mechanisms. File count alone is not a decision criterion.
+
+## Complete DRM allocator result
+The full Linux drm_mm algorithm and its actual tree implementation compile
+against RenkuOS headers and pass allocator stress with ASan/UBSan. This is stronger
+reuse evidence than extracted ring arithmetic: a complete existing dependency
+works through a small compatibility surface without rewritten allocation logic.
+The allocator tracks virtual ranges only. Native physical/GART ownership and
+Gen12 PTE programming are still required; no performance/effort win on GPU
+submission, completion or Mesa has been measured.
+
+Whole ring reuse now demonstrably reaches GEM refcount/atomic dependencies
+before request and VM integration. This supports continuing a bounded experiment,
+not selecting full LinuxKPI over the existing physically tested native foundation.

@@ -36,10 +36,73 @@ Local workspace /home/dan/i915-linuxkpi contains only experimental additions,
 not a clone of the full GPU repository (shell DNS unavailable).
 GitHub connector was used to create the real branch and preserve its base tree.
 
-## Next implementation task
+## Original checkpoint next task (superseded below)
 Obtain matching RenkuOS development SDK/cross compiler or native VM access,
 reproduce native-object, then implement request timeline/wait and retirement against
 the retained completion path before linking ring reservation into a driver.
 In parallel with that dependency closure, compile whole intel_ring.c with actual
 GEM headers and inventory the next failures. Do not claim the partial layout is
 binary-compatible with full Linux objects.
+
+
+## Continuation checkpoint: real RenkuOS headers and complete DRM allocator
+
+2026-11-13. Authoritative local Git checkout is now
+/home/dan/haiku-intel-gpu on experiment/i915-linuxkpi.
+Network clone access recovered. Source checkout /home/dan/renkuos-i915-source
+is pinned to the GPU project's actual RenkuOS baseline
+4799bb5a188c4bb6bbef967287640cc21a061a0d. Target source was not modified.
+The earlier missing SupportDefs.h was resolved by populating the real headers;
+StorageDefs.h was the next search-path failure (006), then compilation passed
+(007). No replacement OS header or generated configuration shim was used.
+
+Implemented and compiled:
+- Complete unchanged Linux v6.6 drm_mm.c and drm_mm.h, used by i915 for GPU
+  address-range allocation, with unchanged Linux rbtree/list/interval-tree code.
+- Minimal compiler/type/bit/list dependencies; native phys_addr_t; real atomic
+  acquire/release operations for reached scalar interfaces.
+- Native warning adapter calling RenkuOS dvprintf; actual callback-based DRM
+  printer. No allocation, lock, wait or DMA operation returns fabricated success.
+- Ring slice, complete drm_mm, rbtree and diagnostics compile with -nostdinc,
+  real RenkuOS headers, no host libc headers, no red zone or vector instructions.
+  They also link together using a relocatable link. This is cross-source object
+  compilation with Fedora GCC, not execution in RenkuOS or a loadable module.
+- Eleven imported files match their original Linux Git blob and SHA256 hashes.
+
+Tests: real upstream CPU allocator, 20,000 deterministic transitions above 4 GiB;
+6,979 successful allocations, 6,067 exhaustion results, overlap rejection,
+non-power-of-two alignment, fragmentation and complete-range reclamation passed.
+ASan+UBSan also passed without disabling checks (019). The first sanitizer link
+failed because runtimes were absent (014); matching Fedora RPMs were downloaded
+and extracted in /home/dan/i915-test-libs, with no system installation.
+Allocation test uses real drm_mm/rbtree, not a mocked allocator. No GPU mapping,
+page-table programming, scheduling, GPU memory store or completion was tested.
+
+Whole intel_ring.c with actual GEM headers now reaches
+DRM GEM -> kref -> refcount -> atomic -> missing asm/atomic.h (018).
+phys_addr_t/resource_size_t and __iomem declaration failures from 017 are resolved
+by minimal declarations; no MMIO mapping implementation is implied.
+
+Reproduce from experimental/i915:
+    make target-objects RENKU_SOURCE=/home/dan/renkuos-i915-source
+    make allocator-test
+On this host the latter additionally requires the SANITIZER_LDFLAGS command
+recorded in evidence/019-allocator-sanitized.log (local runtime extraction).
+See README.md for source preparation. Build manifests and dependency files are
+in build/target; preserved evidence includes manifest and defined-symbol list.
+Final verified runs: 021-target-verified.log and 022-allocator-verified.log;
+UBSan halts on the first error. Header dependency inventory is preserved in
+evidence/target-dependencies.json.
+Final partial link still has only dvprintf, panic, i915_request_timeline and
+renku_ring_wait_for_space undefined. First two are actual native kernel exports;
+last two remain genuinely unimplemented request integration boundaries.
+
+## Next implementation task
+Implement the atomic/refcount/kref dependency reached by whole intel_ring.c,
+using actual RenkuOS atomics and preserving Linux refcount saturation semantics.
+Recompile with real GEM headers and record the next dependency. Keep complete
+DRM allocator available for eventual GGTT/PPGTT virtual-range bookkeeping, but
+leave page allocation/PTE programming to a real integration step.
+Native runtime/VM and N100 access remain unavailable in this workspace; no SSH
+identity or VM/cross compiler is installed. Native execution and first GPU command
+remain outstanding, not disproven by the host environment limitation.

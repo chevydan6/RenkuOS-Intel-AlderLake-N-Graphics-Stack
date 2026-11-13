@@ -1,0 +1,7 @@
+In file included from upstream/drm/drm_mm.c:51:
+upstream/drm/drm_mm.h:123:30: error: implicit declaration of function ‘BIT’ [-Wimplicit-function-declaration]
+  123 |         DRM_MM_INSERT_ONCE = BIT(31),
+      |                              ^~~
+upstream/drm/drm_mm.h:123:9: error: enumerator value for ‘DRM_MM_INSERT_ONCE’ is not an integer constant
+  123 |         DRM_MM_INSERT_ONCE = BIT(31),
+      |         ^~~~~~~~~~~~~~~~~~

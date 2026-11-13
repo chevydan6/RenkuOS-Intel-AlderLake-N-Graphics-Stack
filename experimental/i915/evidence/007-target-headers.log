@@ -1,0 +1,2 @@
+python3 extract.py
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-builtin -mno-red-zone -fno-stack-protector -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -I/tmp/renku-investigation/headers -I/tmp/renku-investigation/headers/os -I/tmp/renku-investigation/headers/os/support -I/tmp/renku-investigation/headers/os/kernel -I/tmp/renku-investigation/headers/os/storage -I/tmp/renku-investigation/headers/os/drivers -I/tmp/renku-investigation/headers/posix -DRENKU_NATIVE -Iinclude -MMD -c build/intel_ring_slice.c -o build/intel_ring_slice.native.o

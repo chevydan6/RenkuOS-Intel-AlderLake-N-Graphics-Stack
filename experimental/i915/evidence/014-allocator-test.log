@@ -1,0 +1,6 @@
+mkdir -p build
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fsanitize=address,undefined -fno-omit-frame-pointer -Iinclude -Iupstream upstream/drm/drm_mm.c upstream/lib/rbtree.c tests/drm_mm_test.c -o build/drm_mm_test
+/usr/bin/ld.bfd: cannot find /usr/lib64/libasan.so.8.0.0: No such file or directory
+/usr/bin/ld.bfd: cannot find /usr/lib64/libubsan.so.1.0.0: No such file or directory
+collect2: error: ld returned 1 exit status
+make: *** [Makefile:16: allocator-test] Error 1

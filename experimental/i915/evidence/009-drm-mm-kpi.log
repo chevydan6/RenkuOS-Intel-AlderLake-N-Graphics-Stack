@@ -1,0 +1,429 @@
+In file included from upstream/drm/drm_mm.h:44,
+                 from upstream/drm/drm_mm.c:51:
+upstream/linux/list.h: In function ‘__list_add_valid’:
+upstream/linux/list.h:128:55: warning: unused parameter ‘new’ [-Wunused-parameter]
+  128 | static inline bool __list_add_valid(struct list_head *new,
+      |                                     ~~~~~~~~~~~~~~~~~~^~~
+upstream/linux/list.h:129:51: warning: unused parameter ‘prev’ [-Wunused-parameter]
+  129 |                                 struct list_head *prev,
+      |                                 ~~~~~~~~~~~~~~~~~~^~~~
+upstream/linux/list.h:130:51: warning: unused parameter ‘next’ [-Wunused-parameter]
+  130 |                                 struct list_head *next)
+      |                                 ~~~~~~~~~~~~~~~~~~^~~~
+upstream/linux/list.h: In function ‘__list_del_entry_valid’:
+upstream/linux/list.h:134:61: warning: unused parameter ‘entry’ [-Wunused-parameter]
+  134 | static inline bool __list_del_entry_valid(struct list_head *entry)
+      |                                           ~~~~~~~~~~~~~~~~~~^~~~~
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:934:43: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+  934 | static inline void INIT_HLIST_NODE(struct hlist_node *h)
+      |                                           ^~~~~~~~~~
+upstream/linux/list.h: In function ‘INIT_HLIST_NODE’:
+upstream/linux/list.h:936:10: error: invalid use of undefined type ‘struct hlist_node’
+  936 |         h->next = NULL;
+      |          ^~
+upstream/linux/list.h:937:10: error: invalid use of undefined type ‘struct hlist_node’
+  937 |         h->pprev = NULL;
+      |          ^~
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:948:47: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+  948 | static inline int hlist_unhashed(const struct hlist_node *h)
+      |                                               ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_unhashed’:
+upstream/linux/list.h:950:18: error: invalid use of undefined type ‘const struct hlist_node’
+  950 |         return !h->pprev;
+      |                  ^~
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:961:56: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+  961 | static inline int hlist_unhashed_lockless(const struct hlist_node *h)
+      |                                                        ^~~~~~~~~~
+In file included from include/linux/export.h:3,
+                 from upstream/drm/drm_mm.c:45:
+upstream/linux/list.h: In function ‘hlist_unhashed_lockless’:
+upstream/linux/list.h:963:28: error: invalid use of undefined type ‘const struct hlist_node’
+  963 |         return !READ_ONCE(h->pprev);
+      |                            ^~
+include/kpi_base.h:23:45: note: in definition of macro ‘READ_ONCE’
+   23 | #define READ_ONCE(x) (*(volatile __typeof__(x) *)&(x))
+      |                                             ^
+upstream/linux/list.h:963:28: error: invalid use of undefined type ‘const struct hlist_node’
+  963 |         return !READ_ONCE(h->pprev);
+      |                            ^~
+include/kpi_base.h:23:52: note: in definition of macro ‘READ_ONCE’
+   23 | #define READ_ONCE(x) (*(volatile __typeof__(x) *)&(x))
+      |                                                    ^
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:970:44: warning: ‘struct hlist_head’ declared inside parameter list will not be visible outside of this definition or declaration
+  970 | static inline int hlist_empty(const struct hlist_head *h)
+      |                                            ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_empty’:
+upstream/linux/list.h:972:28: error: invalid use of undefined type ‘const struct hlist_head’
+  972 |         return !READ_ONCE(h->first);
+      |                            ^~
+include/kpi_base.h:23:45: note: in definition of macro ‘READ_ONCE’
+   23 | #define READ_ONCE(x) (*(volatile __typeof__(x) *)&(x))
+      |                                             ^
+upstream/linux/list.h:972:28: error: invalid use of undefined type ‘const struct hlist_head’
+  972 |         return !READ_ONCE(h->first);
+      |                            ^~
+include/kpi_base.h:23:52: note: in definition of macro ‘READ_ONCE’
+   23 | #define READ_ONCE(x) (*(volatile __typeof__(x) *)&(x))
+      |                                                    ^
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:975:39: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+  975 | static inline void __hlist_del(struct hlist_node *n)
+      |                                       ^~~~~~~~~~
+upstream/linux/list.h: In function ‘__hlist_del’:
+upstream/linux/list.h:977:36: error: invalid use of undefined type ‘struct hlist_node’
+  977 |         struct hlist_node *next = n->next;
+      |                                    ^~
+upstream/linux/list.h:978:38: error: invalid use of undefined type ‘struct hlist_node’
+  978 |         struct hlist_node **pprev = n->pprev;
+      |                                      ^~
+upstream/linux/list.h:982:32: error: invalid use of undefined type ‘struct hlist_node’
+  982 |                 WRITE_ONCE(next->pprev, pprev);
+      |                                ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:982:32: error: invalid use of undefined type ‘struct hlist_node’
+  982 |                 WRITE_ONCE(next->pprev, pprev);
+      |                                ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:992:37: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+  992 | static inline void hlist_del(struct hlist_node *n)
+      |                                     ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_del’:
+upstream/linux/list.h:994:21: error: passing argument 1 of ‘__hlist_del’ from incompatible pointer type [-Wincompatible-pointer-types]
+  994 |         __hlist_del(n);
+      |                     ^
+      |                     |
+      |                     struct hlist_node *
+upstream/linux/list.h:975:51: note: expected ‘struct hlist_node *’ but argument is of type ‘struct hlist_node *’
+  975 | static inline void __hlist_del(struct hlist_node *n)
+      |                                ~~~~~~~~~~~~~~~~~~~^
+upstream/linux/list.h:995:10: error: invalid use of undefined type ‘struct hlist_node’
+  995 |         n->next = LIST_POISON1;
+      |          ^~
+upstream/linux/list.h:996:10: error: invalid use of undefined type ‘struct hlist_node’
+  996 |         n->pprev = LIST_POISON2;
+      |          ^~
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1005:42: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1005 | static inline void hlist_del_init(struct hlist_node *n)
+      |                                          ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_del_init’:
+upstream/linux/list.h:1007:29: error: passing argument 1 of ‘hlist_unhashed’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1007 |         if (!hlist_unhashed(n)) {
+      |                             ^
+      |                             |
+      |                             struct hlist_node *
+upstream/linux/list.h:948:59: note: expected ‘const struct hlist_node *’ but argument is of type ‘struct hlist_node *’
+  948 | static inline int hlist_unhashed(const struct hlist_node *h)
+      |                                  ~~~~~~~~~~~~~~~~~~~~~~~~~^
+upstream/linux/list.h:1008:29: error: passing argument 1 of ‘__hlist_del’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1008 |                 __hlist_del(n);
+      |                             ^
+      |                             |
+      |                             struct hlist_node *
+upstream/linux/list.h:975:51: note: expected ‘struct hlist_node *’ but argument is of type ‘struct hlist_node *’
+  975 | static inline void __hlist_del(struct hlist_node *n)
+      |                                ~~~~~~~~~~~~~~~~~~~^
+upstream/linux/list.h:1009:33: error: passing argument 1 of ‘INIT_HLIST_NODE’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1009 |                 INIT_HLIST_NODE(n);
+      |                                 ^
+      |                                 |
+      |                                 struct hlist_node *
+upstream/linux/list.h:934:55: note: expected ‘struct hlist_node *’ but argument is of type ‘struct hlist_node *’
+  934 | static inline void INIT_HLIST_NODE(struct hlist_node *h)
+      |                                    ~~~~~~~~~~~~~~~~~~~^
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1021:64: warning: ‘struct hlist_head’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1021 | static inline void hlist_add_head(struct hlist_node *n, struct hlist_head *h)
+      |                                                                ^~~~~~~~~~
+upstream/linux/list.h:1021:42: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1021 | static inline void hlist_add_head(struct hlist_node *n, struct hlist_head *h)
+      |                                          ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_add_head’:
+upstream/linux/list.h:1023:37: error: invalid use of undefined type ‘struct hlist_head’
+ 1023 |         struct hlist_node *first = h->first;
+      |                                     ^~
+upstream/linux/list.h:1024:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1024 |         WRITE_ONCE(n->next, first);
+      |                     ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1024:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1024 |         WRITE_ONCE(n->next, first);
+      |                     ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1026:33: error: invalid use of undefined type ‘struct hlist_node’
+ 1026 |                 WRITE_ONCE(first->pprev, &n->next);
+      |                                 ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1026:33: error: invalid use of undefined type ‘struct hlist_node’
+ 1026 |                 WRITE_ONCE(first->pprev, &n->next);
+      |                                 ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1026:44: error: invalid use of undefined type ‘struct hlist_node’
+ 1026 |                 WRITE_ONCE(first->pprev, &n->next);
+      |                                            ^~
+include/kpi_base.h:24:68: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                                    ^
+upstream/linux/list.h:1027:21: error: invalid use of undefined type ‘struct hlist_head’
+ 1027 |         WRITE_ONCE(h->first, n);
+      |                     ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1027:21: error: invalid use of undefined type ‘struct hlist_head’
+ 1027 |         WRITE_ONCE(h->first, n);
+      |                     ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1028:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1028 |         WRITE_ONCE(n->pprev, &h->first);
+      |                     ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1028:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1028 |         WRITE_ONCE(n->pprev, &h->first);
+      |                     ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1028:32: error: invalid use of undefined type ‘struct hlist_head’
+ 1028 |         WRITE_ONCE(n->pprev, &h->first);
+      |                                ^~
+include/kpi_base.h:24:68: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                                    ^
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1036:44: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1036 | static inline void hlist_add_before(struct hlist_node *n,
+      |                                            ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_add_before’:
+upstream/linux/list.h:1039:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1039 |         WRITE_ONCE(n->pprev, next->pprev);
+      |                     ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1039:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1039 |         WRITE_ONCE(n->pprev, next->pprev);
+      |                     ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1039:34: error: invalid use of undefined type ‘struct hlist_node’
+ 1039 |         WRITE_ONCE(n->pprev, next->pprev);
+      |                                  ^~
+include/kpi_base.h:24:68: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                                    ^
+upstream/linux/list.h:1040:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1040 |         WRITE_ONCE(n->next, next);
+      |                     ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1040:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1040 |         WRITE_ONCE(n->next, next);
+      |                     ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1041:24: error: invalid use of undefined type ‘struct hlist_node’
+ 1041 |         WRITE_ONCE(next->pprev, &n->next);
+      |                        ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1041:24: error: invalid use of undefined type ‘struct hlist_node’
+ 1041 |         WRITE_ONCE(next->pprev, &n->next);
+      |                        ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1041:35: error: invalid use of undefined type ‘struct hlist_node’
+ 1041 |         WRITE_ONCE(next->pprev, &n->next);
+      |                                   ^~
+include/kpi_base.h:24:68: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                                    ^
+upstream/linux/list.h:1042:23: error: invalid use of undefined type ‘struct hlist_node’
+ 1042 |         WRITE_ONCE(*(n->pprev), n);
+      |                       ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1042:23: error: invalid use of undefined type ‘struct hlist_node’
+ 1042 |         WRITE_ONCE(*(n->pprev), n);
+      |                       ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1050:44: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1050 | static inline void hlist_add_behind(struct hlist_node *n,
+      |                                            ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_add_behind’:
+upstream/linux/list.h:1053:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1053 |         WRITE_ONCE(n->next, prev->next);
+      |                     ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1053:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1053 |         WRITE_ONCE(n->next, prev->next);
+      |                     ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1053:33: error: invalid use of undefined type ‘struct hlist_node’
+ 1053 |         WRITE_ONCE(n->next, prev->next);
+      |                                 ^~
+include/kpi_base.h:24:68: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                                    ^
+upstream/linux/list.h:1054:24: error: invalid use of undefined type ‘struct hlist_node’
+ 1054 |         WRITE_ONCE(prev->next, n);
+      |                        ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1054:24: error: invalid use of undefined type ‘struct hlist_node’
+ 1054 |         WRITE_ONCE(prev->next, n);
+      |                        ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1055:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1055 |         WRITE_ONCE(n->pprev, &prev->next);
+      |                     ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1055:21: error: invalid use of undefined type ‘struct hlist_node’
+ 1055 |         WRITE_ONCE(n->pprev, &prev->next);
+      |                     ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1055:35: error: invalid use of undefined type ‘struct hlist_node’
+ 1055 |         WRITE_ONCE(n->pprev, &prev->next);
+      |                                   ^~
+include/kpi_base.h:24:68: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                                    ^
+upstream/linux/list.h:1057:14: error: invalid use of undefined type ‘struct hlist_node’
+ 1057 |         if (n->next)
+      |              ^~
+upstream/linux/list.h:1058:29: error: invalid use of undefined type ‘struct hlist_node’
+ 1058 |                 WRITE_ONCE(n->next->pprev, &n->next);
+      |                             ^~
+include/kpi_base.h:24:54: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                      ^
+upstream/linux/list.h:1058:29: error: invalid use of undefined type ‘struct hlist_node’
+ 1058 |                 WRITE_ONCE(n->next->pprev, &n->next);
+      |                             ^~
+include/kpi_base.h:24:61: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                             ^
+upstream/linux/list.h:1058:46: error: invalid use of undefined type ‘struct hlist_node’
+ 1058 |                 WRITE_ONCE(n->next->pprev, &n->next);
+      |                                              ^~
+include/kpi_base.h:24:68: note: in definition of macro ‘WRITE_ONCE’
+   24 | #define WRITE_ONCE(x, v) do { (*(volatile __typeof__(x) *)&(x)) = (v); } while (0)
+      |                                                                    ^
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1069:42: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1069 | static inline void hlist_add_fake(struct hlist_node *n)
+      |                                          ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_add_fake’:
+upstream/linux/list.h:1071:10: error: invalid use of undefined type ‘struct hlist_node’
+ 1071 |         n->pprev = &n->next;
+      |          ^~
+upstream/linux/list.h:1071:22: error: invalid use of undefined type ‘struct hlist_node’
+ 1071 |         n->pprev = &n->next;
+      |                      ^~
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1078:38: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1078 | static inline bool hlist_fake(struct hlist_node *h)
+      |                                      ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_fake’:
+upstream/linux/list.h:1080:17: error: invalid use of undefined type ‘struct hlist_node’
+ 1080 |         return h->pprev == &h->next;
+      |                 ^~
+upstream/linux/list.h:1080:30: error: invalid use of undefined type ‘struct hlist_node’
+ 1080 |         return h->pprev == &h->next;
+      |                              ^~
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1092:53: warning: ‘struct hlist_head’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1092 | hlist_is_singular_node(struct hlist_node *n, struct hlist_head *h)
+      |                                                     ^~~~~~~~~~
+upstream/linux/list.h:1092:31: warning: ‘struct hlist_node’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1092 | hlist_is_singular_node(struct hlist_node *n, struct hlist_head *h)
+      |                               ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_is_singular_node’:
+upstream/linux/list.h:1094:18: error: invalid use of undefined type ‘struct hlist_node’
+ 1094 |         return !n->next && n->pprev == &h->first;
+      |                  ^~
+upstream/linux/list.h:1094:29: error: invalid use of undefined type ‘struct hlist_node’
+ 1094 |         return !n->next && n->pprev == &h->first;
+      |                             ^~
+upstream/linux/list.h:1094:42: error: invalid use of undefined type ‘struct hlist_head’
+ 1094 |         return !n->next && n->pprev == &h->first;
+      |                                          ^~
+upstream/linux/list.h: At top level:
+upstream/linux/list.h:1105:43: warning: ‘struct hlist_head’ declared inside parameter list will not be visible outside of this definition or declaration
+ 1105 | static inline void hlist_move_list(struct hlist_head *old,
+      |                                           ^~~~~~~~~~
+upstream/linux/list.h: In function ‘hlist_move_list’:
+upstream/linux/list.h:1108:12: error: invalid use of undefined type ‘struct hlist_head’
+ 1108 |         new->first = old->first;
+      |            ^~
+upstream/linux/list.h:1108:25: error: invalid use of undefined type ‘struct hlist_head’
+ 1108 |         new->first = old->first;
+      |                         ^~
+upstream/linux/list.h:1109:16: error: invalid use of undefined type ‘struct hlist_head’
+ 1109 |         if (new->first)
+      |                ^~
+upstream/linux/list.h:1110:20: error: invalid use of undefined type ‘struct hlist_head’
+ 1110 |                 new->first->pprev = &new->first;
+      |                    ^~
+upstream/linux/list.h:1110:41: error: invalid use of undefined type ‘struct hlist_head’
+ 1110 |                 new->first->pprev = &new->first;
+      |                                         ^~
+upstream/linux/list.h:1111:12: error: invalid use of undefined type ‘struct hlist_head’
+ 1111 |         old->first = NULL;
+      |            ^~
+upstream/drm/drm_mm.h: At top level:
+upstream/drm/drm_mm.h:123:30: error: implicit declaration of function ‘BIT’ [-Wimplicit-function-declaration]
+  123 |         DRM_MM_INSERT_ONCE = BIT(31),
+      |                              ^~~
+upstream/drm/drm_mm.h:123:9: error: enumerator value for ‘DRM_MM_INSERT_ONCE’ is not an integer constant
+  123 |         DRM_MM_INSERT_ONCE = BIT(31),
+      |         ^~~~~~~~~~~~~~~~~~
+upstream/drm/drm_mm.c: In function ‘save_stack’:
+upstream/drm/drm_mm.c:145:44: warning: unused parameter ‘node’ [-Wunused-parameter]
+  145 | static void save_stack(struct drm_mm_node *node) { }
+      |                        ~~~~~~~~~~~~~~~~~~~~^~~~
+upstream/drm/drm_mm.c: In function ‘show_leaks’:
+upstream/drm/drm_mm.c:146:39: warning: unused parameter ‘mm’ [-Wunused-parameter]
+  146 | static void show_leaks(struct drm_mm *mm) { }
+      |                        ~~~~~~~~~~~~~~~^~

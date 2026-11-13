@@ -1,0 +1,25 @@
+In file included from upstream/gt/intel_ring.c:6:
+/tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_internal.h:17:33: error: unknown type name ‘phys_addr_t’
+   17 |                                 phys_addr_t size);
+      |                                 ^~~~~~~~~~~
+/tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_internal.h:21:35: error: unknown type name ‘phys_addr_t’
+   21 |                                   phys_addr_t size);
+      |                                   ^~~~~~~~~~~
+In file included from upstream/gt/intel_ring.c:7:
+/tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_lmem.h:15:14: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘*’ token
+   15 | void __iomem *
+      |              ^
+/tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_lmem.h:30:39: error: unknown type name ‘resource_size_t’
+   30 |                                       resource_size_t size,
+      |                                       ^~~~~~~~~~~~~~~
+/tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_lmem.h:31:39: error: unknown type name ‘resource_size_t’
+   31 |                                       resource_size_t page_size,
+      |                                       ^~~~~~~~~~~~~~~
+/tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_lmem.h:35:29: error: unknown type name ‘resource_size_t’
+   35 |                             resource_size_t size,
+      |                             ^~~~~~~~~~~~~~~
+In file included from upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10:10: fatal error: drm/drm_gem.h: No such file or directory
+   10 | #include <drm/drm_gem.h>
+      |          ^~~~~~~~~~~~~~~
+compilation terminated.
