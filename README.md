@@ -1,5 +1,7 @@
 # RenkuOS Intel GPU development
 
+> **Repository navigation:** Start with the [documentation index](docs/INDEX.md), [current evidence status](docs/CURRENT_STATUS.md), [native/experimental driver map](drivers/README.md), and [test/evidence map](tests/README.md). The cleanup branch is a staged reorganization; production source and hardware installation are unchanged.
+
 Astra High #2: private Intel N100 / Alder Lake-N graphics development for RenkuOS,
 with independent Terra research and validation. Target: `8086:46d1`, revision 00.
 Haiku research, patches and tests are preserved on `gpu/alderlake-n`.
