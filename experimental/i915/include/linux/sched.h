@@ -8,7 +8,9 @@
 #include <semaphore.h>
 #endif
 /* Stable identity for a registered kernel-entry scope, not a Linux scheduler. */
+#define TASK_COMM_LEN 16
 struct task_struct {
+	char comm[TASK_COMM_LEN];
 #ifdef RENKU_NATIVE
 	thread_id native_id;
 #else

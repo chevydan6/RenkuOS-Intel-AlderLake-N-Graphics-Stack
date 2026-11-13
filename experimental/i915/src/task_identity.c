@@ -3,6 +3,10 @@
 #include <linux/spinlock.h>
 
 static struct task_struct *tasks;
+#ifndef RENKU_NATIVE
+/* Host Linux pthread name query; no host task-layout or scheduler emulation. */
+extern int pthread_getname_np(pthread_t, char *, size_t);
+#endif
 #ifdef RENKU_NATIVE
 static DEFINE_SPINLOCK(registry_lock);
 typedef thread_id identity_t;
@@ -20,6 +24,14 @@ static bool same_id(identity_t a, identity_t b) { return pthread_equal(a, b); }
 bool renku_linux_task_register(struct task_struct *task)
 {
 	identity_t id = caller_id();
+	char name[TASK_COMM_LEN] = {0};
+#ifdef RENKU_NATIVE
+	thread_info info;
+	if (get_thread_info(id, &info) != B_OK) return false;
+	for (unsigned i = 0; i < sizeof(name) - 1 && info.name[i]; i++) name[i] = info.name[i];
+#else
+	if (pthread_getname_np(id, name, sizeof(name)) != 0) return false;
+#endif
 	spin_lock(&registry_lock);
 	for (struct task_struct *it = tasks; it; it = it->registry_next) {
 		if (it == task || same_id(it->native_id, id)) {
@@ -27,6 +39,7 @@ bool renku_linux_task_register(struct task_struct *task)
 			return false;
 		}
 	}
+	memcpy(task->comm, name, sizeof(name));
 	task->native_id = id;
 	task->wait_initialized = false;
 	task->wait_state = TASK_RUNNING;
