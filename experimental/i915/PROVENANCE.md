@@ -150,3 +150,53 @@ as a complete translation unit with native reader/writer and heap adapters;
 it does not provide actual user address-space mapping or a GEM object manager.
 New wrappers use GCC bit-scan primitives and RenkuOS's existing rw_spinlock,
 IRQ, wired-area and deferred-free services. No native lock algorithm is copied.
+
+## Original arithmetic, configuration and completion/wait code
+
+Ported-from: Linux/v6.6/include/asm-generic/div64.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/lockdep_types.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/kconfig.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/linux/types.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/uapi/linux/posix_types.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/uapi/asm-generic/int-ll64.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/uapi/asm-generic/posix_types.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/arch/x86/include/uapi/asm/posix_types_64.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/linux/completion.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/swait.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/wait.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/lockdep.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/kernel/sched/completion.c
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/kernel/sched/swait.c
+Ported-from-license: GPL-2.0
+
+The complete original kernel/sched/completion.c and swait.c compile with
+completion_port.h supplying the surrounding compilation environment normally
+provided by Linux sched/build_utility.c. Their algorithms and public headers
+remain byte-exact. New event/deadline/task-scope glue is MIT and uses native
+semaphores, IRQ locks and clocks; it is not a general Linux scheduler.

@@ -204,6 +204,90 @@
       "linuxPath": "include/drm/drm_vma_manager.h",
       "gitBlob": "6c2a2f21dbf00dfe9b2522b7973281ac06df4384",
       "sha256": "76497508aeee275b309dd61c2480adf6086dab998fd52e5f30ecb735923418d8"
+    },
+    {
+      "path": "asm-generic/div64.h",
+      "linuxPath": "include/asm-generic/div64.h",
+      "gitBlob": "13f5aa68a4552a09d2cc3efbc2409934f8006d69",
+      "sha256": "696da2a2074fd6b30a317aa35bd623d721578ed368291b1bb27c80741a9ef038"
+    },
+    {
+      "path": "linux/lockdep_types.h",
+      "linuxPath": "include/linux/lockdep_types.h",
+      "gitBlob": "2ebc323d345ae00e25a15fbe74ac68a8d922a549",
+      "sha256": "2c7f1e8087bc1ae09dd2735952bd8b255e465988812bb68246afa9e0a6aedc11"
+    },
+    {
+      "path": "linux/kconfig.h",
+      "linuxPath": "include/linux/kconfig.h",
+      "gitBlob": "20d1079e92b486104f97aeb735a23b6bb34d1fa2",
+      "sha256": "1b51cc51b6e4beb9b249853e0a0774f63679599f9a27b9e9fb8cc26ca14265f1"
+    },
+    {
+      "path": "uapi/linux/types.h",
+      "linuxPath": "include/uapi/linux/types.h",
+      "gitBlob": "6375a06840520da2d161a2873bb782200365ec64",
+      "sha256": "fed77a624a108eef218c82bc29a9f3565a3e517a9cec327d7adeb89e1ca0417c"
+    },
+    {
+      "path": "uapi/linux/posix_types.h",
+      "linuxPath": "include/uapi/linux/posix_types.h",
+      "gitBlob": "9a7a740b35a2c97b178228c291edbe04af84a2a6",
+      "sha256": "bc68636a383418f235d3457e4b21cf27cefc7c7f3edea4c1f6706f1018db196f"
+    },
+    {
+      "path": "uapi/asm-generic/int-ll64.h",
+      "linuxPath": "include/uapi/asm-generic/int-ll64.h",
+      "gitBlob": "1ed06964257c384b9a8cb0df90a650d043f8f232",
+      "sha256": "faca16150492e943a43c83e6b3069531dd498ef15dc612fb2051b88f7da83afc"
+    },
+    {
+      "path": "uapi/asm-generic/posix_types.h",
+      "linuxPath": "include/uapi/asm-generic/posix_types.h",
+      "gitBlob": "b5f7594eee7ab26ced0d3041ffa04a2662a39818",
+      "sha256": "059c34f03abc8247a9ad9fbbfc86b12f56b9b620a81fa3b84c0c7dd9214068ab"
+    },
+    {
+      "path": "uapi/asm/posix_types_64.h",
+      "linuxPath": "arch/x86/include/uapi/asm/posix_types_64.h",
+      "gitBlob": "515afb8059ce359f9deef21dba95003fc11e2781",
+      "sha256": "5cdabc01dac0a3e9731ac16353210a615ca44e85b6ec9eafd2e79206e0b26c76"
+    },
+    {
+      "path": "linux/completion.h",
+      "linuxPath": "include/linux/completion.h",
+      "gitBlob": "fb291567657432083162031ddb949a7e581e2848",
+      "sha256": "db5aac6634fbb92542486d273d93861dfd29061043d461ae494cfa2b2e9f4e4b"
+    },
+    {
+      "path": "linux/swait.h",
+      "linuxPath": "include/linux/swait.h",
+      "gitBlob": "d324419482a0f5282ceb9174d091ff4204a49022",
+      "sha256": "859a8fedaa8847f64086cd5df319d0ba89e98b8082308ea3890cd79608f150d9"
+    },
+    {
+      "path": "linux/wait.h",
+      "linuxPath": "include/linux/wait.h",
+      "gitBlob": "5ec7739400f4d7b923734f66fb50dfcb58243f2a",
+      "sha256": "0fbb0479c5b62b4d08fca7e229a1708d13fdb0a7f0f77cec5dc6503ddf63cd83"
+    },
+    {
+      "path": "linux/lockdep.h",
+      "linuxPath": "include/linux/lockdep.h",
+      "gitBlob": "dc2844b071c2c22039763ed4c682eefee2663190",
+      "sha256": "b60530cccbe59c84c2d119e51ba8e378dd1f14a21fb5a7e43ef204ad7b4f8e61"
+    },
+    {
+      "path": "kernel/sched/completion.c",
+      "linuxPath": "kernel/sched/completion.c",
+      "gitBlob": "3561ab533dd4e33ddb5284bcab51736f9b9ab6bf",
+      "sha256": "0a0426c7ba68149a7018383513591439e97f84a9af56fb5bd7a53095de3d8204"
+    },
+    {
+      "path": "kernel/sched/swait.c",
+      "linuxPath": "kernel/sched/swait.c",
+      "gitBlob": "72505cd3b60a3e16c093d07da38eab6093155b2e",
+      "sha256": "3a9f2fd51f1f9ea9f91e980e391ceeef394700039ac24679b2f7f3c87ba82e2a"
     }
   ]
 }
