@@ -1,0 +1,33 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+build/i915_linux_completion_test.driver: OK
+build/linux_completion_probe: OK
+evidence=ORIGINAL_COMPLETION_SWAIT_NATIVE_CPU gpu_submission=false
+run=0 checks=47087 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+run=1 checks=47087 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+run=2 checks=47087 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+run=3 checks=47087 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+mode=interruptible result=-512 signal_seen=1 queued_after=0 failed=0
+mode=killable-ordinary-signal result=1949 signal_seen=1 queued_after=0 failed=0
+KERN: I915_LINUX_COMPLETION_INIT status=0
+KERN: I915_LINUX_COMPLETION_UNINIT status=0
+LINUX_COMPLETION_NATIVE_TEST_EXIT=0 results=validation/completion.NO0qzY

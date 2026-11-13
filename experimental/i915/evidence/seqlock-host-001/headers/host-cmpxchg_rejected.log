@@ -1,0 +1,12 @@
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/lockref.h:19,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/lockref.h:8,
+                 from /home/dan/i915-vm/seqlock-port-001/header-controls-001/host-cmpxchg_rejected.c:2:
+/home/dan/haiku-intel-gpu/experimental/i915/include/generated/bounds.h:9:2: error: #error Native lockref supports only the original spinlock fallback
+    9 | #error Native lockref supports only the original spinlock fallback
+      |  ^~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/lockref.h:28:17: error: unknown type name ‘aligned_u64’
+   28 |                 aligned_u64 lock_count;
+      |                 ^~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/lockref.h:11:2: error: #error Native lock scopes require the original spinlock fallback
+   11 | #error Native lock scopes require the original spinlock fallback
+      |  ^~~~~

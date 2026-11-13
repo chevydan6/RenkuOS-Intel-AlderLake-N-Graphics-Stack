@@ -1,0 +1,42 @@
+[
+  {
+    "mode": "host",
+    "control": "vm_bounds_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "cmpxchg_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "kcsan_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "host",
+    "control": "rt_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "vm_bounds_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "cmpxchg_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "kcsan_rejected",
+    "exit": 1
+  },
+  {
+    "mode": "target",
+    "control": "rt_rejected",
+    "exit": 1
+  }
+]

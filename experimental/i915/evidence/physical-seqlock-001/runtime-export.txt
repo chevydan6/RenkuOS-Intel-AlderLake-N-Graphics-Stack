@@ -1,0 +1,4 @@
+Source: native-bundle-001
+Excluded reference files: 6783 (all byte-identical to native tested lockref bundle002)
+Full payload manifest retained; native reference symlink must resolve all original checked files.
+SHA256: 895dc6bbb6bd38910c1659c474094fa833e018dfac75c9aef598ba982d711eea

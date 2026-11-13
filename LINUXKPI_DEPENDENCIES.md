@@ -3,6 +3,7 @@
 
 | Interface | Status | Actual implementation / evidence |
 |---|---|---|
+| Original seqcount/seqlock | scoped native tested | Complete original non-RT algorithms over native spin/preempt/IRQ scopes and x86 RAM fences; BH/IRQ/NMI integration outside validated scope |
 | Original lockref | native completion tested | Complete spin fallback;188224 native checks; Linux filesystem lifetime remains separate |
 | GFP vocabulary/blocking predicate | native allocator integrated | Original flags and unchanged extracted predicate; unsupported flags fail; no Linux zones/page allocator |
 | Complete drm_mm structs and algorithms | implemented, VM + N100 kernel tested | Unchanged v6.6 drm_mm.c/.h; host stress 019/020 and native-vm-006 allocation/overlap/cleanup |
@@ -251,3 +252,19 @@ all eight runs total190824 checks, zero failures. Native source checks pass
 before/after. Whole native ring/GTT now reach sched/mm.h process-mm/task services;
 physical GEM reaches seqcount/seqlock and asm/stat.h. Full i915 build/GPU execution
 remain absent. See experimental/i915/evidence/physical-lockref-recovered-001.
+
+
+## 2026-11-14: sequence-lock checkpoint
+
+Complete original seqcount/seqlock algorithms now pass actual native tests:
+four47087-check completion runs plus four650-check VMA runs total190948,
+zero failures and actual unload. Eight sequence workers exercise16000 writes,
+16000 accepted snapshots and four required stale-read rejections. Host sanitizer,
+always-accept retry mutation and configuration/link controls pass. All113 original
+imports remain unchanged. Supported scope is non-RT/non-debug task readers,
+externally serialized/non-preemptible short writers and ordinary RAM; BH methods
+remain unresolved. See experimental/i915/evidence/physical-seqlock-001.
+
+Native physical GEM now stops at asm/stat.h, with sequence type errors resolved.
+Ring/GTT still need real process-mm/task integration in sched/mm.h. Linux page/
+filesystem lifetime, full i915 compilation and GPU execution remain unfinished.

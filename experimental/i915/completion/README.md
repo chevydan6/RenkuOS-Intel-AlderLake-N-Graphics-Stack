@@ -344,3 +344,41 @@ four650-check runs with zero errors, two readers and actual unload. Rebuilt
 completion passes four47056 checks; combined190824. The pending status above
 is historical. Evidence: experimental/i915/evidence/physical-lockref-recovered-001
 (relative to repository root). Whole original i915 compilation still fails.
+
+
+## 2026-11-14: original sequence counters and locks
+
+Complete Linux v6.6 seqlock.h and configuration-disabled kcsan-checks.h are now
+unchanged imports (113 total). Native ordinary-RAM read/write fences, regular
+IRQ spinlock wrappers and the existing preemption scope support their original
+algorithms. cpu_relax is shared in asm/processor.h. The preemptible adapter is
+function-like, preserving original seqcount generic property names. No sequence
+algorithm was replaced. Compiler barriers and x86-64 RAM ordering do not supply
+MMIO ordering or i915 DMA/cache-domain transitions.
+
+Supported/testing scope is non-RT, non-debug, task-context seqcount/seqlock
+operations, ordinary RAM snapshots and short nonblocking writer sections.
+Raw seqcount writers must be externally serialized and non-preemptible; native
+spin/preempt scopes provide stronger IRQ exclusion. A reader must not interrupt
+its own writer or follow reclaimable pointers. Plain, spin-associated and
+mutex-associated counters, writer IRQ variants, exclusive readers and counter
+wraparound are tested. Latch/NMI/IRQ/softirq integration is not validated by this
+checkpoint. BH methods remain uniquely unresolved, and their actual link failure
+is tested. KCSAN/RT/debug instrumentation remains unsupported rather than enabled
+with fake runtime services. The imported disabled instrumentation branch is used.
+
+Actual native GCC13.3/SDK518 N100 compilation, four47087-check completion runs
+and four650-check VMA regressions pass:190948 checks, zero failures and actual
+unload. Eight sequence workers perform16000 writes/16000 accepted stress
+snapshots; four required stale-read rejections prove retry behavior independent
+of scheduling. Native mutex-associated preemption and IRQ restoration pass.
+Host ASan/UBSan47011 checks pass, and an always-accept retry mutation is rejected.
+There are80 header-order controls, eight unsupported-configuration failures and
+two unresolved-BH link controls. Native source checks match7083 entries before
+and after tests, including6783 reused byte-identical reference files.
+
+Native physical GEM now advances past sequence-lock declarations and stops at
+asm/stat.h. Ring/GTT still fail on real process-mm/task integration in sched/mm.h.
+No full i915 build or GPU execution is claimed. Evidence is in
+experimental/i915/evidence/physical-seqlock-001 and seqlock-host-001, relative to
+the repository root. Temporary SSH is stopped, lease released, media preserved.

@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-14",
+  "native": "hrev60072+518 GCC13.3 SDK518",
+  "hardware": "N100 four online CPUs; GPU8086:46d1 untouched",
+  "nativeDirectory": "/boot/home/i915-seqlock-001",
+  "completionChecksPerRun": 47087,
+  "vmaChecksPerRun": 650,
+  "runsEach": 4,
+  "total": 190948,
+  "failures": 0,
+  "seqWorkers": 8,
+  "seqWrites": 16000,
+  "seqAcceptedStressSnapshots": 16000,
+  "seqRequiredStaleReadRejections": 4,
+  "lockrefWorkers": 8,
+  "lockrefIterations": 32000,
+  "bitWorkers": 8,
+  "bitUpdates": 32000,
+  "rcuWorkers": 8,
+  "rcuFrees": 4,
+  "priorWaiterWorkers": 96,
+  "vmaStressOperations": 48000,
+  "unchangedOriginalImports": 113,
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "archivesSHA256": {
+    "/home/dan/i915-vm/seqlock-port-001/native-bundle-001/payload.tar.gz": "8d8697c64b6b5e3e52e003c9cae7be8de1b3c49ad4ac03a0f9f0d1a624b68984",
+    "/home/dan/i915-vm/seqlock-port-001/runtime-payload.tar.gz": "895dc6bbb6bd38910c1659c474094fa833e018dfac75c9aef598ba982d711eea",
+    "/home/dan/i915-vm/seqlock-port-001/native-results-001.tar.gz": "d451c05aa88e9d3b3747f8b3800b24041211e24da2b6cd628e57b5648814140b"
+  }
+}

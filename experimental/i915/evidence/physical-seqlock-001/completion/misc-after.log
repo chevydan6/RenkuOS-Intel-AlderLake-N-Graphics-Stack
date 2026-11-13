@@ -1,0 +1,14 @@
+intel_bcs_inventory
+intel_bcs_reset
+intel_dmar_inventory
+intel_forcewake
+intel_group_handshake
+intel_gt_ack
+intel_media_fuse
+intel_pci_owner
+intel_ppgtt_reserved_test
+intel_ppgtt_test
+intel_vtd_observer
+mem
+nvmm
+poke

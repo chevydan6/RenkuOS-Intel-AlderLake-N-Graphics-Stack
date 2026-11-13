@@ -1,0 +1,6 @@
+                 U renku_linux_spin_lock_bh
+                 U renku_linux_spin_unlock_bh
+/usr/bin/ld.bfd: /home/dan/i915-vm/seqlock-port-001/header-controls-001/host-bh-unresolved.o: in function `check':
+host-bh-unresolved.c:(.text+0x11): undefined reference to `renku_linux_spin_lock_bh'
+/usr/bin/ld.bfd: host-bh-unresolved.c:(.text+0x25): undefined reference to `renku_linux_spin_unlock_bh'
+collect2: error: ld returned 1 exit status

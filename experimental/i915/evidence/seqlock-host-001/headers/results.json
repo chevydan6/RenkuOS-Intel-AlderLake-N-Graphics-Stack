@@ -1,0 +1,402 @@
+[
+  {
+    "mode": "host",
+    "header": "linux/bitops.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/bits.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/bitmap.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/types.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/log2.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/build_bug.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/minmax.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/const.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/bitsperlong.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/ioctl.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "vdso/bits.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/cpumask.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/cache.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/cache.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/param.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/limits.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "uapi/linux/limits.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "vdso/limits.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/kernel.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/linkage.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/threads.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/numa.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/spinlock_types_raw.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/spinlock_types.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/spinlock.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/spinlock_types.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/bit_spinlock.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/rcupdate.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/printk.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/kern_levels.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/kdev_t.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "uapi/linux/kdev_t.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/gfp.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/gfp_types.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/lockref.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/seqlock.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/kcsan-checks.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/processor.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/barrier.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/compiler.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/bitops.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/bits.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/bitmap.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/types.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/log2.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/build_bug.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/minmax.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/const.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/bitsperlong.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/ioctl.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "vdso/bits.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/cpumask.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/cache.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/cache.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/param.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/limits.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "uapi/linux/limits.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "vdso/limits.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/kernel.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/linkage.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/threads.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/numa.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/spinlock_types_raw.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/spinlock_types.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/spinlock.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/spinlock_types.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/bit_spinlock.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/rcupdate.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/printk.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/kern_levels.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/kdev_t.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "uapi/linux/kdev_t.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/gfp.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/gfp_types.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/lockref.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/seqlock.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/kcsan-checks.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/processor.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/barrier.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/compiler.h",
+    "exit": 0
+  }
+]

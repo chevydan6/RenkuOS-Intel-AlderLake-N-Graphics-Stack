@@ -1,0 +1,82 @@
+In file included from reference/include/linux/xarray.h:19,
+                 from reference/include/linux/radix-tree.h:21,
+                 from reference/include/linux/idr.h:15,
+                 from reference/include/drm/drm_file.h:35,
+                 from reference/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from upstream/gt/intel_ring.c:8:
+reference/include/linux/sched/mm.h: In function 'mmgrab':
+reference/include/linux/sched/mm.h:36:9: error: implicit declaration of function 'atomic_inc'; did you mean 'atomic_and'? [-Werror=implicit-function-declaration]
+   36 |         atomic_inc(&mm->mm_count);
+      |         ^~~~~~~~~~
+      |         atomic_and
+reference/include/linux/sched/mm.h:36:23: error: invalid use of undefined type 'struct mm_struct'
+   36 |         atomic_inc(&mm->mm_count);
+      |                       ^~
+In file included from include/linux/types.h:3,
+                 from reference/drivers/gpu/drm/i915/gem/i915_gem_internal.h:9,
+                 from upstream/gt/intel_ring.c:6:
+reference/include/linux/sched/mm.h: In function 'mmdrop':
+reference/include/linux/sched/mm.h:53:22: error: implicit declaration of function 'atomic_dec_and_test'; did you mean 'atomic_get_and_set'? [-Werror=implicit-function-declaration]
+   53 |         if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+      |                      ^~~~~~~~~~~~~~~~~~~
+include/kpi_base.h:45:41: note: in definition of macro 'unlikely'
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+reference/include/linux/sched/mm.h:53:45: error: invalid use of undefined type 'struct mm_struct'
+   53 |         if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+      |                                             ^~
+include/kpi_base.h:45:41: note: in definition of macro 'unlikely'
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+reference/include/linux/sched/mm.h: In function 'mmget':
+reference/include/linux/sched/mm.h:132:23: error: invalid use of undefined type 'struct mm_struct'
+  132 |         atomic_inc(&mm->mm_users);
+      |                       ^~
+reference/include/linux/sched/mm.h: In function 'mmget_not_zero':
+reference/include/linux/sched/mm.h:137:16: error: implicit declaration of function 'atomic_inc_not_zero'; did you mean 'refcount_inc_not_zero'? [-Werror=implicit-function-declaration]
+  137 |         return atomic_inc_not_zero(&mm->mm_users);
+      |                ^~~~~~~~~~~~~~~~~~~
+      |                refcount_inc_not_zero
+reference/include/linux/sched/mm.h:137:39: error: invalid use of undefined type 'struct mm_struct'
+  137 |         return atomic_inc_not_zero(&mm->mm_users);
+      |                                       ^~
+reference/include/linux/sched/mm.h: In function 'in_vfork':
+reference/include/linux/sched/mm.h:222:18: error: 'struct task_struct' has no member named 'vfork_done'
+  222 |         ret = tsk->vfork_done &&
+      |                  ^~
+reference/include/linux/sched/mm.h:223:44: error: 'struct task_struct' has no member named 'real_parent'
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                                            ^~
+include/kpi_base.h:51:46: note: in definition of macro 'smp_load_acquire'
+   51 | #define smp_load_acquire(p) __atomic_load_n((p), __ATOMIC_ACQUIRE)
+      |                                              ^
+include/linux/rcupdate.h:23:28: note: in expansion of macro 'rcu_dereference_check'
+   23 | #define rcu_dereference(p) rcu_dereference_check(p, false)
+      |                            ^~~~~~~~~~~~~~~~~~~~~
+reference/include/linux/sched/mm.h:223:25: note: in expansion of macro 'rcu_dereference'
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                         ^~~~~~~~~~~~~~~
+reference/include/linux/sched/mm.h:223:71: error: 'struct task_struct' has no member named 'mm'; did you mean 'comm'?
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                                                                       ^~
+      |                                                                       comm
+reference/include/linux/sched/mm.h: In function 'current_gfp_context':
+reference/include/linux/sched/mm.h:237:48: error: 'struct task_struct' has no member named 'flags'
+  237 |         unsigned int pflags = READ_ONCE(current->flags);
+      |                                                ^~
+include/kpi_base.h:48:40: note: in definition of macro 'READ_ONCE'
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+reference/include/linux/sched/mm.h:239:32: error: 'PF_MEMALLOC_NOIO' undeclared (first use in this function)
+  239 |         if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS | PF_MEMALLOC_PIN))) {
+      |                                ^~~~~~~~~~~~~~~~
+include/kpi_base.h:45:41: note: in definition of macro 'unlikely'
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+reference/include/linux/sched/mm.h:239:32: note: each undeclared identifier is reported only once for each function it appears in
+  239 |         if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS | PF_MEMALLOC_PIN))) {
+      |                                ^~~~~~~~~~~~~~~~
+include/kpi_base.h:45:41: note: in definition of macro 'unlikely'
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+compilation terminated due to -fmax-errors=12.
