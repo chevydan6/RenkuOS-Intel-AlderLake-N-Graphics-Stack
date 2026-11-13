@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-13",
+  "nativeDirectory": "/boot/home/i915-preempt-004",
+  "checksPerRun": {
+    "completion": 149,
+    "vma": 648,
+    "kpi": 62
+  },
+  "runsEach": 4,
+  "allFinalFailures": 0,
+  "vmaStressOperations": 48000,
+  "wholeTranslationUnitsBuild": false,
+  "gpuExecution": false,
+  "archivesSHA256": {
+    "/home/dan/i915-vm/preempt-port-001/native-bundle-003/payload.tar.gz": "45f79c68bdfbc8b9a4a888561788b1e44d0a01c182129cd75fd3c4a7e741e284",
+    "/home/dan/i915-vm/preempt-port-001/native-bundle-004/payload.tar.gz": "ed8adf7e46813a16f79530fad4468d5b3640ce509784ff689b618efd1aca1985",
+    "/home/dan/i915-vm/preempt-port-001/native-results-001.tar.gz": "b308656ce95fa6f41a752e9b0c96b7b1147709be23641119af92858a697ccd63",
+    "/home/dan/i915-vm/preempt-port-001/vma-overlap-failure.tar.gz": "1013d1826ca9e473f2cf93f8b95f59a864aec810af096ab15f68b5552399e40f",
+    "/home/dan/i915-vm/preempt-port-001/interrupted-transfer-003.tar.gz": "358224610d72fbcc6e3fa172e46e44e4a6115c6cd059f1a4b06f7ef5994d1b64"
+  },
+  "basePayloadManifestSHA256": "76ca79c48323716faca665cbbf2995f108bedb9a5399e7243fa1a287d4246bb2",
+  "finalRuntimeManifestSHA256": "25b61f2e1fb139d6a9c68d9fdc68e512bf7ccea8554199ce2feb0be3a9755b64",
+  "vmaFixtureSHA256": "88c9318f462a8fdb7657befa4b7d05ef08d22efc14a44cb67793568801741925",
+  "finalRuntimeSourcesMatchRepositoryExceptDocumentation": true
+}

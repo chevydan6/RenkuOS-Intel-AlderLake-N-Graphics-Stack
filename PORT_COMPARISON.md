@@ -142,3 +142,15 @@ ordinary-signal killable-wait controls. This supplies driver synchronization
 semantics while retaining original algorithms; it does not establish GPU fence
 completion or reduce a measured time-to-Mesa estimate. Native whole GEM/ring
 compilation still exposes later compatibility dependencies.
+
+
+## Native preemption/helper integration result
+
+The port retains original Linux helper algorithms and supplies real native
+preemption/IRQ adapters shared with spin/rw locks. Physical RenkuOS compilation
+and twelve final diagnostic runs pass 3436 checks, with actual unload and 48,000
+VMA stress operations. A missed-overlap setup failure is preserved and corrected
+by requiring actual reader overlap before stress. Host sanitizers and compiler/
+mutation controls complement the native results. This is compatibility progress;
+full original GEM/ring builds still fail at later headers and no GPU workload or
+performance comparison exists. See physical-preempt-001 and preempt-host-001.

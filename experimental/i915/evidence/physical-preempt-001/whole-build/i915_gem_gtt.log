@@ -1,0 +1,7 @@
+In file included from reference/include/uapi/linux/random.h:12,
+                 from reference/include/linux/random.h:10,
+                 from upstream/gem/i915_gem_gtt.c:11:
+reference/include/uapi/linux/ioctl.h:5:10: fatal error: asm/ioctl.h: No such file or directory
+    5 | #include <asm/ioctl.h>
+      |          ^~~~~~~~~~~~~
+compilation terminated.

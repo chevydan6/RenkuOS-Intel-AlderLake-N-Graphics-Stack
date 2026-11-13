@@ -103,3 +103,20 @@ include macro/attribute namespace collisions, early init/might_sleep declaration
 and missing architecture/preemption interfaces. See physical-completion-001/
 whole-build/. The earlier scalar types/division/raw-spin/class-key obstacles are
 resolved for the tested compilation environment. GPU submission remains absent.
+
+
+## Preemption/helper continuation (current boundary)
+
+Original canonical Linux helper imports resolve the previous ALIGN/roundup/min/
+compiler-attribute collisions. Early might_sleep/init visibility is supplied.
+Native spin/rw/preemption scopes share a real per-CPU IRQ backend, validated on
+RenkuOS, with shutdown rejecting active users. Physical IRQ masking is stronger
+than task preemption; callers must not block and must keep sections short.
+
+The current physical whole-file failures are preserved in
+experimental/i915/evidence/physical-preempt-001/whole-build: GTT lacks asm/ioctl.h;
+physical GEM collides on MAJOR/MINOR/MKDEV, lacks RCU helpers and asm/cache.h;
+ring lacks bitmap/bit-scan primitives, loff_t and cpumask layout support. Follow
+these compiler-derived dependencies using original Linux code and actual OS
+services. No Linux interrupt-context counters, complete RCU lifetime system,
+full i915 attachment, GPU submission/completion or Mesa integration is supplied.

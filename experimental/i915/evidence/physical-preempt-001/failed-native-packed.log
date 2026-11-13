@@ -1,0 +1,19 @@
+In file included from include/linux/compiler_attributes.h:8,
+                 from include/kpi_base.h:19,
+                 from include/asm/errno.h:4,
+                 from upstream/uapi/linux/errno.h:1,
+                 from upstream/linux/errno.h:5,
+                 from ./include/completion_port.h:6,
+                 from <command-line>:
+include/linux/../../upstream/linux/compiler_attributes.h:304: error: "__packed" redefined [-Werror]
+  304 | #define __packed                        __attribute__((__packed__))
+      | 
+In file included from /boot/system/develop/headers/posix/sys/resource.h:11,
+                 from /boot/system/develop/headers/bsd/sys/wait.h:16,
+                 from /boot/system/develop/headers/posix/stdlib.h:13,
+                 from /boot/system/develop/headers/bsd/stdlib.h:9,
+                 from include/kpi_base.h:10:
+/boot/system/develop/headers/bsd/sys/cdefs.h:18: note: this is the location of the previous definition
+   18 | #define __packed        __attribute__((packed))
+      | 
+cc1: all warnings being treated as errors

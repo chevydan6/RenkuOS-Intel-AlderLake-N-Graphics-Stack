@@ -1,0 +1,7 @@
+{
+  "initialVerifiedFiles": 6974,
+  "initialOKLines": 6974,
+  "finalRuntimeFiles": 6970,
+  "finalRuntimeVerification": "runtime-source-check-summary.json",
+  "overlay": "Only vma/native_test.c changed after base verification; its final hash is in vma-test-update.sha256. Final runtime checksum excludes Markdown documentation."
+}

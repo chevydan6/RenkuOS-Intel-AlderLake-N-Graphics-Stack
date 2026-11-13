@@ -139,3 +139,20 @@ implemented. See completion/README.md for exact limitations and reproduction.
 Original generic division/kconfig/lockdep-off/UAPI helpers and native atomic-bit
 operations reduce the next whole-source dependency set. Fully materialized
 reference headers are verified against the pin before native compiler attempts.
+
+
+## Shared native IRQ/preemption scope backend
+
+One wired CPU-sized table now serves native spinlocks, rwlocks and preempt_disable.
+Physical IRQ masking prevents migration for each short section; requested restore
+state remains deferred until the final live scope exits. Nested _irq/irqsave and
+non-LIFO lock/preemption overlap pass on the N100, as do active-scope teardown
+rejection and original completion/VMA regressions. Startup/shutdown serialize
+users and CPU topology remains fixed. Interrupt-context classification stays
+unresolved rather than inventing Linux IRQ state. See completion/README.md.
+
+The import manifest verifies 65 original files, including canonical compiler
+attributes/build_bug/minmax/alignment/arithmetic/endian/swab helpers. Native C
+library declarations precede Linux macro selection. Complete GEM/ring attempts
+now reach bitmap/cpumask, RCU, device-number and architecture ioctl/cache headers;
+these remain dependencies, with actual target errors in physical-preempt-001.

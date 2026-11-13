@@ -1,0 +1,61 @@
+In file included from reference/include/linux/bitmap.h:9,
+                 from reference/include/linux/cpumask.h:12,
+                 from reference/include/linux/percpu.h:8,
+                 from reference/include/linux/radix-tree.h:16,
+                 from reference/include/linux/idr.h:15,
+                 from reference/include/drm/drm_file.h:35,
+                 from reference/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from upstream/gt/intel_ring.c:8:
+reference/include/linux/find.h: In function 'find_next_bit':
+reference/include/linux/find.h:57:13: error: implicit declaration of function 'small_const_nbits' [-Werror=implicit-function-declaration]
+   57 |         if (small_const_nbits(size)) {
+      |             ^~~~~~~~~~~~~~~~~
+reference/include/linux/find.h:63:31: error: implicit declaration of function 'GENMASK' [-Werror=implicit-function-declaration]
+   63 |                 val = *addr & GENMASK(size - 1, offset);
+      |                               ^~~~~~~
+reference/include/linux/find.h:64:30: error: implicit declaration of function '__ffs'; did you mean 'ffs'? [-Werror=implicit-function-declaration]
+   64 |                 return val ? __ffs(val) : size;
+      |                              ^~~~~
+      |                              ffs
+reference/include/linux/find.h: In function 'find_next_zero_bit':
+reference/include/linux/find.h:183:45: error: implicit declaration of function 'ffz'; did you mean 'ffs'? [-Werror=implicit-function-declaration]
+  183 |                 return val == ~0UL ? size : ffz(val);
+      |                                             ^~~
+      |                                             ffs
+reference/include/linux/find.h: In function 'find_nth_bit':
+reference/include/linux/find.h:234:30: error: implicit declaration of function 'fns'; did you mean 'fls'? [-Werror=implicit-function-declaration]
+  234 |                 return val ? fns(val, n) : size;
+      |                              ^~~
+      |                              fls
+reference/include/linux/find.h: In function 'find_last_bit':
+reference/include/linux/find.h:384:30: error: implicit declaration of function '__fls'; did you mean 'fls'? [-Werror=implicit-function-declaration]
+  384 |                 return val ? __fls(val) : size;
+      |                              ^~~~~
+      |                              fls
+reference/include/linux/bitmap.h: At top level:
+reference/include/linux/bitmap.h:232:54: error: unknown type name 'loff_t'; did you mean 'off_t'?
+  232 |                                       int nmaskbits, loff_t off, size_t count);
+      |                                                      ^~~~~~
+      |                                                      off_t
+reference/include/linux/bitmap.h:235:54: error: unknown type name 'loff_t'; did you mean 'off_t'?
+  235 |                                       int nmaskbits, loff_t off, size_t count);
+      |                                                      ^~~~~~
+      |                                                      off_t
+reference/include/linux/bitmap.h: In function 'bitmap_zero':
+reference/include/linux/bitmap.h:242:28: error: implicit declaration of function 'BITS_TO_LONGS'; did you mean 'BITS_PER_LONG'? [-Werror=implicit-function-declaration]
+  242 |         unsigned int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
+      |                            ^~~~~~~~~~~~~
+      |                            BITS_PER_LONG
+reference/include/linux/bitmap.h: In function 'bitmap_weight':
+reference/include/linux/bitmap.h:438:24: error: implicit declaration of function 'hweight_long' [-Werror=implicit-function-declaration]
+  438 |                 return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
+      |                        ^~~~~~~~~~~~
+reference/include/linux/bitmap.h: In function 'bitmap_get_value8':
+reference/include/linux/bitmap.h:580:30: error: implicit declaration of function 'BIT_WORD' [-Werror=implicit-function-declaration]
+  580 |         const size_t index = BIT_WORD(start);
+      |                              ^~~~~~~~
+reference/include/linux/cpumask.h: At top level:
+reference/include/linux/cpumask.h:19:26: error: expected specifier-qualifier-list before 'DECLARE_BITMAP'
+   19 | typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
+      |                          ^~~~~~~~~~~~~~
+compilation terminated due to -fmax-errors=12.

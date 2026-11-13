@@ -548,3 +548,40 @@ whole GEM/ring attempts are now performed on RenkuOS as well as the development
 host. All still fail at later header namespace and architecture/preemption
 interfaces; their real exits and errors are retained. No full i915 build or GPU
 execution is claimed. Continue integrating original code with real OS services.
+
+
+## Native preemption and canonical helper integration — 2026-11-13
+
+The port now uses 65 unique byte-exact Linux v6.6 imports. Original compiler
+attributes, build_bug/minmax, arithmetic/alignment and byteorder headers replace
+conflicting local macros. Native libc is parsed before Linux attribute and swab
+spellings; native __packed and wait-status collisions are resolved in wrappers.
+Early might_sleep/init/type visibility is corrected without editing GPU code.
+
+New preemption exclusion delegates to real native IRQ masking. One wired per-CPU
+scope manager now serves spinlocks, rwlocks and preemption together, preserving
+requested IRQ state across nested or overlapping lifetimes. This is stronger
+than Linux task-only exclusion and requires short nonblocking sections. Actual
+IRQ-context classification and Linux hardirq/softirq/NMI counters remain absent.
+
+On the physical N100, GCC13.3/SDK518 builds and four runs each pass: 149 completion/
+preemption checks, 648 VMA checks, 62 older KPI checks (596/2592/248 total). VMA
+includes 48,000 stress operations and required reader overlap. Diagnostics unload
+with status0 and graphics publication unchanged. The initial VMA setup missed
+reader overlap and failed; a bounded two-reader rendezvous strengthens the setup
+without removing any assertion. Failed results and exact source hashes remain.
+Host ASan/UBSan models and compiler/mutation controls also pass. Evidence is in
+experimental/i915/evidence/physical-preempt-001 and preempt-host-001.
+
+The temporary loss of USB/HDMI/SSH occurred before any new module installed;
+the user restored the connection. The interrupted archive failed its checksum
+and was preserved, then retransmitted and verified. No cause is inferred.
+Final native checksum verification passes all 6970 non-Markdown bundle files,
+including the revised test. HDMI/media baseline was preserved; SSH stopped and
+the physical lease released after evidence collection.
+
+Complete original GEM/ring compilation still fails on RenkuOS: GTT reaches
+asm/ioctl.h, physical GEM reaches device-number macros/RCU and asm/cache.h, ring
+reaches bitmaps/bit scans/loff_t/cpumask. Actual failed compiler exits are retained.
+These define the next integration steps. Full i915 build and GPU execution have
+not yet been demonstrated; original GPU algorithms remain unchanged.
