@@ -1,0 +1,14 @@
+{
+  "nativeRunPending": true,
+  "nativeCppBuildPending": true,
+  "runtimeEntries": 329,
+  "sharedReferenceFilesCompared": 6783,
+  "runtimeSHA256": "ebdb7d7966ca98e2451fc4266b794fc957e0c7c09dfe0350ba10578a94a6ae06",
+  "fullBundleSHA256": "9ac4a87a60c74a5bf9167a0f106b094e86d4819e1743b40774359c7427e6d9bb",
+  "runnerSHA256": "9905021c76b3eebc3f7e993f17cdf4e8c66d0d7b13e83d35cd965497836cec52",
+  "nativeDirectory": "/boot/home/i915-store-001",
+  "referenceSymlinkTarget": "/boot/home/i915-pages-001/reference",
+  "reportVersion": 9,
+  "reportBytes": 112,
+  "hostChecks": 49504
+}

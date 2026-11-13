@@ -274,3 +274,37 @@ shmem/swap/mmzone dependencies at rejected VM bounds and missing asm/page.h.
 Its cache, pin/unpin, dirty/accessed, truncate/writeback and file/mapping lifetimes
 must connect to real native VM services. Ring/GTT still need process-mm/task
 integration. Full i915 compilation and GPU execution remain unfinished.
+
+
+## 2026-11-14: persistent pageable-store backing (native pending)
+
+The internal backing layer now separates store lifetime from folio pin lifetime.
+Its native bridge creates B_NO_LOCK anonymous areas, wires individual writable
+pages with lock_memory_etc, queries real physical extents while pinned and queues
+matching unpins on final folio release. Re-pin queries physical identity again;
+contents remain owned by the store. Concurrent first pins merge into one head,
+with redundant native pins released. Live, pending and in-flight pins block store
+destruction; empty stores still block backend shutdown. Failed area deletion
+keeps the owner available for retry. New code is MIT; all118 Linux originals
+remain unchanged. This is an internal provider, not yet Linux shmem/file glue.
+
+Final host003 and its restored binary pass49504 ASan/UBSan checks, including data
+retention, failure recovery, blocked pin/unpin deletion and two concurrent workers.
+Four new mutations reject missing unpins, duplicate heads and live deletion.
+Header controls94/18/four and actual target-header C core/test/client compiles
+pass. Report version9 has112-byte layout and one store create/free plus two
+workers/256 iterations. Sources, exact logs and native API source-contract hashes
+are in experimental/i915/evidence/store-host-001.
+
+These are host results. The C++ cross probe lacks the matching target <new>
+header, so the new native bridge has no C++ build/link/runtime validation yet.
+USB input still fails; the read-only screenshot shows the previous version7
+native page checkpoint. No new native code/module was transferred or installed.
+Both version8 folio and version9 store runtime tests await hardware recovery.
+Native VM reclaim/swap behavior remains untested. No lease was acquired for the
+host work, and the previous native lease remains released.
+
+Next connect native-backed store ownership to actual Linux file/address_space
+and shmem APIs, including real GFP, pinning, dirty/accessed, writeback, truncate
+and mapping lifetimes. Whole original i915 files still fail in VM/process
+services; the full driver and GPU execution remain unfinished.

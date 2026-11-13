@@ -481,3 +481,49 @@ GTT, physical GEM and ring in the native whole-source compiler loop. Its current
 cross-source failure reaches shmem_fs.h/swap.h/mmzone.h, generated VM bounds and
 asm/page.h. Actual shmem backing, file/mapping lifetimes, page-cache pinning,
 dirty/writeback/truncate behavior and process-mm integration are still required.
+
+## Pageable backing stores (native validation pending)
+
+The internal renku_linux_page_store API supplies the backing needed before a
+Linux shmem/file adapter can be connected. It creates a native B_NO_LOCK anonymous
+area rather than keeping every buffer page permanently wired. Reads obtain a
+writable single-page native pin with lock_memory_etc(B_SYSTEM_TEAM, ..., B_READ_DEVICE)
+and verify its actual physical extent. A live folio reference keeps that pin;
+final put queues a matching unlock_memory_etc through the existing release worker.
+The area retains the contents after unpin until its owner destroys the store.
+Physical identity is queried again on the next pin. Direct CPU access requires
+a live folio reference, including throughout DMA map/use/unmap.
+
+The registry merges concurrent pins of the same store/index into one canonical
+folio. A racing redundant native pin is released before returning the winning
+head. Store destruction refuses active folios, pending unpins and in-flight pin
+operations. Failed native area deletion republishes the owner for retry; empty
+stores still prevent backend shutdown. The module owner serializes lifecycle
+and excludes new callers during destruction/unload. Lookups remain linear.
+
+Native source inspection at the pinned Renku revision confirms B_NO_LOCK uses
+an anonymous cache, faults pages as needed and can use the VM's swap support.
+The wire API retains the address space and pins both area ranges and physical
+pages; unlock must use exactly matching parameters. These source facts do not
+prove native behavior of this new bridge. Native C++ compilation, export/link
+checks, VM paging/swap behavior and runtime teardown are still pending. The
+host C++ probe cannot resolve the target SDK's <new> header and is retained as
+a failed cross-compilation attempt, not a passing bridge build.
+
+Host ASan/UBSan passes49504 checks with production C ownership logic. The model
+uses real RAM and synchronization, explicit pin accounting and a changing
+synthetic physical identity after complete unpin. It does not model native
+faults, reclaim or swap. Tests retain data across unpin/re-pin, reject deletion
+with live/in-flight/queued pins, balance simultaneous first pins, recover from
+pin/area-deletion failures and use two workers for256 read/map/ref iterations.
+Four additional mutations reject missing final/duplicate unpins, duplicate
+canonical heads and live deletion. C adapters, native C tests and version9
+client compile against pinned native headers. Report layout is112 bytes and
+expects one store create/free and two workers/256 iterations per completion run.
+See ../evidence/store-host-001 for exact results and remaining limits.
+
+This internal backing provider is not yet a Linux shmem file/address_space
+implementation. Size-changing truncate, dirty/accessed/writeback operations,
+Linux GFP/reclaim constraints, userspace mappings and file/mapping lifetimes
+remain unfinished. Complete original i915 files still do not compile, and no
+GPU work has run. All118 unchanged Linux imports remain hash verified.

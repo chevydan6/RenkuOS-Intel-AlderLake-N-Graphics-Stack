@@ -1,7 +1,12 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Bounded Linux i915 compatibility experiment
 
-Latest development: evidence/folio-host-001 records47416 passing host sanitizer
+Latest development: evidence/store-host-001 records49504 passing host sanitizer
+checks for persistent backing, balanced pins and concurrent canonical folios.
+The native bridge uses pageable anonymous areas and real VM wire/unwire APIs;
+native compilation/runtime validation of this addition is pending USB recovery.
+
+Previous development: evidence/folio-host-001 records47416 passing host sanitizer
 checks for managed folio heads, original local maps and batch reference release.
 Native validation of these additions is pending USB input recovery. All118
 original imports are unchanged. Full original GEM shmem is now included in the
