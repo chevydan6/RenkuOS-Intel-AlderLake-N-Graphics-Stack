@@ -28,3 +28,7 @@ The first 12 were inspected for diff target paths; the other 106 have **not** be
 
 ## Explicitly unverified
 No native compilation, physical N100 test, full 118-patch diff inspection, or automated cross-file reference scan has been run by this GitHub-only migration.
+## Follow-up 2026-11-13: full patch-path extraction
+All 118 numbered patch files now have a recorded diff-target audit: first twelve in this document, the remaining 106 in `docs/patch-audit/` batch tables. The first three batch tables inspect only the first 110 lines per patch and may miss later file targets; later batches were corrected using full patch bodies and `+++ b/` headers. The read-only `tools/audit-repository.py` script can regenerate complete target inventories from a real checkout and check Markdown relative links. **No script execution, application-order verification, or build validation is claimed.**
+
+Moved five standalone docs into `docs/` with original-path compatibility pointers: ARCHITECTURE, BLIT_RESEARCH, PERFORMANCE, GGTT_AUDIT, BUILD. The content of copied documents is unchanged, but references to relative filesystem paths inside them require local audit before removing the pointers.
