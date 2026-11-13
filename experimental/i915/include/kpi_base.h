@@ -49,6 +49,7 @@ _Static_assert(sizeof(unsigned long) == 8, "This experimental port targets x86-6
 #define BUG_ON(x) do { if (x) panic("LinuxKPI assertion: %s", #x); } while (0)
 extern bool renku_kpi_warn(const char *, ...);
 #define WARN(c, ...) ({ bool _warn = !!(c); if (_warn) renku_kpi_warn(__VA_ARGS__); _warn; })
+#define WARN_ON_ONCE(c) WARN_ONCE(c, "i915 LinuxKPI warning: %s\n", #c)
 #define WARN_ON(c) WARN(c, "i915 LinuxKPI warning: %s\n", #c)
 #define WARN_ONCE(c, ...) ({ bool _condition = !!(c); \
 	static bool _warned; \
