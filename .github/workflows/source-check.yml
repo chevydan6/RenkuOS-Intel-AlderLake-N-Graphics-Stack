@@ -3,22 +3,49 @@ name: GPU source regression checks
 on:
   push:
     branches: [gpu/renkuos-n100]
+  pull_request:
+    branches: [gpu/renkuos-n100]
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: gpu-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   source:
+    name: GPU host regression (${{ matrix.revision }})
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        revision: ${{ fromJSON(github.event_name == 'pull_request' && '["base","candidate"]' || '["candidate"]') }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.revision == 'base' && github.event.pull_request.base.sha || github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Record exact tested revision
+        id: identity
+        run: |
+          git rev-parse HEAD
+          git status --porcelain
+          g++ --version
+          python3 --version
       - name: Export pinned source and apply patches
+        id: prepare
         run: python3 tools/prepare.py --output build/ci
       - name: Verify source coverage, original failure and payload
+        id: source_coverage
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: python3 tools/check-source.py build/ci
       - name: Check EDID-backed DDI pipe selection
+        id: ddi_pipe
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: python3 tests/ddi-pipe-host.py build/ci/source/src/add-ons/accelerants/intel_extreme/Ports.cpp
       - name: Compile and test GGTT range validation
+        id: ggtt
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: |
           g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=undefined,address -Ibuild/ci/source/src/add-ons/kernel/busses/agp_gart build/ci/tests/gtt-range-test.cpp -o build/ci/gtt-range-test
           build/ci/gtt-range-test
@@ -27,10 +54,14 @@ jobs:
           g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=undefined,address -Ibuild/ci/source/src/add-ons/kernel/busses/agp_gart build/ci/tests/gtt-stolen-test.cpp -o build/ci/gtt-stolen-test
           build/ci/gtt-stolen-test
       - name: Check Python syntax and patch whitespace
+        id: syntax
+        if: ${{ !cancelled() }}
         run: |
           python3 -m py_compile tools/*.py tests/*.py
           git diff --check
       - name: Validate retained owner and bounded reset helpers
+        id: owner_reset
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: |
           python3 tests/owner-observation-host.py --source build/ci/source --output build/ci-owner
           for test in reset-domains forcewake-group bcs-reset; do
@@ -38,28 +69,65 @@ jobs:
             build/$test-test
           done
       - name: Validate offline context status and bounded CSB reader
+        id: context_status
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: |
           for test in n100-context-status n100-csb-reader; do
             g++ -std=c++17 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie -Iworkstreams/gpu-next tests/$test-test.cpp -o build/$test-test
             build/$test-test
           done
       - name: Compare full context image with pinned Linux routines
+        id: context_image
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: |
           python3 tools/fetch-context-image-references.py --output build/context-references
           python3 tests/context-image-host.py --references build/context-references --output build/context-image
       - name: Validate immutable boot framebuffer descriptor bounds
+        id: framebuffer
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: |
           g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=address,undefined -Idiagnostics diagnostics/tests/boot-framebuffer-info-test.cpp -o build/boot-framebuffer-info-test
           build/boot-framebuffer-info-test
       - name: Verify GART unbind range and original-code control
+        id: gart_range
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: python3 tools/run-gart-range-host.py build/ci
       - name: Verify GART lifetime with backend fault injection
+        id: gart_lifetime
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: python3 tools/run-gart-lifecycle-host.py build/ci
       - name: Verify GART allocation failure cleanup
+        id: gart_allocation
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: python3 tools/run-gart-allocation-host.py build/ci
       - name: Verify kernel legacy resource suppression on Alder Lake
+        id: kernel_resources
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: python3 tools/run-kernel-resources-host.py build/ci
       - name: Validate experimental linear copy packets without hardware
+        id: linear_copy
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: |
           g++ -std=c++17 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -fsanitize=address,undefined tests/linear-copy-test.cpp -o build/linear-copy-test
           build/linear-copy-test
+      - name: Publish exact revision and regression outcomes
+        if: ${{ always() }}
+        env:
+          REVISION_LABEL: ${{ matrix.revision }}
+          STEP_RESULTS: ${{ toJSON(steps) }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          results = json.loads(os.environ['STEP_RESULTS'])
+          report = {'revision': os.environ['REVISION_LABEL'], 'commit': sha,
+                    'scope': 'Linux-host regression only; not native RenkuOS or physical GPU execution',
+                    'steps': {name: step['outcome'] for name, step in results.items()}}
+          print(json.dumps(report, indent=2))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write(f"## GPU host regression: {report['revision']}\n\nCommit: `{sha}`\n\n")
+              out.write(report['scope'] + '\n\n| Step | Outcome |\n|---|---|\n')
+              for name, outcome in report['steps'].items():
+                  out.write(f'| {name} | {outcome} |\n')
+          PY

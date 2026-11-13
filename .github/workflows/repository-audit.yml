@@ -1,0 +1,116 @@
+# SPDX-License-Identifier: MIT
+name: Repository structure audit
+on:
+  pull_request:
+    branches: [gpu/renkuos-n100]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: repository-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test archive classification and broken-link negative controls
+        run: |
+          python3 - <<'PY'
+          import importlib.util, tempfile
+          from pathlib import Path
+          spec = importlib.util.spec_from_file_location('audit', 'tools/audit-repository.py')
+          audit = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(audit)
+          source, destination, blob = next(iter(audit.ARCHIVED_MISSING_LINKS))
+          raw = Path(source).read_bytes()
+          assert audit.git_blob_sha(raw) == blob, 'Historical evidence bytes changed'
+          with tempfile.TemporaryDirectory() as temporary:
+              root = Path(temporary)
+              archived = root / source
+              archived.parent.mkdir(parents=True)
+              archived.write_bytes(raw)
+              report = audit.inspect(root)
+              assert len(report['archived_missing_relative_links']) == 1
+              assert not report['unexpected_missing_relative_links']
+              archived.write_bytes(raw + b'\n')
+              report = audit.inspect(root)
+              assert not report['archived_missing_relative_links']
+              assert len(report['unexpected_missing_relative_links']) == 1
+              archived.write_bytes(raw)
+              (root / 'README.md').write_text('[new link](missing.md)\n')
+              report = audit.inspect(root)
+              assert len(report['unexpected_missing_relative_links']) == 1
+              assert len(report['archived_missing_relative_links']) == 1
+              (root / 'missing.md').write_text('Resolved test fixture.\n')
+              assert not audit.inspect(root)['unexpected_missing_relative_links']
+          print('PASS exact archive exception, changed-byte rejection, new-link rejection and repaired-link control')
+          PY
+      - name: Run strict repository audit
+        id: inventory
+        if: ${{ !cancelled() }}
+        run: python3 tools/audit-repository.py --strict --output repository-audit.json
+      - name: Map repository dependencies
+        if: ${{ !cancelled() }}
+        run: python3 tools/map-dependencies.py --output dependency-map.json
+      - name: Verify cleanup preserves driver, tests and evidence
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.head_ref == 'cleanup/repository-reorganization' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --exit-code "$BASE_SHA" HEAD -- patches workstreams tests diagnostics physical installation experimental experiments research tools ':!tests/README.md' ':!research/README.md' ':!tools/audit-repository.py' ':!tools/map-dependencies.py'
+          git diff --check "$BASE_SHA" HEAD
+          python3 - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          base = os.environ['BASE_SHA']
+          moved = ['ARCHITECTURE.md', 'BLIT_RESEARCH.md', 'BUILD.md', 'GGTT_AUDIT.md',
+                   'KNOWN_ISSUES.md', 'MESA_INTERFACE.md', 'PERFORMANCE.md',
+                   'POWER_COORDINATION.md', 'ROADMAP.md']
+          for name in moved:
+              before = subprocess.check_output(['git', 'show', f'{base}:{name}'])
+              after = Path('docs', name).read_bytes()
+              assert before == after, f'Relocated content changed: {name}'
+              assert f'](docs/{name})' in Path(name).read_text(), f'Missing compatibility link: {name}'
+              print(f'PASS unchanged relocated document and compatibility link: {name}')
+          print('PASS driver sources, patch contents, executable tests and recorded evidence unchanged')
+          PY
+      - name: Publish audit summary and any preserved archival defect
+        if: ${{ always() }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          audit = Path('repository-audit.json')
+          dependency = Path('dependency-map.json')
+          if not audit.exists() or not dependency.exists():
+              raise SystemExit('Audit report missing; inspect the failed step')
+          d = json.loads(audit.read_text())
+          dep = json.loads(dependency.read_text())
+          sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          report = {'commit': sha, 'patch_count': d['patch_count'],
+                    'relative_links_checked': d['markdown_relative_links_checked'],
+                    'unexpected_missing_links': d['unexpected_missing_relative_links'],
+                    'preserved_archival_missing_links': d['archived_missing_relative_links'],
+                    'dependency_files_seen': dep['files_seen'],
+                    'explicit_path_references': len(dep['explicit_path_references'])}
+          print(json.dumps(report, indent=2))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write(f'## Repository audit\n\nCommit: `{sha}`\n\n')
+              out.write(f"- Numbered patches: {d['patch_count']}\n")
+              out.write(f"- Relative links checked: {d['markdown_relative_links_checked']}\n")
+              out.write(f"- Unexpected missing links: {len(d['unexpected_missing_relative_links'])}\n")
+              out.write(f"- Byte-pinned archival defects: {len(d['archived_missing_relative_links'])}\n")
+              out.write(f"- Patches without targets: {sum(p['missing_targets'] for p in d['patches'])}\n")
+              out.write(f"- Dependency-map entries (heuristic): {len(dep['explicit_path_references'])}\n")
+              out.write('Inline local destinations are gated; anchors/external URLs/reference links are outside this checker.\n')
+              for record in d['archived_missing_relative_links']:
+                  out.write(f"- PRESERVED ARCHIVE: `{record['source']}` -> `{record['destination']}`; blob `{record['source_git_blob']}`. {record['reason']}\n")
+              for record in d['unexpected_missing_relative_links']:
+                  out.write(f"- BROKEN: `{record['source']}` -> `{record['destination']}`\n")
+          PY
