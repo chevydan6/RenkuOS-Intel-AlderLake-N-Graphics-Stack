@@ -25,7 +25,7 @@ struct task_struct {
 	sem_t wait_event;
 #endif
 	bool wait_initialized;
-	unsigned int wait_state, interrupted_state;
+	unsigned int wait_state, interrupted_state, pagefault_disabled;
 	void (*release_wait)(struct task_struct *);
 };
 bool renku_linux_task_register(struct task_struct *);

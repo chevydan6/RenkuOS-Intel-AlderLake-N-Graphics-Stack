@@ -17,6 +17,15 @@ _Static_assert(B_PAGE_SIZE == (1UL << PAGE_SHIFT), "Expected native x86-64 page 
  * wired through DMA unmap. General Linux folio/page allocation remains separate. */
 struct page { void *virtual; phys_addr_t physical; };
 struct folio { struct page page; };
+/* Managed pages have native wired backing and explicit reference lifetime.
+ * Borrowed legacy DMA views remain caller-owned and cannot acquire references. */
+struct page *compound_head(struct page *);
+bool get_page_unless_zero(struct page *);
+void get_page(struct page *);
+void put_page(struct page *);
+unsigned int page_count(const struct page *);
+void __free_pages(struct page *, unsigned int);
+#define __free_page(p) __free_pages((p), 0)
 struct page *virt_to_page(const void *);
 struct page *nth_page(struct page *, unsigned long);
 static inline void *page_address(const struct page *page) { return page->virtual; }

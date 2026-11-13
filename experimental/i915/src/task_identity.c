@@ -44,6 +44,7 @@ bool renku_linux_task_register(struct task_struct *task)
 	task->wait_initialized = false;
 	task->wait_state = TASK_RUNNING;
 	task->interrupted_state = 0;
+	task->pagefault_disabled = 0;
 	task->release_wait = NULL;
 	task->registry_next = tasks;
 	tasks = task;
@@ -73,7 +74,7 @@ void renku_linux_task_unregister(struct task_struct *task)
 	spin_lock(&registry_lock);
 	struct task_struct **slot = &tasks;
 	while (*slot && *slot != task) slot = &(*slot)->registry_next;
-	if (!*slot || !same_id(task->native_id, id)) {
+	if (!*slot || !same_id(task->native_id, id) || task->pagefault_disabled) {
 		spin_unlock(&registry_lock);
 		panic("i915 LinuxKPI: invalid task unregister");
 		__builtin_trap();
