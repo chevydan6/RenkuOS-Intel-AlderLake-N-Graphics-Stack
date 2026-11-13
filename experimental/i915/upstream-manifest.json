@@ -288,6 +288,108 @@
       "linuxPath": "kernel/sched/swait.c",
       "gitBlob": "72505cd3b60a3e16c093d07da38eab6093155b2e",
       "sha256": "3a9f2fd51f1f9ea9f91e980e391ceeef394700039ac24679b2f7f3c87ba82e2a"
+    },
+    {
+      "path": "linux/compiler_attributes.h",
+      "linuxPath": "include/linux/compiler_attributes.h",
+      "gitBlob": "28566624f008f49ebe334f1275f59aafaf0c75f4",
+      "sha256": "9ae80c0ca022df0023f8c59cfc3b2bda0f6e418cdfa74f9252e9a64479df6461"
+    },
+    {
+      "path": "linux/build_bug.h",
+      "linuxPath": "include/linux/build_bug.h",
+      "gitBlob": "3aa3640f8c181f6a54bacffbc43260b57481e67f",
+      "sha256": "7e1bb281707aceca0c2c481d96c713f89eb26c17b6e984b8680ac407e7b89e22"
+    },
+    {
+      "path": "linux/const.h",
+      "linuxPath": "include/linux/const.h",
+      "gitBlob": "435ddd72d2c464fdedd33889190009dde0a3bda9",
+      "sha256": "bbf89f418c8d59a68add10f5944da40921c5893837c77b144fdfedecb8e59b6c"
+    },
+    {
+      "path": "linux/minmax.h",
+      "linuxPath": "include/linux/minmax.h",
+      "gitBlob": "83aebc244cbaadd2fc0089d760d65bd7d1e4d851",
+      "sha256": "94d2cbc0017f086a8f5a984375a7b40a4936a0cec124cf391ecef43a693d2f42"
+    },
+    {
+      "path": "linux/math.h",
+      "linuxPath": "include/linux/math.h",
+      "gitBlob": "dd4152711de7d53ad104b464244563c00c93f3dd",
+      "sha256": "31379363a06a1973a6f4daea96dbec86cbd31305bfdde94d576ca3c9739e93d6"
+    },
+    {
+      "path": "linux/align.h",
+      "linuxPath": "include/linux/align.h",
+      "gitBlob": "2b4acec7b95a27b6768d48f46519abc584c94d5d",
+      "sha256": "a4ccc2b6148b0b0c607f17bc108686cfcd3aa5bf16656474a4cd65e5bfd88fc7"
+    },
+    {
+      "path": "vdso/const.h",
+      "linuxPath": "include/vdso/const.h",
+      "gitBlob": "94b385ad438d3c0e1f120c89a9147cdbac1166b3",
+      "sha256": "063bec23979bceeb3207d1778776bd86eb44d0f5dd6e30b2b4c39cedc2e32490"
+    },
+    {
+      "path": "uapi/linux/const.h",
+      "linuxPath": "include/uapi/linux/const.h",
+      "gitBlob": "a429381e7ca507fe7f4d86f4e7fa229cdcda078b",
+      "sha256": "2245e3f7518cba7cca0a148e1bdd4633a9bcf5fb00b969352e0146de087c3a3e"
+    },
+    {
+      "path": "uapi/linux/kernel.h",
+      "linuxPath": "include/uapi/linux/kernel.h",
+      "gitBlob": "fadf2db71fe8a4d2056fc90365b86d1a82f76ce1",
+      "sha256": "a569645840e482111fdfb6830bbb8336934bad5c1a7d939c17898d97e108a02f"
+    },
+    {
+      "path": "uapi/linux/sysinfo.h",
+      "linuxPath": "include/uapi/linux/sysinfo.h",
+      "gitBlob": "435d5c23f0c0e7f5f07837fae13dec2173521689",
+      "sha256": "b803e9e4c4d3cb43b265d9d046fcce6b731af8bf04e78b5c0708e926a6d8f9e2"
+    },
+    {
+      "path": "linux/byteorder/little_endian.h",
+      "linuxPath": "include/linux/byteorder/little_endian.h",
+      "gitBlob": "1ec650ff76cb311439ebde523e970bb200fa059e",
+      "sha256": "7a212870a285445786fa8e4f6e0c7dcf5061b6ee00019c1bd4ce4c3e7bbf4e05"
+    },
+    {
+      "path": "linux/byteorder/generic.h",
+      "linuxPath": "include/linux/byteorder/generic.h",
+      "gitBlob": "c9a4c96c994308868e775d83e53469227d1f9b82",
+      "sha256": "f1aac1d046e6b0e851121f8194db55d8fd0cad658ccad019e2c6c2d60f162e36"
+    },
+    {
+      "path": "uapi/linux/byteorder/little_endian.h",
+      "linuxPath": "include/uapi/linux/byteorder/little_endian.h",
+      "gitBlob": "cd98982e7523e11c1f92ac6d2b4ab24417967b7f",
+      "sha256": "f005eb98e6d873eac1f07f7fbc9a7223be0fdca99579e539c242814172f3556b"
+    },
+    {
+      "path": "linux/swab.h",
+      "linuxPath": "include/linux/swab.h",
+      "gitBlob": "9b804dbb0d794dd7a5b230f48b32b96584b537f3",
+      "sha256": "0256ce360a3c5b3f65fd341df2857505334f60889eb83c72cdf8fe3dde338de6"
+    },
+    {
+      "path": "uapi/linux/swab.h",
+      "linuxPath": "include/uapi/linux/swab.h",
+      "gitBlob": "01717181339eb0fb5128668ca13f38205c03fa28",
+      "sha256": "ff86981a34dd0092b9ac98549e133f725eef9e6021e0ddf98759e7fe2575207a"
+    },
+    {
+      "path": "uapi/asm/swab.h",
+      "linuxPath": "arch/x86/include/uapi/asm/swab.h",
+      "gitBlob": "cd3fd8ddbe9a31d25ae0e49e92929d997eb4b374",
+      "sha256": "88df04139500a43e68fe9c469af5f6c672e50531951bba2a5952ee2d833b80b2"
+    },
+    {
+      "path": "linux/panic.h",
+      "linuxPath": "include/linux/panic.h",
+      "gitBlob": "6717b15e798c38904a19ef14bb7dd84fc2a01bb6",
+      "sha256": "22476a30b628b088ba06042e10be559f2cda7510e51e04e5fc5d3695e04528f0"
     }
   ]
 }

@@ -200,3 +200,63 @@ completion_port.h supplying the surrounding compilation environment normally
 provided by Linux sched/build_utility.c. Their algorithms and public headers
 remain byte-exact. New event/deadline/task-scope glue is MIT and uses native
 semaphores, IRQ locks and clocks; it is not a general Linux scheduler.
+
+## Canonical compiler, arithmetic and byte-order helpers
+
+Ported-from: Linux/v6.6/include/linux/compiler_attributes.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/build_bug.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/const.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/linux/minmax.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/math.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/align.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/vdso/const.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/linux/const.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/uapi/linux/kernel.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/uapi/linux/sysinfo.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/linux/byteorder/little_endian.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/byteorder/generic.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/linux/byteorder/little_endian.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/linux/swab.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/linux/swab.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/arch/x86/include/uapi/asm/swab.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/linux/panic.h
+Ported-from-license: GPL-2.0
+
+linux/const.h has no file-level notice; its companion license attribution uses
+the pinned Linux root COPYING declaration, retained unchanged in upstream/COPYING.
+Original helper files remain byte-exact. Native C library declarations are parsed
+before selecting Linux macro spellings. New IRQ-scope/preemption adapters are MIT
+and reuse existing native interrupt and lock services. The lower_32_bits spelling
+in kpi_base.h now matches the helper in Linux/v6.6/include/linux/kernel.h.
