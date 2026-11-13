@@ -423,3 +423,13 @@ Ported-from-license: GPL-2.0
 
 Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/gfp.h
 Ported-from-license: GPL-2.0
+
+`linux/seqlock.h` remains byte-exact.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/seqlock.h
+Ported-from-license: GPL-2.0
+
+`linux/kcsan-checks.h` remains byte-exact.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/kcsan-checks.h
+Ported-from-license: GPL-2.0
