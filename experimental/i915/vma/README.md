@@ -58,13 +58,21 @@ and allow-once access, revocation, original log2 boundaries, concurrent readers,
 writer exclusion, nested IRQ restoration, zeroed allocation and IRQ/atomic
 allocation rejection. It never touches GPU registers or submits a GPU command.
 
-Two additional native readers rendezvous before the stress phase to require
-observable overlap on the same read lock. Both threads are created before IRQ
-masking; their IRQ-disabled rendezvous is bounded to 100ms. This removes reliance
-on incidental scheduling to exercise reader overlap while retaining the original
-overlap and writer/data assertions. The first continuation run missed overlap
-and failed its assertion; that result and the old fixture are preserved. With
-the rendezvous, all four 648-check runs pass, including 48,000 stress operations.
+The previous two-reader kernel-thread rendezvous had a100ms IRQ-off deadline.
+It passed earlier checkpoints but missed overlap on the third run of the
+lockref continuation: max_readers1 and one rendezvous error produced four failed
+assertions. The failure and original source hashes are retained in
+../evidence/physical-lockref-001/vma-initial-failed.
+
+The revised fixture uses exported call_all_cpus_sync and selects two enabled
+CPUs before callbacks start. Each selected callback holds the real read lock
+until both readers enter, with the same100ms IRQ-off bound and no semaphore
+wait or allocation. It also checks that IRQ state stays disabled in callbacks;
+three kernel workers still perform the12000-operation reader/writer stress.
+Topology is fixed during this diagnostic. Two topology checks bring the
+expected native total to650 per run. Target-header compilation passes; actual
+native retest is PENDING USB recovery. Earlier648-check passes do not validate
+this revised fixture.
 
 Physical evidence is in ../evidence/physical-vma-001 and ../evidence/physical-preempt-001. Complete GEM/ring builds
 still fail on later compatibility dependencies, preserved alongside that evidence.

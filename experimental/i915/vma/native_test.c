@@ -9,7 +9,8 @@ int32 api_version = B_CUR_DRIVER_API_VERSION;
 struct worker_group {
 	struct rw_stress stress;
 	struct renku_kpi_completion ready, gate, done;
-	unsigned second_reader_entered;
+	unsigned readers_entered;
+	int reader_cpus[2];
 };
 struct worker_arg { struct worker_group *group; bool writer; };
 static void Fatal(status_t status)
@@ -24,34 +25,31 @@ static status_t Worker(void *cookie)
 	if (renku_kpi_completion_signal(&group->done) != B_OK) Fatal(B_ERROR);
 	return B_OK;
 }
-struct reader_arg { struct worker_group *group; unsigned index; };
-static status_t ReaderRendezvous(void *cookie)
+/* Run on two selected online CPUs through the existing synchronous native
+ * callback service. Kernel worker scheduling cannot guarantee that a second
+ * runnable reader executes before the first reader's IRQ-off deadline. */
+static void ReaderRendezvous(void *cookie, int cpu)
 {
-	struct reader_arg *arg = cookie;
-	struct worker_group *group = arg->group;
+	struct worker_group *group = cookie;
+	if (cpu != group->reader_cpus[0] && cpu != group->reader_cpus[1]) return;
+	if (interrupts_enabled()) __atomic_fetch_add(&group->stress.errors, 1, __ATOMIC_RELAXED);
 	read_lock(&group->stress.lock);
 	unsigned readers = __atomic_add_fetch(&group->stress.readers, 1, __ATOMIC_RELAXED);
 	unsigned maximum = __atomic_load_n(&group->stress.max_readers, __ATOMIC_RELAXED);
 	while (maximum < readers && !__atomic_compare_exchange_n(&group->stress.max_readers,
 		&maximum, readers, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {}
-	if (arg->index == 0) {
-		/* Both threads were created while IRQs were enabled. Publish that the
-		 * first reader owns the lock, then the controller resumes the second.
-		 * No semaphore wait or allocation occurs in this bounded IRQ-off loop. */
-		if (renku_kpi_completion_signal(&group->ready) != B_OK) Fatal(B_ERROR);
-		bigtime_t deadline = system_time() + 100000;
-		while (!__atomic_load_n(&group->second_reader_entered, __ATOMIC_ACQUIRE)) {
-			if (system_time() >= deadline) {
-				__atomic_fetch_add(&group->stress.errors, 1, __ATOMIC_RELAXED);
-				break;
-			}
-			__asm__ volatile("pause" ::: "memory");
+	__atomic_add_fetch(&group->readers_entered, 1, __ATOMIC_RELEASE);
+	bigtime_t deadline = system_time() + 100000;
+	while (__atomic_load_n(&group->readers_entered, __ATOMIC_ACQUIRE) != 2) {
+		if (system_time() >= deadline) {
+			__atomic_fetch_add(&group->stress.errors, 1, __ATOMIC_RELAXED);
+			break;
 		}
-	} else __atomic_store_n(&group->second_reader_entered, 1, __ATOMIC_RELEASE);
+		__asm__ volatile("pause" ::: "memory");
+	}
 	__atomic_fetch_sub(&group->stress.readers, 1, __ATOMIC_RELAXED);
 	read_unlock(&group->stress.lock);
-	if (renku_kpi_completion_signal(&group->done) != B_OK) Fatal(B_ERROR);
-	return B_OK;
+	if (interrupts_enabled()) __atomic_fetch_add(&group->stress.errors, 1, __ATOMIC_RELAXED);
 }
 static void Join(thread_id id)
 {
@@ -102,20 +100,21 @@ static void Run(struct vma_native_report *out)
 		if (status != B_OK) break;
 	}
 	if (initialized != 3) goto cleanup;
-	struct reader_arg readers[] = {{&group, 0}, {&group, 1}};
-	thread_id reader_ids[2];
-	for (unsigned i = 0; i < 2; i++) {
-		reader_ids[i] = spawn_kernel_thread(ReaderRendezvous, "i915 VMA reader overlap", B_NORMAL_PRIORITY, &readers[i]);
-		if (reader_ids[i] < B_OK) Fatal(reader_ids[i]);
-	}
-	if (resume_thread(reader_ids[0]) != B_OK) Fatal(B_ERROR);
-	if (renku_kpi_completion_wait(&group.ready, 10000000) != B_OK) Fatal(B_TIMED_OUT);
-	if (resume_thread(reader_ids[1]) != B_OK) Fatal(B_ERROR);
-	for (unsigned i = 0; i < 2; i++) {
-		if (renku_kpi_completion_wait(&group.done, 10000000) != B_OK) Fatal(B_TIMED_OUT);
-		Join(reader_ids[i]);
-	}
-	VMA_CHECK(r, group.stress.max_readers == 2 && group.second_reader_entered == 1);
+	/* Fixed topology during the diagnostic lifetime, as for the IRQ adapter. */
+	extern int32 smp_get_num_cpus(void);
+	int32 cpu_count = smp_get_num_cpus();
+	cpu_info cpus[64];
+	status_t topology = cpu_count > 0 && cpu_count <= 64
+		? get_cpu_info(0, cpu_count, cpus) : B_BAD_VALUE;
+	VMA_CHECK(r, topology == B_OK);
+	unsigned selected = 0;
+	if (topology == B_OK)
+		for (int32 cpu = 0; cpu < cpu_count && selected < 2; cpu++)
+			if (cpus[cpu].enabled) group.reader_cpus[selected++] = cpu;
+	VMA_CHECK(r, selected == 2);
+	if (selected != 2) goto cleanup;
+	call_all_cpus_sync(ReaderRendezvous, &group);
+	VMA_CHECK(r, group.stress.max_readers == 2 && group.readers_entered == 2);
 	VMA_CHECK(r, group.stress.errors == 0 && group.stress.readers == 0);
 	struct worker_arg args[] = {{&group, false}, {&group, false}, {&group, true}};
 	thread_id threads[3];
