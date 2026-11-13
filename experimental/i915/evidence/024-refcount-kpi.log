@@ -1,0 +1,10 @@
+In file included from include/linux/mutex.h:4,
+                 from upstream/lib/refcount.c:6:
+upstream/lib/refcount.c: In function ‘refcount_dec_not_one’:
+upstream/lib/refcount.c:79:34: error: comparison of integer expressions of different signedness: ‘unsigned int’ and ‘int’ [-Werror=sign-compare]
+   79 |                 if (unlikely(val == REFCOUNT_SATURATED))
+      |                                  ^~
+include/kpi_base.h:36:41: note: in definition of macro ‘unlikely’
+   36 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+cc1: all warnings being treated as errors

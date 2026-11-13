@@ -27,3 +27,16 @@ submission, completion or Mesa has been measured.
 Whole ring reuse now demonstrably reaches GEM refcount/atomic dependencies
 before request and VM integration. This supports continuing a bounded experiment,
 not selecting full LinuxKPI over the existing physically tested native foundation.
+
+## Refcount dependency result
+The whole Linux refcount implementation now compiles with a small native atomic
+and locking surface, retaining saturation and release/acquire algorithms. CPU
+concurrency/saturation tests pass. Native kernel execution is not validated.
+This advances complete-source reuse beyond the allocator but introduces concrete
+OS semantics (mutex lifecycle and IRQ exclusion) absent from the initial slice.
+
+Whole-ring reuse still brings dma_resv, wound/wait deadlock avoidance, stable task
+identity and dma-fence machinery into the closure. These are now compiler-derived
+dependencies rather than a speculative inventory. They remain more work than
+simple typedefs or no-op wrappers. The evidence still does not select full
+LinuxKPI over native execution or establish a reduced path to GPU/Mesa execution.

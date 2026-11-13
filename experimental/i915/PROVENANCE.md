@@ -47,3 +47,14 @@ upstream/GPL-2.0.txt retains Linux's GPL-2.0 license text. GPL helper code is
 confined to this experiment; the combined experimental allocator/object is
 subject to GPL-2.0, while new adapter/tooling files remain MIT. This does not
 change the license of the existing display implementation or root repository.
+
+## Reference-count imports
+
+Ported-from: Linux/v6.6/lib/refcount.c
+Ported-from-license: GPL-2.0-only
+
+Ported-from: Linux/v6.6/include/linux/refcount.h
+Ported-from-license: GPL-2.0-only
+
+Ported-from: Linux/v6.6/include/linux/kref.h
+Ported-from-license: GPL-2.0-only

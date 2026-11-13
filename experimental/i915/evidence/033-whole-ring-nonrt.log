@@ -1,0 +1,48 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_complete.o
+In file included from /tmp/i915-linux-source/include/linux/dma-resv.h:42,
+                 from /tmp/i915-linux-source/include/drm/drm_gem.h:38,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/linux/ww_mutex.h:39:9: error: unknown type name ‘atomic_long_t’; did you mean ‘atomic_t’?
+   39 |         atomic_long_t stamp;
+      |         ^~~~~~~~~~~~~
+      |         atomic_t
+/tmp/i915-linux-source/include/linux/ww_mutex.h:40:31: error: field ‘acquire_key’ has incomplete type
+   40 |         struct lock_class_key acquire_key;
+      |                               ^~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/ww_mutex.h:41:31: error: field ‘mutex_key’ has incomplete type
+   41 |         struct lock_class_key mutex_key;
+      |                               ^~~~~~~~~
+/tmp/i915-linux-source/include/linux/ww_mutex.h: In function ‘ww_mutex_init’:
+/tmp/i915-linux-source/include/linux/ww_mutex.h:30:41: error: implicit declaration of function ‘__mutex_init’; did you mean ‘ww_mutex_init’? [-Wimplicit-function-declaration]
+   30 | #define ww_mutex_base_init(l,n,k)       __mutex_init(l,n,k)
+      |                                         ^~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/ww_mutex.h:101:9: note: in expansion of macro ‘ww_mutex_base_init’
+  101 |         ww_mutex_base_init(&lock->base, ww_class->mutex_name, &ww_class->mutex_key);
+      |         ^~~~~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/ww_mutex.h: In function ‘ww_acquire_init’:
+/tmp/i915-linux-source/include/linux/ww_mutex.h:135:21: error: ‘current’ undeclared (first use in this function); did you mean ‘creat’?
+  135 |         ctx->task = current;
+      |                     ^~~~~~~
+      |                     creat
+/tmp/i915-linux-source/include/linux/ww_mutex.h:135:21: note: each undeclared identifier is reported only once for each function it appears in
+/tmp/i915-linux-source/include/linux/ww_mutex.h:136:22: error: implicit declaration of function ‘atomic_long_inc_return_relaxed’ [-Wimplicit-function-declaration]
+  136 |         ctx->stamp = atomic_long_inc_return_relaxed(&ww_class->stamp);
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/ww_mutex.h: In function ‘ww_mutex_is_locked’:
+/tmp/i915-linux-source/include/linux/ww_mutex.h:31:41: error: implicit declaration of function ‘mutex_is_locked’; did you mean ‘ww_mutex_is_locked’? [-Wimplicit-function-declaration]
+   31 | #define ww_mutex_base_is_locked(b)      mutex_is_locked((b))
+      |                                         ^~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/ww_mutex.h:366:16: note: in expansion of macro ‘ww_mutex_base_is_locked’
+  366 |         return ww_mutex_base_is_locked(&lock->base);
+      |                ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from /tmp/i915-linux-source/include/linux/dma-fence.h:16,
+                 from /tmp/i915-linux-source/include/linux/dma-resv.h:43:
+/tmp/i915-linux-source/include/linux/err.h: At top level:
+/tmp/i915-linux-source/include/linux/err.h:8:10: fatal error: asm/errno.h: No such file or directory
+    8 | #include <asm/errno.h>
+      |          ^~~~~~~~~~~~~
+compilation terminated.
+
+compiler exit: 1

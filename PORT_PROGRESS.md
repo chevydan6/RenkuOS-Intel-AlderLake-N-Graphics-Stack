@@ -97,7 +97,7 @@ Final partial link still has only dvprintf, panic, i915_request_timeline and
 renku_ring_wait_for_space undefined. First two are actual native kernel exports;
 last two remain genuinely unimplemented request integration boundaries.
 
-## Next implementation task
+## Previous checkpoint next task (completed below)
 Implement the atomic/refcount/kref dependency reached by whole intel_ring.c,
 using actual RenkuOS atomics and preserving Linux refcount saturation semantics.
 Recompile with real GEM headers and record the next dependency. Keep complete
@@ -106,3 +106,74 @@ leave page allocation/PTE programming to a real integration step.
 Native runtime/VM and N100 access remain unavailable in this workspace; no SSH
 identity or VM/cross compiler is installed. Native execution and first GPU command
 remain outstanding, not disproven by the host environment limitation.
+
+## Refcount and native locking checkpoint — 2026-11-13
+
+Imported complete, unchanged Linux v6.6 lib/refcount.c, refcount.h and kref.h.
+Fourteen upstream files now verify against pinned Git blobs and SHA256 hashes.
+The original saturation and final-release algorithms are retained.
+
+Implemented reached atomic_t operations using native SupportDefs atomics
+(set, get, add, compare/exchange) and matching compiler release/acquire primitives.
+The atomic_set name collision is contained behind a prefixed adapter, after real
+native headers are parsed. Native operations may order more strongly than Linux's
+relaxed operations; they do not weaken required ordering.
+
+The complete refcount.c also requires mutex/spinlock assisted final releases.
+Implemented native semaphore-backed mutex initialization/lock/unlock/destruction,
+plus native spinlock/IRQ-save adapters. Interrupted mutex waits retry; other OS
+failures panic rather than proceed unlocked. Plain spin_lock disables/restores
+interrupts too, a stronger exclusion than Linux; saved state is copied before
+unlock. Only the reached APIs are supplied. These native lock adapters have
+compiled against KernelExport.h but have NOT executed in RenkuOS.
+
+Compilation evidence:
+- 023 reproduces the previous architecture atomic failure.
+- 024 records upstream's signed/unsigned saturation comparison diagnostic; 026
+  builds unchanged code with -Wno-sign-compare.
+- 027 demonstrates signed-overflow UBSan failure at refcount.h:200 without the
+  required kernel arithmetic configuration. Linux v6.6 Makefile:998 specifies
+  -fno-strict-overflow; both target build and refcount test now use this exact
+  flag. No sanitizer was disabled and no original expression/test was removed.
+- 029 compiles the complete original refcount.c and native lock adapters, and
+  resolves their internal dependencies in the partial link. Remaining new symbols
+  are real kernel sem/spinlock/interrupt exports, not invented success backends.
+- 030 advances whole-ring compilation into dma_resv -> ww_mutex -> rtmutex.
+- Non-PREEMPT_RT ww_mutex uses struct mutex, so 033 excludes the unused RT API
+  explicitly (PREEMPT_RT builds fail). It then shows the actual next requirements:
+  atomic_long_t, lock-class metadata, __mutex_init, current task identity,
+  atomic_long_inc_return_relaxed, mutex_is_locked; dma-fence also reaches errno.
+  No ww_mutex operation has been replaced with an ordinary mutex success path.
+
+Actual tests:
+- 028: 400,000 concurrent get/put pairs, exactly one final release, rejection of
+  zero-count acquisition, conditional decrement helpers, both lock-assisted
+  final releases, 100 release/acquire publication rounds, and all five saturation
+  categories pass under ASan+UBSan with halt_on_error. Five warning lines are
+  expected outputs from intentional saturation cases.
+- Host lock tests use genuine pthread mutexes, not native kernel locks. Host IRQ
+  methods abort if called; no synthetic IRQ state is reported as success.
+- 031: an object compiled with RENKU_NATIVE and real target headers executes its
+  actual SupportDefs atomic adapter branch on the host, testing signed wrap and
+  successful/failed compare exchange. It imports no kernel symbols. This is a CPU
+  compatibility check, not native OS/interrupt/GPU execution.
+- 032: prior 20,000-transition original allocator sanitizer regression still passes.
+
+Commands from experimental/i915:
+    make target-atomic-test RENKU_SOURCE=/home/dan/renkuos-i915-source
+    make refcount-test SANITIZER_LDFLAGS='<local runtime flags from evidence/028>'
+    python3 whole-ring-attempt.py --linux-source /tmp/i915-linux-source --log <new-log>
+The last command returns the compiler's nonzero status. It verifies the Linux
+revision, removes stale output and refuses to overwrite previous evidence.
+Updated object hashes/commands/dependencies: evidence/refcount-target-manifest.json
+and refcount-target-dependencies.json. Objects remain in build/target.
+
+## Next implementation task
+Continue the non-RT ww_mutex/dma_resv dependency boundary from evidence/033.
+Implement atomic_long operations and actual mutex state/named initialization,
+then resolve stable native task identity and Linux deadlock-avoidance semantics.
+Do not turn ww_mutex_lock into unconditional successful ordinary locking. Build
+with real dma-fence and errno headers to expose the following dependencies.
+Native kernel runtime and actual GPU execution remain unavailable/unperformed.
+Request timeline/wait/retirement, GPU mappings/context/submission and completion
+are still unimplemented. No HDMI source or device state was changed.

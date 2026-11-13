@@ -1,0 +1,7 @@
+In file included from experimental/i915/upstream/linux/refcount.h:95,
+                 from experimental/i915/upstream/linux/kref.h:17,
+                 from experimental/i915/build/kref_include.c:1:
+/tmp/i915-linux-source/include/linux/atomic.h:7:10: fatal error: asm/atomic.h: No such file or directory
+    7 | #include <asm/atomic.h>
+      |          ^~~~~~~~~~~~~~
+compilation terminated.

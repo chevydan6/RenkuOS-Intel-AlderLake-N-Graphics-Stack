@@ -66,6 +66,24 @@
       "linuxPath": "include/linux/rbtree_types.h",
       "gitBlob": "45b6ecde3665aa744f790cd915445fe07595181c",
       "sha256": "bb78534d4212776381b3b849ad6ce1009b9d3fdfb87e19f51e5e9449e7f03e22"
+    },
+    {
+      "path": "linux/refcount.h",
+      "linuxPath": "include/linux/refcount.h",
+      "gitBlob": "a62fcca974861b82f60f78c54d60728d374e1f42",
+      "sha256": "876ad1d844bc7283db90bb2cfd48b98ae7afec89e6c39c6f7f3330b6c68a94ff"
+    },
+    {
+      "path": "linux/kref.h",
+      "linuxPath": "include/linux/kref.h",
+      "gitBlob": "d32e21a2538c292452db99b915b1bb6c3ab15e53",
+      "sha256": "2b61168bda14afedf4a56f7688ddc29eff393ceb42001b0d21461e12600035e7"
+    },
+    {
+      "path": "lib/refcount.c",
+      "linuxPath": "lib/refcount.c",
+      "gitBlob": "a207a8f22b3ca35890671e51c480266d89e4d8d6",
+      "sha256": "d35f23e0b0e7b5c1348009c7bb0dddfdd5826cb26d0fdb35ddef2ba19e34b1e8"
     }
   ]
 }

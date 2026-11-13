@@ -2,7 +2,8 @@
 # Bounded Linux i915 compatibility experiment
 
 No GPU execution has been demonstrated. This directory currently builds three
-original ring functions and the complete Linux DRM virtual-range allocator.
+original ring functions, the complete Linux DRM virtual-range allocator and
+reference-count implementation.
 `drm_mm` bookkeeping does not allocate DMA pages or install GPU mappings.
 
 Prepare the target headers from the GPU project's RenkuOS baseline:
@@ -33,8 +34,9 @@ extracted libraries, pass `SANITIZER_LDFLAGS='-L/path/to/libs -Wl,-rpath,/path/t
 Evidence 019 records the exact command used here. Leak detection and sanitizer
 checks were not disabled. The test does not simulate a GPU or prove DMA coherency.
 
-The minimal include wrappers intentionally provide no allocation, spinlock,
-workqueue or other unused service. The complete release allocator needs none.
+The include wrappers provide no page-allocation or workqueue service. The
+complete release allocator needs neither. Reached refcount APIs have real native
+semaphore/spinlock adapters, compiled but not executed in the native kernel.
 Its caller must serialize modifications. Debug stack-depot/list backends are
 excluded explicitly, and enabling an unsupported configuration must fail.
 
@@ -45,3 +47,29 @@ would be incorrect. The private ring/request layouts are not Linux object ABI.
 The branch preserves existing display files. No module was installed, device
 claimed, hardware register touched, or `gpu_exec_probe` success fabricated.
 See root progress/dependency/blocker/comparison files for remaining work.
+
+Reference-count and native atomic checks:
+
+```sh
+make refcount-test SANITIZER_LDFLAGS='<matching sanitizer library flags if needed>'
+make target-atomic-test RENKU_SOURCE=/path/to/pinned/renku-source
+```
+
+The first uses the unchanged Linux kref/refcount algorithms and genuine host
+pthread locks under ASan/UBSan; host IRQ operations abort as unsupported. The
+second executes a kernel-call-free object compiled with real RenkuOS headers
+and RENKU_NATIVE on the x86-64 host. Neither is a native OS runtime test.
+Linux's required `-fno-strict-overflow` flag preserves saturation arithmetic;
+evidence 027 retains the failure without that flag. Sanitizers remain enabled.
+
+To continue the full-file attempt, prepare a Linux v6.6 checkout at
+`ffc253263a1375a65fa6c9f62a893e9767fbebfa` containing `include/` and
+`drivers/gpu/drm/i915/`, then run after target-objects:
+
+```sh
+python3 whole-ring-attempt.py --linux-source /path/to/linux --log /path/to/new-log
+```
+
+This command intentionally returns the actual compiler failure, currently at
+wound/wait task/locking dependencies and dma-fence errno definitions. The
+PREEMPT_RT branch is excluded explicitly; no RT mutex interface is simulated.

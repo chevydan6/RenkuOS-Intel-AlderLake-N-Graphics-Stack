@@ -17,16 +17,22 @@
 | ERR_PTR | implemented in ring slice | Internal Linux error pointer; no native status conversion yet |
 | Linux ENOSPC | implemented internal namespace | 28, separate from negative RenkuOS status_t; no exported ioctl boundary |
 | KernelExport.h/SupportDefs.h | implemented build integration | Actual pinned target source headers, host libc excluded (020) |
-| spinlock/mm_types/slab/seq_file/stacktrace includes | excluded APIs | Include wrappers expose no fake APIs; selected release allocator references none |
+| mm_types/slab/seq_file/stacktrace includes | excluded APIs | Include wrappers expose no fake APIs; selected release allocator references none |
 | CONFIG_DRM_DEBUG_MM/CONFIG_DEBUG_LIST | excluded configuration | Unsupported debug backends rejected; ASan/UBSan host allocator checks enabled |
 | Module export tables | excluded | Plain relocatable objects; EXPORT_SYMBOL emits no loader table, no module claim |
 | intel_ring/i915_request layouts | adapted subset only | Explicit private layouts, not complete Linux structs or ABI |
 | i915_request_timeline / wait_for_space | unresolved | Undefined symbols; never return fake completion |
 | ring create/pin/unpin/free | excluded from compiled slice | Original source retained, full-file compilation still fails |
-| Linux atomic/refcount/kref | unresolved | Whole ring reaches asm/atomic.h via drm_gem.h (018) |
+| atomic_t/refcount/kref | implemented reached subset | Original Linux headers/refcount.c, native atomic primitives; 028/029/031 |
+| WARN_ONCE | implemented | Per-callsite atomic warning suppression, actual native diagnostic |
+| Linux mutex init/lock/unlock/destroy | implemented, native runtime untested | Native semaphores; retries interruption, panics on other failures |
+| spin_lock/init/unlock and IRQ-save/restore | implemented, native runtime untested | Native spinlocks with IRQ exclusion; plain spin_lock is stronger than Linux |
+| PREEMPT_RT/rt_mutex | excluded configuration | No RT methods provided; non-RT ww_mutex uses struct mutex; RT build fails |
+| atomic_long/ww_mutex/task identity | unresolved | Whole-ring 033 exposes actual required declarations and semantics |
+| dma-fence errno interfaces | unresolved | Next include path reaches asm/errno.h (033) |
 | PCI/MMIO/DMA/GT initialization/contexts/execlists | unresolved integration | Not provided by CPU allocator; no speculative adapter implementations |
 
-Caller must serialize drm_mm operations. No general spinlock, page allocation,
+Caller must serialize drm_mm operations. No full Linux locking family, page allocation,
 DMA mapping, scheduler, fence or RCU reclamation implementation has been claimed.
 
 FreeBSD references consulted: drm-kmod README blob
@@ -34,3 +40,9 @@ FreeBSD references consulted: drm-kmod README blob
 LinuxKPI linux/types.h blob faec55a72e57a5fa1e9f5b73407d11ec8d72808a
 (native types/VM address mappings). No FreeBSD code was imported, and these
 references are not claimed to be a matched driver/kernel release baseline.
+
+Refcount target compilation requires Linux's -fno-strict-overflow semantics.
+Upstream signedness diagnostics are excluded with -Wno-sign-compare, not source
+rewrites. kref/refcount original headers retain all saturation checks. Locked
+refcount host tests execute pthread backends, not native kernel primitives;
+userspace IRQ paths abort. Public/native syscall status conversion remains absent.

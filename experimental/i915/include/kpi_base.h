@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <limits.h>
 #ifdef RENKU_NATIVE
 #include <KernelExport.h>
 #else
@@ -29,6 +30,8 @@ _Static_assert(sizeof(unsigned long) == 8, "This experimental port targets x86-6
 #endif
 #define __aligned(x) __attribute__((aligned(x)))
 #define __maybe_unused __attribute__((unused))
+#define __must_check __attribute__((warn_unused_result))
+#define __cond_acquires(x)
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
@@ -41,6 +44,11 @@ _Static_assert(sizeof(unsigned long) == 8, "This experimental port targets x86-6
 #define BUG_ON(x) do { if (x) panic("LinuxKPI assertion: %s", #x); } while (0)
 extern bool renku_kpi_warn(const char *, ...);
 #define WARN(c, ...) ({ bool _warn = !!(c); if (_warn) renku_kpi_warn(__VA_ARGS__); _warn; })
+#define WARN_ONCE(c, ...) ({ bool _condition = !!(c); \
+	static bool _warned; \
+	if (_condition && !__atomic_exchange_n(&_warned, true, __ATOMIC_RELAXED)) \
+		renku_kpi_warn(__VA_ARGS__); \
+	_condition; })
 #define EXPORT_SYMBOL(x)
 #define EXPORT_SYMBOL_GPL(x)
 /* Only debug-list=off is supported; debug validators are not simulated. */

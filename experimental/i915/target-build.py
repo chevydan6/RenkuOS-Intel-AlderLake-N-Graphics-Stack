@@ -20,6 +20,7 @@ subprocess.run(['python3', str(root / 'verify-upstream.py')], check=True)
 subprocess.run(['python3', str(root / 'extract.py')], check=True)
 gcc_include = subprocess.check_output([a.cc, '-print-file-name=include'], text=True).strip()
 flags = ['-std=gnu11', '-O2', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter',
+         '-Wno-sign-compare', '-fno-strict-overflow',
          '-ffreestanding', '-fno-builtin', '-fno-stack-protector', '-mno-red-zone',
          '-fno-tree-vectorize', '-mgeneral-regs-only', '-nostdinc',
          '-isystem', gcc_include, '-DRENKU_NATIVE']
@@ -31,7 +32,8 @@ build = root / 'build/target'
 build.mkdir(exist_ok=True)
 records = []
 for unit in ['build/intel_ring_slice.c', 'upstream/drm/drm_mm.c',
-             'upstream/lib/rbtree.c', 'src/native_diagnostics.c']:
+             'upstream/lib/rbtree.c', 'upstream/lib/refcount.c',
+             'src/native_locks.c', 'src/native_diagnostics.c']:
     obj = build / (Path(unit).stem + '.o')
     cmd = [a.cc, *flags, '-MMD', '-c', str(root / unit), '-o', str(obj)]
     print(' '.join(cmd), flush=True)
@@ -43,6 +45,15 @@ subprocess.run([a.cc, '-nostdlib', '-r', *[str(build / r['object']) for r in rec
 subprocess.run(['nm', '-u', str(build / 'i915_components.o')], check=True)
 records.append({'object': 'i915_components.o',
                 'sha256': hashlib.sha256((build / 'i915_components.o').read_bytes()).hexdigest()})
+# Compile the native atomic branch for a separate host-executable CPU probe.
+# It calls no kernel APIs; do not link test entry points into the component set.
+probe = build / 'native_atomic_probe.o'
+cmd = [a.cc, *flags, '-MMD', '-c', str(root / 'tests/native_atomic_probe.c'), '-o', str(probe)]
+print(' '.join(cmd), flush=True)
+subprocess.run(cmd, check=True)
+records.append({'source': 'tests/native_atomic_probe.c', 'object': probe.name,
+                'sha256': hashlib.sha256(probe.read_bytes()).hexdigest(),
+                'command': cmd, 'componentLink': False})
 (build / 'manifest.json').write_text(json.dumps({'sourceRevision': revision,
     'evidenceClass': 'cross-source compilation only; no native runtime',
     'compiler': subprocess.check_output([a.cc, '--version'], text=True).splitlines()[0],

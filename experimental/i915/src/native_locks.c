@@ -1,0 +1,54 @@
+/* SPDX-License-Identifier: MIT */
+#include <linux/mutex.h>
+#include <linux/spinlock.h>
+#ifndef RENKU_NATIVE
+#error This adapter requires real RenkuOS kernel interfaces
+#endif
+
+void renku_linux_mutex_init(struct mutex *lock)
+{
+	lock->semaphore = create_sem(1, "i915 LinuxKPI mutex");
+	if (lock->semaphore < B_OK) panic("i915: create mutex: %d", lock->semaphore);
+}
+void renku_linux_mutex_destroy(struct mutex *lock)
+{
+	status_t error = delete_sem(lock->semaphore);
+	if (error != B_OK) panic("i915: delete mutex: %d", error);
+}
+void renku_linux_mutex_lock(struct mutex *lock)
+{
+	status_t error;
+	do { error = acquire_sem(lock->semaphore); } while (error == B_INTERRUPTED);
+	if (error != B_OK) panic("i915: lock mutex: %d", error);
+}
+void renku_linux_mutex_unlock(struct mutex *lock)
+{
+	status_t error = release_sem(lock->semaphore);
+	if (error != B_OK) panic("i915: unlock mutex: %d", error);
+}
+void renku_linux_spin_init(spinlock_t *lock)
+{
+	B_INITIALIZE_SPINLOCK(&lock->native);
+}
+unsigned long renku_linux_spin_lock_irqsave(spinlock_t *lock)
+{
+	cpu_status saved = disable_interrupts();
+	acquire_spinlock(&lock->native);
+	return saved;
+}
+void renku_linux_spin_unlock_irqrestore(spinlock_t *lock, unsigned long saved)
+{
+	release_spinlock(&lock->native);
+	restore_interrupts(saved);
+}
+void renku_linux_spin_lock(spinlock_t *lock)
+{
+	/* Native spinlocks require IRQ exclusion. Stronger than Linux spin_lock. */
+	lock->saved_interrupts = renku_linux_spin_lock_irqsave(lock);
+}
+void renku_linux_spin_unlock(spinlock_t *lock)
+{
+	/* Copy before release; the next owner may overwrite the saved state. */
+	cpu_status saved = lock->saved_interrupts;
+	renku_linux_spin_unlock_irqrestore(lock, saved);
+}

@@ -1,0 +1,11 @@
+python3 verify-upstream.py
+Verified 14 unchanged Linux v6.6 files
+mkdir -p build
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -pthread -Iinclude -Iupstream upstream/lib/refcount.c tests/host_locks.c tests/refcount_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/refcount_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/refcount_test
+refcount_t: saturated; leaking memory.
+refcount_t: saturated; leaking memory.
+refcount_t: addition on 0; use-after-free.
+refcount_t: underflow; use-after-free.
+refcount_t: decrement hit 0; leaking memory.
+CPU refcount: 400000 concurrent get/put pairs, 100 publication rounds, 5 saturation categories; pass
