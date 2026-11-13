@@ -18,7 +18,7 @@ if revision != 'ffc253263a1375a65fa6c9f62a893e9767fbebfa':
 manifest = json.loads((root / 'build/target/manifest.json').read_text())
 cmd = manifest['objects'][0]['command']
 cmd = cmd[:cmd.index('-MMD')]
-for directory in ['drivers/gpu/drm/i915', 'drivers/gpu/drm/i915/gt', 'include']:
+for directory in ['drivers/gpu/drm/i915', 'drivers/gpu/drm/i915/gt', 'include', 'include/uapi']:
     cmd += ['-I' + str(linux / directory)]
 output = root / 'build/intel_ring_complete.o'
 output.unlink(missing_ok=True)

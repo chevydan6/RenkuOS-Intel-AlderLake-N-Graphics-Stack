@@ -1,0 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+#ifndef RENKU_COMPLETION_TEST_H
+#define RENKU_COMPLETION_TEST_H
+struct completion_report { unsigned version, checks, failures, first_line, phases, workers; };
+struct completion_signal_report { long result; unsigned queued; };
+#define COMPLETION_RUN (B_DEVICE_OP_CODES_END + 130)
+#define COMPLETION_INTERRUPTIBLE (COMPLETION_RUN + 1)
+#define COMPLETION_KILLABLE (COMPLETION_RUN + 2)
+#define COMPLETION_QUEUED (COMPLETION_RUN + 3)
+#define COMPLETION_SIGNAL (COMPLETION_RUN + 4)
+#endif

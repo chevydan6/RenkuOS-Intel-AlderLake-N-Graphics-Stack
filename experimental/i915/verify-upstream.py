@@ -6,6 +6,9 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parent
 manifest = json.loads((root / 'upstream-manifest.json').read_text())
+paths = [entry['path'] for entry in manifest['files']]
+if len(paths) != len(set(paths)):
+    raise SystemExit('Duplicate path in upstream manifest')
 for entry in manifest['files']:
     data = (root / 'upstream' / entry['path']).read_bytes()
     blob = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()

@@ -15,7 +15,7 @@ if revision!=manifest['linuxRevision']:p.error('Linux revision mismatch')
 subprocess.run(['python3',str(root/'verify-upstream.py')],check=True)
 build=json.loads((root/'build/target/manifest.json').read_text())
 command=build['objects'][0]['command'];command=command[:command.index('-MMD')]
-for directory in ['drivers/gpu/drm/i915','drivers/gpu/drm/i915/gem','drivers/gpu/drm/i915/gt','include']:
+for directory in ['drivers/gpu/drm/i915','drivers/gpu/drm/i915/gem','drivers/gpu/drm/i915/gt','include','include/uapi']:
  command+=['-I'+str(a.linux_source/directory)]
 output=root/'build'/('complete-'+a.unit.replace('/','-')+'.o')
 output.unlink(missing_ok=True)
