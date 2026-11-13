@@ -174,3 +174,10 @@ Earlier RCU-read, logging/task-name and device-number errors are resolved at
 this compiler boundary. No page layout or bounds were fabricated. Full i915
 compilation and GPU execution remain unproven. See evidence/physical-rcu-001
 and evidence/rcu-host-001 (relative to the experiment root).
+
+
+Recovery update2026-11-14: the revised VMA fixture is now native validated,
+four650-check runs with zero errors, two readers and actual unload. Rebuilt
+completion passes four47056 checks; combined190824. The pending status above
+is historical. Evidence: experimental/i915/evidence/physical-lockref-recovered-001
+(relative to repository root). Whole original i915 compilation still fails.

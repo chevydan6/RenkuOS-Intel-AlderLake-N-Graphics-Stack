@@ -1,0 +1,18 @@
+{
+  "recovered-source-before.log": {
+    "filesVerified": 7078,
+    "sha256": "29e75af7808fbfca1a0f940ac3558419c4a6a49221132ba24b8c753ce9ea62d9"
+  },
+  "recovered-source-after.log": {
+    "filesVerified": 7078,
+    "sha256": "29e75af7808fbfca1a0f940ac3558419c4a6a49221132ba24b8c753ce9ea62d9"
+  },
+  "source-check.log": {
+    "filesVerified": 262,
+    "sha256": "3229bb1b4aaa38db57a3ed1b3b1e968fb0c68789d8b88eebb1fc1b2dcf8005a7"
+  },
+  "final-source-check.log": {
+    "filesVerified": 262,
+    "sha256": "3229bb1b4aaa38db57a3ed1b3b1e968fb0c68789d8b88eebb1fc1b2dcf8005a7"
+  }
+}

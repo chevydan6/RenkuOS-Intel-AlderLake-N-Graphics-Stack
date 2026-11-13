@@ -1,0 +1,14 @@
+In file included from reference/include/linux/fs.h:8,
+                 from reference/include/linux/highmem.h:5,
+                 from upstream/gem/i915_gem_phys.c:7:
+reference/include/linux/dcache.h:85:9: error: unknown type name 'seqcount_spinlock_t'
+   85 |         seqcount_spinlock_t d_seq;      /* per dentry seqlock */
+      |         ^~~~~~~~~~~~~~~~~~~
+reference/include/linux/dcache.h:216:8: error: unknown type name 'seqlock_t'
+  216 | extern seqlock_t rename_lock;
+      |        ^~~~~~~~~
+In file included from reference/include/linux/fs.h:10:
+reference/include/linux/stat.h:6:10: fatal error: asm/stat.h: No such file or directory
+    6 | #include <asm/stat.h>
+      |          ^~~~~~~~~~~~
+compilation terminated.

@@ -729,3 +729,14 @@ ring/GTT now fail in Linux sched/mm.h on missing real process-mm/task integratio
 physical GEM fails on seqcount/seqlock types and asm/stat.h. These are cross
 compiler results, not new native whole-file attempts. Full i915 compilation
 and GPU execution remain unproven.
+
+
+## 2026-11-14: lockref/VMA recovery validation
+
+The pending VMA fixture now passes actual RenkuOS compilation and four650-check
+runs, with two readers, zero worker errors,48000 stress operations and unload0.
+The same native lockref/completion source rebuilt and passes four47056 checks;
+all eight runs total190824 checks, zero failures. Native source checks pass
+before/after. Whole native ring/GTT now reach sched/mm.h process-mm/task services;
+physical GEM reaches seqcount/seqlock and asm/stat.h. Full i915 build/GPU execution
+remain absent. See experimental/i915/evidence/physical-lockref-recovered-001.

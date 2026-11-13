@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-14",
+  "hardware": "N100 four online CPUs; GPU8086:46d1 untouched",
+  "native": "hrev60072+518 GCC13.3 SDK518",
+  "completionRuns": 4,
+  "completionChecksPerRun": 47056,
+  "vmaRuns": 4,
+  "vmaChecksPerRun": 650,
+  "totalChecks": 190824,
+  "failures": 0,
+  "vmaStressOperations": 48000,
+  "nativeTestedOriginalImports": 111,
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "wholeSourceCompilerExits": {
+    "i915_gem_gtt": 1,
+    "i915_gem_phys": 1,
+    "intel_ring": 1
+  },
+  "archivesSHA256": {
+    "/home/dan/i915-vm/lockref-recovery-001/native-base-results.tar.gz": "ef3ee1d28b1d3bcd5174774cf450f7c525c7ecc0493dbd06b1ba956cbfbcf6bd",
+    "/home/dan/i915-vm/lockref-recovery-001/native-vma-results.tar.gz": "c0b131c3f533dcf3ca3f6a0faa537edefe903431bb6b278e06a26bdde4e2ee00",
+    "/home/dan/i915-vm/lockref-recovery-001/vma-bundle-001/payload.tar.gz": "dc6b260c3e8f7fc12d5aa3559f2aafba4c6bd18100dd87ae43f66c8555004ac2"
+  }
+}
