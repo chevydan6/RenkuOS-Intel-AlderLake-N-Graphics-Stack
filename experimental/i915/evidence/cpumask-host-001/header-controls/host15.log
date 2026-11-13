@@ -1,0 +1,1 @@
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -c /home/dan/i915-vm/cpumask-port-001/header-controls-002/host15.c -o /home/dan/i915-vm/cpumask-port-001/header-controls-002/host15.o

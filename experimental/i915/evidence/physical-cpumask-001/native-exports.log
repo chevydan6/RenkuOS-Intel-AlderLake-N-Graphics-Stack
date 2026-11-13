@@ -1,0 +1,7 @@
+ffffffff8007c4c0 T __get_cpu_info@@KERNEL_BASE
+ffffffff8007c3b0 T _get_cpu_info_etc@@KERNEL_BASE
+ffffffff80060850 T _user_cpu_enabled@@KERNEL_BASE
+ffffffff8007c780 T _user_get_cpu_info@@KERNEL_BASE
+ffffffff80060890 T _user_set_cpu_enabled@@KERNEL_BASE
+ffffffff800a8030 T scheduler_set_cpu_enabled@@KERNEL_BASE
+ffffffff8007e8c0 T smp_get_num_cpus@@KERNEL_BASE

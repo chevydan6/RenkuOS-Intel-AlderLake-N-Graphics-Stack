@@ -1,0 +1,15 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+build/native/i915_linuxkpi_test.driver: OK
+build/native/linuxkpi_native_probe: OK
+build/native/i915_execution_preparation.o: OK
+evidence=NATIVE_KERNEL_CPU_SELFTEST
+gpu_submission=false
+PASS invalid operation/length/user-buffer controls
+run=0 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25003 elapsed_us=36374
+run=1 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25004 elapsed_us=37249
+run=2 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25003 elapsed_us=35430
+run=3 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25006 elapsed_us=37187
+PASS native kernel CPU services; no GPU execution tested
+KERN: I915_LINUXKPI_TEST_INIT status=0
+KERN: I915_LINUXKPI_TEST_UNINIT status=0
+LINUXKPI_REGRESSION_EXIT=0 results=validation/kpi.1OiUyW

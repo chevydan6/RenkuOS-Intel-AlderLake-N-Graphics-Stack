@@ -1,0 +1,11 @@
+{
+  "baseFiles": 7046,
+  "initialOK": 7046,
+  "finalOK": 7046,
+  "failures": 0,
+  "manifestSHA256": "99d9b626ba03745cde392e026c60f1fc814e98ea159d37a83c5c5af8c7875127",
+  "finalLogSHA256": "b52e62dd258d27b15ef37a633513f3aaf65970299cdf0006d43658a49a1895d4",
+  "overlay": false,
+  "runtimeSourcesChangedAfterNativeTesting": false,
+  "laterRepositoryChanges": "documentation/evidence only"
+}

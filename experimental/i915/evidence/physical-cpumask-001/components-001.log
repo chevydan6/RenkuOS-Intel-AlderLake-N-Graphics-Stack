@@ -1,0 +1,34 @@
+make: Entering directory '/home/dan/haiku-intel-gpu/experimental/i915'
+python3 verify-upstream.py
+Verified 99 unchanged Linux v6.6 files
+mkdir -p build
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fsanitize=address,undefined -fno-omit-frame-pointer -Iinclude -Iupstream upstream/drm/drm_mm.c upstream/lib/rbtree.c tests/drm_mm_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/drm_mm_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/drm_mm_test
+CPU allocator: 20000 transitions; 6979 allocations, 6067 full; clean teardown
+python3 verify-upstream.py
+Verified 99 unchanged Linux v6.6 files
+mkdir -p build
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -pthread -Iinclude -Iupstream upstream/lib/refcount.c tests/host_locks.c tests/refcount_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/refcount_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/refcount_test
+refcount_t: saturated; leaking memory.
+refcount_t: saturated; leaking memory.
+refcount_t: addition on 0; use-after-free.
+refcount_t: underflow; use-after-free.
+refcount_t: decrement hit 0; leaking memory.
+CPU refcount: 400000 concurrent get/put pairs, 100 publication rounds, 5 saturation categories; pass
+python3 verify-upstream.py
+Verified 99 unchanged Linux v6.6 files
+mkdir -p build
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -pthread -Iinclude -Iupstream src/task_identity.c src/time.c tests/host_locks.c tests/ww_context_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/ww_context_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/ww_context_test
+CPU ww prerequisites: 40000 unique context stamps, registered task identity and mutex state; pass
+ww deadlock avoidance and native kernel execution: NOT TESTED
+python3 verify-upstream.py
+Verified 99 unchanged Linux v6.6 files
+python3 extract.py
+python3 extract-emitter.py
+gcc -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fno-strict-overflow -fsanitize=address,undefined -fno-omit-frame-pointer -Iinclude -Iupstream build/intel_ring_slice.c build/gen8_engine_slice.c tests/emitter_test.c -L/home/dan/i915-test-libs/root/usr/lib64 -Wl,-rpath,/home/dan/i915-test-libs/root/usr/lib64 -o build/emitter_test
+UBSAN_OPTIONS=halt_on_error=1 ./build/emitter_test
+CPU batch-start encoding: 16 branch/wrap cases, 64-bit addresses and guards; pass
+No GPU command was submitted or completed.
+make: Leaving directory '/home/dan/haiku-intel-gpu/experimental/i915'

@@ -134,3 +134,18 @@ with the actual native service) and asm/cache.h. Do not fake a one-CPU system or
 substitute an invented CPU-mask layout. GTT reaches early init/random/static-key/
 atomic helpers, U32_MAX and asm/param.h. Physical GEM retains MAJOR/MINOR/MKDEV
 namespace, RCU and cache-header dependencies. Actual logs are in physical-bitmap-001.
+
+## CPU-mask continuation (current boundary)
+
+Original cpumask helpers now use SMP configuration and a real native CPU/enabled
+snapshot (64-CPU capacity, rejects oversized state). Native masks/operations,
+constant lookup, cache alignment and reached atomic/type/limit helpers pass.
+This requires serialized, fixed-topology ownership. CPU enable/disable events,
+affinity, cross-CPU execution and NUMA integration remain unavailable.
+
+Current actual native compiler failures: ring requires generated/bounds.h for
+Linux VM page layout; GTT requires asm/spinlock_types.h for raw lock types;
+physical GEM requires device-number namespace, RCU lifetime/lookup, bit unlock
+and bounds integration. These need real layout/service adaptation, not invented
+page/CPU objects or no-op success. See physical-cpumask-001/whole-build. Existing
+find_bit private zero-size caveats and compiler warnings remain explicit.

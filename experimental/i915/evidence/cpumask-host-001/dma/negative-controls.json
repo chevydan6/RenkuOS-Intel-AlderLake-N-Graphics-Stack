@@ -1,0 +1,12 @@
+[
+  {
+    "name": "lost_map_failure",
+    "exit": -6,
+    "stderr": "test: /home/dan/haiku-intel-gpu/experimental/i915/dma/api_host_test.c:56: main: Assertion `dma_map_sg_attrs(&device,first,4,DMA_BIDIRECTIONAL,attrs)==0 && live==4' failed.\n"
+  },
+  {
+    "name": "lost_rollback",
+    "exit": -6,
+    "stderr": "test: /home/dan/haiku-intel-gpu/experimental/i915/dma/api_host_test.c:58: main: Assertion `mapped==0 && live==0 && calls==fail' failed.\n"
+  }
+]

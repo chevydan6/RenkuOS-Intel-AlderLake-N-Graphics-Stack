@@ -1,0 +1,43 @@
+In file included from reference/include/linux/fs.h:7,
+                 from reference/include/linux/highmem.h:5,
+                 from upstream/gem/i915_gem_phys.c:7:
+reference/include/linux/kdev_t.h:10: error: "MAJOR" redefined [-Werror]
+   10 | #define MAJOR(dev)      ((unsigned int) ((dev) >> MINORBITS))
+      | 
+In file included from reference/include/linux/kdev_t.h:5:
+reference/include/uapi/linux/kdev_t.h:10: note: this is the location of the previous definition
+   10 | #define MAJOR(dev)      ((dev)>>8)
+      | 
+reference/include/linux/kdev_t.h:11: error: "MINOR" redefined [-Werror]
+   11 | #define MINOR(dev)      ((unsigned int) ((dev) & MINORMASK))
+      | 
+reference/include/uapi/linux/kdev_t.h:11: note: this is the location of the previous definition
+   11 | #define MINOR(dev)      ((dev) & 0xff)
+      | 
+reference/include/linux/kdev_t.h:12: error: "MKDEV" redefined [-Werror]
+   12 | #define MKDEV(ma,mi)    (((ma) << MINORBITS) | (mi))
+      | 
+reference/include/uapi/linux/kdev_t.h:12: note: this is the location of the previous definition
+   12 | #define MKDEV(ma,mi)    ((ma)<<8 | (mi))
+      | 
+In file included from reference/include/linux/list_bl.h:6,
+                 from reference/include/linux/rculist_bl.h:8,
+                 from reference/include/linux/dcache.h:9,
+                 from reference/include/linux/fs.h:8:
+reference/include/linux/bit_spinlock.h: In function '__bit_spin_unlock':
+reference/include/linux/bit_spinlock.h:80:9: error: implicit declaration of function '__clear_bit_unlock'; did you mean 'clear_bit_unlock'? [-Werror=implicit-function-declaration]
+   80 |         __clear_bit_unlock(bitnum, addr);
+      |         ^~~~~~~~~~~~~~~~~~
+      |         clear_bit_unlock
+reference/include/linux/rculist_bl.h: In function 'hlist_bl_first_rcu':
+reference/include/linux/rculist_bl.h:24:33: error: implicit declaration of function 'rcu_dereference_check'; did you mean 'rcu_dereference'? [-Werror=implicit-function-declaration]
+   24 |                 ((unsigned long)rcu_dereference_check(h->first, hlist_bl_is_locked(h)) & ~LIST_BL_LOCKMASK);
+      |                                 ^~~~~~~~~~~~~~~~~~~~~
+      |                                 rcu_dereference
+In file included from reference/include/linux/dcache.h:14:
+reference/include/linux/lockref.h: At top level:
+reference/include/linux/lockref.h:19:10: fatal error: generated/bounds.h: No such file or directory
+   19 | #include <generated/bounds.h>
+      |          ^~~~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+compilation terminated.

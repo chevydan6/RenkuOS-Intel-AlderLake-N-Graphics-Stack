@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-13",
+  "nativeDirectory": "/boot/home/i915-cpumask-002",
+  "checksPerRun": {
+    "completionBitmapPreemptCPU": 46555,
+    "vma": 648,
+    "kpi": 62
+  },
+  "runsEach": 4,
+  "total": 189060,
+  "failures": 0,
+  "nativeCPUCount": 4,
+  "nativeOnlineCount": 4,
+  "nativeOnlineMask": "0xf",
+  "CPUCapacity": 64,
+  "CPUStateModel": "fixed snapshot from existing native CPU info; live enabled-state changes excluded by owner",
+  "cacheAlignmentBytes": 64,
+  "cacheCPUIDCheckPassed": true,
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "archivesSHA256": {
+    "/home/dan/i915-vm/cpumask-port-001/native-bundle-002/payload.tar.gz": "bb9aaab3319269c10e4f7ad897b89cc94935bbac47685aefc0912489e011a654",
+    "/home/dan/i915-vm/cpumask-port-001/native-results-001.tar.gz": "f5c6e7bd2e39c30121eb99d1c903054bccef76ef9c984dea1da1cc2d56c6caf0"
+  }
+}

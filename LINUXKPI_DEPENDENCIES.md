@@ -171,3 +171,18 @@ nth-entry preconditions and remaining external lib/bitmap.c functions.
 Next whole-file dependencies are CPU-mask configuration/cache headers, random/
 static-key atomic helpers, U32_MAX and asm/param.h, plus physical-GEM RCU/device
 number namespace integration. No GPU algorithm was replaced to reach this point.
+
+## Original CPU-mask and architecture prerequisites
+
+Original cpumask.h now compiles/runs with CONFIG_SMP and 64-bit mask capacity 64,
+a native CPU/enabled snapshot and immutable lookup tables. Actual N100 reports
+4 present/4 online, mask 0xf. Disabled-ID/CPU 63/error/cleanup cases use an explicit
+host model of native CPU queries. No native CPUSet cast, hotplug, affinity or NUMA
+scheduler is supplied. Original cache headers select 64-byte alignment, verified
+by native CPUID; this does not implement cache maintenance.
+
+Original limits/param/linkage helpers resolve reached declaration/namespace
+issues with 44 header-order controls. The 99 imports remain byte-exact. Later full
+GEM/ring builds fail on VM bounds/page layout, raw spinlock types and physical-GEM
+RCU/device-number/bit-unlock dependencies. See physical-cpumask-001 and the exact
+scope in completion/README.md. Full i915 build/GPU execution remain absent.

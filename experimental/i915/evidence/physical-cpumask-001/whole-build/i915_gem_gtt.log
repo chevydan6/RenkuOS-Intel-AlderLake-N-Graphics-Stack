@@ -1,0 +1,12 @@
+In file included from reference/include/linux/ratelimit_types.h:7,
+                 from reference/include/linux/ratelimit.h:5,
+                 from reference/include/linux/dev_printk.h:16,
+                 from reference/include/linux/device.h:15,
+                 from reference/include/linux/node.h:18,
+                 from reference/include/linux/cpu.h:17,
+                 from reference/include/linux/stop_machine.h:5,
+                 from upstream/gem/i915_gem_gtt.c:13:
+reference/include/linux/spinlock_types_raw.h:7:11: fatal error: asm/spinlock_types.h: No such file or directory
+    7 | # include <asm/spinlock_types.h>
+      |           ^~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.

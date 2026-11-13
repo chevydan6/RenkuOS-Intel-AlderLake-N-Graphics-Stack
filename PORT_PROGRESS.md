@@ -612,3 +612,26 @@ and reaches random/static-key/atomic helpers, U32_MAX, cpumask and asm/param.h.
 Physical GEM still reaches device-number/RCU/cache dependencies. All three fail;
 exact native errors are preserved in physical-bitmap-001. No full driver or GPU
 execution is demonstrated. General lib/bitmap.c allocation/parsing is not supplied.
+
+## Original CPU masks and architecture integration — 2026-11-13
+
+99 unique unchanged Linux imports now include complete cpumask, cache/linkage,
+limits and parameter headers. SMP/64-CPU capacity replaces the accidental UP
+fallback. A native fixed-topology snapshot obtains real CPU count and enabled
+flags through existing kernel services; Linux mask layout stays separate from
+native CPUSet. Disabled IDs remain present but are excluded from online/active.
+CPU hotplug, affinity and NUMA scheduling are still outside this adapter.
+
+Actual N100 GCC13.3/SDK518 builds and four 46555-check runs pass (186220 checks),
+reporting 4 CPUs/4 online/mask 0xf. CPUID matches the selected 64-byte cache alignment.
+Four648-check VMA and four 62-check KPI regressions pass with actual unload,
+unchanged graphics publication and 48000 VMA stress operations. All 7046 payload
+files match before and after native testing. Host ASan/UBSan, disabled-CPU mutation,
+old regression/mutation controls and 44 first/repeated-header checks pass.
+
+Whole native builds advance: ring reaches generated/bounds.h through VM page
+layout; GTT reaches asm/spinlock_types.h; physical GEM retains device-number,
+RCU, __clear_bit_unlock and bounds dependencies. Actual failures are preserved
+in physical-cpumask-001. No fake page structures or scheduler were supplied.
+No complete i915 build or GPU execution is demonstrated. See completion/README.md
+for fixed-topology ownership, namespace choices and original search warnings.

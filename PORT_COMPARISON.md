@@ -164,3 +164,12 @@ completion/preemption cases; VMA/KPI regressions and clean unload also pass.
 Compiler warnings and later whole-file failures remain explicit. This reduces
 compatibility dependencies without establishing a full i915 build, GPU workload
 or a performance comparison. See physical-bitmap-001 and bitmap-host-001.
+
+## Original CPU-mask reuse result
+
+Original Linux CPU-mask helpers now operate on actual native CPU/enabled state
+with a fixed-topology lifecycle. Four native 46555-check runs pass, including
+previous search/completion/preemption coverage; VMA/KPI regressions unload cleanly.
+This removes an accidental single-CPU fallback and advances full-source compilation
+to later VM and raw-lock integration. It supplies neither a replacement native
+GPU driver nor GPU workloads/performance data. See physical-cpumask-001.

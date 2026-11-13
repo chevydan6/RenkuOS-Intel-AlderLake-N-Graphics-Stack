@@ -1,0 +1,12 @@
+KERN: driver "i915_linux_vma_test" added
+KERN: devfs: reload driver "i915_linux_completion_test" (3, 3688380)
+KERN: devfs: reload driver "i915_linux_vma_test" (3, 3684760)
+KERN: I915_LINUX_VMA_INIT status=0
+KERN: driver "i915_linux_vma_test" added
+KERN: devfs: reload driver "i915_linux_vma_test" (3, 3688380)
+KERN: I915_LINUX_VMA_UNINIT status=0
+KERN: I915_LINUX_VMA_INIT status=0
+KERN: driver "i915_linux_vma_test" removed
+Last message repeated 1 time
+KERN: devfs: reload driver "i915_linux_vma_test" (3, 3688380)
+KERN: I915_LINUX_VMA_UNINIT status=0

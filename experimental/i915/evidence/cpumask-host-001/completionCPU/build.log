@@ -1,0 +1,62 @@
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -include /home/dan/haiku-intel-gpu/experimental/i915/include/completion_port.h -c /home/dan/i915-vm/cpumask-port-001/host-003/completion.c -o /home/dan/i915-vm/cpumask-port-001/host-003/0.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -include /home/dan/haiku-intel-gpu/experimental/i915/include/completion_port.h -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/kernel/sched/swait.c -o /home/dan/i915-vm/cpumask-port-001/host-003/1.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -c /home/dan/haiku-intel-gpu/experimental/i915/src/completion_sched.c -o /home/dan/i915-vm/cpumask-port-001/host-003/2.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -c /home/dan/haiku-intel-gpu/experimental/i915/src/task_identity.c -o /home/dan/i915-vm/cpumask-port-001/host-003/3.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -c /home/dan/haiku-intel-gpu/experimental/i915/src/time.c -o /home/dan/i915-vm/cpumask-port-001/host-003/4.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -c /home/dan/haiku-intel-gpu/experimental/i915/completion/host_backend.c -o /home/dan/i915-vm/cpumask-port-001/host-003/5.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -c /home/dan/haiku-intel-gpu/experimental/i915/completion/host_test.c -o /home/dan/i915-vm/cpumask-port-001/host-003/6.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -c /home/dan/haiku-intel-gpu/experimental/i915/src/cpumask_state.c -o /home/dan/i915-vm/cpumask-port-001/host-003/7.o
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -Wno-error=maybe-uninitialized -c /home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c -o /home/dan/i915-vm/cpumask-port-001/host-003/8.o
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/bitops.h:4,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:90,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/bitops.h:2,
+                 from /home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:15:
+In function ‘fns’,
+    inlined from ‘__find_nth_bit’ at /home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:140:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c: In function ‘__find_nth_bit’:
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:140:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  140 |         return FIND_NTH_BIT(addr[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function ‘fns’,
+    inlined from ‘__find_nth_and_bit’ at /home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:147:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c: In function ‘__find_nth_and_bit’:
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:147:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  147 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function ‘fns’,
+    inlined from ‘__find_nth_andnot_bit’ at /home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:154:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c: In function ‘__find_nth_andnot_bit’:
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:154:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  154 |         return FIND_NTH_BIT(addr1[idx] & ~addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function ‘fns’,
+    inlined from ‘__find_nth_and_andnot_bit’ at /home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:163:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c: In function ‘__find_nth_and_andnot_bit’:
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/i915-vm/cpumask-port-001/host-003/find_bit.c:163:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  163 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx] & ~addr3[idx], size, n);
+      |                ^~~~~~~~~~~~
+gcc -D_GNU_SOURCE -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -pthread -fsanitize=address,undefined -fno-sanitize-recover=all -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/home/dan/haiku-intel-gpu/experimental/i915/completion -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/hweight.c -o /home/dan/i915-vm/cpumask-port-001/host-003/9.o
