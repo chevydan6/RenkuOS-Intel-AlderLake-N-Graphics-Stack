@@ -3,6 +3,13 @@
 Mission incomplete. Branch experiment/i915-linuxkpi starts at GPU branch commit
 30dfdb32957215b4c59da3ac763ba14ab0c482d0. Existing display and patches are untouched.
 
+Current checkpoint: a native RenkuOS VM has built, loaded, tested and unloaded
+the CPU kernel-services driver. Final suite: 16 runs × 62 checks, zero failures.
+Original Linux ring/emitter bodies compile with the guest SDK to a partial
+execution object. No GPU command has run. Historical checkpoints below retain
+earlier limitations; the final VM section supersedes their missing-tool/runtime
+statements.
+
 ## Established baseline
 Read README, architecture, build instructions, native memory progress, first execution
 plan and local RenkuOS-i915-N100-investigation.md. Native work already fixed 64-bit
@@ -303,7 +310,7 @@ Reproduce from experimental/i915:
     make target-emitter-test RENKU_SOURCE=/home/dan/renkuos-i915-source
     make host-object
 
-## Next implementation task
+## Next implementation task (pre-VM checkpoint; superseded below)
 For the full LinuxKPI path, implement actual ww lock/deadlock/wakeup semantics and
 native rwlock support from 062, then continue the GEM/VMA dependency closure.
 For the bounded execution slice, reuse the existing native pinned-memory/context
@@ -312,3 +319,67 @@ to a real engine. Required GT setup, context, batch/result mappings, submission
 and completion remain absent. Do not treat CPU packet construction as a store
 executed by the GPU or create gpu_exec_probe until those services exist.
 No full-port superiority, native kernel runtime or GPU success is claimed.
+
+## Native VM checkpoint: built, loaded, exercised and unloaded
+
+2026-11-13. QEMU 10.2.2/KVM now runs actual RenkuOS build00081, source
+af22bfb13d758e13a2d2f6ab204bdbc3e4aab42f, two CPUs and 768 MiB. The local
+image matches its published SHA256. Session 004 uses a private qcow2 overlay,
+standard VGA/e1000, no GPU passthrough or host system package changes.
+Matching Renku haiku_devel hrev60072_780 and native GCC15.3 are installed.
+This SDK is separate from the older 4799bb5a cross-source baseline.
+
+Implemented and verified in the actual guest kernel:
+- Legacy driver entry points, native module glue/import-library link,
+  permission-checked ioctl client, actual load and unload.
+- Wired 4-KiB areas, physical-address lookup, CPU pattern integrity, deletion
+  and repeated-destruction error. CPU physical backing is NOT device DMA.
+- Native semaphore mutexes, IRQ-excluding native spinlocks, task registration
+  and original ww context stamps on two actual kernel workers per run.
+- Original complete drm_mm/rbtree range allocation above 4 GiB and overlap
+  rejection; original kref/refcount get/put with exactly one final release.
+- Explicit native semaphore completion resources: signal, block, absolute
+  monotonic deadline, interruption retry, negative/overflow timeout errors,
+  deleted-resource errors and cleanup. Linux completion/waitqueues remain open.
+- Invalid ioctl, length and user pointer returns through real user_memcpy.
+
+Artifacts: build/native/i915_linuxkpi_test.driver, linuxkpi_native_probe and
+i915_execution_preparation.o. The last contains original extracted Linux
+intel_ring/gen8 functions compiled with the native guest compiler and SDK,
+separate from the installed test driver. Timeline/wait imports remain undefined.
+
+Final evidence: experimental/i915/evidence/native-vm-006/. Sixteen runs pass
+62 checks each; total 64 pages allocated/freed, 32 kernel workers and 64000
+iterations of each lock/reference path. Concurrent clients exercise serialized
+ioctl entry; each ioctl has two concurrent workers. Requested 25000-us timeouts
+measured 25060–25284 us. This is functional evidence, not a GPU benchmark.
+Serial INIT/UNINIT status=0 verifies actual driver load and semaphore teardown.
+
+Failed attempts preserved:
+- 063 used nonexistent B_BAD_AREA_ID; native source establishes B_BAD_TEAM_ID
+  for deleted-area lookup. Corrected native backend/driver compile is in 064.
+- 065: guest lacked GCC; matching SDK/toolchain installed.
+- 066: first real run panicked on a late kernel-worker join. Exact guest source
+  establishes no cached death entry for kernel threads. Corrected handling
+  requires both completion and absent thread ID; other errors remain fatal.
+  Some unflushed build files were lost on reboot; runner now syncs before tests.
+- 067: immediate reinstall reached ENOENT before asynchronous devfs publication.
+  A bounded readiness wait fixes this; functional checks remain intact. Final
+  suite additionally tests duplicate cleanup and invalid semaphore operations.
+
+Reproduce using experimental/i915/vm/README.md: prepare a hashed source archive
+with `python3 vm/prepare-bundle.py --output <new-file>`, transfer/extract in the
+guest, and run `bash vm/run-native-tests.sh`. Local ISO, overlay, binaries and
+detailed logs remain under /home/dan/i915-vm. Reviewed text evidence is committed;
+private SSH keys are excluded.
+
+## Next implementation task
+
+Native CPU service validation is complete for this subset. Next close the real
+full-file rwlock/ww/GEM failures from 062, or connect the native-compiled bounded
+ring/emitter slice to owned GPU mappings and actual GT/context/submission/
+retirement. Reuse existing native physical memory/context findings. Neither CPU
+physical addresses nor command encoding provide valid DMA/GPU mapping.
+gpu_exec_probe remains absent until real execution mechanisms exist; a CPU
+write must not stand in for its store. Physical N100 submission/completion and
+the full-port comparison remain open.

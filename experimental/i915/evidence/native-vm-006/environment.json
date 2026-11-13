@@ -1,0 +1,33 @@
+{
+  "evidenceClass": "NATIVE_KERNEL_CPU_SELFTEST",
+  "gpuSubmission": false,
+  "image": "RenkuOS-x86_64-20261112-build00081.iso",
+  "imageSHA256": "3ffc9ff6c3015467079958e2fcd23d54143b11726e738c5d25daac8d4dc4faf2",
+  "renkuSource": "af22bfb13d758e13a2d2f6ab204bdbc3e4aab42f",
+  "linuxSource": "ffc253263a1375a65fa6c9f62a893e9767fbebfa",
+  "qemuVersion": "10.2.2",
+  "accelerator": "KVM",
+  "smp": 2,
+  "memoryMiB": 768,
+  "storage": "local raw image, private qcow2 overlay, IDE",
+  "network": "e1000, user-mode forwarding bound to host loopback",
+  "display": "standard VGA",
+  "gpuPassthrough": false,
+  "bundleSHA256": "d883a67e04c4b6d562faadd3c34ca98e1c97338ffd9e237089e7c4e824c2aa49",
+  "runs": 16,
+  "checksPerRun": 62,
+  "pagesAllocatedAndFreed": 64,
+  "kernelWorkers": 32,
+  "iterationsPerLockAndReferencePath": 64000,
+  "timeoutRequestedUs": 25000,
+  "timeoutObservedUs": [
+    25060,
+    25284
+  ],
+  "binaryDirectory": "/home/dan/i915-vm/evidence/native-006/build/native",
+  "hostRuntimeDirectory": "/home/dan/i915-vm",
+  "notes": [
+    "Client invocations are serialized; each ioctl runs two concurrent kernel workers.",
+    "Native page physical addresses do not establish device DMA or GPU mappings."
+  ]
+}

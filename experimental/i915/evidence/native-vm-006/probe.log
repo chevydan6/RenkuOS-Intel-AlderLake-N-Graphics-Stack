@@ -1,0 +1,12 @@
+evidence=NATIVE_KERNEL_CPU_SELFTEST
+gpu_submission=false
+PASS invalid operation/length/user-buffer controls
+run=0 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25064 elapsed_us=84708
+run=1 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25172 elapsed_us=26951
+run=2 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25182 elapsed_us=27275
+run=3 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25144 elapsed_us=27397
+run=4 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25115 elapsed_us=27139
+run=5 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25254 elapsed_us=27769
+run=6 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25121 elapsed_us=27163
+run=7 checks=62 failures=0 first_failure_line=0 pages=4/4 workers=2 iterations=4000 final_releases=1 timeout_status=-2147483639 timeout_us=25174 elapsed_us=27763
+PASS native kernel CPU services; no GPU execution tested

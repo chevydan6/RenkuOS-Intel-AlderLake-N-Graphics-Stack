@@ -3,8 +3,8 @@
 
 | Interface | Status | Actual implementation / evidence |
 |---|---|---|
-| Complete drm_mm structs and algorithms | implemented, CPU tested | Unchanged v6.6 drm_mm.c/.h, complete upstream allocator, 019/020 |
-| rbtree, augmented and interval trees | implemented, CPU tested | Original Linux implementation; no replacement allocation algorithm |
+| Complete drm_mm structs and algorithms | implemented, native VM tested | Unchanged v6.6 drm_mm.c/.h; host stress 019/020 and native-vm-006 allocation/overlap/cleanup |
+| rbtree, augmented and interval trees | implemented, native VM tested | Original Linux implementation through drm_mm; no replacement allocation algorithm |
 | list/hlist types and operations | implemented | Original list.h with native-width types; no implicit synchronization |
 | u8/u32/u64/phys_addr_t/resource_size_t | implemented | Fixed-width types, real native phys_addr_t; x86-64 required |
 | GEM_BUG_ON | implemented adapter | Calls real RenkuOS panic; kernel resolution remains required |
@@ -19,26 +19,30 @@
 | KernelExport.h/SupportDefs.h | implemented build integration | Actual pinned target source headers, host libc excluded (020) |
 | mm_types/slab/seq_file/stacktrace includes | excluded APIs | Include wrappers expose no fake APIs; selected release allocator references none |
 | CONFIG_DRM_DEBUG_MM/CONFIG_DEBUG_LIST | excluded configuration | Unsupported debug backends rejected; ASan/UBSan host allocator checks enabled |
-| Module export tables | excluded | Plain relocatable objects; EXPORT_SYMBOL emits no loader table, no module claim |
+| Linux module export tables | excluded | EXPORT_SYMBOL emits no Linux loader table; native test driver uses actual RenkuOS entry points |
 | intel_ring/i915_request layouts | adapted subset only | Explicit private layouts, not complete Linux structs or ABI |
 | i915_request_timeline / wait_for_space | unresolved | Undefined symbols; never return fake completion |
 | ring create/pin/unpin/free | excluded from compiled slice | Original source retained, full-file compilation still fails |
 | atomic_t/refcount/kref | implemented reached subset | Original Linux headers/refcount.c, native atomic primitives; 028/029/031 |
 | WARN_ONCE | implemented | Per-callsite atomic warning suppression, actual native diagnostic |
-| Linux mutex init/lock/unlock/destroy | implemented, native runtime untested | Native semaphores; retries interruption, panics on other failures |
-| spin_lock/init/unlock and IRQ-save/restore | implemented, native runtime untested | Native spinlocks with IRQ exclusion; plain spin_lock is stronger than Linux |
+| Linux mutex init/lock/unlock/destroy | implemented, native VM tested | Native semaphores; two actual kernel workers, contention/cleanup in native-vm-006 |
+| spin_lock/init/unlock and IRQ-save/restore | implemented, native VM tested | Native spinlocks with IRQ exclusion; plain spin_lock is stronger than Linux |
 | PREEMPT_RT/rt_mutex | excluded configuration | No RT methods provided; non-RT ww_mutex uses struct mutex; RT build fails |
 | atomic_long stamp increment | implemented | Native atomic_add64; target-header wrap check passes |
 | ww acquire context/header | compiled original inline code, CPU context tested | ww_mutex.o is ELF; 40000 original contexts on 8 host threads |
 | ww_mutex_lock/interruptible/unlock/trylock | unresolved | No ordinary-lock success substitution; lock symbols undefined |
-| Named mutex init/state | implemented, native runtime untested | Named native semaphore; atomic held-state snapshot |
+| Named mutex init/state | implemented, native VM tested | Named native semaphore; atomic held-state snapshot |
 | current / task identity | implemented scoped identity | Real find_thread ID with caller-owned registration record; not a scheduler/task lifetime service |
 | Linux errno/error pointers | implemented | Byte-exact headers; 4095 pointer codes and 6 native status aliases tested |
-| ktime_get/ktime_t | implemented, native runtime untested | system_time_nsecs; host CLOCK_MONOTONIC test |
+| ktime_get/ktime_t | implemented, native linked | system_time_nsecs import; direct ktime_get runtime not exercised by native test; completion deadlines use native system_time |
 | RCU callback metadata/acquire pointer loads | represented/implemented only | Reader protection, grace periods and reclamation unresolved |
 | smp_mb/cpu_relax | implemented | Real CPU/compiler seq-cst barrier and x86 pause |
 | printk/seqlock | excluded APIs | Reached headers call no methods; wrappers expose no fake logging/sequence operations |
-| Native PAGE_SIZE/PAGE_SHIFT | implemented constants | Compile-time check against B_PAGE_SIZE; no page allocation |
+| Native PAGE_SIZE/PAGE_SHIFT | implemented constants | Compile-time B_PAGE_SIZE check; Linux struct page APIs unresolved |
+| Scoped native wired-page backing | implemented, native VM tested | create_area/get_memory_map_etc/delete_area; 64 allocations/frees; physical addresses are not DMA mappings |
+| Scoped native completion/deadlines | implemented, native VM tested | Semaphore token lifecycle, monotonic deadline/retry; Linux completion/waitqueue semantics unresolved |
+| Native driver/module glue | implemented, native VM tested | device_hooks, _KERNEL_ import library/version glue; INIT/UNINIT observed; not a blanket Linux module API |
+| Kernel worker lifecycle | implemented for native test | spawn/resume/wait; completed absent-ID late joins handle kernel threads without cached death entries |
 | unmap_mapping_range | unresolved | Declaration only; no successful unmap stub |
 | DRM VMA rwlock and VM interfaces | unresolved | Current compiler errors in 062; basic memset/__u64/VM-area forward declarations supplied |
 | PCI/MMIO/DMA/GT initialization/contexts/execlists | unresolved integration | Not provided by CPU allocator; no speculative adapter implementations |

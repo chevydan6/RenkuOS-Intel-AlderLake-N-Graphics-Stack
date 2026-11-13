@@ -1,0 +1,2 @@
+/boot/system/packages/haiku_devel-r1~beta6_hrev60072_780-1-x86_64.hpkg
+/boot/system/packages/mesa_devel-22.0.5-3-x86_64.hpkg

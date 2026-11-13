@@ -1,0 +1,7 @@
+I915_LINUXKPI_TEST_INIT status=0
+vm_page_fault: vm_soft_fault returned error 'Bad address' on fault at 0x0, ip 0xffffffff8018c854, write 1, kernel, exec 0, thread 926
+vm_page_fault: vm_soft_fault returned error 'Bad address' on fault at 0x0, ip 0xffffffff8018c854, write 1, kernel, exec 0, thread 943
+vm_page_fault: vm_soft_fault returned error 'Bad address' on fault at 0x0, ip 0xffffffff8018c854, write 1, kernel, exec 0, thread 944
+driver "i915_linuxkpi_test" removed
+devfs: reload driver "i915_linuxkpi_test" (3, 273392)
+I915_LINUXKPI_TEST_UNINIT status=0

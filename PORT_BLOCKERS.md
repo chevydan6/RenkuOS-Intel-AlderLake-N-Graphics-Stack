@@ -13,12 +13,20 @@
 - Request timeline and ring space waiting/retirement remain undefined. New native
   task/time adapters import real find_thread and system_time_nsecs. Registered
   task scopes require caller lifetime discipline; they are not general scheduler
-  objects or task references. Native kernel execution remains unvalidated.
-- No runnable RenkuOS guest/toolchain or hardware connection is installed here.
-  Inspection found no QEMU system binary, cross GCC or SSH agent identities.
-  This limits runtime validation; compile artifacts are not hardware evidence.
+  objects or task references. Scoped task/time/lock paths now pass actual guest
+  kernel worker tests; GPU retirement remains unimplemented.
+- Native-compiled execution object still imports i915_request_timeline and
+  renku_ring_wait_for_space (native-vm-006/execution-imports.txt). No GPU backing
+  mappings, real context submission or completion connects that object.
 
 Resolved, evidence retained:
+- Missing VM/toolchain: actual RenkuOS build00081 runs under KVM with matching
+  SDK. Native driver passes 16 × 62 checks; UNINIT status=0 confirms teardown.
+- Kernel-worker join panic (066): exact guest source establishes no cached
+  death entry for kernel threads. Completed, absent-ID late joins are handled
+  explicitly; live/unknown-error cases remain fatal. Final native tests pass.
+- Reinstall devfs ENOENT (067): asynchronous publication now has a bounded wait.
+  Native allocation/semaphore cleanup and invalid-resource tests pass.
 - Shell Git/DNS failures from first turn: clone now works.
 - Missing SupportDefs.h: real headers populated; StorageDefs.h search path fixed.
 - ENOSPC/min/max macro conflicts with target headers (013): scoped Linux

@@ -1,0 +1,33 @@
+PANIC: i915 native test: worker failed to finish: -2147479296
+Welcome to Kernel Debugging Land...
+revision: hrev60072+780
+Thread 706 "linuxkpi_native_probe" running on CPU 0
+stack trace for thread 706 "linuxkpi_native_probe"
+    kernel stack: 0xffffffff813bd000 to 0xffffffff813c2000
+      user stack: 0x00007f8742ba5000 to 0x00007f8746ba5000
+frame                       caller             <image>:function + offset
+ 0 ffffffff813c1860 (+  32) ffffffff801644eb   <kernel_x86_64> arch_debug_call_with_fault_handler + 0x1d
+ 1 ffffffff813c18b0 (+  80) ffffffff800bc2e0   <kernel_x86_64> debug_call_with_fault_handler + 0x80
+ 2 ffffffff813c1910 (+  96) ffffffff800bd9f7   <kernel_x86_64> kernel_debugger_loop(char const*, char const*, __va_list_tag*, int) + 0x117
+ 3 ffffffff813c1970 (+  96) ffffffff800bddde   <kernel_x86_64> kernel_debugger_internal(char const*, char const*, __va_list_tag*, int) + 0x6e
+ 4 ffffffff813c1a60 (+ 240) ffffffff800be1d7   <kernel_x86_64> panic + 0xb7
+ 5 ffffffff813c1a70 (+  16) ffffffff81438b64   </boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test> fatal_worker + 0x14
+ 6 ffffffff813c1e30 (+ 960) ffffffff81439573   </boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test> run_tests + 0x9f3
+ 7 ffffffff813c1ea0 (+ 112) ffffffff81439631   </boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test> control + 0x91
+ 8 ffffffff813c1f00 (+  96) ffffffff800feffb   <kernel_x86_64> fd_ioctl(bool, int, unsigned int, void*, unsigned long) + 0x7b
+ 9 ffffffff813c1f20 (+  32) ffffffff8010000a   <kernel_x86_64> _user_ioctl + 0x3a
+10 ffffffff813c1f30 (+  16) ffffffff80166100   <kernel_x86_64> x86_64_syscall_entry + 0x10a
+user iframe at 0xffffffff813c1f30 (end = 0xffffffff813c1ff8)
+ rax 0x99                  rbx 0x3                   rcx 0x13782956dbc
+ rdx 0x7f8746ba4b50        rsi 0x2710                rdi 0x3
+ rbp 0x7f8746ba4b40         r8 0x0                    r9 0x7f8746ba47a0
+ r10 0x38                  r11 0x206                 r12 0x3
+ r13 0x7f8746ba5668        r14 0x8                   r15 0x0
+ rip 0x13782956dbc         rsp 0x7f8746ba4b28     rflags 0x206
+ vector: 0x63, error code: 0x0
+11 00007f8746ba4b40 (+   0) 0000013782956dbc   </boot/system/lib/libroot.so> _kern_ioctl + 0x0c
+12 00007f8746ba4bb0 (+ 112) 0000014a16a85962   </boot/home/i915-native-002/i915> main + 0x142
+13 00007f8746ba4be0 (+  48) 0000014a16a85b8e   </boot/home/i915-native-002/i915> _start + 0x3e
+14 00007f8746ba4c10 (+  48) 0000018919052515   </boot/system/runtime_loader> runtime_loader + 0x115
+15 0000000000000000 (+   0) 00007fffffdbb258   <commpage> commpage_thread_exit + 0x00
+kdebug>

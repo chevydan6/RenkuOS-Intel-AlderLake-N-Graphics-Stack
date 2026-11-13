@@ -1,0 +1,8 @@
+tar: i915-linuxkpi-native/build/gen8_engine_slice.c: time stamp 2026-11-13 08:07:11.937894 is 0.975403 s in the future
+tar: i915-linuxkpi-native/build/intel_ring_slice.c: time stamp 2026-11-13 08:07:11.911787 is 0.941658 s in the future
+tar: i915-linuxkpi-native/vm/build-native.sh: time stamp 2026-11-13 08:07:11.7198544 is 0.7300814 s in the future
+tar: i915-linuxkpi-native/vm/prepare-bundle.py: time stamp 2026-11-13 08:07:11.7188544 is 0.7282414 s in the future
+tar: i915-linuxkpi-native/vm/run-native-tests.sh: time stamp 2026-11-13 08:07:11.7198544 is 0.7289504 s in the future
+Native build complete; module has not been installed or run by this script.
+Running native kernel tests
+/dev/misc/i915_linuxkpi_test: No such file or directory

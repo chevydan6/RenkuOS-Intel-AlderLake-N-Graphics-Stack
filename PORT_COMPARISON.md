@@ -65,3 +65,25 @@ ww locking and RCU/VM services. This is evidence that the adaptation boundary
 substantially changes the dependency burden. It does not measure first-command
 hardware effort: native GT/context/mapping/submission/completion integration is
 still missing, so neither full LinuxKPI nor the extracted path is declared better.
+
+## Actual native kernel integration result
+
+The experiment now builds and loads a real driver in RenkuOS build00081 with
+the matching SDK and native GCC15.3. Original Linux allocator/tree/refcount and
+ww context algorithms run against native kernel pages, mutexes, spinlocks,
+threads, task identity and time. Sixteen invocations × 62 checks pass, including
+concurrency, timeout/error handling and cleanup; actual unload is recorded.
+The earlier absence of native runtime evidence is resolved for this subset.
+
+Runtime exposed concrete adaptation costs: kernel threads do not retain death
+entries, and device publication is asynchronous. Both failed experiments are
+preserved and corrected. These are manageable OS integration details, but show
+why compiling headers alone did not establish correctness.
+
+The original execution slices also compile with the actual guest SDK into a
+partial execution object. Their unresolved timeline/wait symbols, missing GPU
+mappings and absent real context/submission/completion still prevent a physical
+store. Native wired physical pages do not solve DMA or GPU address translation.
+No CPU-service timing here measures GPU throughput, compatibility overhead,
+Mesa readiness or time to first execution. Full LinuxKPI superiority remains
+unproven against the native branch's existing physical GT/memory/context work.
