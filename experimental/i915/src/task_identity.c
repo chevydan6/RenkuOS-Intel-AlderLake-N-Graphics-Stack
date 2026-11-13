@@ -28,6 +28,10 @@ bool renku_linux_task_register(struct task_struct *task)
 		}
 	}
 	task->native_id = id;
+	task->wait_initialized = false;
+	task->wait_state = TASK_RUNNING;
+	task->interrupted_state = 0;
+	task->release_wait = NULL;
 	task->registry_next = tasks;
 	tasks = task;
 	spin_unlock(&registry_lock);
@@ -64,4 +68,16 @@ void renku_linux_task_unregister(struct task_struct *task)
 	*slot = task->registry_next;
 	task->registry_next = NULL;
 	spin_unlock(&registry_lock);
+	/* No queued waiter may outlive its owning registered scope. Event cleanup
+	 * runs outside the registry spinlock because native destruction may sleep.
+	 * Older non-waiting scopes own no event. */
+	if (task->release_wait != NULL) task->release_wait(task);
+}
+
+bool renku_linux_tasks_empty(void)
+{
+	spin_lock(&registry_lock);
+	bool empty = tasks == NULL;
+	spin_unlock(&registry_lock);
+	return empty;
 }

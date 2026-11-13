@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <string.h>
+#include <linux/kconfig.h>
 #include <linux/compiler_types.h>
 #ifdef RENKU_NATIVE
 #include <KernelExport.h>
@@ -14,7 +15,11 @@
 extern void panic(const char *, ...);
 #endif
 typedef uint8_t u8;
+typedef int8_t s8;
+typedef uint16_t u16;
+typedef int16_t s16;
 typedef uint32_t u32;
+typedef int32_t s32;
 /* Linux u64 is unsigned long long on x86-64 (including printf formats). */
 typedef unsigned long long u64;
 typedef u64 __u64;
@@ -69,7 +74,6 @@ extern bool renku_kpi_warn(const char *, ...);
 #ifndef CONFIG_DEBUG_LIST
 #define CONFIG_DEBUG_LIST 0
 #endif
-#define IS_ENABLED(x) (x)
 #define LIST_POISON1 ((void *)0x100)
 #define LIST_POISON2 ((void *)0x122)
 #define U64_MAX (~0ULL)

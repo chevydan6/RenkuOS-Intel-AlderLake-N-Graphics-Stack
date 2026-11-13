@@ -4,6 +4,7 @@
 #include <kpi_base.h>
 #include <linux/atomic.h>
 #include <linux/sched.h>
+#include <linux/lockdep_types.h>
 #ifndef RENKU_NATIVE
 #include <pthread.h>
 #endif
@@ -15,11 +16,6 @@ struct mutex {
 #endif
 	int held;
 };
-/* Per-class identity tokens. Lockdep instrumentation itself is excluded. */
-#ifdef CONFIG_DEBUG_LOCK_ALLOC
-#error Linux lockdep instrumentation is not implemented
-#endif
-struct lock_class_key { unsigned char identity; };
 void renku_linux_mutex_init_named(struct mutex *, const char *, struct lock_class_key *);
 void renku_linux_mutex_init(struct mutex *);
 void renku_linux_mutex_destroy(struct mutex *);

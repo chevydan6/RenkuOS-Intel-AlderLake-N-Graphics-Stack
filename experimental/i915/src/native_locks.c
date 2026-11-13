@@ -64,3 +64,14 @@ void renku_linux_spin_unlock(spinlock_t *lock)
 	cpu_status saved = lock->saved_interrupts;
 	renku_linux_spin_unlock_irqrestore(lock, saved);
 }
+void renku_linux_spin_lock_irq(spinlock_t *lock)
+{
+	disable_interrupts();
+	acquire_spinlock(&lock->native);
+}
+void renku_linux_spin_unlock_irq(spinlock_t *lock)
+{
+	release_spinlock(&lock->native);
+	/* Linux _irq requires IRQ-enabled entry and unconditionally enables here. */
+	restore_interrupts(1);
+}
