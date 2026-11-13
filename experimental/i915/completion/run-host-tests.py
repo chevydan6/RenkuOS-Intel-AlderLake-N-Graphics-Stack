@@ -16,6 +16,7 @@ root = Path(__file__).resolve().parents[1]
 subprocess.run(['python3', str(root/'verify-upstream.py')], check=True)
 subprocess.run(['python3', str(root/'extract-bitmap.py')], check=True)
 subprocess.run(['python3', str(root/'extract-gfp.py')], check=True)
+subprocess.run(['python3', str(root/'extract-highmem.py')], check=True)
 original = (root/'upstream/kernel/sched/completion.c').read_text()
 copy = a.output/'completion.c'
 copy.write_text(original)
@@ -34,6 +35,8 @@ seq_include = a.output/'include/linux'; seq_include.mkdir(parents=True)
 wrapper = (root/'include/linux/seqlock.h').read_text()
 assert wrapper.count('../../upstream/linux/seqlock.h') == 1
 (seq_include/'seqlock.h').write_text(wrapper.replace('../../upstream/linux/seqlock.h', str(seq_copy.resolve())))
+pages_original = (root/'src/native_pages.c').read_text()
+pages_copy = a.output/'native_pages.c'; pages_copy.write_text(pages_original)
 flags = ['gcc', '-I'+str(a.output/'include'), '-D_GNU_SOURCE', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror',
          '-Wno-unused-parameter', '-Wno-sign-compare', '-fno-strict-overflow', '-pthread',
          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
@@ -42,7 +45,7 @@ objects = []
 def build():
     units = [copy, root/'upstream/kernel/sched/swait.c', root/'src/completion_sched.c',
              root/'src/task_identity.c', root/'src/printk_bridge.c', root/'src/time.c', root/'completion/host_backend.c',
-             root/'completion/host_test.c', root/'src/cpumask_state.c', equal_copy, find_copy, root/'upstream/lib/hweight.c', lockref_copy]
+             root/'completion/host_test.c', root/'src/cpumask_state.c', equal_copy, find_copy, root/'upstream/lib/hweight.c', lockref_copy, pages_copy, root/'tests/page_bridge_host.c', root/'upstream/lib/refcount.c']
     log = ''
     for i, source in enumerate(units):
         obj = a.output/(str(i)+'.o')
@@ -134,3 +137,15 @@ r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeo
 assert r.returncode == -6 and 'Assertion' in r.stderr
 seq_copy.write_text(seq_original); build()
 print('PASS original seqcount/seqlock, concurrent snapshots and rejected always-accept retry mutation')
+
+for name, before, after in [
+    ('page-missing-reference-release', 'bool last = refcount_dec_and_test(&run->references);', 'bool last = false;'),
+    ('page-missing-native-delete', 'if (renku_vm_page_run_delete(run->area) != 0) Invalid("native area deletion failed");', '(void)run->area;'),
+]:
+    assert pages_original.count(before) == 1
+    pages_copy.write_text(pages_original.replace(before, after)); build()
+    r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
+    (a.output/(name+'.log')).write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+    assert r.returncode == -6 and 'Assertion' in r.stderr
+pages_copy.write_text(pages_original); build()
+print('PASS managed page references, queued VM release, nesting/failure controls; omitted reference release/native deletion rejected')

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 /* Real pthread locks, with thread-local IRQ state modeled only for CPU tests. */
 #include <linux/spinlock.h>
+#include <linux/mutex.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,4 +34,39 @@ bool renku_linux_spin_is_locked(spinlock_t *lock)
 	if (status != 0) panic("host spin query failed: %d", status);
 	if (pthread_mutex_unlock(&lock->rlock.raw_lock.native)) panic("host spin query unlock");
 	return false;
+}
+
+/* Explicit host model of the native non-preemptible/IRQ scopes. */
+static _Thread_local unsigned preempt_depth;
+static _Thread_local bool preempt_saved;
+void renku_linux_preempt_disable(void)
+{
+	if (!preempt_depth++) preempt_saved = enabled;
+	enabled = false;
+}
+void renku_linux_preempt_enable(void)
+{
+	assert(preempt_depth);
+	if (!--preempt_depth) enabled = preempt_saved;
+}
+unsigned int renku_linux_preempt_count(void) { return preempt_depth; }
+bool renku_linux_preemptible(void) { return enabled && !preempt_depth; }
+
+void renku_linux_mutex_init_named(struct mutex *m, const char *name, struct lock_class_key *key)
+{
+	(void)name; (void)key;
+	m->held = 0;
+	assert(pthread_mutex_init(&m->native, NULL) == 0);
+}
+void renku_linux_mutex_init(struct mutex *m) { renku_linux_mutex_init_named(m, NULL, NULL); }
+void renku_linux_mutex_destroy(struct mutex *m) { assert(pthread_mutex_destroy(&m->native) == 0); }
+void renku_linux_mutex_lock(struct mutex *m)
+{
+	assert(pthread_mutex_lock(&m->native) == 0);
+	__atomic_store_n(&m->held, 1, __ATOMIC_RELEASE);
+}
+void renku_linux_mutex_unlock(struct mutex *m)
+{
+	__atomic_store_n(&m->held, 0, __ATOMIC_RELEASE);
+	assert(pthread_mutex_unlock(&m->native) == 0);
 }

@@ -22,7 +22,8 @@ headers = ['linux/bitops.h', 'linux/bits.h', 'linux/bitmap.h', 'linux/types.h',
            'linux/rcupdate.h', 'linux/printk.h', 'linux/kern_levels.h',
            'linux/kdev_t.h', 'uapi/linux/kdev_t.h', 'linux/gfp.h', 'linux/gfp_types.h', 'linux/lockref.h',
            'linux/seqlock.h', 'linux/kcsan-checks.h', 'asm/processor.h',
-           'asm/barrier.h', 'linux/compiler.h']
+           'asm/barrier.h', 'linux/compiler.h', 'linux/mm.h', 'linux/highmem.h',
+           'linux/uaccess.h', 'native_pages.h', 'native_page_bridge.h']
 manifest = json.loads((root/'build/target/manifest.json').read_text())
 native = manifest['objects'][0]['command']
 native = native[:native.index('-MMD')]
@@ -51,6 +52,9 @@ for mode, flags in [('host', host), ('target', native)]:
         ('cmpxchg_rejected', '#define CONFIG_ARCH_USE_CMPXCHG_LOCKREF 1\n', ''),
         ('kcsan_rejected', '#define CONFIG_KCSAN 1\n', '#include <linux/seqlock.h>\n'),
         ('rt_rejected', '#define CONFIG_PREEMPT_RT 1\n', '#include <linux/seqlock.h>\n'),
+        ('highmem_rejected', '#define CONFIG_HIGHMEM 1\n', '#include <linux/highmem.h>\n'),
+        ('local_slots_rejected', '#define CONFIG_KMAP_LOCAL 1\n', '#include <linux/highmem.h>\n'),
+        ('unmap_page_type_rejected', '', '#include <linux/highmem.h>\nvoid bad(struct page *p) {kunmap_atomic(p); }\n'),
     ]:
         source = a.output/(mode+'-'+name+'.c')
         source.write_text(prefix+'#include <linux/lockref.h>\n'+suffix)

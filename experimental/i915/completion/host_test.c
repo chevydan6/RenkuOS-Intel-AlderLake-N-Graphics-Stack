@@ -12,11 +12,16 @@ int main(int argc, char **argv)
 		lockref_mark_dead(&ref); /* Must reject an unlocked reference. */
 		return 90;
 	}
+	extern void renku_test_page_fail_event(void), renku_test_page_fail_worker(void);
+	renku_test_page_fail_event(); assert(renku_linux_pages_init() == -ENOMEM);
+	renku_test_page_fail_worker(); assert(renku_linux_pages_init() == -ENOMEM);
+	assert(renku_linux_pages_init() == 0);
 	assert(renku_linux_cpumask_publish(4, 0x5) == 0);
 	struct completion_report report;
 	RunCases(&report);
-	assert(report.version == 6 && report.lockref_workers == 2 && report.lockref_iterations == 8000);
+	assert(report.version == 7 && report.lockref_workers == 2 && report.lockref_iterations == 8000);
 	assert(report.seq_workers == 2 && report.seq_writes == 4000 && report.seq_reads == 4000 && report.seq_forced_retries == 1);
+	assert(report.page_allocations == 5 && report.page_frees == 5 && report.page_workers == 2 && report.page_iterations == 512);
 	assert(!report.failures && report.phases == 12 && report.workers == 24);
 	struct sigaction handler = {.sa_handler = OnSignal};
 	sigemptyset(&handler.sa_mask);
@@ -39,6 +44,7 @@ int main(int argc, char **argv)
 	FinishFixture(&target); FinishFixture(&ready); FinishFixture(&done);
 	printf("PASS original completion/swait: %u checks, %u phases, %u waiters; real host signal interruption\n",
 		report.checks, report.phases, report.workers);
+	assert(renku_linux_pages_drain(5000) == 0 && renku_linux_pages_uninit() == 0);
 	renku_linux_cpumask_reset();
 	return 0;
 }
