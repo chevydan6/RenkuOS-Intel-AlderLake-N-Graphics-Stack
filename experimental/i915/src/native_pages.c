@@ -8,6 +8,13 @@
 #include <linux/sched.h>
 #include <linux/compiler.h>
 #include <linux/pagevec.h>
+struct renku_page_store {
+	void *base;
+	size_t count;
+	int32_t area;
+	unsigned pins, in_flight;
+	struct renku_page_store *next;
+};
 struct page_run {
 	struct page *pages;
 	void *base;
@@ -16,10 +23,13 @@ struct page_run {
 	int32_t area;
 	bool compound;
 	refcount_t references;
+	struct renku_page_store *store;
+	unsigned long store_index;
 	struct page_run *next;
 };
 static DEFINE_SPINLOCK(sLock);
 static struct page_run *sRuns, *sQueue, **sQueueTail = &sQueue;
+static struct renku_page_store *sStores;
 static struct renku_page_event *sEvent;
 static struct renku_page_worker *sWorker;
 static unsigned sPending;
@@ -51,15 +61,21 @@ static int32_t Releaser(void *unused)
 		bool stop = sStop;
 		spin_unlock(&sLock);
 		if (!run) { if (stop) return 0; else continue; }
-		if (renku_vm_page_run_delete(run->area) != 0) Invalid("native area deletion failed");
+		struct renku_page_store *store = run->store;
+		if (store) {
+			if (renku_vm_page_store_unpin(run->base) != 0) Invalid("native store unpin failed");
+		} else if (renku_vm_page_run_delete(run->area) != 0) Invalid("native area deletion failed");
 		free(run->pages); free(run);
-		spin_lock(&sLock); sPending--; spin_unlock(&sLock);
+		spin_lock(&sLock);
+		if (store) store->pins--;
+		sPending--;
+		spin_unlock(&sLock);
 	}
 }
 int renku_linux_pages_init(void)
 {
 	if (sReady || sWorker || !preemptible()) return -EBUSY;
-	sRuns = sQueue = NULL; sQueueTail = &sQueue; sPending = 0; sStop = false;
+	sRuns = sQueue = NULL; sStores = NULL; sQueueTail = &sQueue; sPending = 0; sStop = false;
 	sEvent = renku_vm_page_event_create();
 	if (!sEvent) return -ENOMEM;
 	sWorker = renku_vm_page_worker_start(Releaser, NULL);
@@ -81,7 +97,7 @@ int renku_linux_pages_uninit(void)
 {
 	if (!sReady || !preemptible()) return -EINVAL;
 	spin_lock(&sLock);
-	if (sRuns || sPending) { spin_unlock(&sLock); return -EBUSY; }
+	if (sRuns || sPending || sStores) { spin_unlock(&sLock); return -EBUSY; }
 	sStop = true; spin_unlock(&sLock);
 	renku_vm_page_event_signal(sEvent);
 	renku_vm_page_worker_join(sWorker); sWorker = NULL;
@@ -180,6 +196,97 @@ void __free_pages(struct page *page, unsigned int order)
 	size_t index; struct page_run *run = Find(page, &index);
 	if (!run || index || run->order != order) Invalid("free page order/head mismatch");
 	spin_unlock(&sLock); put_page(page);
+}
+
+/* Store identities are looked up before dereferencing. Lifecycle callers must
+ * still exclude new operations during destruction/module shutdown; this is not
+ * a reference-counted Linux file handle or a global page cache. */
+static struct renku_page_store *FindStore(const struct renku_page_store *wanted)
+{
+	for (struct renku_page_store *store = sStores; store; store = store->next)
+		if (store == wanted) return store;
+	return NULL;
+}
+static struct page_run *FindStorePage(struct renku_page_store *store, unsigned long index)
+{
+	for (struct page_run *run = sRuns; run; run = run->next)
+		if (run->store == store && run->store_index == index) return run;
+	return NULL;
+}
+struct renku_page_store *renku_linux_page_store_create(size_t size)
+{
+	if (!sReady || !preemptible() || !size || (size & (PAGE_SIZE - 1))) return NULL;
+	struct renku_page_store *store = calloc(1, sizeof(*store));
+	if (!store) return NULL;
+	store->area = renku_vm_page_store_create(size, &store->base);
+	if (store->area < 0) { free(store); return NULL; }
+	store->count = size >> PAGE_SHIFT;
+	spin_lock(&sLock); store->next = sStores; sStores = store; spin_unlock(&sLock);
+	return store;
+}
+int renku_linux_page_store_destroy(struct renku_page_store *wanted)
+{
+	if (!sReady || !preemptible()) return -EINVAL;
+	spin_lock(&sLock);
+	struct renku_page_store *store = FindStore(wanted);
+	if (!store) { spin_unlock(&sLock); return -EINVAL; }
+	if (store->pins || store->in_flight) { spin_unlock(&sLock); return -EBUSY; }
+	struct renku_page_store **slot = &sStores;
+	while (*slot != store) slot = &(*slot)->next;
+	*slot = store->next;
+	spin_unlock(&sLock);
+	if (renku_vm_page_run_delete(store->area) != 0) {
+		spin_lock(&sLock); store->next = sStores; sStores = store; spin_unlock(&sLock);
+		return -EIO;
+	}
+	free(store);
+	return 0;
+}
+struct folio *renku_linux_page_store_read(struct renku_page_store *wanted, unsigned long index)
+{
+	if (!sReady || !preemptible()) return NULL;
+	spin_lock(&sLock);
+	struct renku_page_store *store = FindStore(wanted);
+	if (!store || index >= store->count) { spin_unlock(&sLock); return NULL; }
+	struct page_run *existing = FindStorePage(store, index);
+	if (existing) {
+		if (!refcount_inc_not_zero(&existing->references)) Invalid("dead store folio published");
+		spin_unlock(&sLock); return (struct folio *)existing->pages;
+	}
+	if (store->in_flight == UINT_MAX || store->pins == UINT_MAX) Invalid("store pin count overflow");
+	store->in_flight++;
+	spin_unlock(&sLock);
+	struct page_run *run = calloc(1, sizeof(*run));
+	if (run) run->pages = calloc(1, sizeof(*run->pages));
+	bool pinned = false;
+	if (run && run->pages) {
+		run->base = (char *)store->base + (index << PAGE_SHIFT);
+		uint64_t physical;
+		pinned = renku_vm_page_store_pin(run->base, &physical) == 0;
+		if (pinned) run->pages->physical = physical;
+	}
+	struct folio *answer = NULL;
+	if (pinned) {
+		run->pages->virtual = run->base;
+		run->count = 1; run->size = PAGE_SIZE; run->area = -1;
+		run->store = store; run->store_index = index;
+		refcount_set(&run->references, 1);
+		spin_lock(&sLock);
+		existing = FindStorePage(store, index);
+		if (existing) {
+			if (!refcount_inc_not_zero(&existing->references)) Invalid("dead store folio published");
+			answer = (struct folio *)existing->pages;
+		} else {
+			if (store->pins == UINT_MAX) Invalid("store pin count overflow");
+			run->next = sRuns; sRuns = run; store->pins++;
+			answer = (struct folio *)run->pages;
+		}
+		spin_unlock(&sLock);
+		if (existing && renku_vm_page_store_unpin(run->base) != 0) Invalid("duplicate store pin release failed");
+	}
+	if (!pinned || existing) { if (run) { free(run->pages); free(run); } }
+	spin_lock(&sLock); store->in_flight--; spin_unlock(&sLock);
+	return answer;
 }
 void renku_linux_pagefault_disable(void)
 {

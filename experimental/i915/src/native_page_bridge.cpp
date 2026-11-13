@@ -35,6 +35,39 @@ extern "C" int32_t renku_vm_page_run_create(size_t size, void **cpu, uint64_t *p
 	return area;
 }
 extern "C" int32_t renku_vm_page_run_delete(int32_t area) { return delete_area(area); }
+extern "C" int32_t renku_vm_page_store_create(size_t size, void **cpu)
+{
+	if (!cpu || !size || (size & (B_PAGE_SIZE - 1)) || !interrupts_enabled())
+		return B_BAD_VALUE;
+	virtual_address_restrictions virtualRestrictions = {};
+	virtualRestrictions.address_specification = B_ANY_KERNEL_ADDRESS;
+	physical_address_restrictions physicalRestrictions = {};
+	return create_area_etc(B_SYSTEM_TEAM, "i915 Linux pageable store", size,
+		B_NO_LOCK, B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA, 0, 0,
+		&virtualRestrictions, &physicalRestrictions, cpu);
+}
+extern "C" int32_t renku_vm_page_store_pin(void *cpu, uint64_t *physical)
+{
+	if (!cpu || !physical || ((uintptr_t)cpu & (B_PAGE_SIZE - 1)) || !interrupts_enabled())
+		return B_BAD_VALUE;
+	status_t status = lock_memory_etc(B_SYSTEM_TEAM, cpu, B_PAGE_SIZE, B_READ_DEVICE);
+	if (status != B_OK) return status;
+	physical_entry entry;
+	uint32 count = 1;
+	status = get_memory_map_etc(B_SYSTEM_TEAM, cpu, B_PAGE_SIZE, &entry, &count);
+	if (status != B_OK || count != 1 || entry.size < B_PAGE_SIZE
+		|| (entry.address & (B_PAGE_SIZE - 1)) || entry.address > UINT64_MAX - (B_PAGE_SIZE - 1)) {
+		if (unlock_memory_etc(B_SYSTEM_TEAM, cpu, B_PAGE_SIZE, B_READ_DEVICE) != B_OK)
+			panic("i915 store pin rollback failed");
+		return status != B_OK ? status : B_BAD_DATA;
+	}
+	*physical = entry.address;
+	return B_OK;
+}
+extern "C" int32_t renku_vm_page_store_unpin(void *cpu)
+{
+	return unlock_memory_etc(B_SYSTEM_TEAM, cpu, B_PAGE_SIZE, B_READ_DEVICE);
+}
 extern "C" struct renku_page_event *renku_vm_page_event_create(void)
 {
 	auto *event = (renku_page_event *)malloc(sizeof(renku_page_event));

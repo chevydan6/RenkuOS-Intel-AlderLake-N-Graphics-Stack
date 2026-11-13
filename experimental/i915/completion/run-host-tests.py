@@ -165,3 +165,20 @@ for name, before, after in [
         or 'i915 completion test worker lifetime failure' in r.stderr)
 pages_copy.write_text(pages_original); build()
 print('PASS canonical folio heads, original local mappings and real batch reference release; tail-redirection/lost-batch mutations rejected')
+
+for name, before, after in [
+    ('store-missing-unpin', 'if (renku_vm_page_store_unpin(run->base) != 0) Invalid("native store unpin failed");',
+     '(void)run->base;'),
+    ('store-duplicate-pin-leak', 'if (existing && renku_vm_page_store_unpin(run->base) != 0) Invalid("duplicate store pin release failed");',
+     '(void)existing;'),
+    ('store-duplicate-head', 'existing = FindStorePage(store, index);\n\t\tif (existing)',
+     'existing = NULL;\n\t\tif (existing)'),
+    ('store-delete-live', 'if (store->pins || store->in_flight)', 'if (store->in_flight)'),
+]:
+    assert pages_original.count(before) == 1
+    pages_copy.write_text(pages_original.replace(before, after)); build()
+    r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
+    (a.output/(name+'.log')).write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+    assert r.returncode == -6 and 'Assertion' in r.stderr
+pages_copy.write_text(pages_original); build()
+print('PASS persistent-store pin lifetime and concurrent canonical heads; missing unpins, duplicate heads and live deletion rejected')
