@@ -1,0 +1,225 @@
+diff --git a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+index 0fd3df8..0030e92 100644
+--- a/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
++++ b/headers/private/graphics/intel_extreme/IntelMemoryOwner.h
+@@ -108,4 +108,30 @@ struct intel_gt_reset_safety_module_info {
+ 	module_info info;
+ 	status_t (*read_reset_safety)(IntelN100ResetSafety* output);
+ };
++// Memory-only GGTT sandbox. Private kernel pointers, never user input/output.
++// No engine publication is allowed: end_set is valid only because these buffers
++// can never be submitted through this interface. A future execution API needs
++// an independent device-DMA/cache/retirement contract before reusing them.
++#define INTEL_MEMORY_MAPPING_MODULE_NAME "bus_managers/intel_memory_owner/mapping/v1"
++#define INTEL_MEMORY_MAPPING_COUNT 4
++struct intel_memory_mapping_buffer {
++	addr_t cpu_aperture; // CPU aperture alias, not ordinary RAM or a DMA address
++	uint64 ggtt_offset; // GPU global virtual offset, not aperture BAR physical
++	size_t size;
++};
++struct intel_memory_mapping_set {
++	uint64 token;
++	intel_memory_mapping_buffer buffers[INTEL_MEMORY_MAPPING_COUNT];
++};
++struct intel_memory_mapping_module_info {
++	module_info info;
++	// Fixed ring/batch/result/context backing sizes: 4K/4K/4K/64K. These are
++	// diagnostic backing roles; this does not construct a valid hardware context.
++	// Begin publishes nothing on failure; uncertain backing stays resident.
++	status_t (*begin_set)(intel_memory_mapping_set* output);
++	// Caller must stop all CPU access before end. Failure retains the record and
++	// module; successful frees are recorded individually so retry cannot double free.
++	status_t (*end_set)(uint64 token);
++};
++
+ #endif
+diff --git a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+index 98724ff..cd5c54b 100644
+--- a/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
++++ b/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp
+@@ -932,6 +932,171 @@ ReadResetSafety(IntelN100ResetSafety* output)
+ 	return B_OK;
+ }
+ 
++// A separate Request lease, never the display or observation lease. Only one
++// kernel caller can borrow this fixed memory-only set at a time. The resident
++// ledger survives caller/module failure; no destructor guesses ownership.
++static uint64 sMappingLease;
++static bool sMappingBusy, sMappingRetained;
++static IntelApertureLeaseState::Operation sMappingPin;
++static intel_memory_mapping_set sMappingSet;
++static addr_t sMappingBacking[INTEL_MEMORY_MAPPING_COUNT];
++static area_id sMappingAliasArea = -1;
++static addr_t sMappingAliasBase;
++
++static status_t
++BeginMappingSet(intel_memory_mapping_set* output)
++{
++	if (output == NULL)
++		return B_BAD_VALUE;
++	mutex_lock(&sLock);
++	if (sMappingBusy || sMappingLease != 0 || sMappingRetained
++		|| sObservationBlocked || sObservationPhase != ObservationIdle) {
++		mutex_unlock(&sLock);
++		return B_BUSY;
++	}
++	status_t status = Status(sState.AcquireRequest(sMappingLease));
++	if (status == B_OK) {
++		status = Status(sState.BeginOperation(sMappingLease,
++			IntelApertureLeaseState::Query, sMappingPin));
++		if (status != B_OK) {
++			sState.Release(sMappingLease);
++			sMappingLease = 0;
++		}
++	}
++	if (status != B_OK) {
++		mutex_unlock(&sLock);
++		return status;
++	}
++	sMappingBusy = true;
++	sMappingSet = {};
++	for (unsigned i = 0; i < INTEL_MEMORY_MAPPING_COUNT; i++)
++		sMappingBacking[i] = 0;
++	sMappingSet.token = sMappingLease;
++	const uint64 lease = sMappingLease;
++	mutex_unlock(&sLock);
++
++	aperture_info aperture = {};
++	status = Query(lease, &aperture);
++	if (status == B_OK && (aperture.base == 0 || aperture.size == 0
++		|| aperture.reserved_size > aperture.size
++		|| aperture.base > UINTPTR_MAX - aperture.size))
++		status = B_BAD_VALUE;
++	// The display aperture has user permissions, even at its kernel virtual
++	// address. Direct kernel accesses fault under SMAP. Clone its device cache
++	// with kernel-only permissions; native VM cloning preserves the WC/UC type.
++	// This is an alias of the SAME aperture, not a second GART owner or mapping.
++	if (status == B_OK) {
++		area_info sourceInfo;
++		area_id sourceArea = area_for((void*)aperture.base);
++		status = sourceArea < B_OK ? sourceArea : get_area_info(sourceArea, &sourceInfo);
++		if (status == B_OK && ((addr_t)sourceInfo.address != aperture.base
++			|| sourceInfo.size != aperture.size))
++			status = B_BAD_VALUE;
++		if (status == B_OK) {
++			void* alias = NULL;
++			sMappingAliasArea = clone_area("i915 private aperture", &alias,
++				B_ANY_KERNEL_ADDRESS, B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA, sourceArea);
++			status = sMappingAliasArea < B_OK ? sMappingAliasArea : B_OK;
++			sMappingAliasBase = (addr_t)alias;
++			if (status == B_OK) {
++				area_info aliasInfo;
++				status = get_area_info(sMappingAliasArea, &aliasInfo);
++				if (status == B_OK && (alias == NULL
++					|| sMappingAliasBase > UINTPTR_MAX - aperture.size
++					|| (addr_t)aliasInfo.address != sMappingAliasBase
++					|| aliasInfo.size != aperture.size
++					|| (aliasInfo.protection & (B_READ_AREA | B_WRITE_AREA | B_EXECUTE_AREA)) != 0
++					|| (aliasInfo.protection & (B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA))
++						!= (B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA)))
++					status = B_BAD_VALUE;
++			}
++		}
++	}
++	const size_t sizes[] = {4096, 4096, 4096, 65536};
++	for (unsigned i = 0; status == B_OK && i < INTEL_MEMORY_MAPPING_COUNT; i++) {
++		addr_t base = 0;
++		// GART owns allocation, placement, 64-bit PTE writes, invalidation and
++		// unbinding. Do not create another aperture or parallel GGTT writer.
++		status = Allocate(lease, sizes[i], 4096, B_APERTURE_NON_RESERVED,
++			&base, NULL);
++		if (status != B_OK)
++			break;
++		intel_memory_mapping_buffer& buffer = sMappingSet.buffers[i];
++		sMappingBacking[i] = base;
++		buffer.size = sizes[i];
++		if (base < aperture.base || base - aperture.base < aperture.reserved_size
++			|| sizes[i] > aperture.size
++			|| base - aperture.base > aperture.size - sizes[i] || (base & 4095) != 0) {
++			status = B_BAD_VALUE;
++			break;
++		}
++		buffer.ggtt_offset = base - aperture.base;
++		buffer.cpu_aperture = sMappingAliasBase + buffer.ggtt_offset;
++		for (unsigned j = 0; j < i; j++) {
++			const intel_memory_mapping_buffer& previous = sMappingSet.buffers[j];
++			if (buffer.ggtt_offset < previous.ggtt_offset + previous.size
++				&& previous.ggtt_offset < buffer.ggtt_offset + buffer.size)
++				status = B_BAD_VALUE;
++		}
++	}
++	mutex_lock(&sLock);
++	sMappingBusy = false;
++	if (status != B_OK || !sState.DiagnosticAllowed()) {
++		// This covers hidden partial-bind failure and closure during allocation.
++		// No output/CPU access escapes. Known and hidden backing stays resident.
++		sMappingRetained = true;
++		mutex_unlock(&sLock);
++		return status != B_OK ? status : B_BUSY;
++	}
++	*output = sMappingSet;
++	mutex_unlock(&sLock);
++	return B_OK;
++}
++
++static status_t
++EndMappingSet(uint64 token)
++{
++	mutex_lock(&sLock);
++	if (token == 0 || token != sMappingLease || sMappingRetained) {
++		mutex_unlock(&sLock);
++		return B_BAD_VALUE;
++	}
++	if (sMappingBusy) {
++		mutex_unlock(&sLock);
++		return B_BUSY;
++	}
++	sMappingBusy = true;
++	mutex_unlock(&sLock);
++	status_t status = B_OK;
++	for (unsigned i = INTEL_MEMORY_MAPPING_COUNT; i-- > 0;) {
++		intel_memory_mapping_buffer& buffer = sMappingSet.buffers[i];
++		if (sMappingBacking[i] == 0)
++			continue;
++		status = Free(token, sMappingBacking[i]);
++		if (status != B_OK)
++			break;
++		sMappingBacking[i] = 0;
++		buffer = {};
++	}
++	if (status == B_OK && sMappingAliasArea >= B_OK) {
++		status = delete_area(sMappingAliasArea);
++		if (status == B_OK) {
++			sMappingAliasArea = -1;
++			sMappingAliasBase = 0;
++		}
++	}
++	mutex_lock(&sLock);
++	sMappingBusy = false;
++	if (status == B_OK) {
++		sState.Release(sMappingLease);
++		sState.EndOperation(sMappingPin, false);
++		sMappingLease = 0;
++		sMappingSet = {};
++	}
++	mutex_unlock(&sLock);
++	return status;
++}
++
+ // v1 acquires v0 through the module manager. Do not run v0's initialization a
+ // second time: both exports share one lock, PCI/GART references and ownership.
+ static status_t
+@@ -1023,7 +1188,13 @@ static intel_gt_reset_safety_module_info sResetSafetyModule = {
+ 	ReadResetSafety
+ };
+ 
++static intel_memory_mapping_module_info sMappingModule = {
++	{ INTEL_MEMORY_MAPPING_MODULE_NAME, B_KEEP_LOADED, ObservationOperations },
++	BeginMappingSet, EndMappingSet
++};
++
+ module_info* modules[] = {
++	(module_info*)&sMappingModule,
+ 	(module_info*)&sModule, (module_info*)&sObservationModule,
+ 	(module_info*)&sGtObservationModule, (module_info*)&sHandshakeModule,
+ 	(module_info*)&sEngineInventoryModule, (module_info*)&sMediaFuseModule,
