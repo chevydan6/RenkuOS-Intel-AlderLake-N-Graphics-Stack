@@ -12,12 +12,12 @@ p.add_argument('--output', type=Path, required=True)
 a = p.parse_args()
 root = Path(__file__).resolve().parent.parent
 subprocess.run(['python3', str(root / 'verify-upstream.py')], check=True)
-for script in ('extract.py', 'extract-emitter.py'):
+for script in ('extract.py', 'extract-emitter.py', 'extract-gfp.py'):
     subprocess.run(['python3', str(root / script)], check=True)
 files = [f for f in root.rglob('*') if f.is_file() and
          f.relative_to(root).parts[0] in ('include', 'src', 'upstream', 'vm')]
 files += [root / name for name in ['upstream-manifest.json', 'verify-upstream.py', 'PROVENANCE.md']]
-files += [root / 'build' / name for name in ('intel_ring_slice.c', 'gen8_engine_slice.c')]
+files += [root / 'build' / name for name in ('intel_ring_slice.c', 'gen8_engine_slice.c', 'gfp_helpers.h', 'gfp_helpers.json')]
 manifest = ''.join(hashlib.sha256(f.read_bytes()).hexdigest() + '  ' +
                    f.relative_to(root).as_posix() + '\n' for f in sorted(files))
 with a.output.open('xb') as output, tarfile.open(fileobj=output, mode='w:gz') as tar:

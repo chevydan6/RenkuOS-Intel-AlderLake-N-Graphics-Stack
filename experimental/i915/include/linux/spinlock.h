@@ -24,6 +24,9 @@ static inline unsigned long renku_linux_spin_lock_irqsave(spinlock_t *l)
 { return renku_linux_raw_spin_lock_irqsave(&l->rlock); }
 static inline void renku_linux_spin_unlock_irqrestore(spinlock_t *l, unsigned long f)
 { raw_spin_unlock_irqrestore(&l->rlock, f); }
+bool renku_linux_spin_is_locked(spinlock_t *);
+#define spin_is_locked renku_linux_spin_is_locked
+#define assert_spin_locked(l) BUG_ON(!spin_is_locked(l))
 #define spin_lock_init renku_linux_spin_init
 #define spin_lock renku_linux_spin_lock
 #define spin_unlock renku_linux_spin_unlock

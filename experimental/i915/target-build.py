@@ -20,6 +20,7 @@ subprocess.run(['python3', str(root / 'verify-upstream.py')], check=True)
 subprocess.run(['python3', str(root / 'extract.py')], check=True)
 subprocess.run(['python3', str(root / 'extract-emitter.py')], check=True)
 subprocess.run(['python3', str(root / 'extract-bitmap.py')], check=True)
+subprocess.run(['python3', str(root / 'extract-gfp.py')], check=True)
 gcc_include = subprocess.check_output([a.cc, '-print-file-name=include'], text=True).strip()
 flags = ['-std=gnu11', '-O2', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter',
          '-Wno-sign-compare', '-fno-strict-overflow',
@@ -34,7 +35,7 @@ build = root / 'build/target'
 build.mkdir(exist_ok=True)
 records = []
 for unit in ['build/intel_ring_slice.c', 'build/gen8_engine_slice.c', 'upstream/drm/drm_mm.c',
-             'upstream/lib/rbtree.c', 'upstream/lib/refcount.c',
+             'upstream/lib/rbtree.c', 'upstream/lib/refcount.c', 'upstream/lib/lockref.c',
              'upstream/linux/ww_mutex.h',
              'build/bitmap_equal_slice.c', 'src/cpumask_state.c', 'src/native_cpumask.c', 'upstream/lib/hweight.c',
              'src/native_locks.c', 'src/native_irq_scopes.c', 'src/native_preempt.c', 'src/native_rcu.c',

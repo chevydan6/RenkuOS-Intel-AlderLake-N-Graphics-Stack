@@ -79,3 +79,8 @@ void renku_linux_raw_spin_unlock_irq(raw_spinlock_t *lock)
 	/* Request IRQ enable, deferred until all native exclusion scopes end. */
 	renku_linux_local_irq_restore(1);
 }
+
+bool renku_linux_spin_is_locked(spinlock_t *lock)
+{
+	return B_SPINLOCK_IS_LOCKED(&lock->rlock.raw_lock.native);
+}

@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 #include <linux/slab.h>
+#include <linux/gfp.h>
 #include <stdlib.h>
 #ifndef RENKU_NATIVE
 #error This adapter requires the native kernel
@@ -12,7 +13,7 @@ extern bool interrupts_enabled(void);
 void *kmalloc(size_t size, gfp_t flags)
 {
 	/* Initial scope: sleeping process-context allocations only. */
-	if (!(flags & __GFP_DIRECT_RECLAIM) || (flags & ~(GFP_KERNEL | __GFP_ZERO))
+	if (!gfpflags_allow_blocking(flags) || (flags & ~(GFP_KERNEL | __GFP_ZERO))
 		|| !interrupts_enabled()) return NULL;
 	if (size == 0) return (void *)16; /* Linux ZERO_SIZE_PTR. */
 	/* Native deferred_free embeds one list link in the freed object. */

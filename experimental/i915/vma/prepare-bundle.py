@@ -12,9 +12,13 @@ p.add_argument('--output', required=True, type=Path)
 a = p.parse_args()
 root = Path(__file__).resolve().parents[1]
 subprocess.run(['python3', str(root/'verify-upstream.py')], check=True)
+subprocess.run(['python3', str(root/'extract-gfp.py')], check=True)
 a.output.mkdir(parents=True, exist_ok=False)
 for name in ('include', 'src', 'upstream', 'vma'):
     shutil.copytree(root/name, a.output/name, ignore=shutil.ignore_patterns('__pycache__'))
+(a.output/'build').mkdir()
+for name in ('gfp_helpers.h', 'gfp_helpers.json'):
+    shutil.copyfile(root/'build'/name, a.output/'build'/name)
 for name in ('upstream-manifest.json', 'verify-upstream.py', 'PROVENANCE.md'):
     shutil.copyfile(root/name, a.output/name)
 files = sorted(p for p in a.output.rglob('*') if p.is_file())
