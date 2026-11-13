@@ -369,3 +369,28 @@ Ported-from-license: GPL-2.0 WITH Linux-syscall-note
 
 linux/stringify.h has no file-level license notice; attribution follows
 the pinned root COPYING declaration, retained unchanged in upstream/COPYING.
+
+## Original raw/regular/rw lock structures and bit locking
+
+Ported-from: Linux/v6.6/include/linux/spinlock_types_raw.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/linux/spinlock_types.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/rwlock_types.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/bit_spinlock.h
+Ported-from-license: GPL-2.0
+
+spinlock_types_raw.h has no file-level notice; its attribution follows the
+pinned root COPYING declaration. spinlock_types.h and rwlock_types.h retain
+their original GPL notices. No SPDX text was inserted into byte-exact imports.
+
+Ported-from: Linux/v6.6/lib/bitmap.c
+Ported-from-license: GPL-2.0-only
+
+Only the complete original __bitmap_equal function is currently extracted for
+linking. The containing source is a byte-exact import; allocation, parsing and
+other external bitmap algorithms remain unported, not successful stubs.

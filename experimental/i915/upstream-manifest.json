@@ -594,6 +594,36 @@
       "linuxPath": "include/uapi/asm-generic/param.h",
       "gitBlob": "baad02ea7f93686ebb6282b968e66aa5c94f5576",
       "sha256": "2a683eeba8cdb9c0b6a2c45bc0159cd41370156c538db4935d8e1a00c4293839"
+    },
+    {
+      "path": "linux/spinlock_types_raw.h",
+      "linuxPath": "include/linux/spinlock_types_raw.h",
+      "gitBlob": "91cb36b65a1705717a476bf634843e6eb8f9b8b4",
+      "sha256": "ac3a04935e8ccd0e5a76669cc7c792bbfb5b0f0681834ace6583dc7a2b0020d2"
+    },
+    {
+      "path": "linux/spinlock_types.h",
+      "linuxPath": "include/linux/spinlock_types.h",
+      "gitBlob": "2dfa35ffec761f933e0f38d38be756d78b4b1669",
+      "sha256": "7902577850f337ae011bf873d13d2e44c15704e27536c96b7fb017f7774e1a66"
+    },
+    {
+      "path": "linux/rwlock_types.h",
+      "linuxPath": "include/linux/rwlock_types.h",
+      "gitBlob": "1948442e77501beeba9ad2b50de26e432e63f338",
+      "sha256": "6a2732d4a34602cfb0a51d7022d04cd40d89d94157b7fff6882a371ba5b9cfc9"
+    },
+    {
+      "path": "linux/bit_spinlock.h",
+      "linuxPath": "include/linux/bit_spinlock.h",
+      "gitBlob": "bbc4730a6505c1af8ab04114d87d2a2289672546",
+      "sha256": "4bc7493092cbf1834d04454200192055c438290032252c5d2e4fe7b01464333b"
+    },
+    {
+      "path": "lib/bitmap.c",
+      "linuxPath": "lib/bitmap.c",
+      "gitBlob": "ddb31015e38ae23baf7b44b8aea0b5c53b3989aa",
+      "sha256": "16cfcb28ff653a239eee4048d194cc6a1da70ff54beedbb531552e50f00c73a7"
     }
   ]
 }
