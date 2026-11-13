@@ -1,56 +1,94 @@
+# SPDX-License-Identifier: MIT
 name: Repository structure audit
-
 on:
   pull_request:
-    paths:
-      - 'docs/**'
-      - 'patches/**'
-      - 'tools/audit-repository.py'
-      - 'tools/map-dependencies.py'
-      - '*.md'
-      - '.github/workflows/repository-audit.yml'
+    branches: [gpu/renkuos-n100]
   workflow_dispatch:
-
 permissions:
   contents: read
-
+concurrency:
+  group: repository-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
       - name: Run read-only inventory
         run: python3 tools/audit-repository.py --output repository-audit.json
       - name: Map repository dependencies
         run: python3 tools/map-dependencies.py --output dependency-map.json
-      - name: Check patch inventory invariants
+      - name: Verify cleanup preserves driver, tests and evidence
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'cleanup/repository-reorganization' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --exit-code "$BASE_SHA" HEAD -- patches workstreams tests diagnostics physical installation experimental experiments research tools ':!tests/README.md' ':!research/README.md' ':!tools/audit-repository.py' ':!tools/map-dependencies.py'
+          git diff --check "$BASE_SHA" HEAD
+          python3 - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          base = os.environ['BASE_SHA']
+          moved = ['ARCHITECTURE.md', 'BLIT_RESEARCH.md', 'BUILD.md', 'GGTT_AUDIT.md',
+                   'KNOWN_ISSUES.md', 'MESA_INTERFACE.md', 'PERFORMANCE.md',
+                   'POWER_COORDINATION.md', 'ROADMAP.md']
+          for name in moved:
+              before = subprocess.check_output(['git', 'show', f'{base}:{name}'])
+              after = Path('docs', name).read_bytes()
+              assert before == after, f'Relocated content changed: {name}'
+              assert f'](docs/{name})' in Path(name).read_text(), f'Missing compatibility link: {name}'
+              print(f'PASS unchanged relocated document and compatibility link: {name}')
+          print('PASS driver sources, patch contents, executable tests and recorded evidence unchanged')
+          PY
+      - name: Enforce patch targets and local Markdown link destinations
+        if: ${{ !cancelled() }}
         run: |
           python3 - <<'PY'
           import json
-          d = json.load(open('repository-audit.json'))
+          from pathlib import Path
+          d = json.loads(Path('repository-audit.json').read_text())
+          for missing in d['missing_relative_links']:
+              print(f"BROKEN LINK: {missing['source']} -> {missing['destination']}")
+          for patch in d['patches']:
+              if patch['missing_targets']:
+                  print(f"MISSING TARGET: {patch['path']}")
           assert d['patch_count'] == 118, 'Unexpected numbered patch count'
           assert not [p for p in d['patches'] if p['missing_targets']], 'Patch without diff targets'
-          print('Patch inventory verified. Legacy Markdown links are reported, not gated.')
+          assert not d['missing_relative_links'], 'Broken local Markdown destinations; see exact paths above'
+          print('PASS 118 patch target records and all checked local Markdown destinations')
+          print('Scope: inline local file/directory links, not heading anchors or external URLs.')
           PY
       - name: Publish audit summary
-        if: always()
+        if: ${{ always() }}
         run: |
           python3 - <<'PY'
-          import json, os
+          import json, os, subprocess
           from pathlib import Path
-          path = Path('repository-audit.json')
-          if not path.exists():
-              raise SystemExit('Audit report missing')
-          d = json.loads(path.read_text())
-          dep = json.loads(Path('dependency-map.json').read_text())
+          audit = Path('repository-audit.json')
+          dependency = Path('dependency-map.json')
+          if not audit.exists() or not dependency.exists():
+              raise SystemExit('Audit report missing; inspect the failed step')
+          d = json.loads(audit.read_text())
+          dep = json.loads(dependency.read_text())
+          sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          print(json.dumps({'commit': sha, 'patch_count': d['patch_count'],
+                'relative_links_checked': d['markdown_relative_links_checked'],
+                'missing_links': d['missing_relative_links'],
+                'dependency_files_seen': dep['files_seen'],
+                'explicit_path_references': len(dep['explicit_path_references'])}, indent=2))
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
-              out.write('## Repository audit\n\n')
+              out.write(f'## Repository audit\n\nCommit: `{sha}`\n\n')
               out.write(f"- Numbered patches: {d['patch_count']}\n")
               out.write(f"- Relative links checked: {d['markdown_relative_links_checked']}\n")
               out.write(f"- Missing relative links: {len(d['missing_relative_links'])}\n")
               out.write(f"- Patches without targets: {sum(p['missing_targets'] for p in d['patches'])}\n")
-              out.write(f"- Files in dependency map: {dep['files_seen']}\n")
-              out.write(f"- Explicit path references: {len(dep['explicit_path_references'])}\n")
-              out.write(f"- Unresolved path references (heuristic): {sum(not r['exists'] for r in dep['explicit_path_references'])}\n")
-              out.write('Full details can be reproduced with tools/audit-repository.py and tools/map-dependencies.py.\n')
+              out.write(f"- Dependency-map entries (heuristic): {len(dep['explicit_path_references'])}\n")
+              out.write('Local Markdown destinations are gated; anchors/external URLs and heuristic path matches are not.\n')
+              for missing in d['missing_relative_links']:
+                  out.write(f"- BROKEN: `{missing['source']}` -> `{missing['destination']}`\n")
           PY
