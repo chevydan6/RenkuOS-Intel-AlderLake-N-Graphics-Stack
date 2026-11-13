@@ -49,8 +49,8 @@ jobs:
               out.write(f"- Relative links checked: {d['markdown_relative_links_checked']}\n")
               out.write(f"- Missing relative links: {len(d['missing_relative_links'])}\n")
               out.write(f"- Patches without targets: {sum(p['missing_targets'] for p in d['patches'])}\n")
-              out.write(f"- Files in dependency map: {dep['files_seen']}\\n")
-              out.write(f"- Explicit path references: {len(dep['explicit_path_references'])}\\n")
-              out.write(f"- Unresolved path references (heuristic): {sum(not r['exists'] for r in dep['explicit_path_references'])}\\n")
-              out.write('Full details can be reproduced with tools/audit-repository.py and tools/map-dependencies.py.\\n')
+              out.write(f"- Files in dependency map: {dep['files_seen']}\n")
+              out.write(f"- Explicit path references: {len(dep['explicit_path_references'])}\n")
+              out.write(f"- Unresolved path references (heuristic): {sum(not r['exists'] for r in dep['explicit_path_references'])}\n")
+              out.write('Full details can be reproduced with tools/audit-repository.py and tools/map-dependencies.py.\n')
           PY
