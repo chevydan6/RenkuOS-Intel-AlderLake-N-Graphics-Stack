@@ -19,6 +19,7 @@ _Static_assert(sizeof(__kernel_long_t) == 8 && sizeof(__kernel_old_uid_t) == 2, 
 	if (!(r)->first_line) (r)->first_line = __LINE__; } } while (0)
 #include "namespace_cases.h"
 #include "bitmap_cases.h"
+#include "port_context_cases.h"
 #include "cpumask_cases.h"
 #ifdef RENKU_NATIVE
 #include "preempt_cases.h"
@@ -114,19 +115,24 @@ static void Join(worker_id id) { if (pthread_join(id, NULL) != 0) Fatal(); }
 #endif
 
 #include "raw_lock_cases.h"
+#ifdef RENKU_NATIVE
+#include "rcu_cases.h"
+#endif
 
 static void RunCases(struct completion_report *r)
 {
-	*r = (struct completion_report){.version = 3};
+	*r = (struct completion_report){.version = 4};
 	struct task_struct task;
 	if (!renku_linux_task_register(&task)) Fatal();
 	NamespaceCases(r);
 	BitmapCases(r);
 	CPUMaskCases(r);
 	RawLayoutCases(r);
+	PortContextCases(r);
 #ifdef RENKU_NATIVE
 	PreemptCases(r);
 	NativeBitCases(r);
+	NativeRCUCases(r);
 #endif
 	u64 numerator = 100;
 	u32 divisor = 7;

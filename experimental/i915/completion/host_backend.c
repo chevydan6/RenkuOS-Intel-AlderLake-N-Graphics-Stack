@@ -21,3 +21,6 @@ void renku_linux_raw_spin_lock_irq(raw_spinlock_t *l)
 { enabled = false; assert(!pthread_mutex_lock(&l->raw_lock.native)); }
 void renku_linux_raw_spin_unlock_irq(raw_spinlock_t *l)
 { assert(!pthread_mutex_unlock(&l->raw_lock.native)); enabled = true; }
+
+void renku_linux_log_emit(char level, const char *text)
+{ fprintf(stderr, "[i915-linux %c] %s", level, text); }

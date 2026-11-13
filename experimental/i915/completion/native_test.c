@@ -2,6 +2,7 @@
 #include <Drivers.h>
 #include "cases.h"
 #include <native_irq_scopes.h>
+#include <linux/rcupdate.h>
 int32 api_version = B_CUR_DRIVER_API_VERSION;
 static sem_id sRun = -1;
 static DECLARE_COMPLETION(sSignal);
@@ -48,14 +49,17 @@ status_t init_driver(void)
 	if (status != B_OK) return status;
 	status = renku_linux_irq_backend_init();
 	if (status != B_OK) { renku_linux_cpu_backend_uninit(); return status; }
+	status = renku_linux_rcu_backend_init();
+	if (status != B_OK) { renku_linux_irq_backend_uninit(); renku_linux_cpu_backend_uninit(); return status; }
 	sRun = create_sem(1, "i915 completion tests");
-	if (sRun < B_OK) { renku_linux_irq_backend_uninit(); renku_linux_cpu_backend_uninit(); return sRun; }
+	if (sRun < B_OK) { renku_linux_rcu_backend_uninit(); renku_linux_irq_backend_uninit(); renku_linux_cpu_backend_uninit(); return sRun; }
 	dprintf("I915_LINUX_COMPLETION_INIT status=0\n"); return B_OK;
 }
 void uninit_driver(void)
 {
 	if (!renku_linux_tasks_empty() || Queued(&sSignal)) Fatal();
 	status_t status = delete_sem(sRun);
+	if (status == B_OK) status = renku_linux_rcu_backend_uninit();
 	if (status == B_OK) status = renku_linux_irq_backend_uninit();
 	renku_linux_cpu_backend_uninit();
 	dprintf("I915_LINUX_COMPLETION_UNINIT status=%d\n", status);
