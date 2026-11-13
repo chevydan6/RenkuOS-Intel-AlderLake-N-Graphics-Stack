@@ -522,6 +522,78 @@
       "linuxPath": "include/uapi/asm-generic/bitsperlong.h",
       "gitBlob": "352cb81947b87697960486e4af4e48313e891d3d",
       "sha256": "46ae15d603f1d3dff805cb75a0792249d4beb2da432ebeaed1572de73b0f6f34"
+    },
+    {
+      "path": "linux/cpumask.h",
+      "linuxPath": "include/linux/cpumask.h",
+      "gitBlob": "f10fb87d49dbe38bf220857202c9a2ece8e9f31e",
+      "sha256": "dd86df3f1923a778841ed96f4f735b7e7eedb9ef782181f07bafc8c4cdc6100b"
+    },
+    {
+      "path": "linux/threads.h",
+      "linuxPath": "include/linux/threads.h",
+      "gitBlob": "c34173e6c5f18a754d4550ec29fb5ac08502df81",
+      "sha256": "2b26c1695af13ab91b05256f7fa575db4bd3f7d6888915610a2248f0007551ed"
+    },
+    {
+      "path": "linux/numa.h",
+      "linuxPath": "include/linux/numa.h",
+      "gitBlob": "59df211d051fa8373faccf0fca20c293ea90124c",
+      "sha256": "fa60da8567dcb88d8a500ec295d1598a194406fc3bacd4163265af99d39dfc2e"
+    },
+    {
+      "path": "linux/cache.h",
+      "linuxPath": "include/linux/cache.h",
+      "gitBlob": "9900d20b76c2824c10241faf892a4215a6595153",
+      "sha256": "ff558ae2dae7b5133e5faf8a69ca9c28a5e29621b22755fe7de37a1b7f799f32"
+    },
+    {
+      "path": "asm/cache.h",
+      "linuxPath": "arch/x86/include/asm/cache.h",
+      "gitBlob": "69404eae99836066286581128e64879d4827eeaf",
+      "sha256": "a4940ff4b26143d543d46089e40864ede0dc3d50d905de20e1f95e76c9d7f3e5"
+    },
+    {
+      "path": "linux/linkage.h",
+      "linuxPath": "include/linux/linkage.h",
+      "gitBlob": "5c8865bb59d9183d301292989a681d2766117d9e",
+      "sha256": "28b8304fb4792ec569ab9bed6e738b7e51c0b73a83541c68b8c72fc946e1aa90"
+    },
+    {
+      "path": "linux/stringify.h",
+      "linuxPath": "include/linux/stringify.h",
+      "gitBlob": "841cec8ed525e38eea1fea8c3246fa9e4bbde818",
+      "sha256": "9d9338c8b13be2cc1da4e0343afb52345ba4370b3403f0a8584a1df065f3f159"
+    },
+    {
+      "path": "linux/limits.h",
+      "linuxPath": "include/linux/limits.h",
+      "gitBlob": "38eb7f6f7e880125ca0afb02f71d4d440b87e8a9",
+      "sha256": "0ed7dfdba324e0ce1fc732cd580338a2535727cc6a2103af9fbe027601092e33"
+    },
+    {
+      "path": "vdso/limits.h",
+      "linuxPath": "include/vdso/limits.h",
+      "gitBlob": "0197888ad0e00b2f853d3f25ffa764f61cca7385",
+      "sha256": "653708a73389bd7a9ef4dd85acf45f19227ac60f2dc133d6285af29cff774544"
+    },
+    {
+      "path": "uapi/linux/limits.h",
+      "linuxPath": "include/uapi/linux/limits.h",
+      "gitBlob": "6bcbe306876196e53064dcd2f4099696208a1a48",
+      "sha256": "5c047eb319a61e211442af30493b420eb9e721a1eceee552258dce0d5a26dede"
+    },
+    {
+      "path": "asm-generic/param.h",
+      "linuxPath": "include/asm-generic/param.h",
+      "gitBlob": "8d3009dd28ff2fa1dc535593cd6783ea4199874d",
+      "sha256": "6f0790b383b38bea4739b9814a351d6829c8d88da26e2d6f1949f60eeee6510f"
+    },
+    {
+      "path": "uapi/asm-generic/param.h",
+      "linuxPath": "include/uapi/asm-generic/param.h",
+      "gitBlob": "baad02ea7f93686ebb6282b968e66aa5c94f5576",
+      "sha256": "2a683eeba8cdb9c0b6a2c45bc0159cd41370156c538db4935d8e1a00c4293839"
     }
   ]
 }

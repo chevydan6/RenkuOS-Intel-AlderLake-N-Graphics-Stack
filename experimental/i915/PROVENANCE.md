@@ -328,3 +328,44 @@ Ported-from-license: GPL-2.0
 
 Ported-from: Linux/v6.6/include/uapi/asm-generic/bitsperlong.h
 Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+## Original CPU-mask, cache-alignment and limits definitions
+
+Ported-from: Linux/v6.6/include/linux/cpumask.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/threads.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/numa.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/cache.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/arch/x86/include/asm/cache.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/linkage.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/stringify.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/linux/limits.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/vdso/limits.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/linux/limits.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/asm-generic/param.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/asm-generic/param.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+linux/stringify.h has no file-level license notice; attribution follows
+the pinned root COPYING declaration, retained unchanged in upstream/COPYING.
