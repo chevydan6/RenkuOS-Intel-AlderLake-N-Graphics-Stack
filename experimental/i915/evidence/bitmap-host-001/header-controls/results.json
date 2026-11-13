@@ -1,0 +1,112 @@
+[
+  {
+    "mode": "host",
+    "header": "linux/bitops.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/bits.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/bitmap.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/types.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/log2.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/build_bug.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/minmax.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "linux/const.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/bitsperlong.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "asm/ioctl.h",
+    "exit": 0
+  },
+  {
+    "mode": "host",
+    "header": "vdso/bits.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/bitops.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/bits.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/bitmap.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/types.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/log2.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/build_bug.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/minmax.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "linux/const.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/bitsperlong.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "asm/ioctl.h",
+    "exit": 0
+  },
+  {
+    "mode": "target",
+    "header": "vdso/bits.h",
+    "exit": 0
+  }
+]

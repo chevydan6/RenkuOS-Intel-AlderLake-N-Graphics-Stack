@@ -156,3 +156,18 @@ attributes/build_bug/minmax/alignment/arithmetic/endian/swab helpers. Native C
 library declarations precede Linux macro selection. Complete GEM/ring attempts
 now reach bitmap/cpumask, RCU, device-number and architecture ioctl/cache headers;
 these remain dependencies, with actual target errors in physical-preempt-001.
+
+## Original bitmap search and bit operations
+
+87 unchanged Linux imports now include complete find_bit.c/hweight.c and public
+bitmap/find/bitops headers. Original generic bit scans and non-atomic mutations
+replace local helpers, with native/compiler atomic operations underneath shared
+word mutations. Original generic ioctl numbering does not implement dispatch.
+Native four-run search/helper/completion/preemption tests pass185,556 checks;
+VMA/KPI regressions and host sanitizer/oracle/mutation controls pass separately.
+See physical-bitmap-001 and completion/README.md for compiler warnings, private
+nth-entry preconditions and remaining external lib/bitmap.c functions.
+
+Next whole-file dependencies are CPU-mask configuration/cache headers, random/
+static-key atomic helpers, U32_MAX and asm/param.h, plus physical-GEM RCU/device
+number namespace integration. No GPU algorithm was replaced to reach this point.

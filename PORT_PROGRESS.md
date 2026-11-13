@@ -585,3 +585,30 @@ asm/ioctl.h, physical GEM reaches device-number macros/RCU and asm/cache.h, ring
 reaches bitmaps/bit scans/loff_t/cpumask. Actual failed compiler exits are retained.
 These define the next integration steps. Full i915 build and GPU execution have
 not yet been demonstrated; original GPU algorithms remain unchanged.
+
+## Original bit operations and bitmap-search port — 2026-11-13
+
+87 unique byte-exact Linux imports now include complete find_bit.c/hweight.c,
+bitops/bitmap/find headers and generic bit-scan/non-atomic/weight algorithms.
+Native/compiler atomic mutations and original x86-64 ioctl encoding complete
+this step. Header-order and long-width checks cover22 host/target combinations.
+
+Actual RenkuOS GCC13.3/SDK518 compilation and four final46,389-check runs pass
+(185,556 total), retaining completion/preemption cases and96 waiter workers.
+Four648-check VMA and four62-check KPI regressions also pass with actual unload,
+48,000 VMA stress operations and unchanged graphics publication. Host ASan/UBSan
+passes46,362 checks; independent search oracle and first-offset mutation catch
+regressions. Invalid GENMASK, mixed-min and build_bug compile controls pass.
+
+Original find_bit.c emits maybe-uninitialized warnings on direct private zero-size
+nth entry. Only that warning is downgraded from Werror for that source; warnings
+are preserved. Public nth wrappers guard n>=size; tests use these APIs, including
+NULL/zero-size checks. A scoped original-header type-limits warning exception
+retains actual GENMASK invalid-input errors. See completion/README.md for limits.
+
+Whole native ring compilation now passes the earlier bitmap helpers/loff_t/layout
+errors and reaches cpumask configuration plus asm/cache.h. GTT passes asm/ioctl.h
+and reaches random/static-key/atomic helpers, U32_MAX, cpumask and asm/param.h.
+Physical GEM still reaches device-number/RCU/cache dependencies. All three fail;
+exact native errors are preserved in physical-bitmap-001. No full driver or GPU
+execution is demonstrated. General lib/bitmap.c allocation/parsing is not supplied.

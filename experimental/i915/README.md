@@ -6,9 +6,11 @@ complete original Linux completion/swait, DRM VMA and drm_mm/rbtree modules
 through native OS adapters, plus bounded ring/emitter slices. Linux DMA adapters
 use existing native bus_dma. Shared IRQ/preemption integration and original
 compiler/arithmetic/endian helpers pass physical N100 regressions; the manifest
-verifies 65 unchanged upstream files. Complete original GEM/ring builds still
+verifies 87 unchanged upstream files. Complete original GEM/ring builds still
 fail at later dependencies. See evidence/physical-preempt-001 for current native
-results and compiler errors. The recipes and checkpoint notes below record the
+results and compiler errors. Original bitops/bitmap-search/weight helpers now
+pass native oracle tests too; see evidence/physical-bitmap-001 for the newest
+results and later compiler errors. The recipes and checkpoint notes below record the
 incremental development; current limits are in the root PORT_BLOCKERS.md.
 
 Prepare the target headers from the GPU project's RenkuOS baseline:

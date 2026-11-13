@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-13",
+  "nativeDirectory": "/boot/home/i915-bitmap-001",
+  "checksPerRun": {
+    "completionBitmapPreempt": 46389,
+    "vma": 648,
+    "kpi": 62
+  },
+  "runsEach": 4,
+  "finalCheckTotal": 188396,
+  "failures": 0,
+  "vmaStressOperations": 48000,
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "archivesSHA256": {
+    "/home/dan/i915-vm/bitmap-port-001/native-bundle-001/payload.tar.gz": "4bc14e6c2f46526ed45bc812542c74399446c5f0cab479e9da7b1caa091754fa",
+    "/home/dan/i915-vm/bitmap-port-001/native-bundle-002/payload.tar.gz": "4abe2904db1b6ec0ccd8f6fbe65bc5d5ec12f8296bfbfcf41c3bbf30a347cc3f",
+    "/home/dan/i915-vm/bitmap-port-001/native-results-001.tar.gz": "ecd2e628f53c6a09113de94258361b9486c3ed5f13182c93653c5e153cf1077d",
+    "/home/dan/i915-vm/bitmap-port-001/native-results-002.tar.gz": "b9675224b4a3ebb9030a449dec7c7e14472da324bfc4da2258d2d6f77ac22251"
+  }
+}

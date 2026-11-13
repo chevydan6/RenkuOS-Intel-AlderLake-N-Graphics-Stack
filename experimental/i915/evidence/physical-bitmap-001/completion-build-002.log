@@ -1,0 +1,53 @@
+In file included from include/linux/bitops.h:4,
+                 from include/kpi_base.h:87,
+                 from include/linux/bitops.h:2,
+                 from upstream/lib/find_bit.c:15:
+In function 'fns',
+    inlined from '__find_nth_bit' at upstream/lib/find_bit.c:140:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:140:16: note: in expansion of macro 'FIND_NTH_BIT'
+  140 |         return FIND_NTH_BIT(addr[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function 'fns',
+    inlined from '__find_nth_and_bit' at upstream/lib/find_bit.c:147:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_and_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:147:16: note: in expansion of macro 'FIND_NTH_BIT'
+  147 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function 'fns',
+    inlined from '__find_nth_andnot_bit' at upstream/lib/find_bit.c:154:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_andnot_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:154:16: note: in expansion of macro 'FIND_NTH_BIT'
+  154 |         return FIND_NTH_BIT(addr1[idx] & ~addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function 'fns',
+    inlined from '__find_nth_and_andnot_bit' at upstream/lib/find_bit.c:163:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_and_andnot_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:163:16: note: in expansion of macro 'FIND_NTH_BIT'
+  163 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx] & ~addr3[idx], size, n);
+      |                ^~~~~~~~~~~~
+Native original completion/swait build passed

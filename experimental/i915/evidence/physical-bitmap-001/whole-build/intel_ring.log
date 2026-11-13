@@ -1,0 +1,24 @@
+In file included from reference/include/linux/percpu.h:8,
+                 from reference/include/linux/radix-tree.h:16,
+                 from reference/include/linux/idr.h:15,
+                 from reference/include/drm/drm_file.h:35,
+                 from reference/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from upstream/gt/intel_ring.c:8:
+reference/include/linux/cpumask.h:1107: error: "num_online_cpus" redefined [-Werror]
+ 1107 | #define num_online_cpus()       1U
+      | 
+In file included from include/linux/../../upstream/linux/lockdep.h:14,
+                 from include/linux/lockdep.h:3,
+                 from reference/include/linux/radix-tree.h:14:
+include/linux/smp.h:11: note: this is the location of the previous definition
+   11 | #define num_online_cpus smp_get_num_cpus
+      | 
+In file included from reference/include/linux/mmzone.h:13,
+                 from reference/include/linux/gfp.h:7,
+                 from reference/include/linux/xarray.h:15,
+                 from reference/include/linux/radix-tree.h:21:
+reference/include/linux/cache.h:6:10: fatal error: asm/cache.h: No such file or directory
+    6 | #include <asm/cache.h>
+      |          ^~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+compilation terminated.

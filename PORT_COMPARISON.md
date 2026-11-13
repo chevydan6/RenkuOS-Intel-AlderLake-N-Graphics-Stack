@@ -154,3 +154,13 @@ by requiring actual reader overlap before stress. Host sanitizers and compiler/
 mutation controls complement the native results. This is compatibility progress;
 full original GEM/ring builds still fail at later headers and no GPU workload or
 performance comparison exists. See physical-preempt-001 and preempt-host-001.
+
+## Original bitmap/search reuse result
+
+Complete original Linux bitmap-search and population-count implementations now
+run on RenkuOS, replacing further local helper equivalents with upstream code.
+Four native46,389-check runs pass against an independent oracle, including prior
+completion/preemption cases; VMA/KPI regressions and clean unload also pass.
+Compiler warnings and later whole-file failures remain explicit. This reduces
+compatibility dependencies without establishing a full i915 build, GPU workload
+or a performance comparison. See physical-bitmap-001 and bitmap-host-001.

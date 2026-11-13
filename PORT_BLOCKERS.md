@@ -120,3 +120,17 @@ ring lacks bitmap/bit-scan primitives, loff_t and cpumask layout support. Follow
 these compiler-derived dependencies using original Linux code and actual OS
 services. No Linux interrupt-context counters, complete RCU lifetime system,
 full i915 attachment, GPU submission/completion or Mesa integration is supplied.
+
+## Bitmap/search continuation (current boundary)
+
+Original Linux find_bit/hweight and generic bitops now compile and pass native
+oracle and old synchronization regressions. Bitmap layout and Linux loff_t are
+supplied. External bitmap allocation/parsing operations are still unresolved.
+Use public nth searches: original private size0 nth entry is unsafe; its warning
+is retained rather than changing upstream source. See completion/README.md.
+
+Native whole ring now fails at cpumask configuration (UP num_online_cpus conflicts
+with the actual native service) and asm/cache.h. Do not fake a one-CPU system or
+substitute an invented CPU-mask layout. GTT reaches early init/random/static-key/
+atomic helpers, U32_MAX and asm/param.h. Physical GEM retains MAJOR/MINOR/MKDEV
+namespace, RCU and cache-header dependencies. Actual logs are in physical-bitmap-001.

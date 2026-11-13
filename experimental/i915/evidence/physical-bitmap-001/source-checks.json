@@ -1,0 +1,13 @@
+{
+  "baseFilesVerified": 7017,
+  "basePayloadManifestSHA256": "14602fd0b05c6570fcd9fd960d3c35434b6d8b44a0e4ae83806cb28512409e02",
+  "finalNonMarkdownRuntimeFilesVerified": 7013,
+  "finalManifestSHA256": "02c1e1c635de854575295153941ba021fe75f963998fb3a2582cca32088dc2b5",
+  "finalCheckLogSHA256": "62d3a096a41f24b0a83d10c574c062398a414b4f8faa955e6210517db97f2ca9",
+  "overlay": [
+    "include/linux/bits.h",
+    "include/asm/bitsperlong.h"
+  ],
+  "overlayPurpose": "first-header ordering and architecture config visibility; final native builds/tests rerun",
+  "failures": 0
+}

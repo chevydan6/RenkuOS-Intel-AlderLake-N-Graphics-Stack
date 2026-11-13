@@ -1,0 +1,10 @@
+{
+  "ssh2222": "stopped visibly; subsequent connection refused",
+  "lease": "/root/i915-bitmap-20261113-001",
+  "leaseState": "released",
+  "leaseEndEpoch": 1794573486.9207416,
+  "media": "/root/renku-gpu-test-004/disk.img",
+  "ro": 0,
+  "cdrom": 0,
+  "udc": "configured"
+}

@@ -1,0 +1,113 @@
+In file included from upstream/gem/i915_gem_gtt.c:11:
+reference/include/linux/random.h:15:13: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'add_bootloader_randomness'
+   15 | void __init add_bootloader_randomness(const void *buf, size_t len);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from include/linux/compiler_types.h:7,
+                 from include/kpi_base.h:13,
+                 from include/linux/slab.h:3,
+                 from upstream/gem/i915_gem_gtt.c:7:
+reference/include/linux/random.h: In function 'get_random_u32_above':
+reference/include/linux/random.h:100:66: error: 'U32_MAX' undeclared (first use in this function); did you mean 'U64_MAX'?
+  100 |         BUILD_BUG_ON_MSG(__builtin_constant_p(floor) && floor == U32_MAX,
+      |                                                                  ^~~~~~~
+include/linux/../../upstream/linux/compiler_types.h:405:23: note: in definition of macro '__compiletime_assert'
+  405 |                 if (!(condition))                                       \
+      |                       ^~~~~~~~~
+include/linux/../../upstream/linux/compiler_types.h:425:9: note: in expansion of macro '_compiletime_assert'
+  425 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+      |         ^~~~~~~~~~~~~~~~~~~
+include/../upstream/linux/build_bug.h:39:37: note: in expansion of macro 'compiletime_assert'
+   39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+      |                                     ^~~~~~~~~~~~~~~~~~
+reference/include/linux/random.h:100:9: note: in expansion of macro 'BUILD_BUG_ON_MSG'
+  100 |         BUILD_BUG_ON_MSG(__builtin_constant_p(floor) && floor == U32_MAX,
+      |         ^~~~~~~~~~~~~~~~
+reference/include/linux/random.h:100:66: note: each undeclared identifier is reported only once for each function it appears in
+  100 |         BUILD_BUG_ON_MSG(__builtin_constant_p(floor) && floor == U32_MAX,
+      |                                                                  ^~~~~~~
+include/linux/../../upstream/linux/compiler_types.h:405:23: note: in definition of macro '__compiletime_assert'
+  405 |                 if (!(condition))                                       \
+      |                       ^~~~~~~~~
+include/linux/../../upstream/linux/compiler_types.h:425:9: note: in expansion of macro '_compiletime_assert'
+  425 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+      |         ^~~~~~~~~~~~~~~~~~~
+include/../upstream/linux/build_bug.h:39:37: note: in expansion of macro 'compiletime_assert'
+   39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+      |                                     ^~~~~~~~~~~~~~~~~~
+reference/include/linux/random.h:100:9: note: in expansion of macro 'BUILD_BUG_ON_MSG'
+  100 |         BUILD_BUG_ON_MSG(__builtin_constant_p(floor) && floor == U32_MAX,
+      |         ^~~~~~~~~~~~~~~~
+reference/include/linux/random.h: In function 'get_random_u32_inclusive':
+reference/include/linux/random.h:113:59: error: 'U32_MAX' undeclared (first use in this function); did you mean 'U64_MAX'?
+  113 |                          (floor > ceil || ceil - floor == U32_MAX),
+      |                                                           ^~~~~~~
+include/linux/../../upstream/linux/compiler_types.h:405:23: note: in definition of macro '__compiletime_assert'
+  405 |                 if (!(condition))                                       \
+      |                       ^~~~~~~~~
+include/linux/../../upstream/linux/compiler_types.h:425:9: note: in expansion of macro '_compiletime_assert'
+  425 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+      |         ^~~~~~~~~~~~~~~~~~~
+include/../upstream/linux/build_bug.h:39:37: note: in expansion of macro 'compiletime_assert'
+   39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+      |                                     ^~~~~~~~~~~~~~~~~~
+reference/include/linux/random.h:112:9: note: in expansion of macro 'BUILD_BUG_ON_MSG'
+  112 |         BUILD_BUG_ON_MSG(__builtin_constant_p(floor) && __builtin_constant_p(ceil) &&
+      |         ^~~~~~~~~~~~~~~~
+reference/include/linux/random.h: At top level:
+reference/include/linux/random.h:118:13: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'random_init_early'
+  118 | void __init random_init_early(const char *command_line);
+      |             ^~~~~~~~~~~~~~~~~
+reference/include/linux/random.h:119:13: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'random_init'
+  119 | void __init random_init(void);
+      |             ^~~~~~~~~~~
+In file included from reference/include/linux/once.h:6,
+                 from reference/include/linux/prandom.h:12,
+                 from reference/include/linux/random.h:153:
+reference/include/linux/jump_label.h: In function 'static_key_count':
+reference/include/linux/jump_label.h:260:16: error: implicit declaration of function 'raw_atomic_read'; did you mean 'atomic_read'? [-Werror=implicit-function-declaration]
+  260 |         return raw_atomic_read(&key->enabled);
+      |                ^~~~~~~~~~~~~~~
+      |                atomic_read
+reference/include/linux/jump_label.h: In function 'static_key_false':
+reference/include/linux/jump_label.h:270:13: error: implicit declaration of function 'unlikely_notrace' [-Werror=implicit-function-declaration]
+  270 |         if (unlikely_notrace(static_key_count(key) > 0))
+      |             ^~~~~~~~~~~~~~~~
+reference/include/linux/jump_label.h: In function 'static_key_true':
+reference/include/linux/jump_label.h:277:13: error: implicit declaration of function 'likely_notrace' [-Werror=implicit-function-declaration]
+  277 |         if (likely_notrace(static_key_count(key) > 0))
+      |             ^~~~~~~~~~~~~~
+reference/include/linux/jump_label.h: In function 'static_key_fast_inc_not_disabled':
+reference/include/linux/jump_label.h:295:26: error: implicit declaration of function 'atomic_try_cmpxchg'; did you mean 'atomic_try_cmpxchg_release'? [-Werror=implicit-function-declaration]
+  295 |         } while (!likely(atomic_try_cmpxchg(&key->enabled, &v, v + 1)));
+      |                          ^~~~~~~~~~~~~~~~~~
+include/kpi_base.h:44:39: note: in definition of macro 'likely'
+   44 | #define likely(x) __builtin_expect(!!(x), 1)
+      |                                       ^
+reference/include/linux/jump_label.h: In function 'static_key_slow_dec':
+reference/include/linux/jump_label.h:303:9: error: implicit declaration of function 'atomic_dec'; did you mean 'atomic_get'? [-Werror=implicit-function-declaration]
+  303 |         atomic_dec(&key->enabled);
+      |         ^~~~~~~~~~
+      |         atomic_get
+In file included from reference/include/linux/percpu.h:8,
+                 from reference/include/linux/prandom.h:13:
+reference/include/linux/cpumask.h: At top level:
+reference/include/linux/cpumask.h:1107: error: "num_online_cpus" redefined [-Werror]
+ 1107 | #define num_online_cpus()       1U
+      | 
+In file included from reference/include/linux/percpu.h:7:
+include/linux/smp.h:11: note: this is the location of the previous definition
+   11 | #define num_online_cpus smp_get_num_cpus
+      | 
+In file included from reference/include/linux/ratelimit_types.h:6,
+                 from reference/include/linux/ratelimit.h:5,
+                 from reference/include/linux/dev_printk.h:16,
+                 from reference/include/linux/device.h:15,
+                 from reference/include/linux/node.h:18,
+                 from reference/include/linux/cpu.h:17,
+                 from reference/include/linux/stop_machine.h:5,
+                 from upstream/gem/i915_gem_gtt.c:13:
+reference/include/uapi/linux/param.h:5:10: fatal error: asm/param.h: No such file or directory
+    5 | #include <asm/param.h>
+      |          ^~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+compilation terminated.
