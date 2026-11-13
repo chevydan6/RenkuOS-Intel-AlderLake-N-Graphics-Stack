@@ -678,6 +678,12 @@
       "linuxPath": "include/linux/kcsan-checks.h",
       "gitBlob": "92f3843d9ebb8177432bb4eccc151ea66d3dcbb7",
       "sha256": "492e90a5eb0f1f6831e26b3d871b98e154f84f657655ee684d177267f94bb777"
+    },
+    {
+      "path": "linux/highmem-internal.h",
+      "linuxPath": "include/linux/highmem-internal.h",
+      "gitBlob": "a3028e400a9c65254f9f15e4071264975dc7b1d2",
+      "sha256": "0485b13d2915965e9aab0469ac41cbb760d270c04d2a63020b4e563c7b437760"
     }
   ]
 }

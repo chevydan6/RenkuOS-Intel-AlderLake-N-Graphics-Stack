@@ -433,3 +433,8 @@ Ported-from-license: GPL-2.0
 
 Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/kcsan-checks.h
 Ported-from-license: GPL-2.0
+
+`linux/highmem-internal.h` remains byte-exact; direct-map atomic helpers are extracted unchanged.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/highmem-internal.h
+Ported-from-license: GPL-2.0
