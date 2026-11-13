@@ -503,3 +503,25 @@ The next original-i915 boundary is complete GEM/ring dependency compilation:
 compiler annotations/bit helpers, rwlocks/completion, DRM/GEM/VM objects and real
 PCI lifecycle. Hardware algorithms should remain in upstream i915. Neither these
 DMA CPU tests nor earlier native GGTT tests establish a GPU store or Mesa support.
+
+## Complete DRM VMA dependency port — 2026-11-13
+
+Original Linux compiler_types/log2 headers and the complete DRM VMA offset manager
+are now imported unchanged (34 verified files). Compiler annotation/stdarg/log2
+conflicts and gfp_t propagation are corrected in OS wrappers. The VMA module
+compiles as a whole against real RenkuOS headers and with the actual native SDK.
+
+Native adapters use existing rw_spinlock services with wired per-CPU IRQ/nesting
+state, and sleeping native heap allocation plus native deferred_free for frees
+inside a spinlock. General Linux allocation/VM services are not fabricated.
+
+The N100 passes four ×646 checks and 48000 total lock operations: concurrent
+readers, exclusive writer, IRQ restoration/nesting, offset/access semantics and
+actual teardown. Host ASan/UBSan OOM/access tests and a revocation mutation control
+pass, as do existing component sanitizer and target-header probes. Evidence is
+experimental/i915/evidence/physical-vma-001/ and vma-host-001/. No GPU work ran.
+
+Whole GEM/ring builds advance past those earlier errors but still fail at later
+Linux type/architecture helpers, raw spin/wait/lockdep integration and missing
+external sparse-checkout UAPI headers. Their failed compiler logs are preserved.
+Continue porting those reached services; do not replace original GPU algorithms.

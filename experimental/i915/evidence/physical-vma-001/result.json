@@ -1,0 +1,16 @@
+{
+  "runs": 4,
+  "checks_per_run": 646,
+  "total_checks": 2584,
+  "failures": 0,
+  "lock_iterations_per_run": 12000,
+  "total_lock_iterations": 48000,
+  "max_simultaneous_readers": 2,
+  "gpu_submission": false,
+  "whole_drm_vma_source_compiles": true,
+  "whole_i915_compiles": false,
+  "source_payload_sha256": "02c05d7df2444b225687e67d698b5809c1be9363406547a984c4bf10d6bbd4c0",
+  "raw_archive": "/home/dan/i915-vm/vma-port-001/native-results.tar.gz",
+  "raw_archive_sha256": "4bcee60f250286a2baef7c4d00455bc889ebcd6a52e3e1a63b2c1b85217a9bad",
+  "success_screenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794566344451369060-0.jpg"
+}

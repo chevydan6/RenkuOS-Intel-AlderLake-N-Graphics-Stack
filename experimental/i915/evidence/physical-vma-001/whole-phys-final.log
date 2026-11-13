@@ -1,0 +1,37 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 71b594d0a3254c48cf05878d70f806bcbd11ff6650b43c1932d3ee242ab90cd2
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gem -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_phys.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/complete-gem-i915_gem_phys.c.o
+In file included from /tmp/i915-linux-source/include/linux/wait_bit.h:8,
+                 from /tmp/i915-linux-source/include/linux/fs.h:6,
+                 from /tmp/i915-linux-source/include/linux/highmem.h:5,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_phys.c:7:
+/tmp/i915-linux-source/include/linux/wait.h:64:93: error: ‘struct lock_class_key’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+   64 | extern void __init_waitqueue_head(struct wait_queue_head *wq_head, const char *name, struct lock_class_key *);
+      |                                                                                             ^~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/wait_bit.h:34:20: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘wait_bit_init’
+   34 | extern void __init wait_bit_init(void);
+      |                    ^~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/wait_bit.h: In function ‘wait_on_bit’:
+/tmp/i915-linux-source/include/linux/wait_bit.h:73:9: error: implicit declaration of function ‘might_sleep’ [-Wimplicit-function-declaration]
+   73 |         might_sleep();
+      |         ^~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/wait_bit.h:74:14: error: implicit declaration of function ‘test_bit_acquire’ [-Wimplicit-function-declaration]
+   74 |         if (!test_bit_acquire(bit, word))
+      |              ^~~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/wait_bit.h: In function ‘wait_on_bit_lock’:
+/tmp/i915-linux-source/include/linux/wait_bit.h:182:14: error: implicit declaration of function ‘test_and_set_bit’ [-Wimplicit-function-declaration]
+  182 |         if (!test_and_set_bit(bit, word))
+      |              ^~~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/wait_bit.h: In function ‘clear_and_wake_up_bit’:
+/tmp/i915-linux-source/include/linux/wait_bit.h:334:9: error: implicit declaration of function ‘smp_mb__after_atomic’ [-Wimplicit-function-declaration]
+  334 |         smp_mb__after_atomic();
+      |         ^~~~~~~~~~~~~~~~~~~~
+In file included from /tmp/i915-linux-source/include/linux/fs.h:7:
+/tmp/i915-linux-source/include/linux/kdev_t.h: At top level:
+/tmp/i915-linux-source/include/linux/kdev_t.h:5:10: fatal error: uapi/linux/kdev_t.h: No such file or directory
+    5 | #include <uapi/linux/kdev_t.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+cc1: all warnings being treated as errors
+
+compiler exit: 1

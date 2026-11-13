@@ -1,0 +1,13 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+build/i915_linux_vma_test.driver: OK
+build/linux_vma_probe: OK
+evidence=WHOLE_DRM_VMA_NATIVE_CPU_TEST gpu_submission=false
+run=0 checks=646 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+run=1 checks=646 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+run=2 checks=646 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+run=3 checks=646 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+KERN: I915_LINUX_VMA_INIT status=0
+KERN: I915_LINUX_VMA_UNINIT status=0
+KERN: I915_LINUX_VMA_INIT status=0
+KERN: I915_LINUX_VMA_UNINIT status=0
+LINUX_VMA_NATIVE_TEST_EXIT=0 results=validation/vma.RxckOo

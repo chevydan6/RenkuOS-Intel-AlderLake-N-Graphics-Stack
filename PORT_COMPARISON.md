@@ -123,3 +123,12 @@ backed by existing RenkuOS bus_dma. New work is OS adaptation; GPU algorithms st
 upstream. Four native N100 runs pass 180,464 checks and unload cleanly. Whole GEM
 source still fails on the remaining Linux/DRM closure. This advances portability
 but supplies no GPU workload, throughput measurement or Mesa readiness claim.
+
+## Whole DRM VMA dependency result
+
+The unchanged complete DRM VMA offset manager now compiles and executes on the
+N100 using existing native rw_spinlock/heap services. Four runs pass 2,584 checks
+and 48,000 lock operations, including overlapping readers and IRQ restoration.
+This reduces the actual i915 dependency work without rewriting GPU algorithms.
+Complete GEM/ring builds still fail on later compatibility interfaces; no GPU
+execution or Mesa support follows from this CPU-only DRM module result.

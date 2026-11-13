@@ -75,3 +75,15 @@ gfp_t propagation, log2/bit helpers and compiler-header collisions; whole-phys-0
 reaches annotation collision and asm/linkage.h. Complete-ring builds still need
 rwlock/completion and the broader DRM/GEM dependency closure. Keep those source
 files unchanged as compatibility work proceeds. No complete i915 driver loads.
+
+## VMA continuation
+
+The original complete DRM VMA offset manager now builds and runs with native
+reader/writer locks and heap services. Native four-run tests and actual unload
+pass. Earlier gfp_t propagation, annotation/stdarg/log2 conflicts and plain
+read/write lock support are resolved for the tested scope.
+
+Later whole GEM/ring failures are retained in physical-vma-001: missing s8/u16/
+s16/s32 aliases, asm/div64.h, raw spinlock/wait interfaces, lock_class_key collision
+and missing external sparse-checkout UAPI headers. VMA offset management does not
+implement user mmap, page faults, GEM lifecycle, fences or request retirement.

@@ -115,3 +115,13 @@ opaque device test key has no PCI attachment; this is not GPU DMA proof. General
 Linux page/folio allocation, remaining SG functions, PCI integration and full
 GEM/ring compilation remain dependencies. See dma/README.md and the preserved
 whole-source compiler errors in evidence/physical-linux-dma-001/.
+
+## DRM VMA offset manager
+
+Complete original drm_vma_manager.c/.h now compile and run over original drm_mm/
+rbtree. Real native rw_spinlock adapters support plain read/write locking with
+per-CPU nested IRQ state; startup allocates a wired CPU-count-sized table and
+shutdown rejects live scopes. Sleeping kmalloc/native deferred kfree support
+VMA access records; atomic allocation and general slab caches remain unsupported.
+Original compiler_types/log2 imports plus compiler stdarg/ABI wrappers resolve
+earlier header collisions. See vma/README.md and physical-vma-001 evidence.

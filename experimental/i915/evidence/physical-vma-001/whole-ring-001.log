@@ -1,0 +1,63 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/intel_ring_complete.o
+In file included from /tmp/i915-linux-source/include/linux/completion.h:12,
+                 from /tmp/i915-linux-source/include/drm/drm_file.h:34,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/linux/swait.h:44:9: error: unknown type name ‘raw_spinlock_t’; did you mean ‘rw_spinlock’?
+   44 |         raw_spinlock_t          lock;
+      |         ^~~~~~~~~~~~~~
+      |         rw_spinlock
+In file included from /tmp/i915-linux-source/include/linux/lockdep.h:13,
+                 from /tmp/i915-linux-source/include/linux/radix-tree.h:14,
+                 from /tmp/i915-linux-source/include/linux/idr.h:15,
+                 from /tmp/i915-linux-source/include/drm/drm_file.h:35:
+/tmp/i915-linux-source/include/linux/lockdep_types.h:206:8: error: redefinition of ‘struct lock_class_key’
+  206 | struct lock_class_key { };
+      |        ^~~~~~~~~~~~~~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/upstream/linux/ww_mutex.h:20,
+                 from /tmp/i915-linux-source/include/linux/dma-resv.h:42,
+                 from /tmp/i915-linux-source/include/drm/drm_gem.h:38,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:10:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/mutex.h:22:8: note: originally defined here
+   22 | struct lock_class_key { unsigned char identity; };
+      |        ^~~~~~~~~~~~~~
+In file included from /tmp/i915-linux-source/include/linux/kernel.h:24,
+                 from /tmp/i915-linux-source/include/linux/cpumask.h:10,
+                 from /tmp/i915-linux-source/include/linux/smp.h:13,
+                 from /tmp/i915-linux-source/include/linux/lockdep.h:14:
+/tmp/i915-linux-source/include/linux/kstrtox.h:89:76: error: unknown type name ‘s32’; did you mean ‘u32’?
+   89 | static inline int __must_check kstrtos32(const char *s, unsigned int base, s32 *res)
+      |                                                                            ^~~
+      |                                                                            u32
+/tmp/i915-linux-source/include/linux/kstrtox.h:94:62: error: unknown type name ‘u16’
+   94 | int __must_check kstrtou16(const char *s, unsigned int base, u16 *res);
+      |                                                              ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:95:62: error: unknown type name ‘s16’
+   95 | int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
+      |                                                              ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:97:61: error: unknown type name ‘s8’; did you mean ‘u8’?
+   97 | int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
+      |                                                             ^~
+      |                                                             u8
+/tmp/i915-linux-source/include/linux/kstrtox.h:106:93: error: unknown type name ‘u16’
+  106 | int __must_check kstrtou16_from_user(const char __user *s, size_t count, unsigned int base, u16 *res);
+      |                                                                                             ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:107:93: error: unknown type name ‘s16’
+  107 | int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
+      |                                                                                             ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:109:92: error: unknown type name ‘s8’; did you mean ‘u8’?
+  109 | int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
+      |                                                                                            ^~
+      |                                                                                            u8
+/tmp/i915-linux-source/include/linux/kstrtox.h:127:107: error: unknown type name ‘s32’; did you mean ‘u32’?
+  127 | static inline int __must_check kstrtos32_from_user(const char __user *s, size_t count, unsigned int base, s32 *res)
+      |                                                                                                           ^~~
+      |                                                                                                           u32
+In file included from /tmp/i915-linux-source/include/linux/kernel.h:26:
+/tmp/i915-linux-source/include/linux/math.h:6:10: fatal error: asm/div64.h: No such file or directory
+    6 | #include <asm/div64.h>
+      |          ^~~~~~~~~~~~~
+compilation terminated.
+
+compiler exit: 1

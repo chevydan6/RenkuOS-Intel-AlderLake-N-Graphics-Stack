@@ -1,0 +1,41 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 8f4679ab718d709354e153f8717bf8153f37fda2a9b1bdfd7defcdfd4481cba6
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gem -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_gtt.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/complete-gem-i915_gem_gtt.c.o
+In file included from /tmp/i915-linux-source/include/linux/kernel.h:24,
+                 from /tmp/i915-linux-source/include/linux/random.h:7,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_gtt.c:11:
+/tmp/i915-linux-source/include/linux/kstrtox.h:89:76: error: unknown type name ‘s32’; did you mean ‘u32’?
+   89 | static inline int __must_check kstrtos32(const char *s, unsigned int base, s32 *res)
+      |                                                                            ^~~
+      |                                                                            u32
+/tmp/i915-linux-source/include/linux/kstrtox.h:94:62: error: unknown type name ‘u16’
+   94 | int __must_check kstrtou16(const char *s, unsigned int base, u16 *res);
+      |                                                              ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:95:62: error: unknown type name ‘s16’
+   95 | int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
+      |                                                              ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:97:61: error: unknown type name ‘s8’; did you mean ‘u8’?
+   97 | int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
+      |                                                             ^~
+      |                                                             u8
+/tmp/i915-linux-source/include/linux/kstrtox.h:106:93: error: unknown type name ‘u16’
+  106 | int __must_check kstrtou16_from_user(const char __user *s, size_t count, unsigned int base, u16 *res);
+      |                                                                                             ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:107:93: error: unknown type name ‘s16’
+  107 | int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
+      |                                                                                             ^~~
+/tmp/i915-linux-source/include/linux/kstrtox.h:109:92: error: unknown type name ‘s8’; did you mean ‘u8’?
+  109 | int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
+      |                                                                                            ^~
+      |                                                                                            u8
+/tmp/i915-linux-source/include/linux/kstrtox.h:127:107: error: unknown type name ‘s32’; did you mean ‘u32’?
+  127 | static inline int __must_check kstrtos32_from_user(const char __user *s, size_t count, unsigned int base, s32 *res)
+      |                                                                                                           ^~~
+      |                                                                                                           u32
+In file included from /tmp/i915-linux-source/include/linux/kernel.h:26:
+/tmp/i915-linux-source/include/linux/math.h:6:10: fatal error: asm/div64.h: No such file or directory
+    6 | #include <asm/div64.h>
+      |          ^~~~~~~~~~~~~
+compilation terminated.
+
+compiler exit: 1
