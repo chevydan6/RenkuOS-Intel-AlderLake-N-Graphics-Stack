@@ -28,7 +28,13 @@ equal_copy.write_text(equal_original)
 lockref_original = (root/'upstream/lib/lockref.c').read_text()
 lockref_copy = a.output/'lockref.c'
 lockref_copy.write_text(lockref_original)
-flags = ['gcc', '-D_GNU_SOURCE', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror',
+seq_original = (root/'upstream/linux/seqlock.h').read_text()
+seq_copy = a.output/'seqlock.h'; seq_copy.write_text(seq_original)
+seq_include = a.output/'include/linux'; seq_include.mkdir(parents=True)
+wrapper = (root/'include/linux/seqlock.h').read_text()
+assert wrapper.count('../../upstream/linux/seqlock.h') == 1
+(seq_include/'seqlock.h').write_text(wrapper.replace('../../upstream/linux/seqlock.h', str(seq_copy.resolve())))
+flags = ['gcc', '-I'+str(a.output/'include'), '-D_GNU_SOURCE', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror',
          '-Wno-unused-parameter', '-Wno-sign-compare', '-fno-strict-overflow', '-pthread',
          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
          '-I'+str(root/'include'), '-I'+str(root/'upstream'), '-I'+str(root/'completion')]
@@ -117,3 +123,14 @@ r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeo
 assert r.returncode == -6 and 'Assertion' in r.stderr
 lockref_copy.write_text(lockref_original); build()
 print('PASS original lockref fallback, real host concurrency and rejected dead-reference mutation')
+
+# A retry implementation that always accepts an old snapshot must be rejected.
+before_seq = 'return unlikely(READ_ONCE(s->sequence) != start);'
+assert seq_original.count(before_seq) == 1
+seq_copy.write_text(seq_original.replace(before_seq, 'return 0;'))
+build()
+r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
+(a.output/'seq-negative-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+assert r.returncode == -6 and 'Assertion' in r.stderr
+seq_copy.write_text(seq_original); build()
+print('PASS original seqcount/seqlock, concurrent snapshots and rejected always-accept retry mutation')

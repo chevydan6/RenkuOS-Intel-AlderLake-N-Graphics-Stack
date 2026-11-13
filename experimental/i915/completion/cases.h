@@ -116,13 +116,14 @@ static void Join(worker_id id) { if (pthread_join(id, NULL) != 0) Fatal(); }
 
 #include "raw_lock_cases.h"
 #include "lockref_cases.h"
+#include "seqlock_cases.h"
 #ifdef RENKU_NATIVE
 #include "rcu_cases.h"
 #endif
 
 static void RunCases(struct completion_report *r)
 {
-	*r = (struct completion_report){.version = 5};
+	*r = (struct completion_report){.version = 6};
 	struct task_struct task;
 	if (!renku_linux_task_register(&task)) Fatal();
 	NamespaceCases(r);
@@ -131,6 +132,8 @@ static void RunCases(struct completion_report *r)
 	RawLayoutCases(r);
 	LockrefCases(r);
 	ConcurrentLockrefCases(r);
+	SeqCases(r);
+	ConcurrentSeqCases(r);
 	PortContextCases(r);
 #ifdef RENKU_NATIVE
 	PreemptCases(r);

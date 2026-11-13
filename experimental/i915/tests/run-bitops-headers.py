@@ -20,7 +20,9 @@ headers = ['linux/bitops.h', 'linux/bits.h', 'linux/bitmap.h', 'linux/types.h',
            'linux/spinlock_types_raw.h', 'linux/spinlock_types.h',
            'linux/spinlock.h', 'asm/spinlock_types.h', 'linux/bit_spinlock.h',
            'linux/rcupdate.h', 'linux/printk.h', 'linux/kern_levels.h',
-           'linux/kdev_t.h', 'uapi/linux/kdev_t.h', 'linux/gfp.h', 'linux/gfp_types.h', 'linux/lockref.h']
+           'linux/kdev_t.h', 'uapi/linux/kdev_t.h', 'linux/gfp.h', 'linux/gfp_types.h', 'linux/lockref.h',
+           'linux/seqlock.h', 'linux/kcsan-checks.h', 'asm/processor.h',
+           'asm/barrier.h', 'linux/compiler.h']
 manifest = json.loads((root/'build/target/manifest.json').read_text())
 native = manifest['objects'][0]['command']
 native = native[:native.index('-MMD')]
@@ -47,6 +49,8 @@ for mode, flags in [('host', host), ('target', native)]:
     for name, prefix, suffix in [
         ('vm_bounds_rejected', '', '#include <generated/bounds.h>\n'),
         ('cmpxchg_rejected', '#define CONFIG_ARCH_USE_CMPXCHG_LOCKREF 1\n', ''),
+        ('kcsan_rejected', '#define CONFIG_KCSAN 1\n', '#include <linux/seqlock.h>\n'),
+        ('rt_rejected', '#define CONFIG_PREEMPT_RT 1\n', '#include <linux/seqlock.h>\n'),
     ]:
         source = a.output/(mode+'-'+name+'.c')
         source.write_text(prefix+'#include <linux/lockref.h>\n'+suffix)
@@ -57,3 +61,18 @@ for mode, flags in [('host', host), ('target', native)]:
         controls.append({'mode': mode, 'control': name, 'exit': r.returncode})
 (a.output/'scope-controls.json').write_text(json.dumps(controls, indent=2)+'\n')
 print('PASS VM bounds and unsupported cmpxchg branch remain rejected in both modes')
+
+# BH operations must remain unresolved rather than acquiring an IRQ-only lock.
+for mode, flags in [('host', host), ('target', native)]:
+    source = a.output/(mode+'-bh-unresolved.c')
+    source.write_text('#include <linux/seqlock.h>\nvoid check(seqlock_t *s) {write_seqlock_bh(s);write_sequnlock_bh(s); }\n')
+    obj = source.with_suffix('.o')
+    r = subprocess.run(flags+['-fPIC', '-c', str(source), '-o', str(obj)], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    symbols = subprocess.check_output(['nm', '-u', str(obj)], text=True)
+    assert 'renku_linux_spin_lock_bh' in symbols and 'renku_linux_spin_unlock_bh' in symbols
+    r = subprocess.run(['gcc', '-shared', '-nostdlib', '-Wl,--no-undefined', str(obj),
+                        '-o', str(obj.with_suffix('.so'))], capture_output=True, text=True)
+    source.with_suffix('.log').write_text(symbols+r.stdout+r.stderr)
+    assert r.returncode != 0 and 'renku_linux_spin_lock_bh' in r.stderr
+print('PASS unimplemented BH entry/exit fail actual linking in both modes')

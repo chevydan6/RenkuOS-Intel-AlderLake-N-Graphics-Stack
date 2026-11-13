@@ -67,7 +67,8 @@ int main(void)
 		printf("bit_workers=%u bit_iterations=%u\n", report.bit_workers, report.bit_iterations);
 		printf("rcu_workers=%u rcu_frees=%u\n", report.rcu_workers, report.rcu_frees);
 		printf("lockref_workers=%u lockref_iterations=%u\n", report.lockref_workers, report.lockref_iterations);
-		if (report.version != 5 || report.failures || report.checks < 100 || !report.cpu_count || !report.online_count || report.online_count > report.cpu_count || report.bit_workers != 2 || report.bit_iterations != 8000 || report.rcu_workers != 2 || report.rcu_frees != 1 || report.lockref_workers != 2 || report.lockref_iterations != 8000 || report.phases != 12 || report.workers != 24) { failed = 1; break; }
+		printf("seq_workers=%u seq_writes=%u seq_reads=%u seq_forced_retries=%u\n", report.seq_workers, report.seq_writes, report.seq_reads, report.seq_forced_retries);
+		if (report.version != 6 || report.failures || report.checks < 100 || !report.cpu_count || !report.online_count || report.online_count > report.cpu_count || report.bit_workers != 2 || report.bit_iterations != 8000 || report.rcu_workers != 2 || report.rcu_frees != 1 || report.lockref_workers != 2 || report.lockref_iterations != 8000 || report.seq_workers != 2 || report.seq_writes != 4000 || report.seq_reads != 4000 || report.seq_forced_retries != 1 || report.phases != 12 || report.workers != 24) { failed = 1; break; }
 	}
 	if (!failed) failed |= SignalTest(fd, COMPLETION_INTERRUPTIBLE);
 	if (!failed) failed |= SignalTest(fd, COMPLETION_KILLABLE);
