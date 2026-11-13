@@ -2,6 +2,7 @@
 #ifndef RENKU_LINUX_MM_H
 #define RENKU_LINUX_MM_H
 #include <kpi_base.h>
+#include <linux/errno.h>
 #define PAGE_SHIFT 12
 #ifdef RENKU_NATIVE
 #define PAGE_SIZE B_PAGE_SIZE

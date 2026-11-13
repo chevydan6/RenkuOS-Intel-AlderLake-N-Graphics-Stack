@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <string.h>
+#include <linux/compiler_types.h>
 #ifdef RENKU_NATIVE
 #include <KernelExport.h>
 #else
@@ -22,10 +23,7 @@ typedef long long s64;
 typedef u64 phys_addr_t;
 #endif
 typedef u64 resource_size_t;
-/* Sparse address-space annotation; mapping/access semantics remain unported. */
-#define __iomem
-#define __force
-#define __rcu
+/* Original Linux compiler annotations do not implement the annotated services. */
 struct list_head { struct list_head *next, *prev; };
 struct hlist_node { struct hlist_node *next, **pprev; };
 struct hlist_head { struct hlist_node *first; };
@@ -37,6 +35,9 @@ _Static_assert(sizeof(unsigned long) == 8, "This experimental port targets x86-6
 #define __maybe_unused __attribute__((unused))
 #define __must_check __attribute__((warn_unused_result))
 #define __cond_acquires(x)
+#ifndef __attribute_const__
+#define __attribute_const__ __attribute__((__const__))
+#endif
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
@@ -81,7 +82,13 @@ extern bool renku_kpi_warn(const char *, ...);
 #undef max
 #define min(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a < _b ? _a : _b; })
 #define max(a, b) ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })
-static inline bool is_power_of_2(unsigned long long x) { return x && !(x & (x - 1)); }
+/* GCC bit-scan primitives: guard zero before invoking undefined clz(0). */
+static inline int fls(int value)
+{ return value ? 32 - __builtin_clz(value) : 0; }
+static inline int fls64(u64 value)
+{ return value ? 64 - __builtin_clzll(value) : 0; }
+static inline int fls_long(unsigned long value)
+{ return value ? 64 - __builtin_clzl(value) : 0; }
 static inline bool test_bit(unsigned int bit, const unsigned long *p)
 { return !!(__atomic_load_n(p + bit / 64, __ATOMIC_RELAXED) & (1UL << (bit % 64))); }
 static inline void __set_bit(unsigned int bit, unsigned long *p)
@@ -94,4 +101,5 @@ static inline u64 div64_u64_rem(u64 n, u64 d, u64 *r)
 { *r = n % d; return n / d; }
 /* Tree RCU publication only; no grace-period or reclamation API is provided. */
 #define rcu_assign_pointer(p, v) smp_store_release(&(p), (v))
+#include <linux/log2.h>
 #endif
