@@ -29,10 +29,21 @@ jobs:
           assert not [p for p in d['patches'] if p['missing_targets']], 'Patch without diff targets'
           print('Patch inventory verified. Legacy Markdown links are reported, not gated.')
           PY
-      - name: Upload report
+      - name: Publish audit summary
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: repository-audit
-          path: repository-audit.json
-          if-no-files-found: warn
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path('repository-audit.json')
+          if not path.exists():
+              raise SystemExit('Audit report missing')
+          d = json.loads(path.read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write('## Repository audit\n\n')
+              out.write(f"- Numbered patches: {d['patch_count']}\n")
+              out.write(f"- Relative links checked: {d['markdown_relative_links_checked']}\n")
+              out.write(f"- Missing relative links: {len(d['missing_relative_links'])}\n")
+              out.write(f"- Patches without targets: {sum(p['missing_targets'] for p in d['patches'])}\n")
+              out.write('Full details remain available by rerunning tools/audit-repository.py on a checkout.\n')
+          PY
