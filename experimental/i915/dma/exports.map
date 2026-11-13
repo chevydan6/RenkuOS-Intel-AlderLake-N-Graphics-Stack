@@ -1,0 +1,4 @@
+{
+ global: api_version; init_hardware; init_driver; uninit_driver; publish_devices; find_device;
+ local: *;
+};
