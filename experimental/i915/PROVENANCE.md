@@ -394,3 +394,12 @@ Ported-from-license: GPL-2.0-only
 Only the complete original __bitmap_equal function is currently extracted for
 linking. The containing source is a byte-exact import; allocation, parsing and
 other external bitmap algorithms remain unported, not successful stubs.
+
+Ported-from: Linux/v6.6/include/linux/kern_levels.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/kdev_t.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/linux/kdev_t.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
