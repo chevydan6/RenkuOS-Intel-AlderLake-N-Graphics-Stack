@@ -124,7 +124,7 @@ static void Join(worker_id id) { if (pthread_join(id, NULL) != 0) Fatal(); }
 
 static void RunCases(struct completion_report *r)
 {
-	*r = (struct completion_report){.version = 7};
+	*r = (struct completion_report){.version = 8};
 	struct task_struct task;
 	if (!renku_linux_task_register(&task)) Fatal();
 	NamespaceCases(r);
@@ -137,6 +137,7 @@ static void RunCases(struct completion_report *r)
 	ConcurrentSeqCases(r);
 	PageCases(r);
 	ConcurrentPageCases(r);
+	FolioBatchCases(r);
 	PortContextCases(r);
 #ifdef RENKU_NATIVE
 	PreemptCases(r);

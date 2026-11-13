@@ -7,6 +7,7 @@
 #include <linux/spinlock.h>
 #include <linux/sched.h>
 #include <linux/compiler.h>
+#include <linux/pagevec.h>
 struct page_run {
 	struct page *pages;
 	void *base;
@@ -106,7 +107,7 @@ struct page *alloc_pages(gfp_t flags, unsigned int order)
 	if (run->area < 0) { free(run->pages); free(run); return NULL; }
 	if (flags & __GFP_ZERO) memset(run->base, 0, size);
 	run->count = count; run->size = size; run->order = order;
-	run->compound = (flags & __GFP_COMP) != 0;
+	run->compound = order != 0 && (flags & __GFP_COMP) != 0;
 	refcount_set(&run->references, 1);
 	for (size_t i = 0; i < count; i++) {
 		run->pages[i].virtual = (char *)run->base + (i << PAGE_SHIFT);
@@ -193,3 +194,85 @@ void renku_linux_pagefault_enable(void)
 	barrier(); renku_vm_pagefault_permit(); task->pagefault_disabled--;
 }
 bool renku_linux_pagefault_disabled(void) { return current->pagefault_disabled != 0; }
+
+/* Canonical folio views alias the first page descriptor, as the public head
+ * member does. Shape stays in the actual live owner, never in fake flag bits. */
+struct folio *renku_linux_page_folio(const struct page *page)
+{
+	spin_lock(&sLock);
+	size_t index; struct page_run *run = Find(page, &index);
+	struct folio *folio = run ? (struct folio *)run->pages : NULL;
+	spin_unlock(&sLock); return folio;
+}
+static struct page_run *FolioRun(const struct folio *folio)
+{
+	size_t index; struct page_run *run = Find((const struct page *)folio, &index);
+	if (!run || index) Invalid("folio query requires a live canonical head");
+	return run;
+}
+unsigned int folio_order(struct folio *folio)
+{
+	spin_lock(&sLock); unsigned int order = FolioRun(folio)->order;
+	spin_unlock(&sLock); return order;
+}
+long folio_nr_pages(struct folio *folio)
+{
+	spin_lock(&sLock); long count = (long)FolioRun(folio)->count;
+	spin_unlock(&sLock); return count;
+}
+bool folio_test_large(struct folio *folio) { return folio_order(folio) != 0; }
+unsigned int compound_order(struct page *page)
+{
+	spin_lock(&sLock);
+	size_t index; struct page_run *run = Find(page, &index);
+	if (!run) Invalid("compound query of unowned page");
+	unsigned int order = index ? 0 : run->order;
+	spin_unlock(&sLock); return order;
+}
+static int Shape(const struct page *page, unsigned kind)
+{
+	spin_lock(&sLock);
+	size_t index; struct page_run *run = Find(page, &index);
+	if (!run) Invalid("shape query of unowned page");
+	bool answer = run->compound && (kind == 2 || (kind == 0 ? index == 0 : index != 0));
+	spin_unlock(&sLock); return answer;
+}
+int PageHead(const struct page *page) { return Shape(page, 0); }
+int PageTail(const struct page *page) { return Shape(page, 1); }
+int PageCompound(const struct page *page) { return Shape(page, 2); }
+bool folio_try_get(struct folio *folio)
+{
+	spin_lock(&sLock);
+	size_t index; struct page_run *run = Find((const struct page *)folio, &index);
+	bool got = run && !index && refcount_inc_not_zero(&run->references);
+	spin_unlock(&sLock); return got;
+}
+void folio_get(struct folio *folio) { if (!folio_try_get(folio)) Invalid("get of unowned folio"); }
+void folio_put(struct folio *folio)
+{
+	spin_lock(&sLock); (void)FolioRun(folio); spin_unlock(&sLock);
+	put_page((struct page *)folio);
+}
+int folio_ref_count(const struct folio *folio)
+{
+	spin_lock(&sLock); int count = (int)refcount_read(&FolioRun(folio)->references);
+	spin_unlock(&sLock); return count;
+}
+struct folio *folio_alloc(gfp_t flags, unsigned int order)
+{
+	struct page *page = alloc_pages(flags | __GFP_COMP, order);
+	return page ? page_folio(page) : NULL;
+}
+void __folio_batch_release(struct folio_batch *batch)
+{
+	/* These managed pages are wired for their entire lifetime and never enter
+	 * Linux per-CPU LRU queues. Validate all heads before releasing references;
+	 * no general lru_add_drain() success stub is supplied. */
+	if (batch->nr > PAGEVEC_SIZE) Invalid("invalid folio batch count");
+	spin_lock(&sLock);
+	for (unsigned i = 0; i < batch->nr; i++) (void)FolioRun(batch->folios[i]);
+	spin_unlock(&sLock);
+	for (unsigned i = 0; i < batch->nr; i++) folio_put(batch->folios[i]);
+	batch->percpu_pvec_drained = true;
+	folio_batch_reinit(batch);
+}

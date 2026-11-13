@@ -16,6 +16,7 @@ p.add_argument('--output', required=True, type=pathlib.Path)
 a = p.parse_args()
 root = pathlib.Path(__file__).resolve().parents[1]
 subprocess.run(['python3', str(root/'dma/extract-scatterlist.py')], check=True)
+subprocess.run(['python3', str(root/'extract-folio.py')], check=True)
 out = a.output.resolve()
 out.mkdir(parents=True, exist_ok=False)
 source = out/'source'
@@ -28,7 +29,7 @@ with tarfile.open(archive) as tar:
 archive.unlink()
 for name in ('include', 'upstream', 'dma'):
     shutil.copytree(root/name, out/'port'/name, ignore=shutil.ignore_patterns('__pycache__'))
-for name in ('src/native_services.c', 'src/native_diagnostics.c', 'build/scatterlist_slice.c'):
+for name in ('src/native_services.c', 'src/native_diagnostics.c', 'build/scatterlist_slice.c', 'build/folio_helpers.h', 'build/folio_helpers.json'):
     target = out/'port'/name
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(root/name, target)

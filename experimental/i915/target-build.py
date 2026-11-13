@@ -13,6 +13,7 @@ p.add_argument('--cc', default='gcc')
 a = p.parse_args()
 root = Path(__file__).resolve().parent
 source = a.source.resolve()
+subprocess.run(['python3', str(root/'extract-folio.py')], check=True)
 revision = subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip()
 if revision != '4799bb5a188c4bb6bbef967287640cc21a061a0d':
     p.error('expected the GPU branch RenkuOS source baseline 4799bb5')

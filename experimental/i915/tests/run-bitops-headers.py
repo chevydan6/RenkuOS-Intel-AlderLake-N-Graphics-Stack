@@ -23,7 +23,7 @@ headers = ['linux/bitops.h', 'linux/bits.h', 'linux/bitmap.h', 'linux/types.h',
            'linux/kdev_t.h', 'uapi/linux/kdev_t.h', 'linux/gfp.h', 'linux/gfp_types.h', 'linux/lockref.h',
            'linux/seqlock.h', 'linux/kcsan-checks.h', 'asm/processor.h',
            'asm/barrier.h', 'linux/compiler.h', 'linux/mm.h', 'linux/highmem.h',
-           'linux/uaccess.h', 'native_pages.h', 'native_page_bridge.h']
+           'linux/uaccess.h', 'native_pages.h', 'native_page_bridge.h', 'linux/page-flags.h', 'linux/pagevec.h']
 manifest = json.loads((root/'build/target/manifest.json').read_text())
 native = manifest['objects'][0]['command']
 native = native[:native.index('-MMD')]
@@ -55,6 +55,8 @@ for mode, flags in [('host', host), ('target', native)]:
         ('highmem_rejected', '#define CONFIG_HIGHMEM 1\n', '#include <linux/highmem.h>\n'),
         ('local_slots_rejected', '#define CONFIG_KMAP_LOCAL 1\n', '#include <linux/highmem.h>\n'),
         ('unmap_page_type_rejected', '', '#include <linux/highmem.h>\nvoid bad(struct page *p) {kunmap_atomic(p); }\n'),
+        ('local_unmap_page_type_rejected', '', '#include <linux/highmem.h>\nvoid bad(struct page *p) {kunmap_local(p); }\n'),
+        ('const_folio_rejected', '', '#include <linux/mm.h>\nstruct folio *bad(const struct page *p) {return page_folio(p); }\n'),
     ]:
         source = a.output/(mode+'-'+name+'.c')
         source.write_text(prefix+'#include <linux/lockref.h>\n'+suffix)
@@ -80,3 +82,16 @@ for mode, flags in [('host', host), ('target', native)]:
     source.with_suffix('.log').write_text(symbols+r.stdout+r.stderr)
     assert r.returncode != 0 and 'renku_linux_spin_lock_bh' in r.stderr
 print('PASS unimplemented BH entry/exit fail actual linking in both modes')
+
+for mode, flags in [('host', host), ('target', native)]:
+    source = a.output/(mode+'-exceptional-batch-unresolved.c')
+    source.write_text('#include <linux/pagevec.h>\nvoid check(struct folio_batch *b) {folio_batch_remove_exceptionals(b); }\n')
+    obj = source.with_suffix('.o')
+    r = subprocess.run(flags+['-fPIC', '-c', str(source), '-o', str(obj)], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    symbols = subprocess.check_output(['nm', '-u', str(obj)], text=True)
+    assert 'renku_linux_folio_batch_remove_exceptionals' in symbols
+    r = subprocess.run(['gcc', '-shared', '-nostdlib', '-Wl,--no-undefined', str(obj), '-o', str(obj.with_suffix('.so'))], capture_output=True, text=True)
+    source.with_suffix('.log').write_text(symbols+r.stdout+r.stderr)
+    assert r.returncode != 0 and 'renku_linux_folio_batch_remove_exceptionals' in r.stderr
+print('PASS unimplemented exceptional-cache batch operations remain unresolved in both modes')

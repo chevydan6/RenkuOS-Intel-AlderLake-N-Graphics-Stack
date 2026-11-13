@@ -7,6 +7,7 @@ p.add_argument('--output', required=True, type=pathlib.Path)
 a = p.parse_args()
 a.output.mkdir(parents=True, exist_ok=False)
 root = pathlib.Path(__file__).resolve().parents[1]
+subprocess.run(['python3',str(root/'extract-folio.py')],check=True)
 subprocess.run(['python3',str(root/'dma/extract-scatterlist.py')],check=True)
 actual = root/'dma/linux_dma_api.c'
 copy = a.output/'linux_dma_api.c'

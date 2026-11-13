@@ -18,7 +18,7 @@ a.output.mkdir(parents=True, exist_ok=False)
 for name in ('include', 'src', 'upstream', 'vma'):
     shutil.copytree(root/name, a.output/name, ignore=shutil.ignore_patterns('__pycache__'))
 (a.output/'build').mkdir()
-for name in ('gfp_helpers.h', 'gfp_helpers.json', 'highmem_atomic.h', 'highmem_atomic.json'):
+for name in ('gfp_helpers.h', 'gfp_helpers.json', 'highmem_atomic.h', 'highmem_atomic.json', 'folio_helpers.h', 'folio_helpers.json'):
     shutil.copyfile(root/'build'/name, a.output/'build'/name)
 for name in ('upstream-manifest.json', 'verify-upstream.py', 'PROVENANCE.md'):
     shutil.copyfile(root/name, a.output/name)

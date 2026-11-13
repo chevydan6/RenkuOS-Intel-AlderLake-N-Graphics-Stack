@@ -7,5 +7,7 @@
 #include "../../build/gfp_helpers.h"
 struct page;
 struct page *alloc_pages(gfp_t, unsigned int);
+struct folio;
+struct folio *folio_alloc(gfp_t, unsigned int);
 #define alloc_page(flags) alloc_pages((flags), 0)
 #endif

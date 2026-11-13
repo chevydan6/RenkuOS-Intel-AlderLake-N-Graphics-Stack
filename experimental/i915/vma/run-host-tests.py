@@ -13,6 +13,7 @@ p.add_argument('--output', required=True, type=Path)
 a = p.parse_args()
 a.output.mkdir(parents=True, exist_ok=False)
 root = Path(__file__).resolve().parents[1]
+subprocess.run(['python3', str(root/'extract-folio.py')], check=True)
 subprocess.run(['python3', str(root/'verify-upstream.py')], check=True)
 original = (root/'upstream/drm/drm_vma_manager.c').read_text()
 source = a.output/'drm_vma_manager.c'

@@ -9,7 +9,7 @@ flags=(-std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-comp
  -Iinclude -Iupstream -Ireference/drivers/gpu/drm/i915 -Ireference/drivers/gpu/drm/i915/gem
  -Ireference/drivers/gpu/drm/i915/gt -Ireference/include -Ireference/include/uapi -fmax-errors=12)
 failed=0
-for source in gem/i915_gem_gtt.c gem/i915_gem_phys.c gt/intel_ring.c; do
+for source in gem/i915_gem_gtt.c gem/i915_gem_phys.c gem/i915_gem_shmem.c gt/intel_ring.c; do
  name=$(basename "$source" .c)
  test ! -e "whole-build/$name.log"
  rm -f "whole-build/$name.o"

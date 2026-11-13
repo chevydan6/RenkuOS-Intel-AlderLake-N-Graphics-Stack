@@ -13,6 +13,7 @@ p.add_argument('--output', required=True, type=Path)
 a = p.parse_args()
 a.output.mkdir(parents=True, exist_ok=False)
 root = Path(__file__).resolve().parents[1]
+subprocess.run(['python3', str(root/'extract-folio.py')], check=True)
 subprocess.run(['python3', str(root/'verify-upstream.py')], check=True)
 subprocess.run(['python3', str(root/'extract-bitmap.py')], check=True)
 subprocess.run(['python3', str(root/'extract-gfp.py')], check=True)
@@ -149,3 +150,18 @@ for name, before, after in [
     assert r.returncode == -6 and 'Assertion' in r.stderr
 pages_copy.write_text(pages_original); build()
 print('PASS managed page references, queued VM release, nesting/failure controls; omitted reference release/native deletion rejected')
+
+for name, before, after in [
+    ('folio-tail-redirect', 'struct folio *folio = run ? (struct folio *)run->pages : NULL;',
+     'struct folio *folio = run ? (struct folio *)page : NULL;'),
+    ('folio-batch-drop', 'for (unsigned i = 0; i < batch->nr; i++) folio_put(batch->folios[i]);',
+     '/* lost batch reference release */'),
+]:
+    assert pages_original.count(before) == 1
+    pages_copy.write_text(pages_original.replace(before, after)); build()
+    r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
+    (a.output/(name+'.log')).write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+    assert r.returncode == -6 and ('Assertion' in r.stderr
+        or 'i915 completion test worker lifetime failure' in r.stderr)
+pages_copy.write_text(pages_original); build()
+print('PASS canonical folio heads, original local mappings and real batch reference release; tail-redirection/lost-batch mutations rejected')

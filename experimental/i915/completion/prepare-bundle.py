@@ -43,12 +43,12 @@ license_data = subprocess.check_output(['git', '-C', str(a.renku_source), 'show'
     'files': config_records, 'sourcesModified': False,
     'licenseSHA256': hashlib.sha256(license_data).hexdigest(),
     'purpose': 'configuration needed by installed native SDK private VM headers; actual VM restriction structs come from that SDK'}, indent=2)+'\n')
-for script in ('extract.py', 'extract-emitter.py', 'extract-bitmap.py', 'extract-gfp.py', 'extract-highmem.py'):
+for script in ('extract.py', 'extract-emitter.py', 'extract-bitmap.py', 'extract-gfp.py', 'extract-highmem.py', 'extract-folio.py'):
     subprocess.run(['python3', str(root/script)], check=True)
 for name in ('include', 'src', 'upstream', 'completion', 'vma', 'vm'):
     shutil.copytree(root/name, a.output/name, ignore=shutil.ignore_patterns('__pycache__'))
 (a.output/'build').mkdir()
-for name in ('intel_ring_slice.c', 'gen8_engine_slice.c', 'bitmap_equal_slice.c', 'bitmap_equal_slice.json', 'gfp_helpers.h', 'gfp_helpers.json', 'highmem_atomic.h', 'highmem_atomic.json'):
+for name in ('intel_ring_slice.c', 'gen8_engine_slice.c', 'bitmap_equal_slice.c', 'bitmap_equal_slice.json', 'gfp_helpers.h', 'gfp_helpers.json', 'highmem_atomic.h', 'highmem_atomic.json', 'folio_helpers.h', 'folio_helpers.json'):
     shutil.copyfile(root/'build'/name, a.output/'build'/name)
 for name in ('upstream-manifest.json', 'verify-upstream.py', 'PROVENANCE.md'):
     shutil.copyfile(root/name, a.output/name)

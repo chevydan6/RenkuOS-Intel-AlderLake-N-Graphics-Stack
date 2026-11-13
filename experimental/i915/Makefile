@@ -13,6 +13,7 @@ native-object:
 .PHONY: allocator-test target-objects
 allocator-test:
 	python3 verify-upstream.py
+	python3 extract-folio.py
 	mkdir -p build
 	$(CC) -std=gnu11 -O1 -g -Wall -Wextra -Werror -Wno-unused-parameter -fsanitize=address,undefined -fno-omit-frame-pointer -Iinclude -Iupstream upstream/drm/drm_mm.c upstream/lib/rbtree.c tests/drm_mm_test.c $(SANITIZER_LDFLAGS) -o build/drm_mm_test
 	UBSAN_OPTIONS=halt_on_error=1 ./build/drm_mm_test
