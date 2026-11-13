@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-14",
+  "nativeDirectory": "/boot/home/i915-raw-lock-001",
+  "checksPerRun": {
+    "rawBitLocksBitmapCPUSwait": 46786,
+    "vma": 648,
+    "kpi": 62
+  },
+  "runsEach": 4,
+  "total": 189984,
+  "failures": 0,
+  "bitWorkersTotal": 8,
+  "bitCriticalSectionsTotal": 32000,
+  "priorWaiterWorkersTotal": 96,
+  "vmaStressOperations": 48000,
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "sourceImports": 104,
+  "archivesSHA256": {
+    "/home/dan/i915-vm/raw-lock-port-001/native-bundle-001/payload.tar.gz": "c9f4cecd2f27dd1d9f98f20e2eb3837863f76e1a995a54ff1f3d89ed465b8b2c",
+    "/home/dan/i915-vm/raw-lock-port-001/native-results-001.tar.gz": "fbcefd0e54c48b2a56b35838b73444758561729b4ffa9bd2349f5b71ff32eb91"
+  }
+}

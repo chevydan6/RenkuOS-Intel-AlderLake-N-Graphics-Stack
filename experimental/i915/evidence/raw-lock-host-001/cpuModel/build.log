@@ -1,0 +1,57 @@
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -O1 -g -D_KERNEL_MODE=1 -fsanitize=address,undefined -fno-sanitize-recover=all -c /home/dan/i915-vm/raw-lock-port-001/cpu-model-001/native_cpumask.c -o /home/dan/i915-vm/raw-lock-port-001/cpu-model-001/0.o
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -O1 -g -D_KERNEL_MODE=1 -fsanitize=address,undefined -fno-sanitize-recover=all -c /home/dan/haiku-intel-gpu/experimental/i915/src/cpumask_state.c -o /home/dan/i915-vm/raw-lock-port-001/cpu-model-001/1.o
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -O1 -g -D_KERNEL_MODE=1 -fsanitize=address,undefined -fno-sanitize-recover=all -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/hweight.c -o /home/dan/i915-vm/raw-lock-port-001/cpu-model-001/2.o
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -O1 -g -D_KERNEL_MODE=1 -fsanitize=address,undefined -fno-sanitize-recover=all -Wno-error=maybe-uninitialized -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c -o /home/dan/i915-vm/raw-lock-port-001/cpu-model-001/3.o
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/bitops.h:4,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:90,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/bitops.h:2,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:15:
+In function ‘fns’,
+    inlined from ‘__find_nth_bit’ at /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:140:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c: In function ‘__find_nth_bit’:
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:140:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  140 |         return FIND_NTH_BIT(addr[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function ‘fns’,
+    inlined from ‘__find_nth_and_bit’ at /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:147:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c: In function ‘__find_nth_and_bit’:
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:147:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  147 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function ‘fns’,
+    inlined from ‘__find_nth_andnot_bit’ at /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:154:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c: In function ‘__find_nth_andnot_bit’:
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:154:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  154 |         return FIND_NTH_BIT(addr1[idx] & ~addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function ‘fns’,
+    inlined from ‘__find_nth_and_andnot_bit’ at /home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:163:9:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitops.h:259:16: warning: ‘tmp’ may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c: In function ‘__find_nth_and_andnot_bit’:
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:73:56: note: ‘tmp’ was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+/home/dan/haiku-intel-gpu/experimental/i915/upstream/lib/find_bit.c:163:16: note: in expansion of macro ‘FIND_NTH_BIT’
+  163 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx] & ~addr3[idx], size, n);
+      |                ^~~~~~~~~~~~
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -O1 -g -D_KERNEL_MODE=1 -fsanitize=address,undefined -fno-sanitize-recover=all -c /home/dan/haiku-intel-gpu/experimental/i915/tests/cpumask_model.c -o /home/dan/i915-vm/raw-lock-port-001/cpu-model-001/4.o

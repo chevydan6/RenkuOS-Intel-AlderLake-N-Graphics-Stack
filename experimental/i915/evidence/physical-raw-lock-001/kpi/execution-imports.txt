@@ -1,0 +1,3 @@
+                 U i915_request_timeline
+                 U panic
+                 U renku_ring_wait_for_space

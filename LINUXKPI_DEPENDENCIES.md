@@ -186,3 +186,18 @@ issues with 44 header-order controls. The 99 imports remain byte-exact. Later fu
 GEM/ring builds fail on VM bounds/page layout, raw spinlock types and physical-GEM
 RCU/device-number/bit-unlock dependencies. See physical-cpumask-001 and the exact
 scope in completion/README.md. Full i915 build/GPU execution remain absent.
+
+## Original lock structure and bit-spin prerequisites
+
+Original Linux raw_spinlock_t, spinlock_t and rwlock_t structures now wrap native
+architecture primitives. Adapters select rlock/raw_lock fields explicitly; raw
+and regular types remain distinct. Original bit-spin methods use real native
+preemption plus compiler acquire/release bits, with flags in a word protected
+by the same lock for non-atomic unlock. Native four-run tests pass 187144 checks
+and 32000 bit updates; VMA/KPI regressions and clean unload pass separately.
+
+The 104 unchanged imports include lib/bitmap.c, from which only the complete
+original __bitmap_equal body is extracted for linking. No general bitmap allocator/
+parser is supplied. Host mutation/oracle and native evidence are in raw-lock-host-001
+and physical-raw-lock-001. Later dependencies are VM bounds/page layout, logging/
+task declarations, and physical-GEM RCU/device-number integration.

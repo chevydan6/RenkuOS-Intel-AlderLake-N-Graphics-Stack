@@ -173,3 +173,12 @@ previous search/completion/preemption coverage; VMA/KPI regressions unload clean
 This removes an accidental single-CPU fallback and advances full-source compilation
 to later VM and raw-lock integration. It supplies neither a replacement native
 GPU driver nor GPU workloads/performance data. See physical-cpumask-001.
+
+## Original raw-lock and bit-spin reuse result
+
+Original Linux lock structures and complete bit-spin algorithms now operate over
+native OS primitives. Four46786-check native runs include two bit workers each;
+32000 protected updates and VMA/KPI regressions pass with actual unload. The native
+input outage preceded deployment and was recovered by the user's restart. This
+is tested compatibility progress, not a GPU workload/performance result or full
+i915 build. Later VM/service failures remain preserved in physical-raw-lock-001.

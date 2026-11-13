@@ -635,3 +635,31 @@ RCU, __clear_bit_unlock and bounds dependencies. Actual failures are preserved
 in physical-cpumask-001. No fake page structures or scheduler were supplied.
 No complete i915 build or GPU execution is demonstrated. See completion/README.md
 for fixed-topology ownership, namespace choices and original search warnings.
+
+## Original raw lock layouts and bit-spin port — 2026-11-14
+
+104 unique unchanged Linux imports now include original raw/regular/RW lock
+structures and complete bit_spinlock.h. Architecture storage delegates to native
+spin/rw locks; regular and raw types are distinct and original initializers work.
+Shared per-CPU IRQ scopes retain restore state. Native bit-lock algorithms use
+actual preemption exclusion and release/acquire bit operations.
+
+Actual N100 GCC13.3/SDK518 compilation and four 46786-check runs pass (187144),
+including eight bit workers and 32000 protected updates. Four648-check VMA and
+four 62-check KPI regressions pass with actual unload, unchanged graphics and
+48000 VMA stress operations. All 7058 payload entries verify before and after tests.
+Host sanitizer 46742 checks, models, 54 header-order controls, 19 native-source probes
+and old regressions pass. Link diagnostics exposed a previously optimized-away
+__bitmap_equal dependency; its complete original function is now extracted from
+manifested lib/bitmap.c. Dirty-tail mutation is rejected; no full bitmap port claim.
+
+NanoKVM input failed before the new code transferred. User restarted RenkuOS;
+keyboard control recovered and all native work then ran visibly in Terminal.
+Cause of the earlier input failure is not inferred. Media/display baseline is
+preserved; temporary SSH stopped and lease released after collection.
+
+Whole native original files still fail: ring needs VM bounds/page layout; GTT
+also reaches logging, task-name and va_format declarations; physical GEM retains
+device-number/RCU/bounds dependencies. Exact errors are in physical-raw-lock-001.
+No full i915 build/GPU execution is claimed. Continue original service/layout
+adaptation without substituting fabricated Linux page objects.

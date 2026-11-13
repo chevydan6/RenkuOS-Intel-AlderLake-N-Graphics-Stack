@@ -1,0 +1,10 @@
+{
+  "entries": 7058,
+  "initialOK": 7058,
+  "finalOK": 7058,
+  "failures": 0,
+  "manifestSHA256": "f894ae547286984a1f353a1f391635f423bf4c17f81cc8d6c7e4eb57b802b27f",
+  "finalCheckLogSHA256": "a962fc553721cd5fe86bb80c1efbcf741a1ec05502a8aeabd1ea75090669d8c9",
+  "sourceOverlay": false,
+  "laterRepositoryChanges": "documentation/evidence only"
+}

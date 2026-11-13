@@ -1,0 +1,78 @@
+[
+  {
+    "source": "upstream/kernel/sched/completion.c",
+    "exit": 0
+  },
+  {
+    "source": "upstream/kernel/sched/swait.c",
+    "exit": 0
+  },
+  {
+    "source": "src/completion_sched.c",
+    "exit": 0
+  },
+  {
+    "source": "src/task_identity.c",
+    "exit": 0
+  },
+  {
+    "source": "src/time.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_locks.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_irq_scopes.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_rwlocks.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_preempt.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_diagnostics.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_cpumask.c",
+    "exit": 0
+  },
+  {
+    "source": "src/cpumask_state.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_alloc.c",
+    "exit": 0
+  },
+  {
+    "source": "src/native_services.c",
+    "exit": 0
+  },
+  {
+    "source": "completion/native_test.c",
+    "exit": 0
+  },
+  {
+    "source": "vma/native_test.c",
+    "exit": 0
+  },
+  {
+    "source": "vm/native_test_driver.c",
+    "exit": 0
+  },
+  {
+    "source": "upstream/drm/drm_vma_manager.c",
+    "exit": 0
+  },
+  {
+    "source": "build/bitmap_equal_slice.c",
+    "exit": 0
+  }
+]

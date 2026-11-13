@@ -149,3 +149,16 @@ physical GEM requires device-number namespace, RCU lifetime/lookup, bit unlock
 and bounds integration. These need real layout/service adaptation, not invented
 page/CPU objects or no-op success. See physical-cpumask-001/whole-build. Existing
 find_bit private zero-size caveats and compiler warnings remain explicit.
+
+## Raw-lock continuation (current boundary)
+
+Original raw/regular/RW structures now use actual native architecture storage,
+with typed APIs and no raw/regular alias. Complete original bit-spin algorithms
+and the reached release-store bit unlock pass native tests. Original __bitmap_equal
+is supplied as a verified complete-function extraction; other external bitmap
+services remain unresolved. The fixed-topology and preemption limits still apply.
+
+Current native whole-file failures remain VM generated bounds/page layout, GTT
+logging/task-name/va_format declarations, and physical-GEM device-number namespace/
+RCU lifetime dependencies. See physical-raw-lock-001/whole-build. Do not create
+fake bounds, substitute page layouts, or make RCU a no-op to advance compilation.

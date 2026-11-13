@@ -1,0 +1,3 @@
+/usr/bin/ld.bfd: /home/dan/i915-vm/raw-lock-port-001/host-002/6.o: in function `bitmap_equal':
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/bitmap.h:376:(.text+0x946): undefined reference to `__bitmap_equal'
+collect2: error: ld returned 1 exit status

@@ -1,0 +1,11 @@
+{
+  "beforeNewCodeTransfer": true,
+  "keyboard": "HIDg0 write timeout",
+  "mouse": "HIDg1 write timeout",
+  "usbGadgetState": "configured",
+  "remoteResetPulse": "sent with no verified reboot",
+  "recovery": "user restarted RenkuOS; live desktop and keyboard control verified before source transfer",
+  "cause": "not established",
+  "nanokvmHidResetUsed": false,
+  "mediaPreserved": "/root/renku-gpu-test-004/disk.img"
+}

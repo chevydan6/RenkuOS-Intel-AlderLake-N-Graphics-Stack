@@ -1,0 +1,23 @@
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/compiler_types.h:7,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:13,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/minmax.h:4,
+                 from /home/dan/i915-vm/raw-lock-port-001/host-004/build_bug_rejected.c:1:
+/home/dan/i915-vm/raw-lock-port-001/host-004/build_bug_rejected.c: In function ‘check’:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/compiler_types.h:425:45: error: call to ‘__compiletime_assert_0’ declared with attribute error: BUILD_BUG_ON failed: 1
+  425 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+      |                                             ^
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/compiler_types.h:406:25: note: in definition of macro ‘__compiletime_assert’
+  406 |                         prefix ## suffix();                             \
+      |                         ^~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/compiler_types.h:425:9: note: in expansion of macro ‘_compiletime_assert’
+  425 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+      |         ^~~~~~~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/../upstream/linux/build_bug.h:39:37: note: in expansion of macro ‘compiletime_assert’
+   39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+      |                                     ^~~~~~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/../upstream/linux/build_bug.h:50:9: note: in expansion of macro ‘BUILD_BUG_ON_MSG’
+   50 |         BUILD_BUG_ON_MSG(condition, "BUILD_BUG_ON failed: " #condition)
+      |         ^~~~~~~~~~~~~~~~
+/home/dan/i915-vm/raw-lock-port-001/host-004/build_bug_rejected.c:3:18: note: in expansion of macro ‘BUILD_BUG_ON’
+    3 | int check(void) {BUILD_BUG_ON(1); return 0;}
+      |                  ^~~~~~~~~~~~
