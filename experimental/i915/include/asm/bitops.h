@@ -28,6 +28,13 @@ RENKU_TEST_BIT_OP(test_and_change_bit, xor, BIT_MASK(nr))
 #undef RENKU_TEST_BIT_OP
 static inline void clear_bit_unlock(unsigned long nr, volatile unsigned long *addr)
 { __atomic_fetch_and(addr + BIT_WORD(nr), ~BIT_MASK(nr), __ATOMIC_RELEASE); }
+/* All other flags in this word must be protected by the same bit lock. */
+static inline void __clear_bit_unlock(unsigned long nr, volatile unsigned long *addr)
+{
+	volatile unsigned long *word = addr + BIT_WORD(nr);
+	unsigned long old = __atomic_load_n(word, __ATOMIC_RELAXED);
+	__atomic_store_n(word, old & ~BIT_MASK(nr), __ATOMIC_RELEASE);
+}
 static inline bool test_and_set_bit_lock(unsigned long nr, volatile unsigned long *addr)
 { return !!(__atomic_fetch_or(addr + BIT_WORD(nr), BIT_MASK(nr), __ATOMIC_ACQUIRE) & BIT_MASK(nr)); }
 #endif

@@ -204,3 +204,45 @@ GEM retains device-number/RCU/bit-unlock and VM-layout dependencies. No syntheti
 Linux page layout or scheduler was added to hide those errors. See
 ../evidence/physical-cpumask-001 and ../evidence/cpumask-host-001. Existing original
 find_bit warnings and private nth-search preconditions described above still apply.
+
+## Original raw lock structures and bit-spin algorithms
+
+Linux's original raw_spinlock_t, spinlock_t and rwlock_t structures and static
+initializers now wrap native architecture storage. Raw and regular locks are
+distinct C types; regular methods select their original rlock member, and native
+raw/RW backends use the original raw_lock member. The native saved-IRQ field was
+removed from individual locks; the already tested shared CPU scope manager owns
+that state. Host architecture storage uses actual pthread locks. RT, debug-spin
+and lockdep instrumentation remain unsupported rather than successful no-ops.
+
+Complete original bit_spinlock.h algorithms now run over native preemption and
+compiler atomic bit methods. __clear_bit_unlock provides the weaker release-store
+operation; all flags in the word must share that bit lock, as upstream requires.
+Actual native cases cover failed trylock restoring its nested scope, both unlock
+forms preserving flags, nested preemption and original raw/regular/RW initializers.
+Two kernel workers start through an original completion gate and perform 8000
+protected updates per run, checking value/mirror consistency. Their lifetimes
+overlap; no contention counter or exhaustive scheduling claim is made.
+
+A linker failure after the layout change exposed __bitmap_equal, previously
+optimized out of constant-size calls. The full original lib/bitmap.c is imported;
+extract-bitmap.py verifies its hash and extracts only the complete, unchanged
+__bitmap_equal function with a function hash. Its generated C/metadata are
+exported in native bundles. Empty, partial/multiword, dirty-tail and differing
+bit cases compare with an independent oracle; an ignored-tail-mask mutation
+must abort. This supplies that helper, not the complete bitmap library or its
+allocation/parsing services. All 104 imports remain byte-exact.
+
+Four actual N100 runs pass 46786 checks each, with eight total bit workers,
+32000 bit-lock updates and 96 prior waiter workers. Native VMA/KPI regressions
+and actual diagnostic unload also pass. The report is version3 with bit-worker
+metrics; its matching module/client are built together. Host ASan/UBSan passes
+46742 checks plus mutation controls; 54 header-order controls and 19 extra
+native-source object probes pass separately. Those host probes do not replace
+actual native compilation/runtime evidence. See ../evidence/physical-raw-lock-001
+and ../evidence/raw-lock-host-001. Previous find_bit warnings remain unchanged.
+
+The original complete GEM/ring compiler attempts still fail on RenkuOS. Raw-lock
+type and bit-unlock errors are resolved; later failures include Linux VM bounds/
+page layout, logging/task-name declarations and physical-GEM RCU/device-number
+integration. No invented bounds or page structures were used to hide errors.

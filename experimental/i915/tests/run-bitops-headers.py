@@ -16,7 +16,9 @@ headers = ['linux/bitops.h', 'linux/bits.h', 'linux/bitmap.h', 'linux/types.h',
            'asm/bitsperlong.h', 'asm/ioctl.h', 'vdso/bits.h', 'linux/cpumask.h',
            'linux/cache.h', 'asm/cache.h', 'asm/param.h', 'linux/limits.h',
            'uapi/linux/limits.h', 'vdso/limits.h', 'linux/kernel.h',
-           'linux/linkage.h', 'linux/threads.h', 'linux/numa.h']
+           'linux/linkage.h', 'linux/threads.h', 'linux/numa.h',
+           'linux/spinlock_types_raw.h', 'linux/spinlock_types.h',
+           'linux/spinlock.h', 'asm/spinlock_types.h', 'linux/bit_spinlock.h']
 manifest = json.loads((root/'build/target/manifest.json').read_text())
 native = manifest['objects'][0]['command']
 native = native[:native.index('-MMD')]

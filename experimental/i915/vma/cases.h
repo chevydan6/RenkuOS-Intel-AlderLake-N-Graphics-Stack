@@ -70,9 +70,9 @@ static void vma_cases(struct vma_report *r)
 	VMA_CHECK(r, drm_mm_clean(&mgr.vm_addr_space_mm));
 	drm_vma_offset_manager_destroy(&mgr);
 #ifndef RENKU_NATIVE
-	VMA_CHECK(r, pthread_rwlock_destroy(&mgr.vm_lock.native) == 0);
+	VMA_CHECK(r, pthread_rwlock_destroy(&mgr.vm_lock.raw_lock.native) == 0);
 	for (unsigned i = 0; i < 3; i++)
-		VMA_CHECK(r, pthread_rwlock_destroy(&nodes[i].vm_lock.native) == 0);
+		VMA_CHECK(r, pthread_rwlock_destroy(&nodes[i].vm_lock.raw_lock.native) == 0);
 #endif
 }
 

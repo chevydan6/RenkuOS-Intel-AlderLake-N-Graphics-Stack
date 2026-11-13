@@ -2,6 +2,7 @@
 /* Serialized native-API model, compiled with real RenkuOS declarations.
  * It tests state transitions, not actual interrupt masking or concurrency. */
 #include <linux/preempt.h>
+#include <linux/bit_spinlock.h>
 #include <linux/spinlock.h>
 #include <linux/irqflags.h>
 #include <native_irq_scopes.h>
@@ -48,7 +49,7 @@ int main(void)
 	spinlock_t spin; rwlock_t rw;
 	spin_lock_init(&spin); rwlock_init(&rw);
 	EXPECT(preemptible() && preempt_count() == 0);
-	preempt_disable(); raw_spin_lock_irq(&spin); raw_spin_unlock_irq(&spin);
+	preempt_disable(); raw_spin_lock_irq(&spin.rlock); raw_spin_unlock_irq(&spin.rlock);
 	/* This distinct code is required by the premature-enable regression control. */
 	if (enabled[0]) return 90;
 	EXPECT(preempt_count() == 1);
@@ -66,8 +67,8 @@ int main(void)
 	EXPECT(!enabled[0] && preempt_count() == 1); read_unlock(&rw); EXPECT(enabled[0]);
 	local_irq_save(saved);
 	unsigned long nested;
-	raw_spin_lock_irqsave(&spin, nested); preempt_disable();
-	raw_spin_unlock_irqrestore(&spin, nested); preempt_enable();
+	raw_spin_lock_irqsave(&spin.rlock, nested); preempt_disable();
+	raw_spin_unlock_irqrestore(&spin.rlock, nested); preempt_enable();
 	EXPECT(!enabled[0]); local_irq_restore(saved); EXPECT(enabled[0]);
 	/* Simulate two independent CPUs with overlapping scopes, not two host
 	 * threads. Separate native VMA tests cover actual concurrent readers. */
@@ -79,6 +80,15 @@ int main(void)
 	EXPECT(renku_linux_irq_backend_uninit() == B_BUSY);
 	preempt_enable(); EXPECT(enabled[0]);
 	cpu = 1; preempt_enable(); EXPECT(!enabled[1]); preempt_enable(); EXPECT(enabled[1]);
+	unsigned long bits = BIT(17);
+	bit_spin_lock(0, &bits);
+	EXPECT(preempt_count() == 1 && !enabled[1] && bit_spin_is_locked(0, &bits));
+	EXPECT(!bit_spin_trylock(0, &bits) && preempt_count() == 1);
+	__bit_spin_unlock(0, &bits);
+	EXPECT(bits == BIT(17) && enabled[1] && preempt_count() == 0);
+	EXPECT(bit_spin_trylock(0, &bits));
+	bit_spin_unlock(0, &bits);
+	EXPECT(bits == BIT(17) && enabled[1]);
 	EXPECT(renku_linux_irq_backend_uninit() == B_OK && !area_live);
 	return 0;
 }

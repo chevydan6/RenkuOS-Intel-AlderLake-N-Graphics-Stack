@@ -22,9 +22,9 @@ void renku_linux_mutex_unlock(struct mutex *m)
 	__atomic_store_n(&m->held, 0, __ATOMIC_RELEASE);
 	assert(pthread_mutex_unlock(&m->native) == 0);
 }
-void renku_linux_spin_init(spinlock_t *s) { assert(pthread_mutex_init(&s->native, NULL) == 0); }
-void renku_linux_spin_lock(spinlock_t *s) { assert(pthread_mutex_lock(&s->native) == 0); }
-void renku_linux_spin_unlock(spinlock_t *s) { assert(pthread_mutex_unlock(&s->native) == 0); }
+void renku_linux_raw_spin_init(raw_spinlock_t *s) { assert(pthread_mutex_init(&s->raw_lock.native, NULL) == 0); }
+void renku_linux_raw_spin_lock(raw_spinlock_t *s) { assert(pthread_mutex_lock(&s->raw_lock.native) == 0); }
+void renku_linux_raw_spin_unlock(raw_spinlock_t *s) { assert(pthread_mutex_unlock(&s->raw_lock.native) == 0); }
 /* IRQ execution is unavailable in userspace; never manufacture saved flags. */
-unsigned long renku_linux_spin_lock_irqsave(spinlock_t *s) { (void)s; abort(); }
-void renku_linux_spin_unlock_irqrestore(spinlock_t *s, unsigned long f) { (void)s; (void)f; abort(); }
+unsigned long renku_linux_raw_spin_lock_irqsave(raw_spinlock_t *s) { (void)s; abort(); }
+void renku_linux_raw_spin_unlock_irqrestore(raw_spinlock_t *s, unsigned long f) { (void)s; (void)f; abort(); }

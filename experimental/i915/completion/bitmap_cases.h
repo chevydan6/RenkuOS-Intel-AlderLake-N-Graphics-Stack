@@ -66,6 +66,19 @@ static void BitmapCases(struct completion_report *r)
 		}
 		for (unsigned s = 0; s < sizeof(sizes) / sizeof(sizes[0]); s++) {
 			unsigned size = sizes[s];
+			bool equal = true;
+			for (unsigned i = 0; i < size; i++)
+				if (((a[i / 64] ^ b[i / 64]) >> (i % 64)) & 1) equal = false;
+			CHECK(r, __bitmap_equal(a, b, size) == equal);
+			CHECK(r, bitmap_equal(a, b, size) == equal);
+			unsigned long dirty[3];
+			memcpy(dirty, a, sizeof(dirty));
+			for (unsigned i = size; i < 192; i++) __change_bit(i, dirty);
+			CHECK(r, __bitmap_equal(a, dirty, size));
+			if (size) {
+				__change_bit(size - 1, dirty);
+				CHECK(r, !__bitmap_equal(a, dirty, size));
+			}
 			for (unsigned start = 0; start <= size + 1; start++) {
 				CHECK(r, find_next_bit(a, size, start) == OracleFind(a,b,c,size,start,0,0));
 				CHECK(r, find_next_zero_bit(a, size, start) == OracleFind(a,b,c,size,start,0,1));
@@ -96,6 +109,7 @@ static void BitmapCases(struct completion_report *r)
 	unsigned long single = 0x8000000000000081UL;
 	CHECK(r, find_first_bit(&single, 7) == 0 && find_next_bit(&single, 7, 1) == 7);
 	CHECK(r, find_last_bit(&single, 63) == 7 && find_next_zero_bit(&single, 1, 0) == 1);
+	CHECK(r, __bitmap_equal(NULL, NULL, 0));
 	CHECK(r, find_first_bit(NULL, 0) == 0 && find_nth_bit(NULL, 0, 0) == 0);
 }
 #endif

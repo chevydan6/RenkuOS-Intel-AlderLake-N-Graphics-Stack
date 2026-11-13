@@ -14,12 +14,16 @@ a = p.parse_args()
 a.output.mkdir(parents=True, exist_ok=False)
 root = Path(__file__).resolve().parents[1]
 subprocess.run(['python3', str(root/'verify-upstream.py')], check=True)
+subprocess.run(['python3', str(root/'extract-bitmap.py')], check=True)
 original = (root/'upstream/kernel/sched/completion.c').read_text()
 copy = a.output/'completion.c'
 copy.write_text(original)
 find_original = (root/'upstream/lib/find_bit.c').read_text()
 find_copy = a.output/'find_bit.c'
 find_copy.write_text(find_original)
+equal_original = (root/'build/bitmap_equal_slice.c').read_text()
+equal_copy = a.output/'bitmap_equal_slice.c'
+equal_copy.write_text(equal_original)
 flags = ['gcc', '-D_GNU_SOURCE', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror',
          '-Wno-unused-parameter', '-Wno-sign-compare', '-fno-strict-overflow', '-pthread',
          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
@@ -28,7 +32,7 @@ objects = []
 def build():
     units = [copy, root/'upstream/kernel/sched/swait.c', root/'src/completion_sched.c',
              root/'src/task_identity.c', root/'src/time.c', root/'completion/host_backend.c',
-             root/'completion/host_test.c', root/'src/cpumask_state.c', find_copy, root/'upstream/lib/hweight.c']
+             root/'completion/host_test.c', root/'src/cpumask_state.c', equal_copy, find_copy, root/'upstream/lib/hweight.c']
     log = ''
     for i, source in enumerate(units):
         obj = a.output/(str(i)+'.o')
@@ -41,8 +45,10 @@ def build():
         (a.output/'build.log').write_text(log)
         r.check_returncode()
         if obj not in objects: objects.append(obj)
-    subprocess.run(flags+list(map(str, objects))+shlex.split(os.environ.get('SANITIZER_LDFLAGS', ''))+
-                   ['-o', str(a.output/'test')], check=True, capture_output=True, timeout=30)
+    result = subprocess.run(flags+list(map(str, objects))+shlex.split(os.environ.get('SANITIZER_LDFLAGS', ''))+
+                   ['-o', str(a.output/'test')], text=True, capture_output=True, timeout=30)
+    (a.output/'link.log').write_text(result.stdout+result.stderr)
+    result.check_returncode()
 build()
 r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
 (a.output/'run.log').write_text(r.stdout+r.stderr)
@@ -82,5 +88,13 @@ r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeo
 (a.output/'find-negative-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
 assert r.returncode == -6 and 'Assertion' in r.stderr
 find_copy.write_text(find_original)
+before_equal = '& BITMAP_LAST_WORD_MASK(bits)'
+assert equal_original.count(before_equal) == 1
+equal_copy.write_text(equal_original.replace(before_equal, '& ~0UL'))
+build()
+r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
+(a.output/'equal-negative-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+assert r.returncode == -6 and 'Assertion' in r.stderr
+equal_copy.write_text(equal_original)
 build()
 print('PASS original completion/swait under ASan/UBSan; lost completion-count regression rejected')

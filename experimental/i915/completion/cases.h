@@ -60,7 +60,7 @@ static bool UntilQueued(struct completion *completion, unsigned count)
 }
 static void FinishFixture(struct completion *completion) {
 #ifndef RENKU_NATIVE
-	assert(pthread_mutex_destroy(&completion->wait.lock.native) == 0);
+	assert(pthread_mutex_destroy(&completion->wait.lock.raw_lock.native) == 0);
 #else
 	(void)completion;
 #endif
@@ -113,16 +113,20 @@ static worker_id Spawn(struct test_worker *worker)
 static void Join(worker_id id) { if (pthread_join(id, NULL) != 0) Fatal(); }
 #endif
 
+#include "raw_lock_cases.h"
+
 static void RunCases(struct completion_report *r)
 {
-	*r = (struct completion_report){.version = 2};
+	*r = (struct completion_report){.version = 3};
 	struct task_struct task;
 	if (!renku_linux_task_register(&task)) Fatal();
 	NamespaceCases(r);
 	BitmapCases(r);
 	CPUMaskCases(r);
+	RawLayoutCases(r);
 #ifdef RENKU_NATIVE
 	PreemptCases(r);
+	NativeBitCases(r);
 #endif
 	u64 numerator = 100;
 	u32 divisor = 7;

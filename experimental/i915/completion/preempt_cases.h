@@ -20,9 +20,9 @@ static void PreemptCases(struct completion_report *r)
 	CHECK(r, preempt_count() == 1 && !interrupts_enabled());
 	/* _irq requests enable, but an outer preemption scope must keep the CPU
 	 * physically excluded until its own exit. */
-	raw_spin_lock_irq(&spin);
+	raw_spin_lock_irq(&spin.rlock);
 	CHECK(r, preempt_count() == 2);
-	raw_spin_unlock_irq(&spin);
+	raw_spin_unlock_irq(&spin.rlock);
 	CHECK(r, preempt_count() == 1 && !interrupts_enabled());
 	unsigned long flags;
 	local_irq_save(flags);
@@ -53,8 +53,8 @@ static void PreemptCases(struct completion_report *r)
 	CHECK(r, preempt_count() == 0 && interrupts_enabled());
 	local_irq_save(flags);
 	unsigned long nested;
-	raw_spin_lock_irqsave(&spin, nested); preempt_disable();
-	raw_spin_unlock_irqrestore(&spin, nested); preempt_enable();
+	raw_spin_lock_irqsave(&spin.rlock, nested); preempt_disable();
+	raw_spin_unlock_irqrestore(&spin.rlock, nested); preempt_enable();
 	CHECK(r, !interrupts_enabled() && preempt_count() == 0);
 	local_irq_restore(flags);
 	CHECK(r, interrupts_enabled() && preemptible());

@@ -87,9 +87,9 @@ int main(void)
 	refcount_set(&r, 2);
 	assert(!refcount_dec_and_lock(&r, &s));
 	assert(refcount_dec_and_lock(&r, &s));
-	assert(pthread_mutex_trylock(&s.native) != 0);
+	assert(pthread_mutex_trylock(&s.rlock.raw_lock.native) != 0);
 	spin_unlock(&s);
-	assert(pthread_mutex_destroy(&s.native) == 0);
+	assert(pthread_mutex_destroy(&s.rlock.raw_lock.native) == 0);
 
 	for (unsigned int round = 0; round < 100; ++round) {
 		struct publication p = { .ref = KREF_INIT(4) };

@@ -18,11 +18,11 @@ void *kmalloc(size_t size, gfp_t flags)
 void kfree(const void *memory) { if (memory) { assert(live); live--; free((void *)memory); } }
 void panic(const char *format, ...) { (void)format; abort(); }
 bool renku_kpi_warn(const char *format, ...) { (void)format; abort(); }
-void renku_linux_rwlock_init(rwlock_t *l) { assert(!pthread_rwlock_init(&l->native, NULL)); }
-void renku_linux_read_lock(rwlock_t *l) { assert(!pthread_rwlock_rdlock(&l->native)); }
-void renku_linux_read_unlock(rwlock_t *l) { assert(!pthread_rwlock_unlock(&l->native)); }
-void renku_linux_write_lock(rwlock_t *l) { assert(!pthread_rwlock_wrlock(&l->native)); }
-void renku_linux_write_unlock(rwlock_t *l) { assert(!pthread_rwlock_unlock(&l->native)); }
+void renku_linux_rwlock_init(rwlock_t *l) { assert(!pthread_rwlock_init(&l->raw_lock.native, NULL)); }
+void renku_linux_read_lock(rwlock_t *l) { assert(!pthread_rwlock_rdlock(&l->raw_lock.native)); }
+void renku_linux_read_unlock(rwlock_t *l) { assert(!pthread_rwlock_unlock(&l->raw_lock.native)); }
+void renku_linux_write_lock(rwlock_t *l) { assert(!pthread_rwlock_wrlock(&l->raw_lock.native)); }
+void renku_linux_write_unlock(rwlock_t *l) { assert(!pthread_rwlock_unlock(&l->raw_lock.native)); }
 
 struct argument { struct rw_stress *stress; bool writer; };
 static void *worker(void *cookie)
@@ -58,7 +58,7 @@ int main(void)
 	for (unsigned i = 0; i < 3; i++) assert(!pthread_create(&threads[i], NULL, worker, &args[i]));
 	for (unsigned i = 0; i < 3; i++) assert(!pthread_join(threads[i], NULL));
 	assert(!stress.errors && stress.value == 4000 && stress.max_readers == 2);
-	assert(!pthread_rwlock_destroy(&stress.lock.native));
+	assert(!pthread_rwlock_destroy(&stress.lock.raw_lock.native));
 	printf("PASS whole DRM VMA manager: %u checks, OOM/access controls, 12000 lock iterations, readers=%u\n",
 		report.checks, stress.max_readers);
 	return 0;

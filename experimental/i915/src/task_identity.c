@@ -4,12 +4,12 @@
 
 static struct task_struct *tasks;
 #ifdef RENKU_NATIVE
-static spinlock_t registry_lock = { .native = B_SPINLOCK_INITIALIZER };
+static DEFINE_SPINLOCK(registry_lock);
 typedef thread_id identity_t;
 static identity_t caller_id(void) { return find_thread(NULL); }
 static bool same_id(identity_t a, identity_t b) { return a == b; }
 #else
-static spinlock_t registry_lock = { .native = PTHREAD_MUTEX_INITIALIZER };
+static DEFINE_SPINLOCK(registry_lock);
 typedef pthread_t identity_t;
 static identity_t caller_id(void) { return pthread_self(); }
 static bool same_id(identity_t a, identity_t b) { return pthread_equal(a, b); }
