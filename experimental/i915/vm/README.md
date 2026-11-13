@@ -122,3 +122,22 @@ until hardware retirement/reset is established. Only then implement
 There is no success-returning GPU ioctl or CPU-written fake result here. The
 existing CPU probe can preflight native services in a later physical test,
 but its PASS says nothing about GPU execution.
+
+## Physical N100 run
+
+The exact native-006 source bundle also passed on the live four-core Intel N100
+with GPU 8086:46d1 and bridge 8086:461c. The machine runs hrev60072+518 from the
+external RenkuTest USB volume, with matching haiku_devel and GCC13.3. It compiled
+its own driver/client/execution object; no newer VM binary was installed.
+
+Actual build/tests were launched through NanoKVM keyboard into fullscreen
+Terminal. `evidence/physical-n100-001/run-visible.sh` records the wrapper, which
+follows real build output and prints all client results. SSH handles transfers
+and evidence collection. The identical suite passes 16 × 62 checks; timeouts
+measured 25003–25023 us. Native syslog confirms INIT/UNINIT status=0 and strict
+postchecks confirm removal of the test driver/device. Intel/display drivers
+and the attached boot image were preserved, and no GPU work was submitted.
+
+Reviewed results are under `../evidence/physical-n100-001`. Raw archives and
+screenshots remain in `/home/dan/i915-vm/evidence`, with local binaries also in
+`../build/physical-n100-001`. The physical machine is left running RenkuOS.

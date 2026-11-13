@@ -1,0 +1,129 @@
++ installed=0
++ driver=/boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_linuxkpi_test
++ device=/boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test
++ trap cleanup EXIT
++ uname -a
++ sha256sum -c manifest.sha256
++ bash vm/build-native.sh
++ set -eu
+++ dirname vm/build-native.sh
++ cd vm/..
+++ uname -s
++ test Haiku = Haiku
+++ uname -m
++ test x86_64 = x86_64
++ mkdir -p build/native
++ gcc --version
++ uname -a
++ ls /boot/system/packages/haiku_devel-r1~beta6_hrev60072_518-1-x86_64.hpkg /boot/system/packages/libjpeg_turbo_devel-3.1.4.1-1-x86_64.hpkg /boot/system/packages/libpng16_devel-1.6.53-1-x86_64.hpkg /boot/system/packages/mesa_devel-22.0.5-3-x86_64.hpkg /boot/system/packages/openssl3_devel-3.5.7-1-x86_64.hpkg /boot/system/packages/zlib_devel-1.3.2-1-x86_64.hpkg /boot/system/packages/zstd_devel-1.5.6-2-x86_64.hpkg
++ python_command=
++ command -v python3
++ '[' -n '' ']'
++ kernel_flags=(-std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support)
++ objects=()
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename upstream/drm/drm_mm
++ object=build/native/drm_mm.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c upstream/drm/drm_mm.c -o build/native/drm_mm.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename upstream/lib/rbtree
++ object=build/native/rbtree.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c upstream/lib/rbtree.c -o build/native/rbtree.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename upstream/lib/refcount
++ object=build/native/refcount.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c upstream/lib/refcount.c -o build/native/refcount.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename src/native_locks
++ object=build/native/native_locks.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c src/native_locks.c -o build/native/native_locks.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename src/task_identity
++ object=build/native/task_identity.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c src/task_identity.c -o build/native/task_identity.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename src/time
++ object=build/native/time.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c src/time.c -o build/native/time.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename src/native_services
++ object=build/native/native_services.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c src/native_services.c -o build/native/native_services.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename src/native_diagnostics
++ object=build/native/native_diagnostics.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c src/native_diagnostics.c -o build/native/native_diagnostics.o
++ objects+=("$object")
++ for unit in upstream/drm/drm_mm.c upstream/lib/rbtree.c upstream/lib/refcount.c src/native_locks.c src/task_identity.c src/time.c src/native_services.c src/native_diagnostics.c vm/native_test_driver.c
+++ basename vm/native_test_driver
++ object=build/native/native_test_driver.o
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c vm/native_test_driver.c -o build/native/native_test_driver.o
++ objects+=("$object")
++ gcc -shared -nostdlib -Wl,--no-undefined -Wl,-soname,i915_linuxkpi_test -Wl,-z,max-page-size=0x1000 -o build/native/i915_linuxkpi_test.driver build/native/drm_mm.o build/native/rbtree.o build/native/refcount.o build/native/native_locks.o build/native/task_identity.o build/native/time.o build/native/native_services.o build/native/native_diagnostics.o build/native/native_test_driver.o -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
++ gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Ivm -I/boot/system/develop/headers/os/drivers vm/native_test_client.c -o build/native/linuxkpi_native_probe
++ for unit in intel_ring_slice gen8_engine_slice
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c build/intel_ring_slice.c -o build/native/intel_ring_slice.o
++ for unit in intel_ring_slice gen8_engine_slice
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Ivm -I/boot/system/develop/headers/os/drivers -I/boot/system/develop/headers/os/kernel -I/boot/system/develop/headers/os/support -MMD -c build/gen8_engine_slice.c -o build/native/gen8_engine_slice.o
++ ld -r -o build/native/i915_execution_preparation.o build/native/intel_ring_slice.o build/native/gen8_engine_slice.o
++ nm -u build/native/i915_execution_preparation.o
++ sha256sum build/native/i915_linuxkpi_test.driver build/native/linuxkpi_native_probe build/native/i915_execution_preparation.o
++ nm -u build/native/i915_linuxkpi_test.driver
++ echo 'Native build complete; module has not been installed or run by this script.'
+Native build complete; module has not been installed or run by this script.
++ sync
++ test '!' -e /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_linuxkpi_test
++ test '!' -e /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test
+++ dirname /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_linuxkpi_test
+++ dirname /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test
++ mkdir -p /boot/system/non-packaged/add-ons/kernel/drivers/bin /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc
++ installed=1
++ cp build/native/i915_linuxkpi_test.driver /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_linuxkpi_test
++ ln -s ../../bin/i915_linuxkpi_test /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test
++ sync
++ published=0
++ for attempt in {1..100}
++ ls /dev/misc
++ '[' -e /dev/misc/i915_linuxkpi_test ']'
++ sleep 0.1
++ for attempt in {1..100}
++ ls /dev/misc
++ '[' -e /dev/misc/i915_linuxkpi_test ']'
++ published=1
++ break
++ test 1 -eq 1
++ echo 'Running native kernel tests'
+Running native kernel tests
++ build/native/linuxkpi_native_probe --repeat 8
++ first=1638
++ build/native/linuxkpi_native_probe --repeat 4
++ second=1639
++ set +e
++ wait 1638
++ build/native/linuxkpi_native_probe --repeat 4
++ first_status=0
++ wait 1639
++ second_status=0
++ set -e
++ test 0 -eq 0
++ test 0 -eq 0
++ cp build/native/kernel.txt build/native/compiler.txt build/native/devel-packages.txt build/native/binaries.sha256 build/native/imports.txt build/native/execution-imports.txt validation/
++ echo 'PASS native kernel services, repeated and concurrent clients; GPU execution not tested'
+PASS native kernel services, repeated and concurrent clients; GPU execution not tested
++ cleanup
++ result=0
++ '[' 1 -eq 1 ']'
++ rm -f /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_linuxkpi_test
++ '[' -e /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test ']'
++ '[' -L /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/i915_linuxkpi_test ']'
++ '[' -e /boot/system/non-packaged/add-ons/kernel/drivers/bin/i915_linuxkpi_test ']'
++ echo 0
++ sync
++ exit 0

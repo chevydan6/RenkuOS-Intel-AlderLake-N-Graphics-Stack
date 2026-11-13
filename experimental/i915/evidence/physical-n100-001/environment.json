@@ -1,0 +1,32 @@
+{
+  "evidenceClass": "NATIVE_PHYSICAL_KERNEL_CPU_SELFTEST",
+  "gpuSubmission": false,
+  "hardware": "Intel N100, four cores",
+  "pciHostBridge": "8086:461c",
+  "pciGPU": "8086:46d1",
+  "kernel": "hrev60072+518, x86_64, Nov 3 2026 12:29",
+  "sdk": "haiku_devel-r1~beta6_hrev60072_518-1",
+  "compiler": "GCC 13.3.0 (2023_08_10)",
+  "bootVolume": "RenkuTest",
+  "bootDevice": "/dev/disk/usb/0/0/1",
+  "runs": 16,
+  "checksPerRun": 62,
+  "pagesAllocatedAndFreed": 64,
+  "kernelWorkers": 32,
+  "iterationsPerLockAndReferencePath": 64000,
+  "timeoutRequestedUs": 25000,
+  "timeoutObservedUs": [
+    25003,
+    25023
+  ],
+  "sourceBundleSHA256": "d883a67e04c4b6d562faadd3c34ca98e1c97338ffd9e237089e7c4e824c2aa49",
+  "inputCodeCheckpoint": "a9cd385",
+  "binaryDirectory": "/home/dan/i915-vm/evidence/physical-001/i915-linuxkpi-native/build/native",
+  "consoleScreenshot": "/home/dan/i915-vm/evidence/nanokvm-image-1794558380017140274-0.jpg",
+  "notes": [
+    "Native build/tests launched by keyboard into actual fullscreen Terminal through NanoKVM.",
+    "SSH used for source transfer and evidence collection.",
+    "No Intel driver/display modifications or GPU command submission.",
+    "Temporary test driver files removed; native INIT/UNINIT status=0 recorded."
+  ]
+}

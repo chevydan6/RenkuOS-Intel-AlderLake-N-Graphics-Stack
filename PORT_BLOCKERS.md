@@ -22,6 +22,9 @@
 Resolved, evidence retained:
 - Missing VM/toolchain: actual RenkuOS build00081 runs under KVM with matching
   SDK. Native driver passes 16 × 62 checks; UNINIT status=0 confirms teardown.
+- Physical target access: restored using the user-supplied NanoKVM connection.
+  Actual N100 hrev60072+518 compilation and kernel-service suite pass another
+  16 × 62 checks with matching GCC13.3/SDK. No GPU-execution result is implied.
 - Kernel-worker join panic (066): exact guest source establishes no cached
   death entry for kernel threads. Completed, absent-ID late joins are handled
   explicitly; live/unknown-error cases remain fatal. Final native tests pass.

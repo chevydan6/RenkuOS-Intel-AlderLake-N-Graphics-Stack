@@ -1,0 +1,8 @@
+Kernel name: kernel_x86_64 built on: Nov  3 2026 12:29:33 version 0xa01
+4 Intel N100, revision b06e0 running at 800MHz
+
+CPU #0: "Intel(R) N100"
+	Frequency: 3092.181
+	Signature: 0x0b06e0; Type 0, family 6, model 190, stepping 0
+	Features: 0xbfebfbff
+		FPU, VME, DE, PSE, TSC, MSR, PAE, MCE, CX8, APIC, SEP, MTRR, PGE, MCA, CMOV, PAT

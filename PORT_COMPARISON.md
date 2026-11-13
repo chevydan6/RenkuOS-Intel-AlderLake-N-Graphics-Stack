@@ -87,3 +87,14 @@ store. Native wired physical pages do not solve DMA or GPU address translation.
 No CPU-service timing here measures GPU throughput, compatibility overhead,
 Mesa readiness or time to first execution. Full LinuxKPI superiority remains
 unproven against the native branch's existing physical GT/memory/context work.
+
+## Physical N100 service result
+
+The same source now builds and runs on the actual four-core N100, using its
+older hrev60072+518 kernel, matching SDK and GCC13.3. Sixteen runs × 62 checks
+pass again, with actual module teardown and persistent HDMI console output.
+This removes uncertainty about these selected CPU adapters being VM-only or
+dependent on the newer guest SDK. GPU-address ownership, GT/context setup,
+submission, retirement and the broader Linux dependencies remain unresolved.
+Physical CPU-service success still does not establish GPU performance overhead
+or a shorter path to Mesa, and does not select the full Linux port as superior.

@@ -3,8 +3,9 @@
 Mission incomplete. Branch experiment/i915-linuxkpi starts at GPU branch commit
 30dfdb32957215b4c59da3ac763ba14ab0c482d0. Existing display and patches are untouched.
 
-Current checkpoint: a native RenkuOS VM has built, loaded, tested and unloaded
-the CPU kernel-services driver. Final suite: 16 runs × 62 checks, zero failures.
+Current checkpoint: both a native RenkuOS VM and the physical Intel N100 have
+built, loaded, tested and unloaded the CPU kernel-services driver. Each final
+suite passes 16 runs × 62 checks with zero failures.
 Original Linux ring/emitter bodies compile with the guest SDK to a partial
 execution object. No GPU command has run. Historical checkpoints below retain
 earlier limitations; the final VM section supersedes their missing-tool/runtime
@@ -383,3 +384,35 @@ physical addresses nor command encoding provide valid DMA/GPU mapping.
 gpu_exec_probe remains absent until real execution mechanisms exist; a CPU
 write must not stand in for its store. Physical N100 submission/completion and
 the full-port comparison remain open.
+
+## Physical N100 checkpoint
+
+The user supplied access to the live N100 through NanoKVM. Recovered its actual
+authenticated MCP screenshot/keyboard interface and used the existing KVM-side
+physical-test lock. Original attached image/media and Intel/display drivers
+were preserved. Absolute mouse input failed with ENXIO; keyboard control works.
+
+Fullscreen Terminal inspection confirms RenkuOS hrev60072+518, four Intel N100
+cores, host bridge 8086:461c and GPU 8086:46d1. Boot volume is RenkuTest on
+/dev/disk/usb/0/0/1. Existing GCC13.3 and haiku_devel hrev60072_518 match this
+older physical kernel; no VM binaries or mismatched SDK were installed.
+
+Transferred the exact verified source bundle from the VM experiment. Actual
+native compilation and tests were launched using NanoKVM keyboard into the
+visible Terminal; SSH transferred files and collected logs. The native driver,
+client and original Linux execution partial object all compile on the N100.
+The physical suite passes 16 × 62 checks, 64 page allocations/frees, 32 real
+kernel workers and 64000 lock/reference-path iterations. Requested 25000-us
+timeouts measured 25003–25023 us. These times are not a GPU performance result.
+
+Evidence is experimental/i915/evidence/physical-n100-001/, including native
+compiler commands, all client results, PCI/CPU identity excerpts, artifact
+hashes and real INIT/UNINIT status=0. Strict postchecks confirm the experimental
+test driver and device were removed. Raw archives/binaries and the actual
+NanoKVM screenshot remain outside Git under /home/dan/i915-vm; a local artifact
+copy also exists at experimental/i915/build/physical-n100-001/.
+
+This resolves physical validation of the selected CPU kernel-services subset.
+No GPU commands, engine initialization, GPU mappings or Intel-driver replacement
+occurred. The execution object's timeline/space-wait imports remain unresolved;
+the next implementation task above is unchanged. gpu_exec_probe is not present.

@@ -1,0 +1,9 @@
+
+device Bridge (Host bridge) [6|0|0]
+  vendor 8086: Intel Corporation
+  device 461c: Unknown
+
+device Display controller (VGA compatible controller, VGA controller) [3|0|0]
+  vendor 8086: Intel Corporation
+  device 46d1: Alder Lake-N [UHD Graphics]
+
