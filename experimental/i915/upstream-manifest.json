@@ -150,6 +150,36 @@
       "linuxPath": "drivers/gpu/drm/i915/gt/intel_gpu_commands.h",
       "gitBlob": "2bd8d98d211023cb927aa12caa308243ee5fe3cb",
       "sha256": "ffc8a2ddda7aea4c0ed9fb2648dc2ef13ebb92a06efad05b3478b8d26950b664"
+    },
+    {
+      "path": "linux/scatterlist.h",
+      "linuxPath": "include/linux/scatterlist.h",
+      "gitBlob": "77df3d7b18a616becd6ed1519daa25b5116d6e6b",
+      "sha256": "dfb8815356d5096780d7c0d6fa9d623d64701aed81604b7c59722aa123996f46"
+    },
+    {
+      "path": "linux/dma-direction.h",
+      "linuxPath": "include/linux/dma-direction.h",
+      "gitBlob": "a2fe4571bc9279a01fde8de76e0aa85bf3b5fbbd",
+      "sha256": "72a8aa889dc17dac3f58e7c674fbf9bdaa8d45b9f7d2f9e4b09795f22749b899"
+    },
+    {
+      "path": "gem/i915_gem_gtt.c",
+      "linuxPath": "drivers/gpu/drm/i915/i915_gem_gtt.c",
+      "gitBlob": "7bd1861ddbdfbd60acf7342d07988cc604df2101",
+      "sha256": "8f4679ab718d709354e153f8717bf8153f37fda2a9b1bdfd7defcdfd4481cba6"
+    },
+    {
+      "path": "gem/i915_gem_phys.c",
+      "linuxPath": "drivers/gpu/drm/i915/gem/i915_gem_phys.c",
+      "gitBlob": "76efe98eaa147be4d075438f131de6934340d04a",
+      "sha256": "71b594d0a3254c48cf05878d70f806bcbd11ff6650b43c1932d3ee242ab90cd2"
+    },
+    {
+      "path": "lib/scatterlist.c",
+      "linuxPath": "lib/scatterlist.c",
+      "gitBlob": "68b45c82c37a6981bb72cc79ab4c4fcac8e2e489",
+      "sha256": "3ffa1026d765bd504bbc7951f817d9657c27b7e990868ce02da20d0f988cfe99"
     }
   ]
 }

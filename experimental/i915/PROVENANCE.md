@@ -101,3 +101,32 @@ I915_DISPATCH_SECURE in emitter_port.h retains BIT(0) from Linux v6.6
 intel_engine_types.h (MIT, Intel Corporation 2019). Original emitter bodies and
 intel_ring_advance are extracted unchanged; native object/query interfaces and
 CPU integration tests are new MIT code. Tests are not GPU execution evidence.
+
+Ported-from: Linux/v6.6/include/linux/scatterlist.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/dma-direction.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/drivers/gpu/drm/i915/i915_gem_gtt.c
+Ported-from-license: MIT
+
+Ported-from: Linux/v6.6/drivers/gpu/drm/i915/gem/i915_gem_phys.c
+Ported-from-license: MIT
+
+Ported-from: Linux/v6.6/lib/scatterlist.c
+Ported-from-license: GPL-2.0-or-later
+
+The byte-exact scatterlist header is used directly. Initial DMA compilation
+links unchanged sg_next/sg_init_table bodies; other scatterlist.c operations
+remain outside that link until their kernel dependencies are ported.
+
+The native DMA bundle exports bus_dma.cpp, malloc.cpp and their surrounding
+headers unchanged from RenkuOS revision 4799bb5a188c4bb6bbef967287640cc21a061a0d.
+The original license notices remain in that exported tree; it is not vendored here.
+
+Ported-from: RenkuOS/4799bb5a188c4bb6bbef967287640cc21a061a0d/src/libs/compat/freebsd_network/bus_dma.cpp
+Ported-from-license: MIT
+
+Ported-from: RenkuOS/4799bb5a188c4bb6bbef967287640cc21a061a0d/src/libs/compat/freebsd_network/malloc.cpp
+Ported-from-license: MIT
