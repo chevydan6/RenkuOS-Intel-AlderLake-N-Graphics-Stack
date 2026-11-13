@@ -1,0 +1,5 @@
+In file included from <command-line>:
+/tmp/renku-investigation/headers/os/drivers/KernelExport.h:9:10: fatal error: SupportDefs.h: No such file or directory
+    9 | #include <SupportDefs.h>
+      |          ^~~~~~~~~~~~~~~
+compilation terminated.

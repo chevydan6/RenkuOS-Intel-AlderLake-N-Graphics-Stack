@@ -1,0 +1,6 @@
+python3 extract.py
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-builtin -mno-red-zone -fno-stack-protector -Iinclude -MMD -c build/intel_ring_slice.c -o build/intel_ring_slice.o
+nm -u build/intel_ring_slice.o
+                 U i915_request_timeline
+                 U panic
+                 U renku_ring_wait_for_space

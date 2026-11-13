@@ -1,0 +1,7 @@
+HOST COMPILATION ONLY — no native module or hardware execution
+gcc (GCC) 16.2.1 20260819 (Red Hat 16.2.1-2)
+build/intel_ring_slice.o: ELF 64-bit LSB relocatable, x86-64, SYSV
+SHA256 65f5a28c858ddd0bb1c4d105258165efa2d3a1c4580ad1af6948c113093e878e
+Undefined: i915_request_timeline, panic, renku_ring_wait_for_space
+Reproduce: cd experimental/i915 && make host-object
+Object retained in local build directory; rebuild rather than load this host object.

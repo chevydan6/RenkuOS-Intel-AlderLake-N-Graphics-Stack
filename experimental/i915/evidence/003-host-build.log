@@ -1,0 +1,9 @@
+python3 extract.py
+Traceback (most recent call last):
+  File "/home/dan/i915-linuxkpi/experimental/i915/extract.py", line 11, in <module>
+    assert hashlib.sha1(b'blob ' + str(len(source.read_bytes())).encode()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        + b'\0' + source.read_bytes()).hexdigest() == '59da4b7bd262058855d18023bbec71e8e0618793'
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+make: *** [Makefile:6: host-object] Error 1

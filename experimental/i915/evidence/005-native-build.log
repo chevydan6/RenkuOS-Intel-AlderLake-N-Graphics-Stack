@@ -1,0 +1,9 @@
+python3 extract.py
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-builtin -mno-red-zone -fno-stack-protector -I/tmp/renku-investigation/headers/os/drivers -DRENKU_NATIVE -Iinclude -MMD -c build/intel_ring_slice.c -o build/intel_ring_slice.native.o
+In file included from include/ring_port.h:8,
+                 from build/intel_ring_slice.c:5:
+/tmp/renku-investigation/headers/os/drivers/KernelExport.h:9:10: fatal error: SupportDefs.h: No such file or directory
+    9 | #include <SupportDefs.h>
+      |          ^~~~~~~~~~~~~~~
+compilation terminated.
+make: *** [Makefile:11: native-object] Error 1
