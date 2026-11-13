@@ -390,6 +390,138 @@
       "linuxPath": "include/linux/panic.h",
       "gitBlob": "6717b15e798c38904a19ef14bb7dd84fc2a01bb6",
       "sha256": "22476a30b628b088ba06042e10be559f2cda7510e51e04e5fc5d3695e04528f0"
+    },
+    {
+      "path": "linux/bitops.h",
+      "linuxPath": "include/linux/bitops.h",
+      "gitBlob": "2ba557e067fe69d4d96b5472721001e87a6535cc",
+      "sha256": "c1d95788a1350bf5ce88a3a52b8b270395d31bcc01351e424cf6179396806d0b"
+    },
+    {
+      "path": "linux/bits.h",
+      "linuxPath": "include/linux/bits.h",
+      "gitBlob": "7c0cf5031abe8796fc40c7307ddfde4832f2655d",
+      "sha256": "2b6b1a5c8f37576ba6221968af64c1894eec2c6f343a005fb2a0bc432554ede0"
+    },
+    {
+      "path": "linux/typecheck.h",
+      "linuxPath": "include/linux/typecheck.h",
+      "gitBlob": "46b15e2aaefb4e7a4d21c8797ec4d1578998981c",
+      "sha256": "a456610ba55e62234f7c830d6017d3bd17b3c97397b9e5eb009b758da13aa878"
+    },
+    {
+      "path": "vdso/bits.h",
+      "linuxPath": "include/vdso/bits.h",
+      "gitBlob": "388b212088ea6a38383918d9d46b82321b11c3d3",
+      "sha256": "ef5190bae70874421bd1cd564885f483787203cb65485af5104d57991238538b"
+    },
+    {
+      "path": "asm-generic/bitsperlong.h",
+      "linuxPath": "include/asm-generic/bitsperlong.h",
+      "gitBlob": "1023e2a4bd372fae7f4568f3d85c707518b2bb84",
+      "sha256": "09c1354e4daa869af60b1b9ae76a0f7a5362bb0fc0be62d64c8ad51e3d19aa87"
+    },
+    {
+      "path": "linux/find.h",
+      "linuxPath": "include/linux/find.h",
+      "gitBlob": "5e4f39ef2e72cc00b5924f048d60394e6e579313",
+      "sha256": "3fff4187ba9e62cfd2407737e18b1b635c4f5d086aed0dd7cbc40da20769590b"
+    },
+    {
+      "path": "linux/bitmap.h",
+      "linuxPath": "include/linux/bitmap.h",
+      "gitBlob": "03644237e1efb5316b62e9831515d12b9f9f28b6",
+      "sha256": "bab5104eef18431bdb1f151881323429c2a677ddf2fc0c22a9325db7d22b7cc5"
+    },
+    {
+      "path": "lib/find_bit.c",
+      "linuxPath": "lib/find_bit.c",
+      "gitBlob": "32f99e9a670e64fcdc8e9a7e67d29df199486a69",
+      "sha256": "fb8f9c2a6c144d15e95c2a0d9ca52bf955aee403e15e33ddf2a86790a55e0221"
+    },
+    {
+      "path": "lib/hweight.c",
+      "linuxPath": "lib/hweight.c",
+      "gitBlob": "c94586b6255187906cfde38fda8b84f33c9fc21f",
+      "sha256": "c4da85f3aab22244a6029b5745e3d74efdc310a5227951ef82df4219af4f9931"
+    },
+    {
+      "path": "uapi/asm-generic/ioctl.h",
+      "linuxPath": "include/uapi/asm-generic/ioctl.h",
+      "gitBlob": "a84f4db8a25050bf4c9fadeff7a881ab75283986",
+      "sha256": "5764a3378f017c826ab55382386c5e477c8c8d34ff026cc9e02cff10f2a23bdb"
+    },
+    {
+      "path": "asm-generic/bitops/generic-non-atomic.h",
+      "linuxPath": "include/asm-generic/bitops/generic-non-atomic.h",
+      "gitBlob": "564a8c675d85898a601e889ab471880ef70c8068",
+      "sha256": "2a8c37f42a26734a4313527789c6ad5b0e3437558820456b3e64c08f497b5e80"
+    },
+    {
+      "path": "asm-generic/bitops/non-atomic.h",
+      "linuxPath": "include/asm-generic/bitops/non-atomic.h",
+      "gitBlob": "71f8d54a5195e919bb51e3311df3150b087fbacd",
+      "sha256": "63fe3d20abd80251f1377a20dd4d6701ea57895070bf3e4d34101db28faec20c"
+    },
+    {
+      "path": "asm-generic/bitops/non-instrumented-non-atomic.h",
+      "linuxPath": "include/asm-generic/bitops/non-instrumented-non-atomic.h",
+      "gitBlob": "0ddc78dfc358bece4d4f6a40036e0e11e73684b5",
+      "sha256": "67efd9982f1951fd1f7b7edbc96f3078e9298b135317df27a7ba64fbc3ef06d0"
+    },
+    {
+      "path": "asm-generic/bitops/__ffs.h",
+      "linuxPath": "include/asm-generic/bitops/__ffs.h",
+      "gitBlob": "39e56e1c72032413a082d6f336e01ba5d3d8be92",
+      "sha256": "ff647f80918d719be4c3c42e15d8968d56d4177b449dd9f05000ed5cdfa73a1a"
+    },
+    {
+      "path": "asm-generic/bitops/__fls.h",
+      "linuxPath": "include/asm-generic/bitops/__fls.h",
+      "gitBlob": "03f721a8a2b1993734e458399a68848637112c87",
+      "sha256": "1d9cbe4ea0f9188d7816e59acbfb4b382183510c20765913970cc03f0a258466"
+    },
+    {
+      "path": "asm-generic/bitops/ffz.h",
+      "linuxPath": "include/asm-generic/bitops/ffz.h",
+      "gitBlob": "0d010085fdecf824398353aa3116a6cf9556e921",
+      "sha256": "2670e993fa25298639d89f63921d0ae7e8bcb1094a4e2ffb7460187f648cc839"
+    },
+    {
+      "path": "asm-generic/bitops/fls.h",
+      "linuxPath": "include/asm-generic/bitops/fls.h",
+      "gitBlob": "b168bb10e1be17bb6394e749c238da3940ea3a01",
+      "sha256": "e4fae675c384e26bec61d7e42c4a8a15d8474b4a8926daa0eb3c1f2402bf651b"
+    },
+    {
+      "path": "asm-generic/bitops/fls64.h",
+      "linuxPath": "include/asm-generic/bitops/fls64.h",
+      "gitBlob": "866f2b2304ff639fdde2f81916e6d7fece289df2",
+      "sha256": "333420e1f072ce18c79dbc1adecaae3a9937c53bf328e1c8ac6ff1cd427a0aa6"
+    },
+    {
+      "path": "asm-generic/bitops/hweight.h",
+      "linuxPath": "include/asm-generic/bitops/hweight.h",
+      "gitBlob": "6bf1bba83589686c1e628be659bebbace97a77e3",
+      "sha256": "68be7f56214439269a08215058fa7d718c5b6a5a4ba3ad3b97589f7e8c397e33"
+    },
+    {
+      "path": "asm-generic/bitops/arch_hweight.h",
+      "linuxPath": "include/asm-generic/bitops/arch_hweight.h",
+      "gitBlob": "c2705e1d220d1567186ecfc219c075fbe1aa0ba4",
+      "sha256": "409a1e3a13097682ec788a0d708394a9fcdada6ac5fb264ff5c2eb0ec4d13be5"
+    },
+    {
+      "path": "asm-generic/bitops/const_hweight.h",
+      "linuxPath": "include/asm-generic/bitops/const_hweight.h",
+      "gitBlob": "149faeeeeaf2cca1dbc62891c8314bf5ab07e416",
+      "sha256": "9bbc94bc89ae521e00be3fea4c2bc1e33fc7b4bf9b8cfd87df2c46236efe84c4"
+    },
+    {
+      "path": "uapi/asm-generic/bitsperlong.h",
+      "linuxPath": "include/uapi/asm-generic/bitsperlong.h",
+      "gitBlob": "352cb81947b87697960486e4af4e48313e891d3d",
+      "sha256": "46ae15d603f1d3dff805cb75a0792249d4beb2da432ebeaed1572de73b0f6f34"
     }
   ]
 }

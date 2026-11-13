@@ -260,3 +260,71 @@ Original helper files remain byte-exact. Native C library declarations are parse
 before selecting Linux macro spellings. New IRQ-scope/preemption adapters are MIT
 and reuse existing native interrupt and lock services. The lower_32_bits spelling
 in kpi_base.h now matches the helper in Linux/v6.6/include/linux/kernel.h.
+
+## Original bit operations, bitmap search and ioctl encoding
+
+Ported-from: Linux/v6.6/include/linux/bitops.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/bits.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/typecheck.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/vdso/bits.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitsperlong.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/find.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/bitmap.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/lib/find_bit.c
+Ported-from-license: GPL-2.0-or-later
+
+Ported-from: Linux/v6.6/lib/hweight.c
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/asm-generic/ioctl.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/generic-non-atomic.h
+Ported-from-license: GPL-2.0-only
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/non-atomic.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/non-instrumented-non-atomic.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/__ffs.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/__fls.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/ffz.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/fls.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/fls64.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/hweight.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/arch_hweight.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/asm-generic/bitops/const_hweight.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/uapi/asm-generic/bitsperlong.h
+Ported-from-license: GPL-2.0 WITH Linux-syscall-note
