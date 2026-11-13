@@ -1,0 +1,12 @@
+{
+  "nativeRunPending": true,
+  "runtimeEntries": 328,
+  "sharedReferenceFilesCompared": 6783,
+  "runtimeArchive": "runtime-payload-003.tar.gz",
+  "runtimeSHA256": "4645300006e425ce88fab990bee95ea21a90b8864ca14efb151c1d85532137c3",
+  "fullBundleSHA256": "fc4197f78ce9522f1307a0a7c8a81aaac3776e46ac39f27a43f038b0b6d46619",
+  "runnerSHA256": "b8eb3d51821409520cd06334ecec28ecaa571761751de54a090d1535e70bbeda",
+  "nativeDirectory": "/boot/home/i915-folio-001",
+  "referenceSymlinkTarget": "/boot/home/i915-pages-001/reference",
+  "reportVersion": 8
+}

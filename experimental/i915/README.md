@@ -1,7 +1,13 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Bounded Linux i915 compatibility experiment
 
-Latest: evidence/physical-pages-001 records191776 passing native checks,
+Latest development: evidence/folio-host-001 records47416 passing host sanitizer
+checks for managed folio heads, original local maps and batch reference release.
+Native validation of these additions is pending USB input recovery. All118
+original imports are unchanged. Full original GEM shmem is now included in the
+whole-source compiler loop; it still fails at unported VM dependencies.
+
+Last native checkpoint: evidence/physical-pages-001 records191776 passing native checks,
 including real owned page allocation/references, original atomic mapping helpers,
 joined release-worker teardown and VMA regressions. All114 original imports
 remain unchanged. Full original i915 builds still fail at VM/folio/process services.
@@ -11,7 +17,7 @@ complete original Linux completion/swait, DRM VMA and drm_mm/rbtree modules
 through native OS adapters, plus bounded ring/emitter slices. Linux DMA adapters
 use existing native bus_dma. Shared IRQ/preemption integration and original
 compiler/arithmetic/endian helpers pass physical N100 regressions; the manifest
-verifies 114 unchanged upstream files. Complete original GEM/ring builds still
+verifies 118 unchanged upstream files. Complete original GEM/ring builds still
 fail at later dependencies. See evidence/physical-preempt-001 for current native
 results and compiler errors. Original bitops/bitmap-search/weight helpers now
 pass native oracle tests too; see evidence/physical-bitmap-001 for the newest

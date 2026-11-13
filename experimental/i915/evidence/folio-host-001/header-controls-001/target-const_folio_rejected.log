@@ -1,0 +1,14 @@
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/mm.h:51,
+                 from /home/dan/i915-vm/folio-port-001/header-controls-001/target-const_folio_rejected.c:2:
+/home/dan/i915-vm/folio-port-001/header-controls-001/target-const_folio_rejected.c: In function ‘bad’:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../build/folio_helpers.h:5:33: error: return discards ‘const’ qualifier from pointer target type [-Werror=discarded-qualifiers]
+    4 | #define page_folio(p)           (_Generic((p),                          \
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    5 |         const struct page *:    (const struct folio *)_compound_head(p), \
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    6 |         struct page *:          (struct folio *)_compound_head(p)))
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dan/i915-vm/folio-port-001/header-controls-001/target-const_folio_rejected.c:3:49: note: in expansion of macro ‘page_folio’
+    3 | struct folio *bad(const struct page *p) {return page_folio(p); }
+      |                                                 ^~~~~~~~~~
+cc1: all warnings being treated as errors

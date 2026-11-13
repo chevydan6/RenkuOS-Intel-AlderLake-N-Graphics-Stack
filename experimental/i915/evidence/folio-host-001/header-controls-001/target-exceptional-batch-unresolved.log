@@ -1,0 +1,4 @@
+                 U renku_linux_folio_batch_remove_exceptionals
+/usr/bin/ld.bfd: /home/dan/i915-vm/folio-port-001/header-controls-001/target-exceptional-batch-unresolved.o: in function `check':
+target-exceptional-batch-unresolved.c:(.text+0x1): undefined reference to `renku_linux_folio_batch_remove_exceptionals'
+collect2: error: ld returned 1 exit status

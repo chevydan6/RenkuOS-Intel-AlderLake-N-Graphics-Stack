@@ -442,3 +442,42 @@ flags/folio metadata and generated VM bounds through shmem; ring/GTT retain
 process-mm/task integration errors. No page flags, VM bounds or process objects
 were fabricated. Full i915 compilation and GPU execution remain unproven, and
 the overall port goal remains active. Temporary SSH is stopped and lease released.
+
+## Managed folio heads and local maps (native validation pending)
+
+Managed wired runs now expose a canonical folio view of the head descriptor.
+The registry supplies actual order, page count, shape and original refcount
+state; there is no Linux raw page-flags layout or global PFN memmap. Order-zero
+allocations remain noncompound even when requested through folio_alloc. Tail
+pages resolve to the same head; folio APIs require that canonical head. Callers
+must retain an owning reference while using a borrowed page/folio lookup.
+
+Complete original folio size/shift/PFN/page-selection helpers and the const
+page_folio macro are extracted with provenance hashes. Complete original
+non-highmem kmap_local_page/kmap_local_folio/kunmap_local helpers use backing
+that remains mapped and wired until the owning reference is released. This
+direct-map profile needs no per-thread slots and does not disable page faults
+or preemption. Highmem, cache aliases and CONFIG_KMAP_LOCAL remain unsupported.
+
+The complete original pagevec header supplies batch construction. Its release
+backend consumes actual managed-folio references, including final references
+under preemption exclusion; the joined native release worker owns deletion.
+These wired pages never enter Linux per-CPU LRU queues. This is not a page-cache
+provider: exceptional swap/DAX batch handling remains uniquely unresolved, as
+do dirty/accessed/reclaim/writeback and unevictable mapping operations.
+
+Host ASan/UBSan passes47416 checks, including concurrent local/atomic maps and
+balanced repeated folio references. Tail-head redirection and omitted batch
+reference release are rejected by mutation controls. Header tests pass94 include
+combinations,18 expected configuration/type failures and four unresolved links.
+The native test C units compile against the pinned Renku headers, but these new
+runtime paths have not run on RenkuOS: KVM keyboard writes time out and custom
+SSH is stopped. Evidence is in ../evidence/folio-host-001. Report/client version8
+expects seven owned allocations/frees per completion run. The previous native
+version7 checkpoint remains the last actual hardware result.
+
+The unchanged complete i915_gem_shmem.c is now imported and included alongside
+GTT, physical GEM and ring in the native whole-source compiler loop. Its current
+cross-source failure reaches shmem_fs.h/swap.h/mmzone.h, generated VM bounds and
+asm/page.h. Actual shmem backing, file/mapping lifetimes, page-cache pinning,
+dirty/writeback/truncate behavior and process-mm integration are still required.

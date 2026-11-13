@@ -1,0 +1,10 @@
+Extracted original pure folio/page helpers
+Verified 117 unchanged Linux v6.6 files
+Extracted complete original __bitmap_equal
+Extracted complete original GFP blocking predicate
+Extracted complete original direct-map atomic kmap helpers
+PASS original completion/swait under ASan/UBSan; lost completion-count regression rejected
+PASS original lockref fallback, real host concurrency and rejected dead-reference mutation
+PASS original seqcount/seqlock, concurrent snapshots and rejected always-accept retry mutation
+PASS managed page references, queued VM release, nesting/failure controls; omitted reference release/native deletion rejected
+PASS canonical folio heads, original local mappings and real batch reference release; tail-redirection/lost-batch mutations rejected

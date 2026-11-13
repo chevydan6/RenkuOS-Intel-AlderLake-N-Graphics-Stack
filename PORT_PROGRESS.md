@@ -838,3 +838,34 @@ flags/folio metadata and generated VM bounds through shmem; ring/GTT retain
 process-mm/task integration errors. No page flags, VM bounds or process objects
 were fabricated. Full i915 compilation and GPU execution remain unproven, and
 the overall port goal remains active. Temporary SSH is stopped and lease released.
+
+
+## 2026-11-14: managed folio checkpoint (native validation pending)
+
+Managed wired allocations now expose canonical folio heads, actual shape/order
+queries and original refcount ownership. Original folio helpers, const selection,
+local mapping bodies and the complete pagevec header are retained. Batch release
+consumes real references and queues final deletion through the existing joined
+worker. Order-zero folios remain noncompound. Unsupported exceptional swap/DAX
+batch handling stays unresolved; no raw page flags or LRU/cache states are faked.
+
+Host ASan/UBSan passes47416 checks, including local/atomic concurrent users and
+batch reference balance. Tail-redirection and dropped-batch-release mutations
+are rejected. All94 include combinations,18 configuration/type rejections,
+four unresolved link controls and host VMA/DMA regressions pass. Native test C
+units compile against the actual pinned headers. All118 imports match their
+pinned source paths, Git blobs and SHA256 hashes. See
+experimental/i915/evidence/folio-host-001 and completion/README.md for scope.
+
+These additions have NOT run on RenkuOS. USB HID writes still time out before
+transfer/compilation; custom SSH is stopped and known-key default SSH recovery
+times out. A physical restart was requested. The previous physical-pages-001
+version7 result remains the last native checkpoint. Version8 native tests are
+prepared with seven allocations/frees per run; no new native count is claimed.
+
+The complete original GEM shmem source is now imported and included in the
+whole-source native compiler loop. Cross compilation still fails in actual
+shmem/swap/mmzone dependencies at rejected VM bounds and missing asm/page.h.
+Its cache, pin/unpin, dirty/accessed, truncate/writeback and file/mapping lifetimes
+must connect to real native VM services. Ring/GTT still need process-mm/task
+integration. Full i915 compilation and GPU execution remain unfinished.

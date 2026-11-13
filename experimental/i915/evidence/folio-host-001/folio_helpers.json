@@ -1,0 +1,80 @@
+{
+  "helpers": [
+    {
+      "source": {
+        "path": "linux/mm.h",
+        "linuxPath": "include/linux/mm.h",
+        "gitBlob": "bf5d0b1b16f4341e8851d9bdfef30df631f62226",
+        "sha256": "121c7be41ff209217062a471084536136b72589459611f47c292109360462c52"
+      },
+      "signature": "static inline size_t folio_size(",
+      "sha256": "3de171bd7b9c08456fbaafae4c7be0f7a345da355d81907019a8fb2240224953"
+    },
+    {
+      "source": {
+        "path": "linux/mm.h",
+        "linuxPath": "include/linux/mm.h",
+        "gitBlob": "bf5d0b1b16f4341e8851d9bdfef30df631f62226",
+        "sha256": "121c7be41ff209217062a471084536136b72589459611f47c292109360462c52"
+      },
+      "signature": "static inline unsigned int folio_shift(",
+      "sha256": "c7840d64281040500788fd7afdc9614d3580cff3e99cdb3b8c37c84f019244fd"
+    },
+    {
+      "source": {
+        "path": "linux/mm.h",
+        "linuxPath": "include/linux/mm.h",
+        "gitBlob": "bf5d0b1b16f4341e8851d9bdfef30df631f62226",
+        "sha256": "121c7be41ff209217062a471084536136b72589459611f47c292109360462c52"
+      },
+      "signature": "static inline unsigned long folio_pfn(",
+      "sha256": "c39a9d2f1df23e0f105386b1d77ee10255c4a4a95efedf41491ec603b1fb9170"
+    },
+    {
+      "source": {
+        "path": "linux/mm.h",
+        "linuxPath": "include/linux/mm.h",
+        "gitBlob": "bf5d0b1b16f4341e8851d9bdfef30df631f62226",
+        "sha256": "121c7be41ff209217062a471084536136b72589459611f47c292109360462c52"
+      },
+      "signature": "static inline struct folio *virt_to_folio(",
+      "sha256": "fc27ea69a8e8c6c18ab778e3148922a4c002eaaa99793ac444179aeaf4542298"
+    },
+    {
+      "source": {
+        "path": "linux/mm.h",
+        "linuxPath": "include/linux/mm.h",
+        "gitBlob": "bf5d0b1b16f4341e8851d9bdfef30df631f62226",
+        "sha256": "121c7be41ff209217062a471084536136b72589459611f47c292109360462c52"
+      },
+      "signature": "static inline unsigned long page_size(",
+      "sha256": "6ea916a170d2972503bafc2fc577384fea4dfe20b6b63e9aacf54ffe005ecfe9"
+    },
+    {
+      "source": {
+        "path": "linux/mm.h",
+        "linuxPath": "include/linux/mm.h",
+        "gitBlob": "bf5d0b1b16f4341e8851d9bdfef30df631f62226",
+        "sha256": "121c7be41ff209217062a471084536136b72589459611f47c292109360462c52"
+      },
+      "signature": "static inline unsigned int page_shift(",
+      "sha256": "ba2a9ae7f002fd0a3e1e0494297d16a4c139e5826e0d4157ada69e9f1eaca58d"
+    },
+    {
+      "source": {
+        "path": "linux/page-flags.h",
+        "linuxPath": "include/linux/page-flags.h",
+        "gitBlob": "5c02720c53a5848e37f03beeadb2ac787a6a91f4",
+        "sha256": "f76ea1ac64390582a10223d9a747df2f284300bcefc9025d907011149c59c3b9"
+      },
+      "signature": "#define folio_page(folio, n)",
+      "sha256": "636b39ec1fb32f1114d986780f12ee472e25977fca9241efbfb01d9b87b65d2c"
+    },
+    {
+      "source": "linux/page-flags.h",
+      "signature": "#define page_folio(p)",
+      "sha256": "f981fbb3a16b653ccf68f355281de146eda395fa1c0987b086ad4e08b3e08426"
+    }
+  ],
+  "completeLinuxMMPort": false
+}

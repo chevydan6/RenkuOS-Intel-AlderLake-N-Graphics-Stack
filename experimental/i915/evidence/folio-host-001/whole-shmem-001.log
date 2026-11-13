@@ -1,0 +1,17 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 9b2258ef7a62aa4a5276e3c1836dde33d3deb2049b9665cb224d19704243efd0
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gem -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -I/tmp/i915-linux-source/include/uapi -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_shmem.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/complete-gem-i915_gem_shmem.c.o
+In file included from /tmp/i915-linux-source/include/linux/page-flags-layout.h:6,
+                 from /tmp/i915-linux-source/include/linux/mmzone.h:20,
+                 from /tmp/i915-linux-source/include/linux/swap.h:7,
+                 from /tmp/i915-linux-source/include/linux/shmem_fs.h:6,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gem/i915_gem_shmem.c:8:
+/home/dan/haiku-intel-gpu/experimental/i915/include/generated/bounds.h:6:2: error: #error Linux VM generated bounds are not supplied by the native lockref adapter
+    6 | #error Linux VM generated bounds are not supplied by the native lockref adapter
+      |  ^~~~~
+/tmp/i915-linux-source/include/linux/mmzone.h:25:10: fatal error: asm/page.h: No such file or directory
+   25 | #include <asm/page.h>
+      |          ^~~~~~~~~~~~
+compilation terminated.
+
+compiler exit: 1
