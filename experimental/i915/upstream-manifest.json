@@ -642,6 +642,30 @@
       "linuxPath": "include/uapi/linux/kdev_t.h",
       "gitBlob": "e1990f2e97772a8bb798ac9b9a9d2fd3e8790e88",
       "sha256": "232a7c06c56de7bf1c3ba1def81834fda292c3e1771c36d01c7d2085106ca80a"
+    },
+    {
+      "path": "linux/lockref.h",
+      "linuxPath": "include/linux/lockref.h",
+      "gitBlob": "c3a1f78bc884d26282238ac6e590e6894458af25",
+      "sha256": "f3d0314cdfd9385ae874427ddac007b11ab0d11af9a22385ae0c81e5232ad0a2"
+    },
+    {
+      "path": "lib/lockref.c",
+      "linuxPath": "lib/lockref.c",
+      "gitBlob": "2afe4c5d8919102b99f2931dd51ed457a9aa89ca",
+      "sha256": "cd2d9f71fe2ce966292eee72ee0576b365221a5f303ebffbf91ec07e2b14355c"
+    },
+    {
+      "path": "linux/gfp_types.h",
+      "linuxPath": "include/linux/gfp_types.h",
+      "gitBlob": "6583a58670c571050ad410e0dcf0718b6477292b",
+      "sha256": "a1320908be40e9e7dc493dc829020d8e3e0caafa20ceec7fa39ee70d6537e102"
+    },
+    {
+      "path": "linux/gfp.h",
+      "linuxPath": "include/linux/gfp.h",
+      "gitBlob": "665f06675c834e45f9624b1a990d658f91eb99f3",
+      "sha256": "4ce24893cab1396fcf2e8cbfe04a39c1b7872ec6d93b4004807c018cc7bf2640"
     }
   ]
 }

@@ -403,3 +403,23 @@ Ported-from-license: GPL-2.0
 
 Ported-from: Linux/v6.6/include/uapi/linux/kdev_t.h
 Ported-from-license: GPL-2.0 WITH Linux-syscall-note
+
+`linux/lockref.h` remains byte-exact.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/lockref.h
+Ported-from-license: GPL-2.0
+
+`lib/lockref.c` remains byte-exact.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa lib/lockref.c
+Ported-from-license: GPL-2.0
+
+`linux/gfp_types.h` remains byte-exact.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/gfp_types.h
+Ported-from-license: GPL-2.0
+
+`linux/gfp.h` remains byte-exact.
+
+Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa include/linux/gfp.h
+Ported-from-license: GPL-2.0
