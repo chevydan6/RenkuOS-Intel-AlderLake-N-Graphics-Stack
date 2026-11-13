@@ -35,6 +35,7 @@ records = []
 for unit in ['build/intel_ring_slice.c', 'build/gen8_engine_slice.c', 'upstream/drm/drm_mm.c',
              'upstream/lib/rbtree.c', 'upstream/lib/refcount.c',
              'upstream/linux/ww_mutex.h',
+             'src/cpumask_state.c', 'src/native_cpumask.c', 'upstream/lib/hweight.c',
              'src/native_locks.c', 'src/native_irq_scopes.c', 'src/native_preempt.c',
              'src/task_identity.c', 'src/time.c', 'src/native_diagnostics.c']:
     obj = build / (Path(unit).stem + '.o')

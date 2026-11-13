@@ -6,6 +6,7 @@ static volatile sig_atomic_t received;
 static void OnSignal(int signal) { (void)signal; received = 1; }
 int main(void)
 {
+	assert(renku_linux_cpumask_publish(4, 0x5) == 0);
 	struct completion_report report;
 	RunCases(&report);
 	assert(!report.failures && report.phases == 12 && report.workers == 24);
@@ -30,5 +31,6 @@ int main(void)
 	FinishFixture(&target); FinishFixture(&ready); FinishFixture(&done);
 	printf("PASS original completion/swait: %u checks, %u phases, %u waiters; real host signal interruption\n",
 		report.checks, report.phases, report.workers);
+	renku_linux_cpumask_reset();
 	return 0;
 }

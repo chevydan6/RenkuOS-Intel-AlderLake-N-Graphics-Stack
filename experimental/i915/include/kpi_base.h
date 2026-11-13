@@ -43,6 +43,8 @@ _Static_assert(sizeof(unsigned long) == 8, "This experimental port targets x86-6
 #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
+#define likely_notrace(x) likely(x)
+#define unlikely_notrace(x) unlikely(x)
 #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
 #define WRITE_ONCE(x, v) __atomic_store_n(&(x), (v), __ATOMIC_RELAXED)
 #define smp_store_release(p, v) __atomic_store_n((p), (v), __ATOMIC_RELEASE)
@@ -82,6 +84,7 @@ static inline u64 div64_u64_rem(u64 n, u64 d, u64 *r)
 { *r = n % d; return n / d; }
 /* Tree RCU publication only; no grace-period or reclamation API is provided. */
 #define rcu_assign_pointer(p, v) smp_store_release(&(p), (v))
+#define RENKU_KPI_BASE_READY 1
 #include "../upstream/linux/build_bug.h"
 #include <linux/minmax.h>
 #include <linux/bitops.h>

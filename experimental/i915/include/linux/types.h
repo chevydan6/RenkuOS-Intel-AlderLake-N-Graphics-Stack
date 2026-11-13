@@ -16,3 +16,11 @@ typedef __kernel_loff_t loff_t;
 #define RENKU_DMA_ADDR_T_DEFINED
 typedef u64 dma_addr_t;
 #endif
+
+#ifndef RENKU_ATOMIC_TYPES_DEFINED
+#define RENKU_ATOMIC_TYPES_DEFINED
+/* Preserve the existing adapter ABI; Linux type declarations must be visible
+ * before headers such as jump_label.h include atomic operation definitions. */
+typedef struct { int counter; } atomic_t;
+typedef struct { int64_t counter; } atomic_long_t;
+#endif

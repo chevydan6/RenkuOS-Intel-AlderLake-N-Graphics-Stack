@@ -154,3 +154,53 @@ APIs. The tests exercise public zero-size and nonzero-size bounds, not unsafe
 private zero-size entry. No imported algorithm is modified. Raw diagnostics,
 exact source/binary hashes and final results: ../evidence/physical-bitmap-001
 and ../evidence/bitmap-host-001.
+
+## Original CPU masks and architecture configuration
+
+The port now selects SMP and a 64-CPU mask capacity, matching the supported
+native EFI/x86-64 baseline's SMP_MAX_CPUS. The complete original cpumask.h,
+threads/numa, cache/linkage, limits and parameter headers are byte-exact imports;
+the manifest verifies 99 files. The Linux mask layout remains separate from
+native CPUSet. Native smp_get_num_cpus and get_cpu_info supply actual dense CPU
+identities and enabled state. Present/possible masks contain discovered CPUs;
+online/active masks contain enabled CPUs, and dying is empty for this fixed
+snapshot. Startup rejects empty, oversized or invalid state and propagates query
+failure. Callers serialize initialization/reset, exclude new users during teardown
+and keep topology/enabled state fixed for the module lifetime. Live CPU hotplug,
+enable/disable notifications, affinity, cross-CPU calls and NUMA placement still
+need integration. The snapshot is not a general native scheduler replacement.
+
+Original inline cpumask variables own their storage with OFFSTACK disabled;
+their original no-allocation alloc/free methods are retained. Constant one-bit
+and all-bit tables supply original mask lookups. Other external cpumask/bitmap
+helpers remain unresolved unless supplied by the existing search library.
+The removed native num_online_cpus macro no longer conflicts with Linux's UP
+fallback; the original SMP accessor reads a native-backed count. Atomic types
+are visible before operation headers, with actual raw-read/CAS/decrement helpers.
+
+Original x86 cache headers define the selected 64-byte alignment, checked against
+CPUID on the N100. These are alignment helpers, not cache-maintenance services.
+Linux limits and param wrappers select Linux macro spellings after native libc
+and kernel declarations. They do not implement Linux VFS or native time-accounting
+ABIs. HZ stays 1000 and USER_HZ 100. A bootstrap guard keeps kernel typedefs and
+cast-valued limits out of glibc's initial limits.h parsing. First and repeated
+inclusion checks cover 44 host/target combinations.
+
+The diagnostic report is now version 2 and records CPU count, online count and
+mask. Actual RenkuOS runs report 4 CPUs, 4 online, mask 0xf, with four 46,555-check
+runs passing. Existing VMA/KPI regressions and all host sanitizer/negative controls
+pass; actual diagnostic teardown is observed. The CPU adapter model tests sparse
+enabled IDs, CPU 63, limits, failed queries, changed count, reinitialization and
+reset under ASan/UBSan with real target declarations. Admitting disabled CPUs
+must fail its mutation control. Reproduce after target-objects:
+
+```sh
+python3 experimental/i915/tests/run-cpumask-model.py --output NEW_DIRECTORY
+```
+
+Whole original ring compilation now reaches generated/bounds.h through Linux VM
+page-layout definitions; GTT reaches raw architecture spinlock types; physical
+GEM retains device-number/RCU/bit-unlock and VM-layout dependencies. No synthetic
+Linux page layout or scheduler was added to hide those errors. See
+../evidence/physical-cpumask-001 and ../evidence/cpumask-host-001. Existing original
+find_bit warnings and private nth-search preconditions described above still apply.

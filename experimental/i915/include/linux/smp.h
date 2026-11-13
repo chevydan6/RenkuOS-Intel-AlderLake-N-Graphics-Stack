@@ -8,6 +8,5 @@ extern int32 smp_get_current_cpu(void);
 extern int32 smp_get_num_cpus(void);
 #define raw_smp_processor_id smp_get_current_cpu
 #define smp_processor_id smp_get_current_cpu
-#define num_online_cpus smp_get_num_cpus
 #endif
 #endif

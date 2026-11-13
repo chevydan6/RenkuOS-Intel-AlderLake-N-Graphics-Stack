@@ -2,7 +2,7 @@
 #ifndef RENKU_LINUX_ATOMIC_H
 #define RENKU_LINUX_ATOMIC_H
 #include <kpi_base.h>
-typedef struct { int counter; } atomic_t;
+#include <linux/types.h>
 #define ATOMIC_INIT(n) { .counter = (n) }
 _Static_assert(sizeof(int) == 4, "Linux atomic_t requires 32-bit int");
 
@@ -48,7 +48,6 @@ static inline bool renku_linux_try_cmpxchg(atomic_t *v, int *old, int n)
 		__ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 #endif
 }
-typedef struct { int64_t counter; } atomic_long_t;
 #define ATOMIC_LONG_INIT(n) { .counter = (n) }
 static inline long atomic_long_inc_return_relaxed(atomic_long_t *v)
 {
@@ -62,6 +61,9 @@ static inline long atomic_long_inc_return_relaxed(atomic_long_t *v)
 /* RenkuOS's pointer-based atomic_set name must remain intact above. */
 #define atomic_set renku_linux_atomic_set
 #define atomic_read renku_linux_atomic_read
+#define raw_atomic_read renku_linux_atomic_read
+#define atomic_try_cmpxchg renku_cmpxchg32
+#define atomic_dec(v) ((void)renku_linux_fetch_add(-1, (v)))
 #define atomic_fetch_add_relaxed renku_linux_fetch_add
 #define atomic_fetch_sub_release renku_linux_fetch_sub
 #define renku_cmpxchg32(v, old, n) ({ \

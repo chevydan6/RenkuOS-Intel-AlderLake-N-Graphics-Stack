@@ -63,7 +63,8 @@ int main(void)
 		printf("run=%u checks=%u failures=%u first_line=%u phases=%u waiters=%u\n",
 			i, report.checks, report.failures, report.first_line, report.phases, report.workers);
 		fflush(stdout);
-		if (report.version != 1 || report.failures || report.checks < 100 || report.phases != 12 || report.workers != 24) { failed = 1; break; }
+		printf("cpu_count=%u online=%u online_mask=%#lx\n", report.cpu_count, report.online_count, report.online_bits);
+		if (report.version != 2 || report.failures || report.checks < 100 || !report.cpu_count || !report.online_count || report.online_count > report.cpu_count || report.phases != 12 || report.workers != 24) { failed = 1; break; }
 	}
 	if (!failed) failed |= SignalTest(fd, COMPLETION_INTERRUPTIBLE);
 	if (!failed) failed |= SignalTest(fd, COMPLETION_KILLABLE);

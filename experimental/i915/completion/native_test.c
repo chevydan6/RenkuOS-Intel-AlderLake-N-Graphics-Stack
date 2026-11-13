@@ -44,10 +44,12 @@ static device_hooks hooks = {Open, Close, Close, Control, NULL, NULL, NULL, NULL
 status_t init_hardware(void) { return B_OK; }
 status_t init_driver(void)
 {
-	status_t status = renku_linux_irq_backend_init();
+	status_t status = renku_linux_cpu_backend_init();
 	if (status != B_OK) return status;
+	status = renku_linux_irq_backend_init();
+	if (status != B_OK) { renku_linux_cpu_backend_uninit(); return status; }
 	sRun = create_sem(1, "i915 completion tests");
-	if (sRun < B_OK) { renku_linux_irq_backend_uninit(); return sRun; }
+	if (sRun < B_OK) { renku_linux_irq_backend_uninit(); renku_linux_cpu_backend_uninit(); return sRun; }
 	dprintf("I915_LINUX_COMPLETION_INIT status=0\n"); return B_OK;
 }
 void uninit_driver(void)
@@ -55,6 +57,7 @@ void uninit_driver(void)
 	if (!renku_linux_tasks_empty() || Queued(&sSignal)) Fatal();
 	status_t status = delete_sem(sRun);
 	if (status == B_OK) status = renku_linux_irq_backend_uninit();
+	renku_linux_cpu_backend_uninit();
 	dprintf("I915_LINUX_COMPLETION_UNINIT status=%d\n", status);
 }
 const char **publish_devices(void)

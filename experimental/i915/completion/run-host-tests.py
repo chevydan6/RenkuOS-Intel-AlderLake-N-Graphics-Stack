@@ -28,7 +28,7 @@ objects = []
 def build():
     units = [copy, root/'upstream/kernel/sched/swait.c', root/'src/completion_sched.c',
              root/'src/task_identity.c', root/'src/time.c', root/'completion/host_backend.c',
-             root/'completion/host_test.c', find_copy, root/'upstream/lib/hweight.c']
+             root/'completion/host_test.c', root/'src/cpumask_state.c', find_copy, root/'upstream/lib/hweight.c']
     log = ''
     for i, source in enumerate(units):
         obj = a.output/(str(i)+'.o')
