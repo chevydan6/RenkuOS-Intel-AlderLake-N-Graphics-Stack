@@ -1,0 +1,79 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: bfbc7e0d346585ec3357ff9422f1269dc56a1772133d678858994bf494e8328e
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/16/include -DRENKU_NATIVE -I/home/dan/renkuos-i915-source/headers -I/home/dan/renkuos-i915-source/headers/os -I/home/dan/renkuos-i915-source/headers/os/support -I/home/dan/renkuos-i915-source/headers/os/kernel -I/home/dan/renkuos-i915-source/headers/os/storage -I/home/dan/renkuos-i915-source/headers/os/drivers -I/home/dan/renkuos-i915-source/headers/posix -I/home/dan/haiku-intel-gpu/experimental/i915/include -I/home/dan/haiku-intel-gpu/experimental/i915/upstream -I/tmp/i915-linux-source/drivers/gpu/drm/i915 -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gem -I/tmp/i915-linux-source/drivers/gpu/drm/i915/gt -I/tmp/i915-linux-source/include -I/tmp/i915-linux-source/include/uapi -fmax-errors=12 -c /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/haiku-intel-gpu/experimental/i915/build/complete-gt-intel_ring.c.o
+In file included from /tmp/i915-linux-source/include/linux/xarray.h:19,
+                 from /tmp/i915-linux-source/include/linux/radix-tree.h:21,
+                 from /tmp/i915-linux-source/include/linux/idr.h:15,
+                 from /tmp/i915-linux-source/include/drm/drm_file.h:35,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:8:
+/tmp/i915-linux-source/include/linux/sched/mm.h: In function ‘mmgrab’:
+/tmp/i915-linux-source/include/linux/sched/mm.h:36:9: error: implicit declaration of function ‘atomic_inc’; did you mean ‘atomic_and’? [-Wimplicit-function-declaration]
+   36 |         atomic_inc(&mm->mm_count);
+      |         ^~~~~~~~~~
+      |         atomic_and
+/tmp/i915-linux-source/include/linux/sched/mm.h:36:23: error: invalid use of undefined type ‘struct mm_struct’
+   36 |         atomic_inc(&mm->mm_count);
+      |                       ^~
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/types.h:3,
+                 from /tmp/i915-linux-source/drivers/gpu/drm/i915/gem/i915_gem_internal.h:9,
+                 from /home/dan/haiku-intel-gpu/experimental/i915/upstream/gt/intel_ring.c:6:
+/tmp/i915-linux-source/include/linux/sched/mm.h: In function ‘mmdrop’:
+/tmp/i915-linux-source/include/linux/sched/mm.h:53:22: error: implicit declaration of function ‘atomic_dec_and_test’; did you mean ‘atomic_get_and_set’? [-Wimplicit-function-declaration]
+   53 |         if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+      |                      ^~~~~~~~~~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:45:41: note: in definition of macro ‘unlikely’
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+/tmp/i915-linux-source/include/linux/sched/mm.h:53:45: error: invalid use of undefined type ‘struct mm_struct’
+   53 |         if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+      |                                             ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:45:41: note: in definition of macro ‘unlikely’
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+/tmp/i915-linux-source/include/linux/sched/mm.h: In function ‘mmget’:
+/tmp/i915-linux-source/include/linux/sched/mm.h:132:23: error: invalid use of undefined type ‘struct mm_struct’
+  132 |         atomic_inc(&mm->mm_users);
+      |                       ^~
+/tmp/i915-linux-source/include/linux/sched/mm.h: In function ‘mmget_not_zero’:
+/tmp/i915-linux-source/include/linux/sched/mm.h:137:16: error: implicit declaration of function ‘atomic_inc_not_zero’; did you mean ‘refcount_inc_not_zero’? [-Wimplicit-function-declaration]
+  137 |         return atomic_inc_not_zero(&mm->mm_users);
+      |                ^~~~~~~~~~~~~~~~~~~
+      |                refcount_inc_not_zero
+/tmp/i915-linux-source/include/linux/sched/mm.h:137:39: error: invalid use of undefined type ‘struct mm_struct’
+  137 |         return atomic_inc_not_zero(&mm->mm_users);
+      |                                       ^~
+/tmp/i915-linux-source/include/linux/sched/mm.h: At top level:
+/tmp/i915-linux-source/include/linux/sched/mm.h:199:49: error: ‘struct rlimit’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  199 |                                          struct rlimit *rlim_stack) {}
+      |                                                 ^~~~~~
+/tmp/i915-linux-source/include/linux/sched/mm.h: In function ‘in_vfork’:
+/tmp/i915-linux-source/include/linux/sched/mm.h:222:18: error: ‘struct task_struct’ has no member named ‘vfork_done’
+  222 |         ret = tsk->vfork_done &&
+      |                  ^~
+/tmp/i915-linux-source/include/linux/sched/mm.h:223:44: error: ‘struct task_struct’ has no member named ‘real_parent’
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                                            ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:51:46: note: in definition of macro ‘smp_load_acquire’
+   51 | #define smp_load_acquire(p) __atomic_load_n((p), __ATOMIC_ACQUIRE)
+      |                                              ^
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/rcupdate.h:23:28: note: in expansion of macro ‘rcu_dereference_check’
+   23 | #define rcu_dereference(p) rcu_dereference_check(p, false)
+      |                            ^~~~~~~~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/sched/mm.h:223:25: note: in expansion of macro ‘rcu_dereference’
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                         ^~~~~~~~~~~~~~~
+/tmp/i915-linux-source/include/linux/sched/mm.h:223:71: error: ‘struct task_struct’ has no member named ‘mm’; did you mean ‘comm’?
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                                                                       ^~
+      |                                                                       comm
+/tmp/i915-linux-source/include/linux/sched/mm.h: In function ‘current_gfp_context’:
+/tmp/i915-linux-source/include/linux/sched/mm.h:237:48: error: ‘struct task_struct’ has no member named ‘flags’
+  237 |         unsigned int pflags = READ_ONCE(current->flags);
+      |                                                ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/kpi_base.h:48:40: note: in definition of macro ‘READ_ONCE’
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+compilation terminated due to -fmax-errors=12.
+
+compiler exit: 1

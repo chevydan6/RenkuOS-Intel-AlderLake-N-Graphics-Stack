@@ -1,0 +1,7 @@
+{
+  "baseFilesVerified": 7078,
+  "failures": 0,
+  "baseManifestSHA256": "2b815b469ebb2509c414fe395c9fefb3afb12b10fb6f75c3018296e16d8d35e3",
+  "checkLogSHA256": "29e75af7808fbfca1a0f940ac3558419c4a6a49221132ba24b8c753ce9ea62d9",
+  "finalVmaFixture": "changed after failed native regression; target-header compile passed; native retest pending USB recovery"
+}

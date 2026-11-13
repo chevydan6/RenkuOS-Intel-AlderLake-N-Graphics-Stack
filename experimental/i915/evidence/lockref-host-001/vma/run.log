@@ -1,0 +1,1 @@
+PASS whole DRM VMA manager: 564 checks, OOM/access controls, 12000 lock iterations, readers=2

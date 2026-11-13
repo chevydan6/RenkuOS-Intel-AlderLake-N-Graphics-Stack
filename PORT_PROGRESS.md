@@ -684,3 +684,48 @@ errors are resolved at this boundary. Real VM/page-layout integration is next;
 full i915 compilation and GPU execution remain unproven. See
 experimental/i915/evidence/physical-rcu-001 and completion/README.md under the
 experiment for exact contracts, unsupported services and validation evidence.
+
+
+## 2026-11-14: original lockref and GFP helpers
+
+All111 original imports verify against the pinned v6.6 Git blobs. Complete
+lockref.c/.h now use their original spinlock fallback over native locks. Native
+B_SPINLOCK_IS_LOCKED supplies the real held-state query; it is not an ownership
+query. Host tests query actual pthread mutexes. The original fallback deliberately
+returns -1 from lockref_put_return without decrementing, allowing caller retry.
+Dead, zero, one and positive reference transitions and put_or_lock returning a
+held lock are tested, with native IRQ/scope restoration checks.
+
+The bounds include shim supplies no guessed SPINLOCK_SIZE, NR_PAGEFLAGS,
+MAX_NR_ZONES or page structures. It accepts only the original lockref header
+with architecture cmpxchg disabled, whose preprocessor branch needs no bounds.
+Every VM inclusion outside that scope and enabling cmpxchg are compile errors,
+including an inclusion after lockref has already been included.
+
+The full original gfp_types.h replaces copied flag constants. extract-gfp.py
+hash-checks the full original gfp.h and emits its complete unchanged
+blocking predicate, with a function hash. Native kmalloc uses that predicate;
+its supported flags and task-context restrictions remain unchanged. Page
+allocation, Linux zones/reclaim and process-mm lifetime remain unresolved.
+Native bundles now carry the extracted header and metadata.
+
+Four actual N100 native GCC13.3/SDK518 completion runs pass47056 checks each
+(188224 total, zero failures), including eight lockref workers and32000
+iterations; the diagnostic actually unloads. Host ASan/UBSan passes46987 checks
+with concurrent lockref workers; dead-reference and unlocked-mark-dead controls
+are rejected. Seventy header-order cases and four bounds/cmpxchg rejection cases
+pass. Host VMA/DMA regressions and target-header compilation pass.
+
+The old native VMA rendezvous failed on its third run (max_readers1,
+worker_errors1, four assertions). Evidence retains that failure. A revised
+fixture uses real synchronous CPU callbacks on two enabled CPUs, preserving
+the overlap and100ms bound. It passes target-header compilation; native retest
+is pending because USB input timed out and the next source extraction stalled
+before the revised build began. No passing native VMA regression is claimed
+for this checkpoint. See experimental/i915/evidence/physical-lockref-001 and lockref-host-001.
+
+Cross-source whole-file attempts advance past the prior bounds includes:
+ring/GTT now fail in Linux sched/mm.h on missing real process-mm/task integration;
+physical GEM fails on seqcount/seqlock types and asm/stat.h. These are cross
+compiler results, not new native whole-file attempts. Full i915 compilation
+and GPU execution remain unproven.

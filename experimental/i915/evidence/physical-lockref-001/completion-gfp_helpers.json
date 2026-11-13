@@ -1,0 +1,11 @@
+{
+  "source": {
+    "path": "linux/gfp.h",
+    "linuxPath": "include/linux/gfp.h",
+    "gitBlob": "665f06675c834e45f9624b1a990d658f91eb99f3",
+    "sha256": "4ce24893cab1396fcf2e8cbfe04a39c1b7872ec6d93b4004807c018cc7bf2640"
+  },
+  "function": "gfpflags_allow_blocking",
+  "originalFunctionSHA256": "67019cae44f03cd4c0b672187ac20b2e752f9b44fceb9765601b0883e6d88b86",
+  "completeGfpPort": false
+}

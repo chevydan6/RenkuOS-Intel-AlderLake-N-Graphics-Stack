@@ -1,0 +1,14 @@
+root@192.168.1.210's  
+{"state": "held", "pid": 1557, "start": 1794585912.0304608, "mission": "i915 original lockref and GFP predicate integration, native regression validation; preserve media and display"}/root/renku-gpu-test-004/disk.img
+0
+0
+configured
+[798839.847429] dwc2 4340000.usb: wakeup: signalling skipped: is not allowed by host
+[798839.847439] configfs-gadget gadget: usb_gadget_wakeup
+[798839.847452] configfs-gadget gadget: usb_ep_queue error on int endpoint -11
+[798839.847500] dwc2 4340000.usb: wakeup: signalling skipped: is not allowed by host
+[798839.847510] configfs-gadget gadget: usb_gadget_wakeup
+[798839.847523] configfs-gadget gadget: usb_ep_queue error on int endpoint -11
+[799212.406955] cvi_rtc 5026000.rtc: time set to 1794586588. 11/13/2026 16:16:28
+[799212.406996] cvi_rtc 5026000.rtc: time read as 1794586588. 11/13/2026 16:16:28
+

@@ -1,0 +1,19 @@
+In file included from /home/dan/haiku-intel-gpu/experimental/i915/include/linux/minmax.h:7,
+                 from /home/dan/i915-vm/lockref-port-001/host-003/mixed_min_rejected.c:1:
+/home/dan/i915-vm/lockref-port-001/host-003/mixed_min_rejected.c: In function ‘check’:
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/minmax.h:21:35: error: comparison of distinct pointer types lacks a cast [-Werror=compare-distinct-pointer-types]
+   21 |         (!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
+      |                                   ^~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/minmax.h:27:18: note: in expansion of macro ‘__typecheck’
+   27 |                 (__typecheck(x, y) && __no_side_effects(x, y))
+      |                  ^~~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/minmax.h:37:31: note: in expansion of macro ‘__safe_cmp’
+   37 |         __builtin_choose_expr(__safe_cmp(x, y), \
+      |                               ^~~~~~~~~~
+/home/dan/haiku-intel-gpu/experimental/i915/include/linux/../../upstream/linux/minmax.h:68:25: note: in expansion of macro ‘__careful_cmp’
+   68 | #define min(x, y)       __careful_cmp(x, y, <)
+      |                         ^~~~~~~~~~~~~
+/home/dan/i915-vm/lockref-port-001/host-003/mixed_min_rejected.c:3:57: note: in expansion of macro ‘min’
+    3 | int check(void) {int a = 1; unsigned long b = 2; return min(a, b);}
+      |                                                         ^~~
+cc1: all warnings being treated as errors

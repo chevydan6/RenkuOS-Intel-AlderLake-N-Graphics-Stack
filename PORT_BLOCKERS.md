@@ -183,3 +183,19 @@ errors are resolved at this boundary. Real VM/page-layout integration is next;
 full i915 compilation and GPU execution remain unproven. See
 experimental/i915/evidence/physical-rcu-001 and completion/README.md under the
 experiment for exact contracts, unsupported services and validation evidence.
+
+
+## 2026-11-14: lockref/GFP checkpoint
+
+Original lockref fallback and GFP flags/blocking predicate are ported; all111
+imports remain unchanged. Native completion passes4x47056 checks and actual
+unload, including eight lockref workers/32000 iterations. The old native VMA
+rendezvous FAILED on run2; the revised two-CPU callback fixture has target-header
+compile validation only, awaiting USB input recovery and native retest. Do not
+report this checkpoint as passing all regressions.
+
+Cross-source ring/GTT builds now expose real Linux process-mm/task dependencies
+in sched/mm.h; physical GEM exposes seqlock types and asm/stat.h. No new native
+whole-file compiler result is claimed. The lockref-only bounds shim supplies no
+VM bounds or guessed layouts and rejects every VM inclusion outside its scope.
+See experimental/i915/evidence/physical-lockref-001 and lockref-host-001.

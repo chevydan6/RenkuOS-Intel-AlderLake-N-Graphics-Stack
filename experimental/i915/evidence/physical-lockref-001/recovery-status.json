@@ -1,0 +1,12 @@
+{
+  "state": "waiting for physical RenkuOS restart",
+  "ssh2222": "left available for recovery; shell responsiveness intermittent; no completed software restart observed",
+  "lease": "held /root/i915-lockref-20261114-001, one-hour bounded lease from1794585912.0304608",
+  "nativeDiagnostics": "completion and initial VMA diagnostic both removed, unload0",
+  "pendingTerminalCommand": "source extraction into /boot/home/i915-lockref-002, then /boot/home/i915-lockref-visible-final.sh; do not run simultaneous physical tests; reboot clears pending processes",
+  "hidResetAttempted": false,
+  "media": "/root/renku-gpu-test-004/disk.img",
+  "mediaReadOnly": 0,
+  "mediaCdrom": 0,
+  "udc": "configured"
+}

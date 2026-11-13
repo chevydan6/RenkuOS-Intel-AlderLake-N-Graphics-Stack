@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-14",
+  "hardware": "Intel N100, 8086:46d1, four online CPUs",
+  "native": "hrev60072+518 GCC13.3 SDK518",
+  "nativeDirectory": "/boot/home/i915-lockref-001",
+  "completionRuns": 4,
+  "completionChecksEach": 47056,
+  "completionChecksTotal": 188224,
+  "completionFailures": 0,
+  "lockrefWorkers": 8,
+  "lockrefIterations": 32000,
+  "vmaRegression": "FAILED old reader rendezvous on run2: four assertions, max_readers1, worker_errors1",
+  "vmaFixedFixtureNativeRetest": "pending USB input recovery; no revised native build started",
+  "fullI915Build": false,
+  "gpuExecution": false,
+  "archivesSHA256": {
+    "/home/dan/i915-vm/lockref-port-001/native-bundle-002/payload.tar.gz": "e5672ab28a887ed829099a56ddad23faa87ba51d423a16a40b6ba22ffaf0e455",
+    "/home/dan/i915-vm/lockref-port-001/native-bundle-003/payload.tar.gz": "78ca6826cff85bc66bcfadc683212a6df21d7fae9a7ecc707e15df8d6d9f5c47",
+    "/home/dan/i915-vm/lockref-port-001/native-initial-results.tar.gz": "a693139d497ba45c09a3c1572ca5b24c26b207580509b65c049408f8b8f9cc16"
+  }
+}
