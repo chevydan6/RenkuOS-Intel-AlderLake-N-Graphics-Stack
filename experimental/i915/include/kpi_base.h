@@ -74,31 +74,16 @@ extern bool renku_kpi_warn(const char *, ...);
 #define LIST_POISON1 ((void *)0x100)
 #define LIST_POISON2 ((void *)0x122)
 #define U64_MAX (~0ULL)
-#define BIT(n) (1UL << (n))
 #define lower_32_bits(n) ((u32)((n) & 0xffffffff))
 /* Linux errno namespace, deliberately separate from RenkuOS status_t. */
 #undef ENOSPC
 #define ENOSPC 28
-/* GCC bit-scan primitives: guard zero before invoking undefined clz(0). */
-static inline int fls(int value)
-{ return value ? 32 - __builtin_clz(value) : 0; }
-static inline int fls64(u64 value)
-{ return value ? 64 - __builtin_clzll(value) : 0; }
-static inline int fls_long(unsigned long value)
-{ return value ? 64 - __builtin_clzl(value) : 0; }
-static inline bool test_bit(unsigned int bit, const unsigned long *p)
-{ return !!(__atomic_load_n(p + bit / 64, __ATOMIC_RELAXED) & (1UL << (bit % 64))); }
-static inline void __set_bit(unsigned int bit, unsigned long *p)
-{ p[bit / 64] |= 1UL << (bit % 64); }
-static inline void __clear_bit(unsigned int bit, unsigned long *p)
-{ p[bit / 64] &= ~(1UL << (bit % 64)); }
-static inline void clear_bit_unlock(unsigned int bit, unsigned long *p)
-{ __atomic_fetch_and(p + bit / 64, ~(1UL << (bit % 64)), __ATOMIC_RELEASE); }
 static inline u64 div64_u64_rem(u64 n, u64 d, u64 *r)
 { *r = n % d; return n / d; }
 /* Tree RCU publication only; no grace-period or reclamation API is provided. */
 #define rcu_assign_pointer(p, v) smp_store_release(&(p), (v))
-#include <linux/log2.h>
-#include <linux/build_bug.h>
+#include "../upstream/linux/build_bug.h"
 #include <linux/minmax.h>
+#include <linux/bitops.h>
+#include <linux/log2.h>
 #endif

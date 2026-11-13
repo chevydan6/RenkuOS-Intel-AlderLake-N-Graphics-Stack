@@ -4,8 +4,6 @@
 #if !defined(__x86_64__)
 #error Only native x86-64 bit widths are supported
 #endif
-#define __BITS_PER_LONG 64
-#ifndef BITS_PER_LONG
-#define BITS_PER_LONG 64
-#endif
+#include <linux/kconfig.h>
+#include "../../upstream/asm-generic/bitsperlong.h"
 #endif

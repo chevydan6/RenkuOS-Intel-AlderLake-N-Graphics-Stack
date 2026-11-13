@@ -11,11 +11,11 @@ flags=(-std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter
  -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone
  -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion)
 objects=()
-for source in upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c \
+for source in upstream/lib/find_bit.c upstream/lib/hweight.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c \
  src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_diagnostics.c completion/native_test.c; do
  object="build/$(basename "${source%.c}").o"
  extra=()
- case "$source" in upstream/kernel/*) extra=(-include include/completion_port.h);; esac
+ case "$source" in upstream/lib/find_bit.c) extra=(-Wno-error=maybe-uninitialized);; upstream/kernel/*) extra=(-include include/completion_port.h);; esac
  gcc "${flags[@]}" "${extra[@]}" -c "$source" -o "$object"
  objects+=("$object")
 done

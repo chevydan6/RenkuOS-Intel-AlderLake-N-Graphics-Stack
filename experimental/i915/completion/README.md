@@ -106,3 +106,51 @@ bash completion/attempt-whole-native.sh
 The final command preserves real compiler failures for the complete original GEM
 and ring files. They still fail; successful completion-library tests do not mean
 the full i915 driver compiles. See ../evidence/physical-preempt-001.
+
+## Original bit operations and bitmap searches
+
+Complete original Linux `lib/find_bit.c`, `lib/hweight.c`, `linux/bitops.h`,
+`linux/find.h` and `linux/bitmap.h` now supply bitmap-search algorithms and
+non-atomic helpers. The import manifest verifies 87 unique files. Generic Linux
+bit scans, constant weights and non-atomic mutations replace local equivalents;
+the architecture adapter uses compiler atomics for shared-word mutations, with
+relaxed non-returning operations, fully ordered test-and-modify, acquire lock
+acquisition and release unlock. The generic x86-64 Linux ioctl encoding is also
+imported; native ioctl dispatch is still a separate integration requirement.
+
+The search test compares original first/next/last/nth, zero, AND, AND-NOT and OR
+searches with an independent bit-by-bit oracle. It covers sizes 0 through 192,
+word edges, dirty final words, no matches, offsets beyond the limit and inline
+constant-size paths. Absent nth results are interpreted as >=size. Linux v6.6 can return 64
+for a missing nth bit in a constant partial word, despite its comment saying
+size; the port preserves that behavior and does not promise exact-size absence. Empty public searches are checked with NULL
+backing where they must not dereference it. All 192 bit indices exercise atomic
+and non-atomic mutations; this is not an atomic concurrency stress test.
+
+Four final N100 runs pass 46,389 checks each, including the previous completion/
+preemption tests. VMA and older KPI regressions also pass, with actual diagnostic
+unload. Host ASan/UBSan passes 46,362 checks. A mutation ignoring the first-word
+search offset aborts as required; invalid GENMASK input still fails compilation.
+The additional first-header checks are reproducible after target-objects:
+
+```sh
+python3 experimental/i915/tests/run-bitops-headers.py --output NEW_DIRECTORY
+```
+
+Only the complete search/weight library and used inline bitmap functions are
+linked. External bitmap allocation/parsing/other `lib/bitmap.c` services remain
+unimplemented, and whole i915 translation units still fail at later dependencies.
+This does not provide native CPU-mask semantics or GPU execution.
+
+Compiler diagnostics remain explicit. The original find header's constant
+GENMASK(size-1,0) input checks trigger GCC -Wextra unsigned-zero-comparison
+warnings; that warning is scoped off around that imported header. Invalid-mask
+compile errors remain enabled and tested. The original private nth helpers can
+read uninitialized tmp if called directly with size 0. Their public find_nth
+wrappers guard n>=size before calling them. Native and host builds retain
+-Wmaybe-uninitialized warnings for this original source but downgrade that one
+warning from Werror for find_bit.c only; callers must use the public guarded
+APIs. The tests exercise public zero-size and nonzero-size bounds, not unsafe
+private zero-size entry. No imported algorithm is modified. Raw diagnostics,
+exact source/binary hashes and final results: ../evidence/physical-bitmap-001
+and ../evidence/bitmap-host-001.

@@ -17,6 +17,9 @@ subprocess.run(['python3', str(root/'verify-upstream.py')], check=True)
 original = (root/'upstream/kernel/sched/completion.c').read_text()
 copy = a.output/'completion.c'
 copy.write_text(original)
+find_original = (root/'upstream/lib/find_bit.c').read_text()
+find_copy = a.output/'find_bit.c'
+find_copy.write_text(find_original)
 flags = ['gcc', '-D_GNU_SOURCE', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror',
          '-Wno-unused-parameter', '-Wno-sign-compare', '-fno-strict-overflow', '-pthread',
          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
@@ -25,11 +28,12 @@ objects = []
 def build():
     units = [copy, root/'upstream/kernel/sched/swait.c', root/'src/completion_sched.c',
              root/'src/task_identity.c', root/'src/time.c', root/'completion/host_backend.c',
-             root/'completion/host_test.c']
+             root/'completion/host_test.c', find_copy, root/'upstream/lib/hweight.c']
     log = ''
     for i, source in enumerate(units):
         obj = a.output/(str(i)+'.o')
         command = flags.copy()
+        if source.name == 'find_bit.c': command += ['-Wno-error=maybe-uninitialized']
         if i < 2: command += ['-include', str(root/'include/completion_port.h')]
         command += ['-c', str(source), '-o', str(obj)]
         r = subprocess.run(command, capture_output=True, text=True, timeout=30)
@@ -48,6 +52,7 @@ controls = []
 for name, body, should_pass in [
     ('helper_positive', 'BUILD_BUG_ON(sizeof(unsigned long) != 8); return min(3, 7);', True),
     ('build_bug_rejected', 'BUILD_BUG_ON(1); return 0;', False),
+    ('invalid_genmask_rejected', 'return GENMASK(2, 3);', False),
     ('mixed_min_rejected', 'int a = 1; unsigned long b = 2; return min(a, b);', False),
 ]:
     source = a.output/(name+'.c')
@@ -68,5 +73,14 @@ r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeo
 (a.output/'negative-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
 assert r.returncode == -6 and 'Assertion' in r.stderr
 copy.write_text(original)
+# A search that ignores the first-word offset must be rejected by the oracle.
+before_find = 'mask = MUNGE(BITMAP_FIRST_WORD_MASK(__start));'
+assert find_original.count(before_find) == 1
+find_copy.write_text(find_original.replace(before_find, 'mask = ~0UL;'))
+build()
+r = subprocess.run([str(a.output/'test')], capture_output=True, text=True, timeout=30)
+(a.output/'find-negative-control.log').write_text('exit='+str(r.returncode)+'\n'+r.stdout+r.stderr)
+assert r.returncode == -6 and 'Assertion' in r.stderr
+find_copy.write_text(find_original)
 build()
 print('PASS original completion/swait under ASan/UBSan; lost completion-count regression rejected')
