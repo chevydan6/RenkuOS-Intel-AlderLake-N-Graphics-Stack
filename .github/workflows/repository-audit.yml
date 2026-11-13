@@ -6,6 +6,7 @@ on:
       - 'docs/**'
       - 'patches/**'
       - 'tools/audit-repository.py'
+      - 'tools/map-dependencies.py'
       - '*.md'
       - '.github/workflows/repository-audit.yml'
   workflow_dispatch:
@@ -20,6 +21,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run read-only inventory
         run: python3 tools/audit-repository.py --output repository-audit.json
+      - name: Map repository dependencies
+        run: python3 tools/map-dependencies.py --output dependency-map.json
       - name: Check patch inventory invariants
         run: |
           python3 - <<'PY'
@@ -39,11 +42,15 @@ jobs:
           if not path.exists():
               raise SystemExit('Audit report missing')
           d = json.loads(path.read_text())
+          dep = json.loads(Path('dependency-map.json').read_text())
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
               out.write('## Repository audit\n\n')
               out.write(f"- Numbered patches: {d['patch_count']}\n")
               out.write(f"- Relative links checked: {d['markdown_relative_links_checked']}\n")
               out.write(f"- Missing relative links: {len(d['missing_relative_links'])}\n")
               out.write(f"- Patches without targets: {sum(p['missing_targets'] for p in d['patches'])}\n")
-              out.write('Full details remain available by rerunning tools/audit-repository.py on a checkout.\n')
+              out.write(f"- Files in dependency map: {dep['files_seen']}\\n")
+              out.write(f"- Explicit path references: {len(dep['explicit_path_references'])}\\n")
+              out.write(f"- Unresolved path references (heuristic): {sum(not r['exists'] for r in dep['explicit_path_references'])}\\n")
+              out.write('Full details can be reproduced with tools/audit-repository.py and tools/map-dependencies.py.\\n')
           PY
