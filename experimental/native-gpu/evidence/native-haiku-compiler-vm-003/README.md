@@ -34,6 +34,14 @@ passes for both copied native outputs. For the SPIR-V output, pass
 `--harness-source` with `spirv/compile_spirv.c`; its metadata records that
 source hash rather than the direct-NIR harness hash.
 
+A second Vulkan 1.0 fragment module changed only the green channel constant
+from `0.25` to `0.5`. The native compiler kept the VS bytes unchanged and
+changed the FS to SHA-256
+`ea9fadfaeaa943979f55e30be1b48dc0732b041061699819d34f2bca2e7ef2aa`,
+matching the earlier host negative control. The validated module and output
+are in [`negative-control`](negative-control/); its assembly source is
+[`triangle.frag.half.spvasm`](../../render/compiler/mesa-26.3.0/spirv/triangle.frag.half.spvasm).
+
 ## Reproduce
 
 The source adapter is
