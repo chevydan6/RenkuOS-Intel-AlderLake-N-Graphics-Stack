@@ -1,0 +1,28 @@
+/boot/home/i915-mapping-002/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp: OK
+Presentation stride/format and completion/fail-stop policy: PASS
+Owned buffer/copy admission and lifetime: PASS
+Native copy request image: PASS (CPU construction only)
+Native PCI access anchors: PASS (volatile status accepted; moved BAR rejected)
+Captured N100 CSB cursor0 / slots1-2: PASS
+Request admission, uncertain lifetime and power drain: PASS
+Active BCS stop/reset sequence and failed-reset retention: PASS
+Native GPU resource handles, VA bounds, and retirement: PASS (CPU only)
+N100 prebound resource arena ownership and retirement: PASS (CPU only)
+Native GPU resource ioctl validation: PASS (CPU only)
+N100 PPGTT prepublication binding and seal: PASS (CPU only)
+Native bridge protocol ids: PASS
+rcs_hardware_smoke: PASS
+Native RCS ownership smoke: PASS (CPU policy only)
+Native RCS context-image smoke: PASS (CPU construction only)
+RCS publication/CSB smoke: PASS (fake IO only)
+RCS active stop/reset/cancel smoke: PASS (fake IO only)
+RCS saved-state, ring batch start, CSB wrap and target checks: PASS (CPU only)
+RCS draw CPU image checks passed (no hardware draw proof)
+RCS v2 user vertex validation, image construction, and readback checks: PASS (CPU only)
+RCS separate vertex resource packet: PASS (CPU only)
+N100 exact public RCS batch validation: PASS (CPU only)
+N100 public FS page and three-word bounded batch patch: PASS (CPU only)
+RCS presentation policy passed (CPU fixtures only)
+RCS administrative completion hiding: PASS (CPU/fake CSB only)
+RCS full PCI admission: PASS (only interrupt status normalized; CPU fixture)
+NATIVE_GPU_EXECUTION_BUILD_PASSED

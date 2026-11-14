@@ -56,6 +56,7 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_buffer_invalid.cpp -o bu
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_batch_invalid.cpp -o build/gpu_render_batch_invalid
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_shader.cpp -o build/gpu_render_shader
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_shader_invalid.cpp -o build/gpu_render_shader_invalid
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_combined.cpp -o build/gpu_render_combined
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_smoke.cpp -o build/resource_smoke
 ./build/resource_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_arena_smoke.cpp -o build/resource_arena_smoke

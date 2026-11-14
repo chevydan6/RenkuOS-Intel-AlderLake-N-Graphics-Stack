@@ -1,0 +1,3 @@
+combined ioctl=-1 status=-2147483643 version=7 stage=0 sequence=0/0 pixels=0/0 hash=00000000 fault=00000000
+RCS combined public vertex/shader draw: NOT PROVEN
+test_exit=1

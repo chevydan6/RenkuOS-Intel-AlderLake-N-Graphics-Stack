@@ -78,7 +78,8 @@ static uint32_t sRenderCursor;
 static bool sRenderHideCompletion;
 static uint32_t* sRenderData[8];
 static bool sRenderUserDraw;
-static bool sRenderResourceDraw,sRenderArenaDraw,sRenderPublicBatchDraw,sRenderPublicShaderDraw,sRenderResourceReady;
+static bool sRenderResourceDraw,sRenderArenaDraw,sRenderPublicBatchDraw,sRenderPublicShaderDraw;
+static bool sRenderCombinedDraw,sRenderResourceReady;
 static uint64_t sRenderArenaGpu,sRenderPublicBatchGpu,sRenderPublicShaderGpu;
 static IntelN100PpgttTree::Page sRenderResourcePage;
 static constexpr uint64_t kRenderArenaGpu=0x410000;
@@ -380,8 +381,13 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   memset(sRenderData[NativeGpu::RcsDrawImage::Vertices],0,4096);
  }
  if(draw && sRenderPublicShaderDraw){
-  if(!NativeGpu::RcsPublicShader::PatchBatch(
-   sRenderData[NativeGpu::RcsDrawImage::Batch],1024,sRenderPublicShaderGpu))return false;
+  bool patched=sRenderCombinedDraw
+   ?NativeGpu::RcsPublicShader::PatchBatchWithVertex(
+    sRenderData[NativeGpu::RcsDrawImage::Batch],1024,
+    sRenderPublicShaderGpu,sRenderArenaGpu)
+   :NativeGpu::RcsPublicShader::PatchBatch(
+    sRenderData[NativeGpu::RcsDrawImage::Batch],1024,sRenderPublicShaderGpu);
+  if(!patched)return false;
   // A passing draw must fetch the FS from the owner-addressed public BO.
   memset(sRenderData[NativeGpu::RcsDrawImage::Fs],0,4096);
  }
@@ -483,6 +489,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  bool arenaDraw=version==4 && mode==NATIVE_GPU_RENDER_DRAW;
  bool publicBatchDraw=version==5 && mode==NATIVE_GPU_RENDER_DRAW;
  bool publicShaderDraw=version==6 && mode==NATIVE_GPU_RENDER_DRAW;
+ bool combinedDraw=version==7 && mode==NATIVE_GPU_RENDER_DRAW;
  bool userDraw=(version==2 || resourceDraw) && mode==NATIVE_GPU_RENDER_DRAW;
  uint32_t userVertices[12]={};
  if(userDraw)memcpy(userVertices,command->output,sizeof(userVertices));
@@ -492,7 +499,9 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
    || (userDraw && variant==0 && NativeGpu::RcsUserVertices::Validate(userVertices))))
   || (arenaDraw && variant==0 && command->reserved!=0 && resourceSession!=0)
   || (publicBatchDraw && variant!=0 && command->reserved!=0 && resourceSession!=0)
-  || (publicShaderDraw && variant<4 && command->reserved!=0 && resourceSession!=0);
+  || (publicShaderDraw && variant<4 && command->reserved!=0 && resourceSession!=0)
+  || (combinedDraw && variant!=0 && command->reserved!=0
+   && variant!=command->reserved && resourceSession!=0);
  // The bridge stages on the heap; the owner never retains that pointer.
  command->report={};memset(command->output,0,sizeof(command->output));
  auto& output=command->report;output.version=version;output.mode=mode;output.variant=variant;
@@ -501,7 +510,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
 
  mutex_lock(&sLock);
  uint64_t arenaGpu=0,publicBatchGpu=0,publicShaderGpu=0;
- if(publicShaderDraw){
+ if(publicShaderDraw || combinedDraw){
   if(!NativeResourceAllowedLocked()
    || !sRenderArena.Resolve(resourceSession,command->reserved,0,4096,publicShaderGpu)){
    mutex_unlock(&sLock);return output.status;
@@ -512,11 +521,11 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
    mutex_unlock(&sLock);return output.status;
   }
  }
- if(arenaDraw || publicBatchDraw){
+ if(arenaDraw || publicBatchDraw || combinedDraw){
   if(!NativeResourceAllowedLocked()){
    output.status=B_DEV_NOT_READY;mutex_unlock(&sLock);return output.status;
   }
-  uint32_t vertexHandle=publicBatchDraw?variant:command->reserved;
+  uint32_t vertexHandle=publicBatchDraw || combinedDraw?variant:command->reserved;
   if(!sRenderArena.Resolve(resourceSession,vertexHandle,0,sizeof(userVertices),arenaGpu)){
    mutex_unlock(&sLock);return output.status;
   }
@@ -551,12 +560,13 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
   output.status=admission==NativeGpu::RequestLifecycle::Busy?B_BUSY:B_DEV_NOT_READY;
   return output.status;
  }
- sRenderUserDraw=userDraw || arenaDraw || publicBatchDraw;
+ sRenderUserDraw=userDraw || arenaDraw || publicBatchDraw || combinedDraw;
  sRenderResourceDraw=resourceDraw;
- sRenderArenaDraw=arenaDraw;sRenderArenaGpu=arenaGpu;
+ sRenderArenaDraw=arenaDraw || combinedDraw;sRenderArenaGpu=arenaGpu;
  sRenderPublicBatchDraw=publicBatchDraw;sRenderPublicBatchGpu=publicBatchGpu;
- sRenderPublicShaderDraw=publicShaderDraw;sRenderPublicShaderGpu=publicShaderGpu;
- if(userDraw || arenaDraw || publicBatchDraw)
+ sRenderPublicShaderDraw=publicShaderDraw || combinedDraw;
+ sRenderPublicShaderGpu=publicShaderGpu;sRenderCombinedDraw=combinedDraw;
+ if(userDraw || arenaDraw || publicBatchDraw || combinedDraw)
   memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
  sRenderReport=output;auto& r=sRenderReport;
  if(mode!=NATIVE_GPU_RENDER_PROBE){
@@ -645,7 +655,8 @@ static status_t RunNativeRender(native_gpu_render_command* command)
 {return RunNativeRenderOwned(command,0);}
 static status_t NativeResourceDraw(uint64_t session,native_gpu_render_command* command)
 {
- if(!command || (command->version!=4 && command->version!=5 && command->version!=6)
+ if(!command || (command->version!=4 && command->version!=5 && command->version!=6
+  && command->version!=7)
   || command->mode!=NATIVE_GPU_RENDER_DRAW)return B_BAD_VALUE;
  return RunNativeRenderOwned(command,session);
 }

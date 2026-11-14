@@ -174,3 +174,13 @@ draw control passed; see `evidence/native-vulkan-target-004/`. The next
 missing link is a graphics pipeline and recorded command sequence that
 validates the known SPIR-V fixtures and submits the bounded owner draw into
 the framebuffer's bound image.
+
+Version 7 of the owner now combines separate public vertex and fragment
+shader BOs in the same fixed N100 hardware draw. Sixty-four combined draws,
+all six previous 64-draw controls, and four final combined draws passed after
+reboot, with exact pixel hashes and ordered completion; see
+`evidence/rcs-combined-015/`. The native Vulkan ABI probe also passed 16 times
+against the new add-ons. The owner still validates one known shader and fixed
+batch. The next step is to translate a bounded Vulkan pipeline and command
+buffer into this version 7 request and copy its verified 32×32 output into
+the bound Vulkan image.

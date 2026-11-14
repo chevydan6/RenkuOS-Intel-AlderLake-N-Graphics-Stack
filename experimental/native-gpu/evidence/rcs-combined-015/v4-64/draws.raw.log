@@ -1,0 +1,319 @@
+round=0 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=195/195 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=0 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=196/196 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=0 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=197/197 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=0 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=198/198 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=1 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=199/199 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=1 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=200/200 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=1 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=201/201 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=1 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=202/202 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=2 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=203/203 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=2 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=204/204 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=2 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=205/205 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=2 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=206/206 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=3 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=207/207 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=3 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=208/208 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=3 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=209/209 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=3 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=210/210 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=4 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=211/211 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=4 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=212/212 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=4 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=213/213 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=4 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=214/214 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=5 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=215/215 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=5 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=216/216 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=5 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=217/217 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=5 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=218/218 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=6 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=219/219 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=6 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=220/220 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=6 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=221/221 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=6 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=222/222 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=7 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=223/223 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=7 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=224/224 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=7 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=225/225 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=7 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=226/226 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=8 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=227/227 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=8 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=228/228 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=8 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=229/229 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=8 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=230/230 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=9 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=231/231 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=9 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=232/232 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=9 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=233/233 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=9 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=234/234 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=10 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=235/235 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=10 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=236/236 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=10 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=237/237 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=10 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=238/238 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=11 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=239/239 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=11 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=240/240 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=11 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=241/241 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=11 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=242/242 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=12 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=243/243 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=12 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=244/244 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=12 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=245/245 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=12 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=246/246 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=13 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=247/247 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=13 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=248/248 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=13 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=249/249 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=13 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=250/250 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=14 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=251/251 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=14 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=252/252 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=14 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=253/253 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=14 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=254/254 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=15 shape=0 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=255/255 gpu=410000 batch=0
+pixels=777/777 hash=28616d2d engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=15 shape=1 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=256/256 gpu=410000 batch=0
+pixels=758/758 hash=d40eb9c3 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=15 shape=2 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=257/257 gpu=410000 batch=0
+pixels=766/766 hash=e24aed05 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS
+
+round=15 shape=3 exit=0
+rcs_public_buffer ioctl=0 status=0 version=4 stage=12 refusal=0 sequence=258/258 gpu=410000 batch=0
+pixels=760/760 hash=984ae945 engine=4/0 csb=0 fault=00000000
+RCS public buffer hardware draw: PASS

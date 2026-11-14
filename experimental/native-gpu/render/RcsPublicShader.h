@@ -22,6 +22,25 @@ public:
   words[248]=words[239]+0x80; // PS SIMD16 KSP.
   return true;
  }
+ static bool PatchBatchWithVertex(uint32_t* words,unsigned dwords,
+  uint64_t shaderGpu,uint64_t vertexGpu) {
+  if(!words || dwords!=1024 || !ValidGpu(shaderGpu) || !ValidGpu(vertexGpu)
+   || shaderGpu==vertexGpu)return false;
+  unsigned slot=1024;
+  for(unsigned i=2;i+2<RcsDrawImage::BatchDwords;i++)
+   if(Original(i-2)==0x78080003 && Original(i-1)==0x00064010
+    && Original(i)==0x00403000 && Original(i+1)==0 && Original(i+2)==0x30){
+    if(slot!=1024)return false;
+    slot=i;
+   }
+  if(slot==1024)return false;
+  for(unsigned i=0;i<1024;i++)
+   if(words[i]!=(i==slot?uint32_t(vertexGpu):Original(i)))return false;
+  words[44]=0x20001;
+  words[239]=uint32_t(shaderGpu-RcsDrawImage::GpuBase);
+  words[248]=words[239]+0x80;
+  return true;
+ }
  static bool ValidateBatch(const uint32_t* words,unsigned dwords,uint64_t gpu) {
   if(!words || dwords!=1024 || !ValidGpu(gpu))return false;
   uint32_t offset=uint32_t(gpu-RcsDrawImage::GpuBase);

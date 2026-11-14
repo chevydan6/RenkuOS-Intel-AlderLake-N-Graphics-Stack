@@ -54,6 +54,9 @@ The [image checkpoint](../evidence/native-vulkan-image-003/README.md) verifies
 the fixed output-image allocation and binding path.
 The [render-target checkpoint](../evidence/native-vulkan-target-004/README.md)
 verifies the image-view, render-pass, and framebuffer chain for that shape.
+The [combined owner checkpoint](../evidence/rcs-combined-015/README.md) now
+allows one hardware draw to consume both public vertex and shader BOs. Vulkan
+pipeline and command submission still need to connect to that owner request.
 
 `KnownSpirv.h` is generated from the validated Vulkan 1.2 assembly fixtures
 in `../render/compiler/mesa-26.3.0/spirv/` using `generate-known-spirv.py` and

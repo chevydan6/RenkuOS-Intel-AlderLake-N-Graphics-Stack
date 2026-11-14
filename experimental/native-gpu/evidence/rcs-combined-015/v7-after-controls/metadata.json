@@ -1,0 +1,7 @@
+{
+  "host": "renkuos-n100",
+  "client": "/boot/home/native-rcs-combined-015/build/gpu_render_combined",
+  "client_sha256": "ff031dfb9c2dc3309b153bc5e40b25125091d9909fdf85f093a1eda26ad39b5e",
+  "draws_passed": 4,
+  "final_sequence": 454
+}

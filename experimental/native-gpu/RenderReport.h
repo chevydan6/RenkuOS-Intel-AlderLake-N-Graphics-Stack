@@ -49,6 +49,9 @@ struct native_gpu_render_command {
  // Version 6: variant selects fixed triangle 0..3; reserved is a file-local
  // fragment shader BO handle. The owner validates its entire 4 KiB page
  // against the proven shader image before widening the instruction window.
+ // Version 7: variant is a file-local vertex BO handle; reserved is a
+ // different file-local fragment shader BO handle. Both pages and the
+ // combined fixed batch are validated before GPU publication.
  uint8_t output[4096];
 };
 static_assert(sizeof(native_gpu_render_report)==240,"render report ABI");

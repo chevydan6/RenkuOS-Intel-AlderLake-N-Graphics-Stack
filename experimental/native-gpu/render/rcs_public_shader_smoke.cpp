@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "RcsPublicShader.h"
+#include "RcsResourceVertices.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -28,6 +29,22 @@ int main() {
  invalid[1]^=1;uint32_t before[1024];memcpy(before,invalid,sizeof(before));
  if(NativeGpu::RcsPublicShader::PatchBatch(invalid,1024,0x410000)
   || memcmp(invalid,before,sizeof(invalid)))return 9;
+ alignas(4096) uint32_t pages[NativeGpu::RcsDrawImage::PageCount][1024]={};
+ uint32_t* pagePointers[NativeGpu::RcsDrawImage::PageCount]={};
+ for(unsigned i=0;i<NativeGpu::RcsDrawImage::PageCount;i++)pagePointers[i]=pages[i];
+ const uint32_t vertices[12]={
+  0xbf400000,0xbf400000,0x3f000000,0x3f800000,
+  0x3f400000,0xbf400000,0x3f000000,0x3f800000,
+  0x3f400000,0x3f400000,0x3f000000,0x3f800000};
+ if(!NativeGpu::RcsResourceVertices::BuildAt(pagePointers,vertices,0x410000))return 10;
+ uint32_t* combined=pagePointers[NativeGpu::RcsDrawImage::Batch];
+ if(!NativeGpu::RcsPublicShader::PatchBatchWithVertex(combined,1024,0x411000,0x410000))
+  return 11;
+ if(combined[44]!=0x20001 || combined[239]!=0x11000
+  || combined[248]!=0x11080)return 12;
+ combined[0]^=1;
+ if(NativeGpu::RcsPublicShader::PatchBatchWithVertex(combined,1024,0x411000,0x410000))
+  return 13;
  puts("N100 public FS page and three-word bounded batch patch: PASS (CPU only)");
  return 0;
 }

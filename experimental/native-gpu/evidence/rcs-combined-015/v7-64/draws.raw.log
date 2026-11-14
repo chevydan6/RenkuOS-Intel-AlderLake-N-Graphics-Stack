@@ -1,0 +1,255 @@
+draw=0 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=3/3 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=1 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=4/4 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=2 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=5/5 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=3 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=6/6 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=4 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=7/7 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=5 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=8/8 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=6 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=9/9 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=7 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=10/10 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=8 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=11/11 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=9 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=12/12 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=10 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=13/13 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=11 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=14/14 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=12 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=15/15 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=13 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=16/16 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=14 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=17/17 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=15 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=18/18 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=16 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=19/19 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=17 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=20/20 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=18 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=21/21 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=19 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=22/22 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=20 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=23/23 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=21 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=24/24 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=22 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=25/25 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=23 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=26/26 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=24 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=27/27 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=25 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=28/28 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=26 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=29/29 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=27 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=30/30 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=28 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=31/31 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=29 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=32/32 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=30 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=33/33 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=31 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=34/34 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=32 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=35/35 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=33 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=36/36 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=34 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=37/37 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=35 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=38/38 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=36 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=39/39 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=37 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=40/40 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=38 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=41/41 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=39 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=42/42 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=40 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=43/43 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=41 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=44/44 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=42 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=45/45 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=43 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=46/46 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=44 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=47/47 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=45 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=48/48 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=46 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=49/49 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=47 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=50/50 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=48 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=51/51 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=49 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=52/52 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=50 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=53/53 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=51 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=54/54 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=52 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=55/55 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=53 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=56/56 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=54 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=57/57 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=55 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=58/58 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=56 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=59/59 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=57 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=60/60 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=58 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=61/61 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=59 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=62/62 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=60 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=63/63 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=61 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=64/64 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=62 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=65/65 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+
+draw=63 exit=0
+combined ioctl=0 status=0 version=7 stage=12 sequence=66/66 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
