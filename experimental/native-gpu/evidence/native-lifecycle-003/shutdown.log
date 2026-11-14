@@ -1,0 +1,17 @@
+version=1 state=6 clients=1 sequence=75 last_status=0 generation=5 completed=73 failed=2
+total_us=2681 cache_us=1432 cache_calls=3 wait_us=120 polls=1 sleeps=0 submit_us=621 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0
+native_copy version=1 ioctl=-1 status=-2147442676 stage=0 identity=00000000 revision=0
+mapping=0 dma=0 tables=0 bootstrap=0 group=0 reset=0 engine=0 csb=0 pages=0 retained=0
+nonce=00000000 observed=00000000 complement=00000000 sequence=0 observed_sequence=0 load=0 tail=0
+copy_words=0 matched=0 source_hash=00000000 destination_hash=00000000 CSB=0000000000000000/0000000000000000
+bootstrap=0/0 group=0/0 reset=0/0 engine=0/0 csb_error=0 safety=0/0/0 mode=00000000 EIR=00000000 fault=00000000
+PCI result=0 command=0000/0000 status=0000/0000 PM=0000/0000 group_domain=0 reads=0 writes=0
+CSB tail=00000000 raw=0000000000000000/0000000000000000/0000000000000000/0000000000000000
+GPU 4KiB copy sample: NOT PROVEN
+Successful requests retire for reuse; uncertain requests retain backing until reboot.
+transition: Device not ready
+version=1 state=6 clients=1 sequence=75 last_status=0 generation=5 completed=73 failed=2
+total_us=2681 cache_us=1432 cache_calls=3 wait_us=120 polls=1 sleeps=0 submit_us=621 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0
+version=1 state=6 clients=1 sequence=75 last_status=0 generation=5 completed=73 failed=2
+total_us=2681 cache_us=1432 cache_calls=3 wait_us=120 polls=1 sleeps=0 submit_us=621 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0
+shutdown_exit=0 rejected_copy_exit=1 rejected_resume_exit=1

@@ -1,0 +1,5 @@
+concurrent_exit=0/0
+client seed=53 copies=24 final_sequence=61 verified all bytes: PASS
+client seed=87 copies=24 final_sequence=37 verified all bytes: PASS
+version=1 state=1 clients=1 sequence=61 last_status=0 generation=2 completed=61 failed=0
+total_us=2829 cache_us=1418 cache_calls=3 wait_us=148 polls=1 sleeps=0 submit_us=648 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0

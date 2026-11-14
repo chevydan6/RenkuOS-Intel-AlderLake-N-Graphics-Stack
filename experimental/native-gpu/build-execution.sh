@@ -27,6 +27,8 @@ g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 \
  -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_copy_sample.cpp -o build/gpu_copy_sample
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. buffer_copy_sample.cpp -o build/buffer_copy_sample
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_lifecycle.cpp -o build/gpu_lifecycle
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. lifecycle_copy.cpp -o build/lifecycle_copy
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_copy_bench.cpp -lbe -o build/gpu_copy_bench
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. buffer_window.cpp -lbe -o build/buffer_window
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. presentation_smoke.cpp -o build/presentation_smoke
@@ -39,6 +41,10 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. -I"$graphics/intel_extreme" pci_pow
 ./build/pci_power_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. csb_cursor_smoke.cpp -o build/csb_cursor_smoke
 ./build/csb_cursor_smoke
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. lifecycle_smoke.cpp -o build/lifecycle_smoke
+./build/lifecycle_smoke
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. recovery_smoke.cpp -o build/recovery_smoke
+./build/recovery_smoke
 sha256sum build/intel_memory_owner build/intel_native_execution_bridge build/gpu_copy_sample > build/binaries.sha256
 nm -u build/intel_memory_owner > build/imports.txt
 echo NATIVE_GPU_EXECUTION_BUILD_PASSED

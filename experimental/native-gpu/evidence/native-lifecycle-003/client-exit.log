@@ -1,0 +1,10 @@
+victim_pid=492 victim_exit=137 quiesce_exit=0
+version=1 state=2 clients=2 sequence=71 last_status=0 generation=3 completed=69 failed=1
+total_us=2654 cache_us=1397 cache_calls=3 wait_us=119 polls=1 sleeps=0 submit_us=610 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0
+version=1 state=4 clients=1 sequence=71 last_status=-2147483639 generation=4 completed=69 failed=2
+total_us=23681 cache_us=1625 cache_calls=3 wait_us=20014 polls=136 sleeps=135 submit_us=707 queue_us=0 recovery_stage=11 recovery_error=0 reset_rounds=2
+version=1 state=1 clients=1 sequence=71 last_status=-2147483639 generation=5 completed=69 failed=2
+total_us=23681 cache_us=1625 cache_calls=3 wait_us=20014 polls=136 sleeps=135 submit_us=707 queue_us=0 recovery_stage=11 recovery_error=0 reset_rounds=2
+client seed=149 copies=4 final_sequence=75 verified all bytes: PASS
+version=1 state=1 clients=1 sequence=75 last_status=0 generation=5 completed=73 failed=2
+total_us=2681 cache_us=1432 cache_calls=3 wait_us=120 polls=1 sleeps=0 submit_us=621 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0

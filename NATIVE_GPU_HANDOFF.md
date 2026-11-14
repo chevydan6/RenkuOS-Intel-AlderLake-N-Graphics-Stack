@@ -1,6 +1,52 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Latest checkpoint: driver lifecycle and bounded BCS recovery
+
+The user chose driver work first, tested quiesce/resume boundaries, and explicitly
+excluded RenkuOS kernel work. [Driver lifecycle contract](experimental/native-gpu/DRIVER_LIFECYCLE.md)
+now covers explicit admission states, bounded competing clients, client close/free,
+timeout/device-error handling, power drain, resume and terminal shutdown.
+Both owner and bridge use private **native_execution/v3**; public copy ioctls and
+the window presenter remain compatible. No OS kernel, ACPI or display changes.
+
+[Native lifecycle evidence](experimental/native-gpu/evidence/native-lifecycle-003/README.md):
+75 requests in one boot, 73 verified copies and two completion-observation timeouts.
+Both timeouts performed Intel's real bounded stop/reset sequence, normal power
+release and later copy reuse without reboot. Concurrent clients with different
+patterns, same-handle reuse across quiesce/resume, SIGKILL while Running followed
+by drain/resume/new-client copies, and terminal shutdown rejection passed.
+A final reboot restored normal admission and four fresh copies passed. This does
+not claim a physically hung-engine test or actual system S3/wake support.
+
+Normal retirement still grants reuse only after complete data/CSB/visibility,
+idle/error and power/owner/DMA proof. Reset recovery must prove disabled/idle
+BCS, normal power release and final access validity; then a new generation rebuilds
+engine/context/HWSP. A failed copy stays failed and its client buffers Unknown.
+Unrecoverable reset, persistent device error or changed owner/DMA enters Lost,
+retains GPU backing and requires reboot. The bounded resident pool stays pinned;
+client CPU staging is freed on final close, never used as DMA backing.
+
+Warm requests used one CSB poll and no sleeps: roughly 120–149 us wait versus1.4 ms
+cache maintenance and 0.6 ms submission. IRQ benefit is not established on this
+working path; shared display/GT interrupt ownership remains unchanged. The
+observed VT-d-disabled direct-DMA limitation is preserved.
+
+Native bundle: `/boot/home/native-lifecycle-003`. Run `build/gpu_lifecycle status`,
+`quiesce`, `resume` or terminal `shutdown` (controls require UID0), and
+`build/lifecycle_copy 8 19` for verified copies. A query includes its own open in
+the client count. Driver boundaries are manual: the pinned OS does not dispatch
+usable driver power callbacks. The exported shutdown flag also rejects new GPU
+admission/publication; it is not an OS drain callback.
+
+Installed owner SHA256:
+`34b036a49eb692354fe94f42ced732ba4c957ef3433f272c8aadff3dd4e27315`.
+Bridge SHA256:
+`0e5963cad4781e12305ca492f278614f4fe88631298e50db1ebdb3a573786a8c`.
+All 13 original component hashes match, app_server remains PID127, final state is
+Ready at sequence4, and the physical lease is released. Native build/export link,
+seven focused fixtures and final independent review passed.
+
 ## Latest checkpoint: one native window presenting BCS buffers
 
 The user selected a window presenter using BCS buffers now, with shader rendering

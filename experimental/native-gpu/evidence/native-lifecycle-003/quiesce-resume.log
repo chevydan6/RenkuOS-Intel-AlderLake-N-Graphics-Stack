@@ -1,0 +1,4 @@
+quiesce rejection retained CPU ownership; resume kept handles usable
+client seed=29 copies=4 final_sequence=13 verified all bytes: PASS
+version=1 state=1 clients=1 sequence=13 last_status=0 generation=2 completed=13 failed=0
+total_us=2652 cache_us=1399 cache_calls=3 wait_us=120 polls=1 sleeps=0 submit_us=609 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0

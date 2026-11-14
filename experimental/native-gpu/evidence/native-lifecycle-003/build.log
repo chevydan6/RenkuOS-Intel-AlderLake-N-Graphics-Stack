@@ -1,0 +1,9 @@
+/boot/home/i915-mapping-002/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp: OK
+Presentation stride/format and completion/fail-stop policy: PASS
+Owned buffer/copy admission and lifetime: PASS
+Native copy request image: PASS (CPU construction only)
+Native PCI access anchors: PASS (volatile status accepted; moved BAR rejected)
+Captured N100 CSB cursor0 / slots1-2: PASS
+Request admission, uncertain lifetime and power drain: PASS
+Active BCS stop/reset sequence and failed-reset retention: PASS
+NATIVE_GPU_EXECUTION_BUILD_PASSED

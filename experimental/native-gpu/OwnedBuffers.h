@@ -41,8 +41,8 @@ struct OwnedBuffers {
   buffers[c.source-1].state=buffers[c.destination-1].state=GpuInFlight;
   return true;
  }
- void Finish(bool retired) {
-  for(auto& b:buffers)if(b.state==GpuInFlight)b.state=retired?CpuOwned:Unknown;
+ void Finish(bool retired,bool admitted=true) {
+  for(auto& b:buffers)if(b.state==GpuInFlight)b.state=retired || !admitted?CpuOwned:Unknown;
  }
 };
 }

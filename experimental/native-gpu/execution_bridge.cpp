@@ -9,6 +9,8 @@
 int32 api_version=B_CUR_DRIVER_API_VERSION;
 struct Session {
  mutex lock;
+ bool closing;
+ native_gpu_execution_module* module;
  NativeGpu::OwnedBuffers buffers;
  native_gpu_buffer_io transfer;
  native_gpu_copy command;
@@ -18,19 +20,46 @@ static status_t Open(const char*,uint32,void** cookie)
  Session* s=(Session*)malloc(sizeof(Session));
  if(!s)return B_NO_MEMORY;
  memset(s,0,sizeof(*s));mutex_init(&s->lock,"native GPU buffer session");
+ status_t status=get_module(NATIVE_GPU_EXECUTION_MODULE,(module_info**)&s->module);
+ if(status!=B_OK){mutex_destroy(&s->lock);free(s);return status;}
+ s->module->session_opened();
  *cookie=s;return B_OK;
 }
-static status_t Close(void*){return B_OK;}
+static status_t Close(void* cookie)
+{
+ Session& s=*(Session*)cookie;
+ mutex_lock(&s.lock);s.closing=true;mutex_unlock(&s.lock);return B_OK;
+}
 static status_t Free(void* cookie)
 {
  // Free-cookie is called after the final open-file reference/IO is gone.
  // These are CPU-only staging allocations: no DMA address or resident owner
  // points here, including after failure. The GPU backing stays in the owner.
  Session* s=(Session*)cookie;
+ s->module->session_closed();
+ put_module(NATIVE_GPU_EXECUTION_MODULE);
  mutex_destroy(&s->lock);free(s);return B_OK;
 }
 static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t bytes)
 {
+ if(s.closing)return B_DEV_NOT_READY;
+ if(operation==NATIVE_GPU_LIFECYCLE_CONTROL){
+  if(bytes!=sizeof(native_gpu_lifecycle_control))return B_BAD_VALUE;
+  team_info caller={};
+  status_t status=get_team_info(B_CURRENT_TEAM,&caller);
+  if(status!=B_OK)return status;
+  if(caller.uid!=0)return B_NOT_ALLOWED;
+  native_gpu_lifecycle_control control={};
+  status=user_memcpy(&control,buffer,bytes);if(status!=B_OK)return status;
+  if(control.version!=1)return B_BAD_VALUE;
+  return s.module->transition(control.action);
+ }
+ if(operation==NATIVE_GPU_LIFECYCLE_STATUS){
+  if(bytes!=sizeof(native_gpu_lifecycle_report))return B_BAD_VALUE;
+  native_gpu_lifecycle_report report={};
+  status_t status=s.module->status(&report);
+  return status==B_OK?user_memcpy(buffer,&report,bytes):status;
+ }
  if(operation==NATIVE_GPU_BUFFER_CREATE){
   if(bytes!=sizeof(native_gpu_buffer_create))return B_BAD_VALUE;
   native_gpu_buffer_create request={};
@@ -58,20 +87,20 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
   s.command.report={};
   if(!s.buffers.CanCopy(s.command))return B_BAD_VALUE;
  }
- native_gpu_execution_module* module=NULL;
- status_t status=get_module(NATIVE_GPU_EXECUTION_MODULE,(module_info**)&module);
- if(status!=B_OK)return status;
+ native_gpu_execution_module* module=s.module;
+ status_t status;
  native_gpu_execution_report report={};
  if(sample)status=module->run(&report);
  else {
   s.buffers.Begin(s.command);
   status=module->copy(&s.command,s.buffers.buffers[s.command.source-1].words,
    s.buffers.buffers[s.command.destination-1].words,&s.command.report);
-  // B_BUSY rejects this call before any staging/publication. Other failures
-  // conservatively make both buffers unavailable; resident DMA backing stays.
-  s.buffers.Finish(status==B_OK || status==B_BUSY);
+  // Stage0 is a pre-admission rejection (including quiesce/lost/interrupt).
+  // B_BUSY also covers a prepublication diagnostic-owner conflict. Neither
+  // invalidates CPU staging. A failed accepted request stays unavailable even
+  // if device recovery later permits a different client to submit.
+  s.buffers.Finish(status==B_OK,s.command.report.stage!=0 && status!=B_BUSY);
  }
- put_module(NATIVE_GPU_EXECUTION_MODULE);
  status_t copied=user_memcpy(buffer,sample?(void*)&report:(void*)&s.command,bytes);
  return copied==B_OK?status:copied;
 }

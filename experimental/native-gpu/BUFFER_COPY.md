@@ -2,7 +2,7 @@
 # Narrow owned-buffer copy interface
 
 The existing `/dev/misc/intel_native_execution` endpoint now accepts the fixed-width
-ioctls in `BufferCopy.h`. The resident private module is `native_execution/v2`;
+ioctls in `BufferCopy.h`. The resident private module is `native_execution/v3`;
 replace both owner and bridge, then reboot. The original fixed-copy ioctl and
 `gpu_copy_sample` remain available. No user command stream, GPU address, physical
 address, mapping or callback is accepted.
@@ -56,16 +56,20 @@ the same session serialize. The state progression is:
    errors, owner and DMA admission. Release power normally and revalidate.
 4. **CpuOwned:** only after full success copy the resident destination back into
    the session buffer. The owner releases its admission gate for another request.
-   A rejected global-busy call did not publish this request and leaves the CPU
-   staging buffers usable. Other execution failures mark the participating
+   A pre-admission rejection (busy, quiesced, unavailable or interrupted) leaves
+   CPU staging usable. Other execution failures mark the participating
    session buffers **Unknown**, making reads/writes/copies unavailable.
 
-An uncertain GPU completion keeps the global admission gate closed and retains
-all resident DMA backing until reboot. Session buffers are CPU-only snapshots;
+An uncertain GPU completion triggers bounded BCS reset while power is held. Only
+proven reset quiescence, normal power release and owner/DMA validation reopen
+admission; otherwise Lost retains backing and denies work until reboot. A failed
+copy remains failed even after recovery. See [driver lifecycle](DRIVER_LIFECYCLE.md).
+Session buffers are CPU-only snapshots;
 closing their file can free them even on failure because no GPU or resident
 callback/pointer references them. The bridge and resident owner retain no request
 pointer after the synchronous call. The owner's global request storage, mappings,
-PPGTT and source/destination backing stay pinned and are reused only on success.
+PPGTT and source/destination backing stay pinned and are reused only after full
+retirement or verified recovery with complete engine/context reinitialization.
 This interface deliberately does not reclaim published GPU backing on close.
 
 ## DMA scope

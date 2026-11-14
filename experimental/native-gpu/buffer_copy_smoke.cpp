@@ -15,6 +15,7 @@ int main()
  c.destination_pitch=95;assert(!b.CanCopy(c));c.destination_pitch=96;
  assert(!b.Range(3,0,4));assert(!b.Range(1,4090,16));
  assert(b.Begin(c));assert(!b.CanCopy(c));assert(!b.Range(1,0,4));
+ b.Finish(false,false);assert(b.CanCopy(c));assert(b.Begin(c));
  b.Finish(true);assert(b.Range(2,0,4096));assert(b.Begin(c));
  b.Finish(false);assert(!b.CanCopy(c));assert(!b.Range(2,0,4));
  NativeGpu::OwnedBuffers other={};assert(!other.CanCopy(c));

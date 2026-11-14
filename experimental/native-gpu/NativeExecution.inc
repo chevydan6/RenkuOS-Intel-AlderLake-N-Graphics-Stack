@@ -15,14 +15,26 @@
 #include "BcsEngine.h"
 #include "NativePciPower.h"
 #include "OwnedBuffers.h"
+#include "RequestLifecycle.h"
+#include "BcsRecovery.h"
+
+extern bool gKernelShutdown;
+static NativeGpu::RequestLifecycle sNativeLifecycle;
+static uint32_t sNativeClients;
+static status_t sNativeLastStatus=B_OK;
+static native_gpu_request_metrics sNativeMetrics, sNativeLastMetrics;
+static bool sNativeRecovered,sNativeResetObserved,sNativeRebuild;
+static bool sNativeHideCompletion;
+static bool sNativeTestTimeout,sNativeTransitionBusy;
+static NativeGpu::BcsRecovery sNativeRecovery;
 
 static native_gpu_copy sNativeCopy;
 static uint32_t sNativeExpected[1024];
-static bool sNativeAttempted, sNativePageHold;
+static bool sNativePageHold;
 static bool sNativeReady, sNativeInitialized, sNativeRetired;
 static uint32_t sNativeSequence, sNativeCursor;
-// Busy/poisoned is set before touching any request backing. Only the complete
-// retirement + power-release path clears it. Failures retain every allocation.
+// The lifecycle gate is acquired before touching any request backing. Only
+// complete retirement + power release permits reuse; failure retains memory.
 static native_gpu_execution_report sNativeReport;
 static IntelN100PpgttTree sNativeTree;
 static NativeGpu::BcsEngine sNativeEngine;
@@ -181,7 +193,7 @@ static bool NativeWrite(void* data,uint32_t offset,uint32_t value)
 }
 static bool NativeSafe(void* data)
 {
-	if(!ResetSafe(data) || !NativeDmaStillDirect())return false;
+	if(gKernelShutdown || !ResetSafe(data) || !NativeDmaStillDirect())return false;
 	uint32_t error=0,fault=0;
 	if(!NativeRead(data,0x220b0,error) || !NativeRead(data,0xcec4,fault))return false;
 	sNativeReport.error_register=error;sNativeReport.fault_register=fault;
@@ -192,7 +204,9 @@ static bool NativeVisible(void*)
 	// WB page tables/data and WC GART aliases share the GPU-owned backing.
 	// Match the native GART's x86 flush contract before publication; after GPU
 	// completion this also invalidates CPU copies before checking BLT output.
+	bigtime_t start=system_time();
 	asm volatile("mfence; wbinvd; mfence" ::: "memory");
+	sNativeMetrics.cache_us+=system_time()-start;++sNativeMetrics.cache_calls;
 	return true;
 }
 static bool NativeStoreChecked(void* data,uint32_t offset,uint32_t value)
@@ -235,7 +249,7 @@ static bool NativeStatus32(void*,uint32_t offset,uint32_t& value)
 	sNativeReport.csb_tail_raw=raw;
 	// Linux process_csb reads this field into u8; upper dword bits are not
 	// part of its cursor. Keep the raw word for the actual hardware report.
-	value=uint8_t(raw);
+	value=sNativeHideCompletion?sNativeCursor:uint8_t(raw);
 	return true;
 }
 static bool NativeStatus64(void*,uint32_t offset,uint64_t& value)
@@ -272,12 +286,21 @@ static bool NativeGroupSafe(void* data)
 	if(!ResetOwnerPower(context))return false;
 	return true;
 }
-static bool NativeWork(void* data,uint64_t deadline)
+static void NativeCompletionPause(void* data)
+{++sNativeMetrics.sleeps;HandshakePause(data);}
+static bool NativeCopyWork(void* data,uint64_t deadline)
 {
 	auto& context=*(GroupContext*)data;
 	sNativeReport.stage=6;
 	context.resetDeadline=deadline;context.resetLastTime=HandshakeTime(NULL);
-	if(!sNativeInitialized && !ResetWork(data,deadline))return false;
+	if(!sNativeResetObserved){
+		if(!ResetWork(data,deadline))return false;
+		sNativeResetObserved=true;
+	}
+	if(sNativeRebuild){
+		sNativeEngine.~BcsEngine();new (&sNativeEngine) NativeGpu::BcsEngine;
+		sNativeCursor=0;sNativeInitialized=false;sNativeRebuild=false;
+	}
 	sNativeReport.reset=B_OK;
 	if(!NativeSafe(data))return false;
 	sNativeReport.stage=7;
@@ -314,13 +337,26 @@ static bool NativeWork(void* data,uint64_t deadline)
 	} else if(!sNativeRetired || !sNativeEngine.Rearm(io,deadline))return false;
 	sNativeRetired=false;
 	sNativeReport.stage=10;
-	if(!sNativeEngine.Publish(io,image.descriptor))return false;
+	bigtime_t published=system_time();
+	bool submitted=sNativeEngine.Publish(io,image.descriptor);
+	sNativeMetrics.submit_us=system_time()-published;
+	if(!submitted)return false;
 	sNativeReport.engine=B_OK;
 	sNativeReport.stage=11;
 	IntelN100CsbReader::Io csb={data,HandshakeTime,NativeSafe,NativeStatus32,
-		NativeStatus64,NativeAcquire,HandshakePause};
+		NativeStatus64,NativeAcquire,NativeCompletionPause};
 	uint64_t now=HandshakeTime(NULL);
-	if(now>=deadline || !sNativeCsb.Run(csb,sMappingLease,in.tag,deadline-now,2048,sNativeCursor)){
+	// Leave time within the held forcewake group's 100ms operation budget for
+	// bounded recovery and release. Current successful copies take about 3ms.
+	uint64_t waitBudget=deadline>now+20000?deadline-now-20000:0;
+	if(waitBudget>20000)waitBudget=20000;
+	bool observed=waitBudget && sNativeCsb.Run(csb,sMappingLease,in.tag,waitBudget,2048,sNativeCursor);
+	sNativeMetrics.wait_us=sNativeCsb.LastReport().elapsed;
+	sNativeMetrics.polls=sNativeCsb.LastReport().polls;
+	if(!observed){
+		auto error=sNativeCsb.LastReport().error;
+		sNativeReport.status=error==IntelN100CsbReader::Deadline
+			|| error==IntelN100CsbReader::PollLimit?B_TIMED_OUT:B_IO_ERROR;
 		NativeCollectOutput(data);
 		return false;
 	}
@@ -346,6 +382,53 @@ static bool NativeWork(void* data,uint64_t deadline)
 	sNativeReport.stage=14;
 	return true;
 }
+static bool NativeRecoverySafe(void* data)
+{return ResetSafe(data) && NativeDmaStillDirect();}
+static bool NativeRecoveryWrite(void* data,uint32_t offset,uint32_t value)
+{
+	// Preserve the cold-reset adapter unchanged. The active reset adds the
+	// Intel catastrophic-error acknowledge, inaccessible to ordinary submits.
+	if(offset==0x220d0 && value==0x00040004){
+		auto& context=*(GroupContext*)data;
+		if(!ResetAccessAllowed(context,offset))return false;
+		memory_write_barrier();
+		*(volatile uint32_t*)(context.handshake->registers+offset)=value;
+		memory_full_barrier();return true;
+	}
+	return ResetWrite(data,offset,value);
+}
+static bool NativeResetEngine(void* data,uint64_t deadline)
+{
+	auto& context=*(GroupContext*)data;
+	context.resetDeadline=deadline;context.resetLastTime=HandshakeTime(NULL);
+	// Recovery is attempted while this group's forcewake ledger is still Held
+	// and its operation deadline is live. A failed group cannot be reused later
+	// merely by reconstructing its software ledger.
+	sNativeRecovery.~BcsRecovery();new (&sNativeRecovery) NativeGpu::BcsRecovery;
+	NativeGpu::BcsRecovery::IO io={data,HandshakeTime,NativeRecoverySafe,ResetRead,
+		NativeRecoveryWrite,HandshakePause};
+	bool reset=sNativeRecovery.Run(io)==NativeGpu::BcsRecovery::Ok;
+	const auto& report=sNativeRecovery.LastReport();
+	sNativeMetrics.recovery_stage=report.stage;sNativeMetrics.recovery_error=report.error;
+	sNativeMetrics.reset_rounds=report.resetRounds;
+	if(!reset || !NativeRecoverySafe(data))return false;
+	// This adapter owns BCS0, not the full GT error domain. Do not clear a
+	// shared fault that could belong to another engine. Persistent device errors
+	// leave admission Lost even if the BCS reset itself completed.
+	uint32_t fault=0,error=0;
+	if(!NativeRead(data,0xcec4,fault))return false;
+	if((fault&1)
+		|| !NativeRead(data,0x220b0,error) || error || !NativeRecoverySafe(data))return false;
+	return true;
+}
+static bool NativeWork(void* data,uint64_t deadline)
+{
+	if(NativeCopyWork(data,deadline))return true;
+	if(sNativeReport.status==B_ERROR)sNativeReport.status=B_IO_ERROR;
+	if(!sNativeResetObserved || !NativeResetEngine(data,deadline))return false;
+	sNativeRecovered=true;
+	return true; // permit normal power release; the copy itself remains failed
+}
 static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source,
 	uint32_t* destination,native_gpu_execution_report* output)
 {
@@ -354,10 +437,40 @@ static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source
 	if(copy && (!source || !destination || source==destination
 		|| !NativeGpu::ValidCopy(copy->width,copy->height,copy->source_pitch,copy->destination_pitch)))
 		return B_BAD_VALUE;
-	mutex_lock(&sLock);
-	if(sNativeAttempted){mutex_unlock(&sLock);return B_BUSY;}
-	if(sNativeSequence==UINT32_MAX){mutex_unlock(&sLock);return B_BUSY;}
-	sNativeAttempted=true;
+	// Competing clients wait boundedly outside the device lock. The active
+	// request remains synchronous; an interrupted waiter has published nothing.
+	bigtime_t queued=system_time();
+	NativeGpu::RequestLifecycle::Admission admission;
+	for(;;){
+		mutex_lock(&sLock);
+		if(gKernelShutdown)sNativeLifecycle.Freeze(NativeGpu::RequestLifecycle::Shutdown);
+		admission=sNativeSequence==UINT32_MAX?NativeGpu::RequestLifecycle::Unavailable
+			:sNativeLifecycle.Begin();
+		if(admission!=NativeGpu::RequestLifecycle::Busy || system_time()-queued>=250000)break;
+		mutex_unlock(&sLock);
+		status_t wait=snooze(1000);
+		if(wait!=B_OK){output->status=wait;return wait;}
+	}
+	if(admission!=NativeGpu::RequestLifecycle::Accepted){
+		output->status=admission==NativeGpu::RequestLifecycle::Busy?B_BUSY:B_DEV_NOT_READY;
+		mutex_unlock(&sLock);return output->status;
+	}
+	// All accepted exits, including allocation/bootstrap failures, must close
+	// admission or prove retirement. No CPU pointer survives this scope.
+	struct RequestScope {
+		bigtime_t start=system_time();
+		bool recovered=false;
+		~RequestScope() {
+			mutex_lock(&sLock);
+			sNativeLastStatus=sNativeReport.status;
+			sNativeMetrics.total_us=system_time()-start;
+			sNativeLastMetrics=sNativeMetrics;
+			sNativeLifecycle.Finish(sNativeReport.status==B_OK,recovered);
+			mutex_unlock(&sLock);
+		}
+	} requestScope;
+	sNativeMetrics={};sNativeMetrics.queue_us=system_time()-queued;sNativeRecovered=false;
+	sNativeHideCompletion=sNativeTestTimeout;sNativeTestTimeout=false;
 	sNativeCopy=copy?*copy:native_gpu_copy{1,2,1024,1,4096,4096,{}};
 	++sNativeSequence;
 	if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
@@ -431,7 +544,9 @@ static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source
 		IntelN100ForcewakeGroup::IO groupIO={&context,HandshakeTime,NativeGroupSafe,GroupRead,GroupWrite,HandshakePause};
 		r.group=sGroup.Run(groupIO,original.identity,uint8(original.classRevision),mediaFuse,NativeWork)
 			==IntelN100ForcewakeGroup::Ok?B_OK:B_ERROR;
-		success=r.group==B_OK && NativeOwnerPower(context) && NativeDmaStillDirect();
+		bool released=r.group==B_OK && NativeOwnerPower(context) && NativeDmaStillDirect();
+		success=released && r.stage==14;
+		requestScope.recovered=released && sNativeRecovered;
 	}
 	r.bootstrap_stage=sForcewake.LastReport().stage;r.bootstrap_error=sForcewake.LastReport().error;
 	r.group_stage=sGroup.LastReport().stage;r.group_error=sGroup.LastReport().error;
@@ -446,10 +561,17 @@ static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source
 		r.group_reads+=sGroup.LastReport().domains[i].reads;
 		r.group_writes+=sGroup.LastReport().domains[i].writes;
 	}
-	r.engine_stage=sNativeEngine.LastReport().stage;r.engine_error=sNativeEngine.LastReport().error;
-	r.load_attempted=sNativeEngine.LastReport().loadAttempted;r.csb_error=sNativeCsb.LastReport().error;
+	if(r.stage>=9){
+		r.engine_stage=sNativeEngine.LastReport().stage;r.engine_error=sNativeEngine.LastReport().error;
+		if(r.stage>=10)r.load_attempted=sNativeEngine.LastReport().loadAttempted;
+	}
+	r.csb_error=sNativeCsb.LastReport().error;
 	mutex_lock(&sLock);
-	if(success){sObservationPhase=ObservationIdle;sObservationLease=0;r.status=B_OK;}
+	if(success || requestScope.recovered){
+		sObservationPhase=ObservationIdle;sObservationLease=0;
+		if(success)r.status=B_OK;
+		else{sNativeRebuild=true;sNativeRetired=true;}
+	}
 	else{sObservationPhase=ObservationUnknown;sObservationBlocked=true;}
 	// Never RetireObservation(): this transaction uses the mapping lease/pin,
 	// not a second observation lease. Both request backing and code stay alive.
@@ -459,13 +581,99 @@ static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source
 		// GPU -> CPU: NativeCollectOutput invalidated CPU caches after ordered
 		// completion. Only full retirement + power release exposes new data.
 		if(copy)memcpy(destination,sNativeDestination,kNativeBufferBytes);
-		sNativeAttempted=false;
 	}
 	mutex_unlock(&sLock);
 	return status;
 }
 static status_t RunNativeExecution(native_gpu_execution_report* output)
 { return RunNativeCopy(NULL,NULL,NULL,output); }
+static status_t NativeLifecycleStatus(native_gpu_lifecycle_report* output)
+{
+	if(!output)return B_BAD_VALUE;
+	mutex_lock(&sLock);
+	*output={1,uint32_t(sNativeLifecycle.Current()),sNativeClients,sNativeSequence,
+		sNativeLastStatus,0,sNativeLifecycle.Generation(),sNativeLifecycle.Completed(),
+		sNativeLifecycle.Failed(),sNativeLastMetrics};
+	mutex_unlock(&sLock);return B_OK;
+}
+static void NativeSessionOpened()
+{mutex_lock(&sLock);++sNativeClients;mutex_unlock(&sLock);}
+static void NativeSessionClosed()
+{mutex_lock(&sLock);if(sNativeClients)--sNativeClients;mutex_unlock(&sLock);}
+static bool NativeResumeHardware()
+{
+	// A cold device has no published backing. First submission still performs
+	// full initial admission. Existing backing needs a real reset before any
+	// context/HWSP rewrite, even though this boundary does not put the OS in S3.
+	if(!sNativeReady)return true;
+	IntelN100PciSnapshot original={};
+	if(IntelN100PciPower::Capture(ReadConfig,&sDevice,sDevice.base,sDevice.size,original)
+		!=IntelN100PciPower::Success || !NativeDmaStillDirect())return false;
+	mutex_lock(&sLock);
+	bool allowed=!sObservationBlocked && sObservationPhase==ObservationIdle
+		&& (!sGroupAttempted || sNativeRetired) && sState.DiagnosticAllowed();
+	if(!allowed){mutex_unlock(&sLock);return false;}
+	sGroup.~IntelN100ForcewakeGroup();new (&sGroup) IntelN100ForcewakeGroup;
+	sGroupAttempted=true;sObservationPhase=ObservationHandshaking;
+	sObservationLease=sMappingLease;sObservationSnapshot=original;sNativeExecutionActive=true;
+	mutex_unlock(&sLock);
+	uint32 mediaFuse=0;
+	HandshakeContext h={sDevice,original,sMappingLease,sResources.registers,NULL,&mediaFuse,false,0,0};
+	IntelN100Forcewake::IO io={&h,HandshakeTime,HandshakeRead,HandshakeWrite,
+		HandshakePciStable,HandshakeLive,HandshakePause};
+	GroupContext context={&h,{},0,0,{}};
+	bool success=false;
+	if(sForcewake.RunWithInspection(io,InspectInventory)==IntelN100Forcewake::Ok
+		&& NativeOwnerPower(context)
+		&& intel_n100_reset_domains(original.identity,uint8(original.classRevision),mediaFuse,context.plan)){
+		IntelN100ForcewakeGroup::IO groupIO={&context,HandshakeTime,NativeGroupSafe,GroupRead,GroupWrite,HandshakePause};
+		success=sGroup.Run(groupIO,original.identity,uint8(original.classRevision),mediaFuse,NativeResetEngine)
+			==IntelN100ForcewakeGroup::Ok && NativeOwnerPower(context) && NativeDmaStillDirect();
+	}
+	mutex_lock(&sLock);
+	if(success){
+		sObservationPhase=ObservationIdle;sObservationLease=0;
+		sNativeRebuild=true;sNativeRetired=true;sNativeResetObserved=true;
+	}else{sObservationPhase=ObservationUnknown;sObservationBlocked=true;}
+	mutex_unlock(&sLock);return success;
+}
+static status_t NativeLifecycleTransition(uint32_t action)
+{
+	using L=NativeGpu::RequestLifecycle;
+	if(action<NATIVE_GPU_QUIESCE || action>NATIVE_GPU_TEST_TIMEOUT)return B_BAD_VALUE;
+	mutex_lock(&sLock);
+	if(sNativeTransitionBusy){mutex_unlock(&sLock);return B_BUSY;}
+	sNativeTransitionBusy=true;
+	struct TransitionScope {
+		~TransitionScope(){mutex_lock(&sLock);sNativeTransitionBusy=false;mutex_unlock(&sLock);}
+	} transitionScope;
+	if(action==NATIVE_GPU_RESUME){
+		if(sNativeLifecycle.Current()!=L::Suspended || gKernelShutdown){
+			mutex_unlock(&sLock);return B_DEV_NOT_READY;
+		}
+		mutex_unlock(&sLock);
+		bool validated=NativeResumeHardware();
+		mutex_lock(&sLock);bool resumed=sNativeLifecycle.Resume(validated);
+		mutex_unlock(&sLock);return resumed?B_OK:B_DEV_NOT_READY;
+	}
+	if(action==NATIVE_GPU_TEST_TIMEOUT){
+		bool ready=sNativeLifecycle.Current()==L::Cold || sNativeLifecycle.Current()==L::Ready;
+		if(ready && !gKernelShutdown)sNativeTestTimeout=true;
+		mutex_unlock(&sLock);return ready && !gKernelShutdown?B_OK:B_DEV_NOT_READY;
+	}
+	L::State target=action==NATIVE_GPU_SHUTDOWN?L::Shutdown:L::Suspended;
+	bool frozen=sNativeLifecycle.Freeze(target);
+	mutex_unlock(&sLock);
+	if(!frozen)return B_DEV_NOT_READY;
+	bigtime_t start=system_time();
+	for(;;){
+		mutex_lock(&sLock);L::State state=sNativeLifecycle.Current();mutex_unlock(&sLock);
+		if(state!=L::Quiescing)return state==target?B_OK:B_DEV_NOT_READY;
+		if(system_time()-start>=250000)return B_TIMED_OUT;
+		status_t wait=snooze(1000);if(wait!=B_OK)return wait;
+	}
+}
 static native_gpu_execution_module sNativeExecutionModule={
-	{NATIVE_GPU_EXECUTION_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeExecution,RunNativeCopy
+	{NATIVE_GPU_EXECUTION_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeExecution,RunNativeCopy,
+	NativeLifecycleStatus,NativeSessionOpened,NativeSessionClosed,NativeLifecycleTransition
 };

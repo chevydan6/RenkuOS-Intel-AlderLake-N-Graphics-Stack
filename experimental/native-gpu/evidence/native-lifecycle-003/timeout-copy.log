@@ -1,0 +1,9 @@
+native_copy version=1 ioctl=-1 status=-2147483639 stage=11 identity=46d18086 revision=0
+mapping=0 dma=0 tables=0 bootstrap=0 group=0 reset=0 engine=0 csb=-1 pages=10 retained=1
+nonce=04a0e8ef observed=04a0e8ef complement=fb5f1710 sequence=62 observed_sequence=62 load=1 tail=152
+copy_words=1024 matched=1024 source_hash=7ef5edc5 destination_hash=7ef5edc5 CSB=0000000000000000/0000000000000000
+bootstrap=6/0 group=6/0 reset=11/0 engine=4/0 csb_error=3 safety=0/3/3 mode=00000200 EIR=00000000 fault=00000000
+PCI result=0 command=0407/0407 status=0010/0010 PM=0000/0000 group_domain=3 reads=50 writes=8
+CSB tail=0000000a raw=001c800003ff8018/03ff8000001d0019/001d000003ff8018/03ff8000001d8019
+GPU 4KiB copy sample: NOT PROVEN
+Successful requests retire for reuse; uncertain requests retain backing until reboot.
