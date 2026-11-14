@@ -1,0 +1,64 @@
+{
+  "client": "/boot/home/native-rcs-resource-012/build/gpu_render_vertices",
+  "owner": "/boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner",
+  "host": "renkuos-n100",
+  "resource": true,
+  "public_buffer": false,
+  "rounds": 16,
+  "shapes": [
+    [
+      [
+        4,
+        4,
+        28,
+        4,
+        28,
+        28
+      ],
+      777,
+      "28616d2d"
+    ],
+    [
+      [
+        5,
+        5,
+        27,
+        5,
+        16,
+        27
+      ],
+      758,
+      "d40eb9c3"
+    ],
+    [
+      [
+        4,
+        24,
+        16,
+        4,
+        28,
+        24
+      ],
+      766,
+      "e24aed05"
+    ],
+    [
+      [
+        8,
+        8,
+        24,
+        8,
+        16,
+        24
+      ],
+      760,
+      "984ae945"
+    ]
+  ],
+  "start_unix_ns": 1794660718639859730,
+  "client_sha256": "fe3cabe43f1dd3b408a444fa3665de44e0d236e5c11103dac5ad1ccb732acc54",
+  "owner_sha256": "a071c7f708c4cb4095efba86abd4caf6eb10fb0a418256fd5b0551dd7c48f8cc",
+  "end_unix_ns": 1794660732683800362,
+  "final_sequence": 258,
+  "draws_passed": 64
+}

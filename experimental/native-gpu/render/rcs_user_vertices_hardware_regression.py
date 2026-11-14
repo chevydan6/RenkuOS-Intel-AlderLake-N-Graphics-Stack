@@ -23,13 +23,16 @@ def run(*args):
     return subprocess.run(args, text=True, capture_output=True, timeout=20)
 
 
-def parse(output, resource=False):
+def parse(output, resource=False, public_buffer=False):
     kind = "resource" if resource else "user"
-    version = 3 if resource else 2
-    if f"RCS {kind} vertex hardware draw: PASS" not in output:
+    version = 4 if public_buffer else 3 if resource else 2
+    success = ("RCS public buffer hardware draw: PASS" if public_buffer else
+               f"RCS {kind} vertex hardware draw: PASS")
+    prefix = "rcs_public_buffer" if public_buffer else f"rcs_{kind}_vertices"
+    if success not in output:
         raise ValueError("client did not confirm the hardware draw")
     status = re.search(
-        rf"rcs_{kind}_vertices ioctl=0 status=0 version={version} stage=(\d+)"
+        rf"{prefix} ioctl=0 status=0 version={version} stage=(\d+)"
         r" refusal=(\d+) sequence=(\d+)/(\d+)", output)
     image = re.search(r"pixels=(\d+)/(\d+) hash=([0-9a-fA-F]{8})", output)
     engine = re.search(r"engine=(\d+)/(\d+) csb=(\d+) fault=([0-9a-fA-F]{8})", output)
@@ -54,13 +57,16 @@ def main():
     parser.add_argument("--host", default="renkuos-n100")
     parser.add_argument("--client", default=CLIENT)
     parser.add_argument("--resource", action="store_true")
+    parser.add_argument("--public-buffer", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if not 1 <= args.rounds <= 1000:
         parser.error("--rounds must be 1..1000")
+    if args.resource and args.public_buffer:
+        parser.error("--resource and --public-buffer are mutually exclusive")
     args.output.mkdir(parents=True, exist_ok=False)
     meta = {"client": args.client, "owner": OWNER, "host": args.host,
-            "resource": args.resource,
+            "resource": args.resource, "public_buffer": args.public_buffer,
             "rounds": args.rounds, "shapes": SHAPES,
             "start_unix_ns": time.time_ns()}
     for label, path in (("client_sha256", args.client), ("owner_sha256", OWNER)):
@@ -83,7 +89,7 @@ def main():
                 try:
                     if result.returncode:
                         raise ValueError(f"client exited {result.returncode}")
-                    record = parse(result.stdout, args.resource)
+                    record = parse(result.stdout, args.resource, args.public_buffer)
                     if record["checked_pixels"] != expected_pixels:
                         raise ValueError("checked pixel count changed")
                     if record["target_hash"] != expected_hash:
@@ -101,7 +107,8 @@ def main():
     meta["final_sequence"] = last_sequence
     meta["draws_passed"] = args.rounds * len(SHAPES)
     (args.output / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")
-    print(f"PASS {meta['draws_passed']} physical N100 user-vertex draws; "
+    label = "public-buffer" if args.public_buffer else "separate-page" if args.resource else "user-vertex"
+    print(f"PASS {meta['draws_passed']} physical N100 {label} draws; "
           f"final sequence {last_sequence}")
     return 0
 

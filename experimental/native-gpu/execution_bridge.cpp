@@ -86,7 +86,13 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
  if(operation==NATIVE_GPU_RENDER_IOCTL){
   if(bytes!=sizeof(s.render))return B_BAD_VALUE;
   status_t status=user_memcpy(&s.render,buffer,bytes);if(status!=B_OK)return status;
-  status=s.renderModule->run(&s.render);
+  if(s.render.version==4){
+   if(!s.resourceSession){
+    status=s.resourceModule->open(&s.resourceSession);
+    if(status!=B_OK)return status;
+   }
+   status=s.resourceModule->draw(s.resourceSession,&s.render);
+  }else status=s.renderModule->run(&s.render);
   status_t copied=user_memcpy(buffer,&s.render,bytes);
   return copied==B_OK?status:copied;
  }

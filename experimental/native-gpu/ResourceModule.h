@@ -3,6 +3,7 @@
 #define NATIVE_GPU_RESOURCE_MODULE_H
 #include <module.h>
 #include "ResourceCommand.h"
+#include "RenderReport.h"
 #define NATIVE_GPU_RESOURCE_MODULE "bus_managers/intel_memory_owner/native_resource/v1"
 struct native_gpu_resource_module {
  module_info info;
@@ -13,5 +14,6 @@ struct native_gpu_resource_module {
  status_t (*transfer)(uint64_t session,bool write,uint32_t handle,
   uint64_t offset,uint8_t* bytes,uint32_t count);
  status_t (*destroy)(uint64_t session,uint32_t handle);
+ status_t (*draw)(uint64_t session,native_gpu_render_command* command);
 };
 #endif

@@ -87,3 +87,12 @@ all three 64-draw RCS controls passed on physical N100 hardware; see
 an RCS draw. The next vertical slice must patch a validated vertex-buffer
 address from one such object and prove pixels and completion. The 16-page
 pool avoids post-publication PTE changes but is not a general Vulkan VM.
+
+Version 4 now consumes a buffer created and filled through the public native
+ioctl. On physical N100 hardware, 64 public-buffer draws passed with four
+expected pixel hashes and gap-free completion, and 64-draw v1/v2/v3 controls
+remained green; see `evidence/rcs-public-buffer-001/`. The private fixed vertex
+page is zeroed in v4, establishing that the GPU read the public BO. This
+closes the first create/write/address/submit/readback vertical slice, but the
+submission is still a kernel-selected RCS batch. General Vulkan commands,
+fences, shader compilation, and presentation remain unimplemented.

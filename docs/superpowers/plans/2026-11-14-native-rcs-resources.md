@@ -87,9 +87,9 @@ and physical regression runner.
 batch builder patches only the decoded vertex-buffer address and length fields;
 shader and pipeline packets remain owner-selected.
 
-- [ ] Test packet diff, BO bounds, malicious handles, and completion reporting.
-- [ ] Run the candidate on N100 and compare pixels with the v2 control.
-- [ ] Repeat v1/v2 and resource-backed draws; record hashes and raw traces.
+- [x] Test packet diff, BO bounds, malicious handles, and completion reporting.
+- [x] Run the candidate on N100 and compare pixels with the v2 control.
+- [x] Repeat v1/v2/v3 and public-buffer v4 draws; record hashes and raw traces.
 
 ### Task 4: Native command submission and fences
 

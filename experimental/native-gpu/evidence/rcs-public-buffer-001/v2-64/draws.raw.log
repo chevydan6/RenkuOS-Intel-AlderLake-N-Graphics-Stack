@@ -1,0 +1,319 @@
+round=0 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=131/131
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=0 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=132/132
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=0 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=133/133
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=0 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=134/134
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=1 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=135/135
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=1 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=136/136
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=1 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=137/137
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=1 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=138/138
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=2 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=139/139
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=2 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=140/140
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=2 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=141/141
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=2 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=142/142
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=3 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=143/143
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=3 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=144/144
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=3 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=145/145
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=3 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=146/146
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=4 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=147/147
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=4 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=148/148
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=4 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=149/149
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=4 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=150/150
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=5 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=151/151
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=5 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=152/152
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=5 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=153/153
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=5 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=154/154
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=6 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=155/155
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=6 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=156/156
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=6 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=157/157
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=6 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=158/158
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=7 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=159/159
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=7 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=160/160
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=7 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=161/161
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=7 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=162/162
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=8 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=163/163
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=8 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=164/164
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=8 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=165/165
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=8 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=166/166
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=9 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=167/167
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=9 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=168/168
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=9 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=169/169
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=9 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=170/170
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=10 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=171/171
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=10 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=172/172
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=10 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=173/173
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=10 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=174/174
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=11 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=175/175
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=11 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=176/176
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=11 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=177/177
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=11 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=178/178
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=12 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=179/179
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=12 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=180/180
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=12 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=181/181
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=12 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=182/182
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=13 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=183/183
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=13 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=184/184
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=13 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=185/185
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=13 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=186/186
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=14 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=187/187
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=14 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=188/188
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=14 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=189/189
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=14 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=190/190
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=15 shape=0 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=191/191
+pixels=777/777 hash=28616d2d interior=9,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=15 shape=1 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=192/192
+pixels=758/758 hash=d40eb9c3 interior=8,7 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=15 shape=2 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=193/193
+pixels=766/766 hash=e24aed05 interior=15,8 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS
+
+round=15 shape=3 exit=0
+rcs_user_vertices ioctl=0 status=0 version=2 stage=12 refusal=0 sequence=194/194
+pixels=760/760 hash=984ae945 interior=11,10 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS user vertex hardware draw: PASS

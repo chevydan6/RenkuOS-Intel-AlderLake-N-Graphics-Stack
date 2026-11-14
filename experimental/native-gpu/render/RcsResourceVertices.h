@@ -13,6 +13,21 @@ public:
   if(!pages || !resource || (reinterpret_cast<uintptr_t>(resource)&4095)
    || !RcsUserVertices::Validate(words))return false;
   for(unsigned i=0;i<RcsDrawImage::PageCount;i++)if(resource==pages[i])return false;
+  if(!Patch(pages,words,VertexGpu))return false;
+  memset(resource,0,4096);
+  memcpy(resource,words,12*sizeof(uint32_t));
+  return true;
+ }
+ static bool BuildAt(uint32_t* const* pages,const uint32_t* words,uint64_t gpu) {
+  if(gpu<0x410000 || gpu>=0x420000 || (gpu&4095))return false;
+  if(!Patch(pages,words,uint32_t(gpu)))return false;
+  // An unchanged fixed vertex page must not accidentally satisfy the image
+  // check if the packet address fails to use the public resource.
+  memset(pages[RcsDrawImage::Vertices],0,4096);
+  return true;
+ }
+private:
+ static bool Patch(uint32_t* const* pages,const uint32_t* words,uint32_t gpu) {
   if(!RcsUserVertices::Build(pages,words))return false;
   uint32_t* batch=pages[RcsDrawImage::Batch];
   unsigned found=RcsDrawImage::BatchDwords;
@@ -23,9 +38,7 @@ public:
     found=i+2;
    }
   if(found==RcsDrawImage::BatchDwords)return false;
-  memset(resource,0,4096);
-  memcpy(resource,words,12*sizeof(uint32_t));
-  batch[found]=VertexGpu;
+  batch[found]=gpu;
   return true;
  }
 };

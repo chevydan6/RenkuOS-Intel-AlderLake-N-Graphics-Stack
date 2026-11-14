@@ -25,5 +25,17 @@ int main() {
   assert(i>=2 && pages[0][i-2]==0x78080003);
  }
  assert(changes==1);
+ assert(RcsResourceVertices::BuildAt(pages,words,0x410000));
+ assert(pages[0][RcsDrawImage::BatchDwords-1]==0x05000000);
+ unsigned arenaChanges=0;
+ for(unsigned i=0;i<1024;i++)if(reference[i]!=pages[0][i]){
+  arenaChanges++;assert(reference[i]==0x00403000);
+  assert(pages[0][i]==0x410000);
+ }
+ assert(arenaChanges==1);
+ for(unsigned i=0;i<1024;i++)assert(pages[RcsDrawImage::Vertices][i]==0);
+ assert(!RcsResourceVertices::BuildAt(pages,words,0x40f000));
+ assert(!RcsResourceVertices::BuildAt(pages,words,0x410001));
+ assert(!RcsResourceVertices::BuildAt(pages,words,0x420000));
  puts("RCS separate vertex resource packet: PASS (CPU only)");
 }

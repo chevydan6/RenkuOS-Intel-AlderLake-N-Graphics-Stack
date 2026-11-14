@@ -50,6 +50,8 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_vertices.cpp -o build/gp
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_invalid_vertices.cpp -o build/gpu_render_invalid_vertices
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_resource_sample.cpp -o build/gpu_resource_sample
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_resource_copyout_smoke.cpp -o build/gpu_resource_copyout_smoke
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_buffer.cpp -o build/gpu_render_buffer
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_buffer_invalid.cpp -o build/gpu_render_buffer_invalid
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_smoke.cpp -o build/resource_smoke
 ./build/resource_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_arena_smoke.cpp -o build/resource_arena_smoke
