@@ -43,6 +43,11 @@ The [command-buffer allocation checkpoint](../evidence/native-vulkan-cmdbatch-03
 verifies one API allocation returning two independently recorded command
 buffers, then submits both on the N100. Allocation rolls back all new buffers
 if host allocation fails.
+The [format-query checkpoint](../evidence/native-vulkan-format-035/README.md)
+adds Vulkan format and image-format queries for the currently supported linear
+BGRA render target and float4 vertex format. The N100 accepted a color-only
+image and produced the same triangle hash. Image creation still requires the
+exact 32×32 shape; the query's 32×32 maximum cannot express that minimum.
 The [batch checkpoint](../evidence/native-vulkan-batch-025/README.md) records
 the exact output hashes and hardware trace.
 `vkResetCommandPool` now returns allocated command buffers to the initial

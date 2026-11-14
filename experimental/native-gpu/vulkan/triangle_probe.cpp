@@ -26,7 +26,7 @@ int main(int argc,char** argv)
    && strcmp(argv[2],"rgb")) || (argc==5 && strcmp(argv[4],"batch")
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
-   && strcmp(argv[4],"multipass")))return 40;
+   && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  bool half=argc>=3 && !strcmp(argv[2],"half");
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
@@ -40,6 +40,7 @@ int main(int argc,char** argv)
  bool rotate=argc==5 && !strcmp(argv[4],"rotate");
  bool dual=argc==5 && !strcmp(argv[4],"dual");
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
+ bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
  bool twoPipelines=dual || multiPass;
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
@@ -71,6 +72,18 @@ int main(int argc,char** argv)
  uint32_t count=1;VkPhysicalDevice physical=VK_NULL_HANDLE;
  REQUIRE(vkEnumeratePhysicalDevices(instance,&count,&physical)==VK_SUCCESS
   && count==1 && physical,2);
+ VkFormatProperties format={};
+ vkGetPhysicalDeviceFormatProperties(physical,VK_FORMAT_B8G8R8A8_UNORM,&format);
+ REQUIRE(format.linearTilingFeatures==(VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
+  |VK_FORMAT_FEATURE_TRANSFER_SRC_BIT),56);
+ vkGetPhysicalDeviceFormatProperties(physical,VK_FORMAT_R32G32B32A32_SFLOAT,&format);
+ REQUIRE(format.bufferFeatures==VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT,57);
+ VkImageFormatProperties imageFormat={};
+ REQUIRE(vkGetPhysicalDeviceImageFormatProperties(physical,VK_FORMAT_B8G8R8A8_UNORM,
+  VK_IMAGE_TYPE_2D,VK_IMAGE_TILING_LINEAR,
+  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT,0,
+  &imageFormat)==VK_SUCCESS && imageFormat.maxExtent.width==32
+  && imageFormat.maxExtent.height==32 && imageFormat.maxResourceSize==4096,58);
  float priority=1;
  VkDeviceQueueCreateInfo queueInfo={};queueInfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
  queueInfo.queueFamilyIndex=0;queueInfo.queueCount=1;queueInfo.pQueuePriorities=&priority;
@@ -144,7 +157,8 @@ int main(int argc,char** argv)
  imageInfo.imageType=VK_IMAGE_TYPE_2D;imageInfo.format=VK_FORMAT_B8G8R8A8_UNORM;
  imageInfo.extent={32,32,1};imageInfo.mipLevels=1;imageInfo.arrayLayers=1;
  imageInfo.samples=VK_SAMPLE_COUNT_1_BIT;imageInfo.tiling=VK_IMAGE_TILING_LINEAR;
- imageInfo.usage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+ imageInfo.usage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+  |(colorOnly?0:VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
  imageInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
  VkImage image=VK_NULL_HANDLE;
  REQUIRE(vkCreateImage(device,&imageInfo,nullptr,&image)==VK_SUCCESS,13);

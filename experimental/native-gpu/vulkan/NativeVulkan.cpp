@@ -179,6 +179,38 @@ vkGetPhysicalDeviceFeatures(VkPhysicalDevice,VkPhysicalDeviceFeatures* features)
 {if(features)memset(features,0,sizeof(*features));}
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
+vkGetPhysicalDeviceFormatProperties(VkPhysicalDevice physical,VkFormat format,
+ VkFormatProperties* properties)
+{
+ if(!properties)return;
+ memset(properties,0,sizeof(*properties));
+ if(physical && format==VK_FORMAT_B8G8R8A8_UNORM)
+  properties->linearTilingFeatures=VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
+   |VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;
+ if(physical && format==VK_FORMAT_R32G32B32A32_SFLOAT)
+  properties->bufferFeatures=VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkGetPhysicalDeviceImageFormatProperties(VkPhysicalDevice physical,VkFormat format,
+ VkImageType type,VkImageTiling tiling,VkImageUsageFlags usage,
+ VkImageCreateFlags flags,VkImageFormatProperties* properties)
+{
+ if(!properties)return VK_ERROR_INITIALIZATION_FAILED;
+ memset(properties,0,sizeof(*properties));
+ if(!physical || format!=VK_FORMAT_B8G8R8A8_UNORM
+  || type!=VK_IMAGE_TYPE_2D || tiling!=VK_IMAGE_TILING_LINEAR
+  || !(usage&VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+  || (usage&~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT))
+  || flags)return VK_ERROR_FORMAT_NOT_SUPPORTED;
+ properties->maxExtent={32,32,1};
+ properties->maxMipLevels=1;properties->maxArrayLayers=1;
+ properties->sampleCounts=VK_SAMPLE_COUNT_1_BIT;
+ properties->maxResourceSize=4096;
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
 vkGetPhysicalDeviceQueueFamilyProperties(VkPhysicalDevice physical,uint32_t* count,
  VkQueueFamilyProperties* families)
 {
@@ -464,7 +496,8 @@ vkCreateImage(VkDevice device,const VkImageCreateInfo* info,
   || info->extent.width!=32 || info->extent.height!=32 || info->extent.depth!=1
   || info->mipLevels!=1 || info->arrayLayers!=1
   || info->samples!=VK_SAMPLE_COUNT_1_BIT || info->tiling!=VK_IMAGE_TILING_LINEAR
-  || info->usage!=(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+  || !(info->usage&VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+  || (info->usage&~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT))
   || info->sharingMode!=VK_SHARING_MODE_EXCLUSIVE
   || info->initialLayout!=VK_IMAGE_LAYOUT_UNDEFINED)
   return VK_ERROR_FORMAT_NOT_SUPPORTED;
@@ -1311,6 +1344,8 @@ vkGetInstanceProcAddr(VkInstance instance,const char* pName)
  VK_PROC(vkEnumeratePhysicalDevices);
  VK_PROC(vkGetPhysicalDeviceProperties);
  VK_PROC(vkGetPhysicalDeviceFeatures);
+ VK_PROC(vkGetPhysicalDeviceFormatProperties);
+ VK_PROC(vkGetPhysicalDeviceImageFormatProperties);
  VK_PROC(vkGetPhysicalDeviceQueueFamilyProperties);
  VK_PROC(vkGetPhysicalDeviceMemoryProperties);
  VK_PROC(vkCreateDevice);

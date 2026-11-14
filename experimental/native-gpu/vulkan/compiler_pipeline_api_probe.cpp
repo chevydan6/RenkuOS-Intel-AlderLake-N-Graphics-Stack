@@ -7,7 +7,49 @@
 
 int main()
 {
+ VkInstance_T instance={};instance.physical.owner=&instance;
+ VkPhysicalDevice physical=&instance.physical;
+ auto getFormat=(PFN_vkGetPhysicalDeviceFormatProperties)
+  vkGetInstanceProcAddr(&instance,"vkGetPhysicalDeviceFormatProperties");
+ auto getImageFormat=(PFN_vkGetPhysicalDeviceImageFormatProperties)
+  vkGetInstanceProcAddr(&instance,"vkGetPhysicalDeviceImageFormatProperties");
+ if(!getFormat || !getImageFormat)return 16;
+ VkFormatProperties format={};
+ getFormat(physical,VK_FORMAT_B8G8R8A8_UNORM,&format);
+ if(!(format.linearTilingFeatures&VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT)
+  || !(format.linearTilingFeatures&VK_FORMAT_FEATURE_TRANSFER_SRC_BIT)
+  || format.optimalTilingFeatures || format.bufferFeatures)return 17;
+ getFormat(physical,VK_FORMAT_R32G32B32A32_SFLOAT,&format);
+ if(format.bufferFeatures!=VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT
+  || format.linearTilingFeatures || format.optimalTilingFeatures)return 23;
+ getFormat(physical,VK_FORMAT_R8G8B8A8_UNORM,&format);
+ if(format.linearTilingFeatures || format.optimalTilingFeatures
+  || format.bufferFeatures)return 18;
+ VkImageFormatProperties imageFormat={};
+ if(getImageFormat(physical,VK_FORMAT_B8G8R8A8_UNORM,VK_IMAGE_TYPE_2D,
+   VK_IMAGE_TILING_LINEAR,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+   |VK_IMAGE_USAGE_TRANSFER_SRC_BIT,0,&imageFormat)!=VK_SUCCESS
+  || imageFormat.maxExtent.width!=32 || imageFormat.maxExtent.height!=32
+  || imageFormat.maxExtent.depth!=1 || imageFormat.maxMipLevels!=1
+  || imageFormat.maxArrayLayers!=1 || imageFormat.sampleCounts!=VK_SAMPLE_COUNT_1_BIT
+  || imageFormat.maxResourceSize!=4096)return 19;
+ if(getImageFormat(physical,VK_FORMAT_B8G8R8A8_UNORM,VK_IMAGE_TYPE_2D,
+   VK_IMAGE_TILING_LINEAR,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,0,
+   &imageFormat)!=VK_SUCCESS)return 21;
+ if(getImageFormat(physical,VK_FORMAT_R8G8B8A8_UNORM,VK_IMAGE_TYPE_2D,
+   VK_IMAGE_TILING_LINEAR,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,0,
+   &imageFormat)!=VK_ERROR_FORMAT_NOT_SUPPORTED)return 20;
  VkDevice_T device={};device.fd=-1;
+ VkImageCreateInfo imageInfo={};imageInfo.sType=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+ imageInfo.imageType=VK_IMAGE_TYPE_2D;imageInfo.format=VK_FORMAT_B8G8R8A8_UNORM;
+ imageInfo.extent={32,32,1};imageInfo.mipLevels=1;imageInfo.arrayLayers=1;
+ imageInfo.samples=VK_SAMPLE_COUNT_1_BIT;imageInfo.tiling=VK_IMAGE_TILING_LINEAR;
+ imageInfo.usage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+ imageInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
+ VkImage colorOnly=VK_NULL_HANDLE;
+ if(vkCreateImage(&device,&imageInfo,nullptr,&colorOnly)!=VK_SUCCESS
+  || !colorOnly)return 22;
+ vkDestroyImage(&device,colorOnly,nullptr);
  VkShaderModuleCreateInfo create={};create.sType=VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
  create.pCode=RenkuKnownSpirv::Vertex;create.codeSize=sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule checked=VK_NULL_HANDLE;
