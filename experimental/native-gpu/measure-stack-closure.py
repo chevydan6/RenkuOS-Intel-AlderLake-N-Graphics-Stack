@@ -18,6 +18,8 @@ def compiler_category(path):
         return "spirv_tools_header"
     if path.startswith("/boot/home/test-work/closure-current-022/src/"):
         return "compiler_project_runtime"
+    if path.startswith("/boot/home/test-work/native-device-info-044/"):
+        return "compiler_native_adaptation"
     return "compiler_sdk"
 
 

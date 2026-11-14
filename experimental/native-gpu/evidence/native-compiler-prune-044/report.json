@@ -1,0 +1,27 @@
+{
+  "mesa_version": "26.3.0",
+  "binary": "/boot/home/test-work/native-compiler-044c/librenku_intel_compiler.so",
+  "binary_bytes": 14594840,
+  "linked_objects": 349,
+  "runtime_libraries": [
+    "libSPIRV-Tools-shared.so",
+    "libstdc++.so.6",
+    "libgcc_s.so.1",
+    "libroot.so"
+  ],
+  "included_files": 869,
+  "file_counts": {
+    "mesa": 524,
+    "external": 294,
+    "generated": 49,
+    "native_override": 2
+  },
+  "source_bytes": {
+    "mesa": 13886962,
+    "external": 5038056,
+    "generated": 62392205,
+    "native_override": 80179
+  },
+  "i915_drm_header_selected": true,
+  "i915_device_info_object_selected": false
+}

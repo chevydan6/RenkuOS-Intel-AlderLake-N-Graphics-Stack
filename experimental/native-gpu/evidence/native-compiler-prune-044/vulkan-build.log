@@ -1,0 +1,4 @@
+compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input
+2f2187a2f2c526ef253104345fde64fbb626bf23aab602cf7ce6363692bcd274  /boot/home/test-work/native-vulkan-compiler-044/libvulkan.so
+5ee7fc9977adc14950a402756b4fe9b63e8ce9c9e99d5219571ce50a4bf67aea  /boot/home/test-work/native-vulkan-compiler-044/triangle_probe
+f0fd140e5b580d7716e0659c5166acfe7bde57f12634be67ceb8933fbc03e793  /boot/home/test-work/native-vulkan-compiler-044/compiler_pipeline_probe
