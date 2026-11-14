@@ -73,6 +73,9 @@ and preserved the v1 64-draw control; see
 `evidence/rcs-user-vertices-002/`. This remains a kernel-selected batch and
 shader path, so the ANV BO/bind/submit gap above remains open.
 
-The next isolated CPU checkpoint adds file-local resource handle/VA policy and
-offline PPGTT page binding before publication. The owner-backed buffer ioctl,
-general RCS submission, fences, and ANV adapter are still to be implemented.
+The next checkpoint adds file-local resource handle/VA policy, prepublication
+PPGTT binding, and one physical owner-backed vertex page. Version 3 rendered
+64 N100 triangles from that page with pixel hashes identical to v2. The v1 and
+v2 64-draw controls also passed; see `evidence/rcs-resource-vertices-001/`.
+The owner-backed buffer ioctl, dynamic allocation and binding, general RCS
+submission, fences, and ANV adapter are still to be implemented.

@@ -8,6 +8,7 @@
 #include "render/RcsRecovery.h"
 #include "render/RcsRequestReuse.h"
 #include "render/RcsUserVertices.h"
+#include "render/RcsResourceVertices.h"
 #include "render/RcsCompletionObservation.h"
 #include "render/RcsPciAdmission.h"
 static native_gpu_render_report sRenderReport;
@@ -73,6 +74,8 @@ static uint32_t sRenderCursor;
 static bool sRenderHideCompletion;
 static uint32_t* sRenderData[8];
 static bool sRenderUserDraw;
+static bool sRenderResourceDraw,sRenderResourceReady;
+static IntelN100PpgttTree::Page sRenderResourcePage;
 static uint32_t sRenderUserVertices[12];
 static uint32_t sRenderSavedDefault[14*1024];
 static IntelN100PpgttTree sRenderTree;
@@ -119,6 +122,12 @@ static bool NativeRenderAllocate()
   IntelN100PpgttTree::Page page={};if(!sRenderTree.Describe(8+i,page))return false;
   sRenderData[i]=(uint32_t*)page.cpu;
  }
+ // This distinct vertex page is optional for the v1/v2 controls. A failed
+ // allocation or bind is retained and disables only v3; it cannot alter a
+ // published PTE or invalidate the known-good fixed workloads.
+ if(NativeAllocate(NULL,sRenderResourcePage)
+  && sRenderTree.BindPages(NativeGpu::RcsResourceVertices::VertexGpu,&sRenderResourcePage,1,3))
+  sRenderResourceReady=true;
  sRenderReady=true;return true;
 }
 static bool NativeRenderOffset(uint32_t offset)
@@ -330,9 +339,11 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  if(!NativeCachePolicy(data))return false;
  }
  sRenderRetired=false;
- if(draw && !(sRenderUserDraw
-  ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
-  : NativeGpu::RcsDrawImage::Build(sRenderData,r.variant)))return false;
+ if(draw && !(sRenderResourceDraw
+  ? NativeGpu::RcsResourceVertices::Build(sRenderData,(uint32_t*)sRenderResourcePage.cpu,sRenderUserVertices)
+  : sRenderUserDraw
+   ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
+   : NativeGpu::RcsDrawImage::Build(sRenderData,r.variant)))return false;
  r.stage=8;
  if(!NativeRenderBuild(r.nonce,r.sequence,r.ring_tail,draw) || !NativeVisible(data))return false;
  uint32_t tag=1+(r.sequence-1)%0x7fe;uint64_t descriptor=0;
@@ -341,6 +352,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  if(draw){if(!sRenderEngine.Rearm(engineIO,deadline))return false;}
  else if(!sRenderEngine.Initialize(engineIO,r.identity,r.revision,sRenderBuffers[1].ggtt_offset,deadline,0))return false;
  sNativeRenderInitialized=true;r.stage=9;
+ // The PPGTT is resident after the first RCS publish. Never mutate a leaf
+ // without a separately validated GPU TLB invalidation and retirement path.
+ if(!sRenderTree.BindingsSealed() && !sRenderTree.SealBindings())return false;
  sRenderPublished=true;
  if(!sRenderEngine.Publish(engineIO,descriptor))return false;
  r.stage=10;
@@ -424,7 +438,8 @@ static status_t RunNativeRender(native_gpu_render_command* command)
 {
  if(!command)return B_BAD_VALUE;
  uint32_t version=command->version,mode=command->mode,variant=command->variant;
- bool userDraw=version==2 && mode==NATIVE_GPU_RENDER_DRAW;
+ bool resourceDraw=version==3 && mode==NATIVE_GPU_RENDER_DRAW;
+ bool userDraw=(version==2 || resourceDraw) && mode==NATIVE_GPU_RENDER_DRAW;
  uint32_t userVertices[12]={};
  if(userDraw)memcpy(userVertices,command->output,sizeof(userVertices));
  bool valid=command->reserved==0
@@ -443,6 +458,7 @@ static status_t RunNativeRender(native_gpu_render_command* command)
   output.refusal=!NativeRenderOwnerLocked()?NATIVE_GPU_RENDER_NO_HANDOFF:
    sNativeSequence==UINT32_MAX || sRenderOperationSerial==UINT64_MAX?NATIVE_GPU_RENDER_SEQUENCE_EXHAUSTED:
    mode==NATIVE_GPU_RENDER_DRAW && (!sRenderDefaultValid || !sNativeRenderInitialized)?NATIVE_GPU_RENDER_NEEDS_BOOTSTRAP:
+   resourceDraw && !sRenderResourceReady?NATIVE_GPU_RENDER_RESOURCE_UNAVAILABLE:
    mode==NATIVE_GPU_RENDER_BOOTSTRAP && sNativeRenderInitialized?NATIVE_GPU_RENDER_ALREADY_BOOTSTRAPPED:0;
   if(output.refusal){output.status=B_NOT_ALLOWED;mutex_unlock(&sLock);return output.status;}
  }
@@ -454,6 +470,7 @@ static status_t RunNativeRender(native_gpu_render_command* command)
   return output.status;
  }
  sRenderUserDraw=userDraw;
+ sRenderResourceDraw=resourceDraw;
  if(userDraw)memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
  sRenderReport=output;auto& r=sRenderReport;
  if(mode!=NATIVE_GPU_RENDER_PROBE){

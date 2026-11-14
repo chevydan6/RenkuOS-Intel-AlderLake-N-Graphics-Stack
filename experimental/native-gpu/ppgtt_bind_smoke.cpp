@@ -61,7 +61,9 @@ int main()
  assert(!tree.BindPages(0x408000,pair,2,3));
  assert(!tree.BindPages(0x40a000,&first,1,3)); // Same DMA cannot alias.
  auto third=fake.External(18);
- assert(tree.SealBindings());
+	assert(!tree.BindingsSealed());
+	assert(tree.SealBindings());
+	assert(tree.BindingsSealed());
  assert(!tree.BindPages(0x40a000,&third,1,3));
  assert(table.cpu[10]==scratchLeaf);
  puts("N100 PPGTT prepublication binding and seal: PASS (CPU only)");

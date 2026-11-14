@@ -6,8 +6,11 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-int main()
+int main(int argc,char** argv)
 {
+ bool resource=argc==2 && strcmp(argv[1],"--resource")==0;
+ if(argc!=(resource?2:1)){fprintf(stderr,"usage: %s [--resource]\n",argv[0]);return 2;}
+ uint32_t version=resource?3:2;
  const uint32_t valid[12]={
   0xbf400000,0xbf400000,0x3f000000,0x3f800000,
   0x3f400000,0xbf400000,0x3f000000,0x3f800000,
@@ -20,13 +23,13 @@ int main()
   if(trial==1)words[3]=0; // Non-unit homogeneous w.
   if(trial==2)memcpy(words+4,words,4*sizeof(uint32_t)); // Zero-area edge.
   native_gpu_render_command command={};
-  command.version=2;command.mode=NATIVE_GPU_RENDER_DRAW;
+  command.version=version;command.mode=NATIVE_GPU_RENDER_DRAW;
   memcpy(command.output,words,sizeof(words));
   int status=ioctl(fd,NATIVE_GPU_RENDER_IOCTL,&command,sizeof(command));
   bool cleared=true;
   for(unsigned i=0;i<sizeof(command.output);i++)cleared&=command.output[i]==0;
   bool rejected=status!=0 && command.report.status<0
-   && command.report.version==2 && command.report.stage==0
+   && command.report.version==version && command.report.stage==0
    && command.report.sequence==0 && command.report.observed_sequence==0 && cleared;
   printf("invalid_vertex_trial=%u ioctl=%d status=%d version=%u sequence=%u/%u cleared=%u result=%s\n",
    trial,status,command.report.status,command.report.version,

@@ -5,7 +5,8 @@
 #define NATIVE_GPU_RENDER_IOCTL UINT32_C(0x91504e30)
 enum { NATIVE_GPU_RENDER_PROBE=1, NATIVE_GPU_RENDER_BOOTSTRAP=2, NATIVE_GPU_RENDER_DRAW=3 };
 enum { NATIVE_GPU_RENDER_NO_HANDOFF=1, NATIVE_GPU_RENDER_NEEDS_BOOTSTRAP=2,
- NATIVE_GPU_RENDER_ALREADY_BOOTSTRAPPED=3, NATIVE_GPU_RENDER_SEQUENCE_EXHAUSTED=4 };
+ NATIVE_GPU_RENDER_ALREADY_BOOTSTRAPPED=3, NATIVE_GPU_RENDER_SEQUENCE_EXHAUSTED=4,
+ NATIVE_GPU_RENDER_RESOURCE_UNAVAILABLE=5 };
 enum { NATIVE_GPU_RENDER_INITIALIZED=1, NATIVE_GPU_RENDER_DEFAULT_VALID=2,
  NATIVE_GPU_RENDER_POOL_READY=4, NATIVE_GPU_RENDER_STAGE_COMPLETE=12 };
 // Exact IntelN100PciPower::Result values; meaningful after Capture is attempted.
@@ -37,10 +38,11 @@ struct native_gpu_render_report {
 struct native_gpu_render_command {
  uint32_t version, mode, variant, reserved;
  native_gpu_render_report report;
- // Version 2 + DRAW + variant 0: the first 48 bytes initially contain three
+ // Version 2 or 3 + DRAW + variant 0: the first 48 bytes initially contain three
  // position vec4s. The owner validates/copies them before zeroing this array;
  // on return the full array is the rendered 32x32 BGRA image, as in version 1.
- // No user GPU address, command word, shader or surface state is accepted.
+ // Version 3 uses a separate owner-allocated GPU vertex page. No user GPU
+ // address, command word, shader or surface state is accepted.
  uint8_t output[4096];
 };
 static_assert(sizeof(native_gpu_render_report)==240,"render report ABI");

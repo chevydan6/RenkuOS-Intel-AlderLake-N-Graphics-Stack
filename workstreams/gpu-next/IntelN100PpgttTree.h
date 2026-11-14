@@ -31,6 +31,7 @@ public:
 	IntelN100PpgttTree() : fBackend(), fPages(), fCount(0), fHeld(false),
 		fState(Empty), fWindow(0), fDataPages(0), fScratchLeaf(0), fSealed(false) {}
 	State CurrentState() const { return fState; }
+	bool BindingsSealed() const { return fSealed; }
 	unsigned RecordedPages() const { return fCount; }
 	// Includes released slots (token zero) for failure diagnostics.
 	bool Describe(unsigned index, Page& page) const

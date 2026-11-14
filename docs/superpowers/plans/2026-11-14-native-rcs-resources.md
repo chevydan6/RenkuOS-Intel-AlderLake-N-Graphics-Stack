@@ -67,6 +67,9 @@ No post-publication PTE mutation until a tested invalidation path exists.
 
 - [x] Add offline `BindPages` and `SealBindings` to the N100 PPGTT tree;
   verify atomic rejection and native compilation without installation.
+- [x] Prove one owner-allocated, fixed-VA vertex page on physical N100: 64 v3
+  draws and preserved 64-draw v1/v2 controls. This is a bounded resource
+  vertical slice, not the general resource ioctl below.
 - [ ] Test transactional allocation, map validation, per-file ownership,
   timeout retention, and cleanup before implementation.
 - [ ] Implement the owner/bridge path and compile on RenkuOS without installing.
