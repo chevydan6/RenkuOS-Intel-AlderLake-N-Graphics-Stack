@@ -70,7 +70,11 @@ int main()
  if(!changed)return 7;
  fs.code=altered;
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
-  !=VK_ERROR_FEATURE_NOT_PRESENT || pipeline)return 2;
- puts("Vulkan API probe: validated both modules; compiled both pipelines; rejected altered pipeline");
+  !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 2;
+ for(unsigned i=0;i<sizeof(altered)/4;i++)
+  if(altered[i]==0x3f400000){altered[i]=0x3f800000;break;}
+ if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
+  !=VK_ERROR_FEATURE_NOT_PRESENT || pipeline)return 8;
+ puts("Vulkan API probe: accepted bounded constant-green pipeline; rejected 1.0 pipeline");
  return 0;
 }

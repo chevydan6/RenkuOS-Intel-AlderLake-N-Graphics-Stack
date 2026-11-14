@@ -3,15 +3,15 @@
 #define NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #include "RcsDrawImage.h"
 namespace NativeGpu {
-// Bounded shader BO contract. Only two exact compiler and N100-proven FS patterns
-// are accepted. The owner-selected VA replaces two PS pointers and widens the instruction
-// window to cover the prebound resource arena. No arbitrary GPU code runs.
+// Bounded shader BO contract. Accept the proven 208-byte FS instruction template
+// with two equal green immediates below 1.0 and zero padding. The owner-selected
+// VA replaces two PS pointers; other GPU instructions remain rejected.
 class RcsPublicShader {
 public:
  static bool ValidateFragment(const uint32_t* words,unsigned dwords) {
   if(!words || dwords!=1024)return false;
   const uint32_t green=words[7];
-  if(green!=0x3e800000 && green!=0x3f000000)return false;
+  if(green>=0x3f800000)return false; // Reject negative, 1.0, larger, NaN, Inf.
   for(unsigned i=0;i<1024;i++)
    if(words[i]!=(i==7 || i==39?green:
     i<kFsDwords?RcsDrawData::Fs[i]:0))return false;
@@ -19,7 +19,14 @@ public:
  }
  static bool ExpectedPixel(const uint32_t* words,unsigned dwords,uint32_t& pixel) {
   if(!ValidateFragment(words,dwords))return false;
-  pixel=words[7]==0x3f000000?0xffff8000:RcsDrawImage::RenderedPixel;
+  const uint32_t green=words[7],exponent=green>>23;
+  uint32_t channel=0;
+  if(exponent>86){
+   const uint32_t mantissa=(green&0x7fffff)|0x800000;
+   const unsigned shift=150-exponent;
+   channel=uint32_t((uint64_t(mantissa)*255+(uint64_t(1)<<(shift-1)))>>shift);
+  }
+  pixel=0xffff0000|(channel<<8); // BGRA8 UNORM, round to nearest.
   return true;
  }
  static bool PatchBatch(uint32_t* words,unsigned dwords,uint64_t gpu) {

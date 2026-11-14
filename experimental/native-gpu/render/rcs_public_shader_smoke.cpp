@@ -31,7 +31,24 @@ int main() {
  shader[39]=0x3e800000;
  if(NativeGpu::RcsPublicShader::ValidateFragment(shader,1024))return 15;
  if(NativeGpu::RcsPublicShader::ExpectedPixel(shader,1024,pixel))return 18;
- shader[7]=0x3e800000;
+ struct ColorCase {uint32_t bits,pixel;};
+ const ColorCase accepted[]={
+  {0x00000000,0xffff0000},{0x3dcccccd,0xffff1a00},
+  {0x3e800000,0xffff4000},{0x3f000000,0xffff8000},
+  {0x3f400000,0xffffbf00},{0x3f666666,0xffffe500}};
+ for(const auto& color:accepted){
+  shader[7]=shader[39]=color.bits;
+  if(!NativeGpu::RcsPublicShader::ValidateFragment(shader,1024)
+   || !NativeGpu::RcsPublicShader::ExpectedPixel(shader,1024,pixel)
+   || pixel!=color.pixel)return 19;
+ }
+ const uint32_t rejected[]={0x3f800000,0x3f800001,0xbf000000,0x7f800000,0x7fc00000};
+ for(uint32_t bits:rejected){
+  shader[7]=shader[39]=bits;
+  if(NativeGpu::RcsPublicShader::ValidateFragment(shader,1024)
+   || NativeGpu::RcsPublicShader::ExpectedPixel(shader,1024,pixel))return 20;
+ }
+ shader[7]=shader[39]=0x3e800000;
  uint32_t original[1024]={};
  memcpy(original,NativeGpu::RcsDrawData::Batch,sizeof(NativeGpu::RcsDrawData::Batch));
  uint32_t invalid[1024];memcpy(invalid,original,sizeof(invalid));
@@ -56,6 +73,6 @@ int main() {
  combined[0]^=1;
  if(NativeGpu::RcsPublicShader::PatchBatchWithVertex(combined,1024,0x411000,0x410000))
   return 13;
- puts("N100 two exact public FS patterns and bounded batch patch: PASS (CPU only)");
+ puts("N100 bounded constant-green FS template and batch patch: PASS (CPU only)");
  return 0;
 }

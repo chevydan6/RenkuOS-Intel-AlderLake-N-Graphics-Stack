@@ -17,9 +17,18 @@ static_assert(RenkuKnownSpirv::Vertex[1]==0x00010000
 int main(int argc,char** argv)
 {
  if((argc!=2 && argc!=3) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
-  || (argc==3 && strcmp(argv[2],"half")))return 40;
+  || (argc==3 && strcmp(argv[2],"half") && strcmp(argv[2],"green75")
+   && strcmp(argv[2],"green90")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
- bool half=argc==3;
+ bool half=argc==3 && !strcmp(argv[2],"half");
+ bool green75=argc==3 && !strcmp(argv[2],"green75");
+ bool green90=argc==3 && !strcmp(argv[2],"green90");
+ uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
+ memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
+ bool alternateChanged=false;
+ for(uint32_t& word:alternateCode)
+  if(word==0x3e800000){word=green90?0x3f666666:0x3f400000;alternateChanged=true;break;}
+ REQUIRE(alternateChanged,46);
  VkApplicationInfo app={};app.sType=VK_STRUCTURE_TYPE_APPLICATION_INFO;
  app.apiVersion=VK_API_VERSION_1_0;
  VkInstanceCreateInfo instanceInfo={};instanceInfo.sType=VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -43,9 +52,9 @@ int main(int argc,char** argv)
  moduleInfo.pCode=RenkuKnownSpirv::Vertex;moduleInfo.codeSize=sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
- moduleInfo.pCode=half?RenkuKnownSpirv::FragmentHalf:RenkuKnownSpirv::Fragment;
- moduleInfo.codeSize=half?sizeof(RenkuKnownSpirv::FragmentHalf):
-  sizeof(RenkuKnownSpirv::Fragment);
+ moduleInfo.pCode=(green75 || green90)?alternateCode:
+  half?RenkuKnownSpirv::FragmentHalf:RenkuKnownSpirv::Fragment;
+ moduleInfo.codeSize=half?sizeof(RenkuKnownSpirv::FragmentHalf):sizeof(RenkuKnownSpirv::Fragment);
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -173,7 +182,7 @@ int main(int argc,char** argv)
  memcpy(alteredFs,RenkuKnownSpirv::Fragment,sizeof(alteredFs));
  bool changed=false;
  for(unsigned i=0;i<sizeof(alteredFs)/sizeof(alteredFs[0]);i++)
-  if(alteredFs[i]==0x3e800000){alteredFs[i]=0x3f400000;changed=true;break;}
+  if(alteredFs[i]==0x3e800000){alteredFs[i]=0x3f800000;changed=true;break;}
  REQUIRE(changed,31);
  moduleInfo.pCode=alteredFs;moduleInfo.codeSize=sizeof(alteredFs);
  VkShaderModule alternate=VK_NULL_HANDLE;
@@ -223,14 +232,21 @@ int main(int argc,char** argv)
  const uint32_t* pixels=(const uint32_t*)mapped;
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(half){
+ if(half || green75 || green90){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
+  const uint32_t expectedGreen75[4]={0x28e87f2d,0xa6f78dc3,0xcef9f105,0xabd7c545};
+  const uint32_t expectedGreen90[4]={0x979c9f2d,0x6a3fddc3,0x44297d05,0xd034dd45};
   const unsigned interiorX[4]={20,16,16,16},interiorY[4]={10,16,16,16};
-  REQUIRE(pixels[interiorY[shape]*32+interiorX[shape]]==0xffff8000
-   && pixels[0]==0x19537bad && hash==expectedHalf[shape],30);
+  REQUIRE(pixels[interiorY[shape]*32+interiorX[shape]]
+   ==(green90?0xffffe500:green75?0xffffbf00:0xffff8000)
+   && pixels[0]==0x19537bad
+   && hash==(green90?expectedGreen90[shape]:
+    green75?expectedGreen75[shape]:expectedHalf[shape]),30);
  }else REQUIRE(hash==expected[shape] && pixels[0]==0x19537bad,30);
  vkUnmapMemory(device,imageMemory);
- if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
+ if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
+ else if(green75)printf("Native Vulkan N100 0.75-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
+ else if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
  else printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x\n",shape,hash);
 
  vkFreeCommandBuffers(device,pool,1,&command);

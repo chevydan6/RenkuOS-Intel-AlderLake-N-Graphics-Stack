@@ -88,17 +88,19 @@ the directory containing `librenku_intel_compiler.so`. The script builds and
 runs four CPU/API probes and compiles a hardware triangle probe. The original
 `build-native.sh` remains a known-good N100 regression path.
 
-The alternate pipeline compiles either exact Vulkan 1.0 SPIR-V pair during
-`vkCreateGraphicsPipelines`, verifies the original against hardware-tested
-machine bytes and the half-green fragment against its hardware-tested bytes,
-then uploads the compiled fragment program. Other shader pairs are rejected
-before compilation. The physical owner now admits exactly these two programs.
+The alternate pipeline compiles Vulkan 1.0 SPIR-V during
+`vkCreateGraphicsPipelines`, requires the exact vertex program, and uploads a
+fragment program only when its 208-byte machine code matches the bounded N100
+constant-green instruction template. The native owner independently validates
+that template and the two equal green immediates below `1.0`. Other machine
+code and pipeline states are rejected.
 The compiler-backed build validates modules for Vulkan
 1.0 with SPIRV-Tools at `vkCreateShaderModule`, before pipeline creation. The
 API probe rejects a semantically malformed module at that call, reaches owner
-allocation with both accepted pairs, and rejects an altered pair before owner
-submission. The physical N100 passed 128 repeated triangle draws with both
-fragments and four shapes. [Physical two-shader evidence](../evidence/native-vulkan-two-shaders-015/README.md)
+allocation with accepted constant-green code, and rejects a 1.0 fragment that
+changes other machine instructions. The physical N100 passed 128 repeated
+triangle draws with four green values and four shapes.
+[Physical bounded-shader evidence](../evidence/native-vulkan-green-range-017/README.md)
 records the hashes and GPU trace. [Pipeline VM evidence](../evidence/native-vulkan-compiler-pipeline-006/README.md)
 and [validator VM evidence](../evidence/native-intel-validator-007/README.md)
 record earlier compiler checkpoints. The [recovery checkpoint](../evidence/native-ramfs-unmount-008/README.md)

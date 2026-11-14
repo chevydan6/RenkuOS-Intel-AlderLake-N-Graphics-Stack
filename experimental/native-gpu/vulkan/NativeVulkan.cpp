@@ -742,7 +742,9 @@ static bool KnownStage(VkDevice device,const VkPipelineShaderStageCreateInfo& st
  return stage.sType==VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
   && !stage.pNext && !stage.flags && stage.stage==expected
   && stage.module && stage.module->device==device
-  && stage.module->bytes==bytes && !memcmp(stage.module->code,code,bytes)
+  && stage.module->code && (code
+    ? stage.module->bytes==bytes && !memcmp(stage.module->code,code,bytes)
+    : stage.module->bytes && !(stage.module->bytes&3))
   && stage.pName && !strcmp(stage.pName,"main") && !stage.pSpecializationInfo;
 }
 
@@ -755,11 +757,12 @@ static bool KnownGraphicsPipeline(VkDevice device,const VkGraphicsPipelineCreate
   || !p.pVertexInputState || !p.pInputAssemblyState || !p.pViewportState
   || !p.pRasterizationState || !p.pMultisampleState || !p.pColorBlendState)
   return false;
+#ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+ bool knownFragment=KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
+  nullptr,0);
+#else
  bool knownFragment=KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
   RenkuKnownSpirv::Fragment,sizeof(RenkuKnownSpirv::Fragment));
-#ifdef RENKU_VULKAN_USE_INTEL_COMPILER
- knownFragment=knownFragment || KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
-  RenkuKnownSpirv::FragmentHalf,sizeof(RenkuKnownSpirv::FragmentHalf));
 #endif
  if(!KnownStage(device,p.pStages[0],VK_SHADER_STAGE_VERTEX_BIT,
    RenkuKnownSpirv::Vertex,sizeof(RenkuKnownSpirv::Vertex)) || !knownFragment)return false;
