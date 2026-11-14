@@ -64,3 +64,15 @@ the hardware regression control while adding those capabilities.
 
 No Vulkan triangle, conformance, native presentation, or actual model-token
 measurement is claimed here.
+
+## Later RCS progress on 2026-11-14
+
+The v2 owner is now installed on the physical N100. A 64-draw regression
+accepted user-supplied triangle vertices, verified four distinct pixel hashes,
+and preserved the v1 64-draw control; see
+`evidence/rcs-user-vertices-002/`. This remains a kernel-selected batch and
+shader path, so the ANV BO/bind/submit gap above remains open.
+
+The next isolated CPU checkpoint adds file-local resource handle/VA policy and
+offline PPGTT page binding before publication. The owner-backed buffer ioctl,
+general RCS submission, fences, and ANV adapter are still to be implemented.

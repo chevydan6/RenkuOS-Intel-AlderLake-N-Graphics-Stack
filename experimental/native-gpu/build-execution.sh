@@ -50,6 +50,8 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_vertices.cpp -o build/gp
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_invalid_vertices.cpp -o build/gpu_render_invalid_vertices
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_smoke.cpp -o build/resource_smoke
 ./build/resource_smoke
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. ppgtt_bind_smoke.cpp -o build/ppgtt_bind_smoke
+./build/ppgtt_bind_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. render_window.cpp -lbe -o build/render_window
 for smoke in protocol_smoke.cpp render/rcs_hardware_smoke.cpp render/rcs_ownership_smoke.cpp render/rcs_context_smoke.cpp render/rcs_engine_smoke.cpp render/rcs_recovery_smoke.cpp render/rcs_reuse_smoke.cpp render/rcs_draw_smoke.cpp render/rcs_user_vertices_smoke.cpp render/rcs_presentation_smoke.cpp render/rcs_timeout_smoke.cpp render/rcs_pci_admission_smoke.cpp; do
  if test -f "$smoke"; then

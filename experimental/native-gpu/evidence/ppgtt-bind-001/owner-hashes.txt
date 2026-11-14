@@ -1,0 +1,2 @@
+1e188b4ef7b46125278833c92af99a5de924075ea6e32da42d17e31e84b42dc9  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+5219e0607735c170ef57d90f4062d74a00ae7103ce5f84ec5c312ccb7c0dcc21  /boot/home/native-rcs-resource-007/build/intel_memory_owner

@@ -65,6 +65,8 @@ owner allocates exclusive 4 KiB physical pages,
 validates direct DMA, and binds an aligned range before first RCS publication.
 No post-publication PTE mutation until a tested invalidation path exists.
 
+- [x] Add offline `BindPages` and `SealBindings` to the N100 PPGTT tree;
+  verify atomic rejection and native compilation without installation.
 - [ ] Test transactional allocation, map validation, per-file ownership,
   timeout retention, and cleanup before implementation.
 - [ ] Implement the owner/bridge path and compile on RenkuOS without installing.

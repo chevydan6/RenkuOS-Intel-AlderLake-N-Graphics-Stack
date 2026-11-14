@@ -29,7 +29,7 @@ public:
 	};
 	enum State { Empty, Ready, Retained, Ambiguous };
 	IntelN100PpgttTree() : fBackend(), fPages(), fCount(0), fHeld(false),
-		fState(Empty) {}
+		fState(Empty), fWindow(0), fDataPages(0), fScratchLeaf(0), fSealed(false) {}
 	State CurrentState() const { return fState; }
 	unsigned RecordedPages() const { return fCount; }
 	// Includes released slots (token zero) for failure diagnostics.
@@ -44,6 +44,47 @@ public:
 		if (fState != Ready) return false;
 		dma = fPages[0].dma;
 		return true;
+	}
+	// Bind externally owned pages into the same 2 MiB window before GPU
+	// publication. The caller retains them through proven GPU retirement and
+	// serializes this call with all tree operations. No PTE is written on failure.
+	bool BindPages(uint64_t gpu, const Page* pages, unsigned count, unsigned pat)
+	{
+		if (fState != Ready || fSealed || !pages || !count || pat > 3
+			|| (gpu & 4095) || gpu < fWindow) return false;
+		uint64_t first = (gpu - fWindow) / 4096;
+		if (first < fDataPages || first >= 512 || count > 512 - first)
+			return false;
+		for (unsigned i = 0; i < count; i++) {
+			const Page& page = pages[i];
+			uintptr_t cpu = reinterpret_cast<uintptr_t>(page.cpu);
+			uint64_t leaf = 0;
+			if (!page.token || !cpu || (cpu & 4095) || cpu > UINTPTR_MAX - 4095
+				|| !intel_n100_ppgtt_leaf(page.dma, pat, true, &leaf)
+				|| fPages[3].cpu[first + i] != fScratchLeaf) return false;
+			for (unsigned j = 0; j < fCount; j++)
+				if (page.token == fPages[j].token || page.cpu == fPages[j].cpu
+					|| page.dma == fPages[j].dma) return false;
+			for (unsigned j = 0; j < i; j++)
+				if (page.token == pages[j].token || page.cpu == pages[j].cpu
+					|| page.dma == pages[j].dma) return false;
+			for (unsigned j = 0; j < 512; j++) {
+				uint64_t existing = fPages[3].cpu[j];
+				if (existing != fScratchLeaf
+					&& (existing & ((1ULL << 39) - 4096)) == page.dma)
+					return false;
+			}
+		}
+		// Every leaf was encoded and every target checked above. This pass has
+		// no failure path, so a multi-page bind is all-or-nothing.
+		for (unsigned i = 0; i < count; i++)
+			intel_n100_ppgtt_leaf(pages[i].dma, pat, true,
+				&fPages[3].cpu[first + i]);
+		return true;
+	}
+	bool SealBindings() {
+		if (fState != Ready || fSealed) return false;
+		fSealed = true; return true;
 	}
 
 	bool Build(const Backend& backend, uint64_t window, unsigned dataPages,
@@ -106,6 +147,10 @@ public:
 		fPages[2].cpu[indices[2]] = Directory(3, cache);
 		for (unsigned i = 0; i < dataPages; i++)
 			intel_n100_ppgtt_leaf(fPages[8 + i].dma, dataPat, true, &fPages[3].cpu[i]);
+		fWindow = window;
+		fDataPages = dataPages;
+		fScratchLeaf = scratchLeaf;
+		fSealed = false;
 		fState = Ready;
 		return true;
 	}
@@ -130,6 +175,10 @@ public:
 		if (fHeld) fBackend.release(fBackend.context);
 		fHeld = false;
 		fCount = 0;
+		fWindow = 0;
+		fDataPages = 0;
+		fScratchLeaf = 0;
+		fSealed = false;
 		fState = Empty;
 		return true;
 	}
@@ -166,5 +215,9 @@ private:
 	unsigned fCount;
 	bool fHeld;
 	State fState;
+	uint64_t fWindow;
+	unsigned fDataPages;
+	uint64_t fScratchLeaf;
+	bool fSealed;
 };
 #endif
