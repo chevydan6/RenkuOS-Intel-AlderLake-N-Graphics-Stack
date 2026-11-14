@@ -109,7 +109,7 @@ The installed v5 owner/bridge compile inputs are now hash-inventoried from
 four GCC depfiles. The 140 recorded files total 663,470 bytes, including
 311,805 bytes of Haiku SDK headers and a generated owner translation unit
 that duplicates canonical owner content. The scope and complete manifest are
-in `evidence/native-closure-001/`. This is a current native RCS input baseline,
+in `evidence/native-closure-001/`. This is the v5 native RCS input baseline,
 not a Vulkan closure or model-token count. Mesa ANV's selected host compile
 inputs above remain a separate, much larger measurement.
 
@@ -125,3 +125,17 @@ modules, converts them to NIR, and emits VS/FS code byte-identical to the
 hardware-tested direct-NIR image; see `render/compiler/mesa-26.3.0/spirv/`.
 This establishes the first shader-compiler vertical slice. It does not yet
 provide a native RenkuOS compiler service or general Vulkan pipeline support.
+
+Render command version 6 now takes the Mesa 26.3.0 fragment shader from a
+file-local public BO. The owner checks the entire 4 KiB page against the
+proven shader, points the PS SIMD kernels to the owner-selected address, and
+zeroes the private FS page. On physical N100 hardware, 64 v6 draws and all
+five previous 64-draw controls passed; see `evidence/rcs-public-shader-001/`.
+This closes one shader upload/address/execute/readback path. The ABI still
+admits only exact known-safe code and fixed graphics state; it is not yet a
+Vulkan pipeline or general GPU shader submission interface.
+
+The installed v6 owner/bridge input inventory is now 141 files and 666,930
+bytes, up 3,460 bytes from v5; see `evidence/native-closure-v6-002/` for
+depfiles, per-file hashes, scope, and exclusions. It remains far narrower than
+the complete Vulkan stack and is not a model-token count.

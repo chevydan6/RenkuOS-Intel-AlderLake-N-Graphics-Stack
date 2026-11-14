@@ -46,6 +46,9 @@ struct native_gpu_render_command {
  // Version 4: reserved is a file-local vertex BO handle. Version 5: variant
  // is a vertex BO handle and reserved is a batch BO handle. The owner validates
  // every batch dword against one known-safe template before GPU submission.
+ // Version 6: variant selects fixed triangle 0..3; reserved is a file-local
+ // fragment shader BO handle. The owner validates its entire 4 KiB page
+ // against the proven shader image before widening the instruction window.
  uint8_t output[4096];
 };
 static_assert(sizeof(native_gpu_render_report)==240,"render report ABI");

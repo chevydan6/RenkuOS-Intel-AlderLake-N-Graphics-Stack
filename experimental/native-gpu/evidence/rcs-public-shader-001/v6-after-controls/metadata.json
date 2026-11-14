@@ -1,0 +1,17 @@
+{
+  "client": "/boot/home/native-rcs-public-shader-014/build/gpu_render_shader",
+  "host": "renkuos-n100",
+  "rounds": 1,
+  "public_shader": true,
+  "expected_hashes": [
+    "28616d2d",
+    "814e0c35",
+    "77323fd5",
+    "d8b0a07d"
+  ],
+  "start_unix_ns": 1794663498464534900,
+  "client_sha256": "bc4ba000fceb5ebb2465778ae97550c0878094b337a127e62eb3c4eebbdccc58",
+  "end_unix_ns": 1794663499500599297,
+  "final_sequence": 390,
+  "draws_passed": 4
+}

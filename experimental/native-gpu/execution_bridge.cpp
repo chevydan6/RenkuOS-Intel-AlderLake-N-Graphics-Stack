@@ -86,7 +86,7 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
  if(operation==NATIVE_GPU_RENDER_IOCTL){
   if(bytes!=sizeof(s.render))return B_BAD_VALUE;
   status_t status=user_memcpy(&s.render,buffer,bytes);if(status!=B_OK)return status;
-  if(s.render.version==4 || s.render.version==5){
+  if(s.render.version==4 || s.render.version==5 || s.render.version==6){
    if(!s.resourceSession){
     status=s.resourceModule->open(&s.resourceSession);
     if(status!=B_OK)return status;
