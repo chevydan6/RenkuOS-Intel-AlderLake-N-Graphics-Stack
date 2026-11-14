@@ -33,6 +33,12 @@ vertex bindings in order and signals the fence after the last draw. The
 [multi-pass checkpoint](../evidence/native-vulkan-multipass-032/README.md)
 records two draws from one command buffer on the N100. Multiple draws within
 one render pass and attachment load/preservation semantics remain unsupported.
+The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
+records a compiler-backed Vulkan triangle rendered on the N100, verified by
+pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
+one-shot app with `build-vulkan-window.sh` using `RENKU_VULKAN_HEADERS` and
+`RENKU_VULKAN_LIB_DIR`; `--close-after-ms 3000` bounds its hardware run. This
+readback presenter does not implement Vulkan WSI or swapchains.
 The [batch checkpoint](../evidence/native-vulkan-batch-025/README.md) records
 the exact output hashes and hardware trace.
 `vkResetCommandPool` now returns allocated command buffers to the initial

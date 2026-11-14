@@ -1,0 +1,4 @@
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":7,"stage":12,"sequence":49,"observed":49,"draw_index":0,"draw_count":1,"vertex_bo":4993,"shader_bo":4995,"vertex_shader_bo":0,"image_bo":4994,"checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5657,"write_ioctl_us":6,"submit_us":5665}
+vulkan_render_complete hash=28616d2d color=ffff4000
+vulkan_presented bitmap_stride=128
+vulkan_window_closed
