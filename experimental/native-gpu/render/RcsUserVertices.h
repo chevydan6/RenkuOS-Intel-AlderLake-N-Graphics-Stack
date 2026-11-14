@@ -61,9 +61,12 @@ public:
  }
 
  static bool Inspect64(uint32_t* const* pages,const uint32_t* words,Check& check,
-  uint32_t renderedPixel=RcsDrawImage::RenderedPixel,bool fragcoordRed=false) {
+  uint32_t renderedPixel=RcsDrawImage::RenderedPixel,
+  unsigned fragcoordDenominator=0) {
   Coord points[3]={};
-  if(!pages || !Validate(words,points))return false;
+  if(!pages || !Validate(words,points)
+   || (fragcoordDenominator && fragcoordDenominator!=32
+    && fragcoordDenominator!=64 && fragcoordDenominator!=128))return false;
   for(unsigned p=6;p<10;p++)if(!pages[p])return false;
   Check found={0,0,2166136261u,0,0};
   bool haveInterior=false,haveExterior=false;
@@ -73,11 +76,13 @@ public:
    found.hash=(found.hash^observed)*16777619u;
    int kind=Classify(points,x,y,2);
    if(kind<0)continue;
-   // FragCoord.x is the pixel-center coordinate x+0.5. The shader divides
-   // by 64; UNORM8 rounding has no exact ties for these half-pixel inputs.
-   uint32_t red=((2*x+1)*255+64)/128;
+   // FragCoord.x is the pixel-center coordinate x+0.5. The accepted
+   // power-of-two divisors give exact float values at these pixel centers.
+   uint32_t red=fragcoordDenominator
+    ?((2*x+1)*255+fragcoordDenominator)/(2*fragcoordDenominator):0;
+   if(red>255)red=255;
    uint32_t expected=kind
-    ?fragcoordRed?0xff000000u|(red<<16):renderedPixel
+    ?fragcoordDenominator?0xff000000u|(red<<16):renderedPixel
     :RcsDrawImage::Poison;
    found.matched+=observed==expected;
    found.checked++;

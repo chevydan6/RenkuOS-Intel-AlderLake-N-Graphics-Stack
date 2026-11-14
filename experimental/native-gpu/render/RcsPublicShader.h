@@ -8,9 +8,9 @@
 #include "RcsFragCoordRed.h"
 #include "RcsUserVertices.h"
 namespace NativeGpu {
-// Bounded shader BO contract. Accept one 208-byte FS instruction template
-// with paired constant RGB immediates and zero padding. The owner-selected VA
-// replaces two PS pointers; other GPU instructions remain rejected.
+// Bounded shader BO contract. Accept the 208-byte constant-RGB template or
+// the 352-byte FragCoord scale family, with paired immediates and full-page
+// zero padding. The owner-selected VA replaces two PS pointers.
 class RcsPublicShader {
 public:
  enum VertexProgram { InvalidVertex, DepthQuarter, RotateHalfturn };
@@ -55,12 +55,17 @@ public:
  }
  static FragmentProgram IdentifyFragmentPage(const uint32_t* words,unsigned dwords) {
   if(!words || dwords!=1024)return InvalidFragment;
-  bool gradient=true;
+  bool gradient=GradientDenominator(words[29]) && words[29]==words[77];
   for(unsigned i=0;i<1024;i++)
-   gradient &= words[i]==(i<sizeof(RcsFragCoordRed::Words)/4
+   gradient &= words[i]==(i==29 || i==77?words[29]:
+    i<sizeof(RcsFragCoordRed::Words)/4
     ?RcsFragCoordRed::Words[i]:0);
   return gradient?FragCoordRed:ValidateFragment(words,dwords)
    ?ConstantColor:InvalidFragment;
+ }
+ static unsigned GradientDenominator(uint32_t bits) {
+  return bits==0x3d002002?32:bits==0x3c802002?64:
+   bits==0x3c002002?128:0;
  }
  static bool ExpectedPixel(const uint32_t* words,unsigned dwords,uint32_t& pixel) {
   if(!ValidateFragment(words,dwords))return false;

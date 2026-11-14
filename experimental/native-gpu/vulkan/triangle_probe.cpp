@@ -24,7 +24,8 @@ int main(int argc,char** argv)
  if((argc<2 || argc>5) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
   || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
    && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
-   && strcmp(argv[2],"rgb") && strcmp(argv[2],"fragcoord"))
+   && strcmp(argv[2],"rgb") && strcmp(argv[2],"fragcoord")
+   && strcmp(argv[2],"fragcoord32") && strcmp(argv[2],"fragcoord128"))
   || (argc==5 && strcmp(argv[4],"batch")
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
@@ -37,7 +38,10 @@ int main(int argc,char** argv)
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
- bool fragcoord=argc>=3 && !strcmp(argv[2],"fragcoord");
+ unsigned fragcoordDenominator=argc>=3 && !strcmp(argv[2],"fragcoord32")?32:
+  argc>=3 && !strcmp(argv[2],"fragcoord128")?128:
+  argc>=3 && !strcmp(argv[2],"fragcoord")?64:0;
+ bool fragcoord=fragcoordDenominator!=0;
  char* repeatEnd=nullptr;
  unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
  bool batch=argc==5 && !strcmp(argv[4],"batch");
@@ -66,6 +70,15 @@ int main(int argc,char** argv)
  auto rgbCode=rgb?RgbSpirvFixture(0x3f000000,0x3f400000,0x3e800000,true):
   std::vector<uint32_t>{};
  REQUIRE(!rgb || !rgbCode.empty(),51);
+ uint32_t fragcoordCode[sizeof(RenkuFragCoordSpirv::Fragment)/4];
+ memcpy(fragcoordCode,RenkuFragCoordSpirv::Fragment,sizeof(fragcoordCode));
+ if(fragcoord && fragcoordDenominator!=64){
+  bool changed=false;
+  const uint32_t scale=fragcoordDenominator==32?0x3d000000:0x3c000000;
+  for(uint32_t& word:fragcoordCode)
+   if(word==0x3c800000){word=scale;changed=true;break;}
+  REQUIRE(changed,56);
+ }
  std::vector<uint32_t> namedVertex;
  if(named){
   namedVertex.assign(std::begin(RenkuKnownSpirv::Vertex),
@@ -113,7 +126,7 @@ int main(int argc,char** argv)
   named?namedVertex.size()*4:sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
- moduleInfo.pCode=fragcoord?RenkuFragCoordSpirv::Fragment:
+ moduleInfo.pCode=fragcoord?fragcoordCode:
   rgb?rgbCode.data():(green75 || green90)?alternateCode:
   half?RenkuKnownSpirv::FragmentHalf:RenkuKnownSpirv::Fragment;
  moduleInfo.codeSize=fragcoord?sizeof(RenkuFragCoordSpirv::Fragment):
@@ -367,8 +380,10 @@ int main(int argc,char** argv)
    0x8aaee2f5,0x9ca44bcd,0x23ba4705,0xb0d153c5};
   const uint32_t expectedLargeRgb[4]={
    0x7a1ac675,0xe178394d,0x49942685,0x9eff5945};
-  REQUIRE((fragcoord?(hash==0x7b2f62f5
-   && pixels[10*64+20]==0xff520000):
+  REQUIRE((fragcoord?(hash==(fragcoordDenominator==32?0x655762f5:
+    fragcoordDenominator==64?0x7b2f62f5:0xa0a362f5)
+   && pixels[10*64+20]==(fragcoordDenominator==32?0xffa30000:
+    fragcoordDenominator==64?0xff520000:0xff290000)):
    hash==(rotate?0x7b48f3e5:
    rgb?expectedLargeRgb[shape]:expectedLarge[shape])
    ) && pixels[0]==0x19537bad,30);

@@ -129,6 +129,19 @@ int main() {
   sizeof(NativeGpu::RcsFragCoordRed::Words));
  if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
   !=NativeGpu::RcsPublicShader::FragCoordRed)return 34;
+ gradientPage[29]=gradientPage[77]=0x3c002002; // gl_FragCoord.x / 128.
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::FragCoordRed)return 38;
+ gradientPage[29]=gradientPage[77]=0x3d002002; // gl_FragCoord.x / 32.
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::FragCoordRed)return 39;
+ gradientPage[77]=0x3c802002;
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::InvalidFragment)return 40;
+ gradientPage[29]=gradientPage[77]=0x3d802002; // Unsupported 1/16 scale.
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::InvalidFragment)return 41;
+ gradientPage[29]=gradientPage[77]=0x3c802002;
  gradientPage[87]^=1;
  if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
   !=NativeGpu::RcsPublicShader::InvalidFragment)return 35;

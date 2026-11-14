@@ -102,6 +102,25 @@ int main()
   || !gradient || gradientFsBytes!=sizeof(gradientFs)
   || memcmp(gradientFs,NativeGpu::RcsFragCoordRed::Words,
    sizeof(gradientFs)))return 18;
+ const uint32_t scales[]={0x3c000000u,0x3d000000u};
+ for(uint32_t scale:scales){
+  uint32_t code[sizeof(RenkuFragCoordSpirv::Fragment)/4];
+  memcpy(code,RenkuFragCoordSpirv::Fragment,sizeof(code));
+  bool changed=false;
+  for(uint32_t& word:code)
+   if(word==0x3c800000){word=scale;changed=true;break;}
+  if(!changed)return 19;
+  gradient=false;gradientFsBytes=0;
+  if(!CompileKnownPipeline(RenkuKnownSpirv::Vertex,
+    sizeof(RenkuKnownSpirv::Vertex),code,sizeof(code),
+    gradientVs,sizeof(gradientVs),&gradientVsBytes,
+    gradientFs,sizeof(gradientFs),&gradientFsBytes,&gradient)
+   || !gradient || gradientFsBytes!=sizeof(gradientFs))return 20;
+  uint32_t expected[sizeof(gradientFs)/4];
+  memcpy(expected,NativeGpu::RcsFragCoordRed::Words,sizeof(expected));
+  expected[29]=expected[77]=scale==0x3c000000?0x3c002002:0x3d002002;
+  if(memcmp(gradientFs,expected,sizeof(expected)))return 21;
+ }
  puts("compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input");
  return 0;
 }

@@ -127,11 +127,13 @@ program, and uploads a fragment program only when its machine code matches an
 approved N100 profile. The constant-RGB profile has a 208-byte instruction
 template, independently checked by the owner across the full zero-padded
 shader page. Red and blue are bounded to `[0, 1]`; green is bounded to
-`[0, 1)`. The 64×64 FragCoord-red profile has one exact 352-byte program and
-uses Vulkan pixel-center coordinates. The owner verifies its completed image
-against a CPU reference. [Physical FragCoord evidence](../evidence/native-fragcoord-vulkan-047/README.md)
-records the failed first image, corrected compiler path, repeated N100 draws,
-and regression matrix. Other machine code and pipeline states are rejected.
+`[0, 1)`. The 64×64 FragCoord-red profile accepts a three-scale family of
+352-byte programs for `gl_FragCoord.x / 32`, `/ 64`, or `/ 128`, using Vulkan
+pixel-center coordinates. The owner verifies each completed image against a
+CPU reference. [Initial FragCoord evidence](../evidence/native-fragcoord-vulkan-047/README.md)
+records the pixel-center correction; [scale-family evidence](../evidence/native-gradient-family-049/README.md)
+records 72 physical submissions and full image captures. Other machine code
+and pipeline states are rejected.
 The compiler-backed build validates modules for Vulkan
 1.0 with SPIRV-Tools at `vkCreateShaderModule`, before pipeline creation. The
 vertex SPIR-V bytes may differ when the compiler emits that same machine
