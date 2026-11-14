@@ -91,3 +91,11 @@ build/gpu_copy_sample
 See [logs and hashes](evidence/native-copy-005/README.md). That checkpoint used one attempt per boot. The current repeated-request
 implementation and seven-copy physical evidence are described in
 [native-repeat-003](evidence/native-repeat-003/README.md).
+
+## Native tile demo and benchmark
+
+`build/gpu_copy_bench --show` displays the source/GPU-copied tile and CPU/GPU
+timings, and saves CSV plus both PPM images in its working directory. Omit
+`--show` for headless measurements. See the [measured results and boundaries](evidence/native-benchmark-003/README.md):
+484copies passed, but this prototype loses to CPU memcpy throughout its64-byte
+to4KiB range when staging, whole-machine cache maintenance and waiting are included.

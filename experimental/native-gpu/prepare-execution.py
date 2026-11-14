@@ -22,7 +22,10 @@ anchor='// v1 acquires v0 through the module manager.'
 text=raw.decode();assert text.count(anchor)==1
 hook='static bool\nResetOwnerPower(GroupContext& context)\n{\n'
 assert text.count(hook)==1
-text=text.replace(hook,'static bool sNativeExecutionActive;\nstatic bool NativeOwnerPower(GroupContext& context);\n'+hook+'\tif(sNativeExecutionActive)return NativeOwnerPower(context);\n')
+text=text.replace(hook,'static bool NativeOwnerPower(GroupContext& context);\n'+hook+'\tif(sNativeExecutionActive)return NativeOwnerPower(context);\n')
+hook='static bool\nHandshakePciStable(void* data)\n{\n'
+assert text.count(hook)==1
+text=text.replace(hook,'static bool sNativeExecutionActive;\nstatic bool NativeHandshakePciStable(void* data);\n'+hook+'\tif(sNativeExecutionActive)return NativeHandshakePciStable(data);\n')
 text=text.replace(anchor,'static status_t ObservationOperations(int32 operation, ...);\n#include "NativeExecution.inc"\n\n'+anchor)
 anchor='module_info* modules[] = {\n';assert text.count(anchor)==1
 text=text.replace(anchor,anchor+'\t(module_info*)&sNativeExecutionModule,\n')

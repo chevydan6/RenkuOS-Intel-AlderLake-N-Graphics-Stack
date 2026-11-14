@@ -36,6 +36,22 @@ static area_id sNativeDmaAreas[16];
 static addr_t sNativeDmaRegisters[16];
 static uint32_t* sNativeSource;
 static uint32_t* sNativeDestination;
+// Bootstrap/inspection uses the same access anchors as native group work.
+// Full initial capability admission remains unchanged. Volatile Status/PME
+// bits must not spuriously invalidate the forcewake ACK wait. Preserve the
+// original independent-of-display cleanup and live mapping/lease checks.
+static bool NativeHandshakePciStable(void* data)
+{
+	auto& context=*(HandshakeContext*)data;
+	IntelN100PciSnapshot observed={};
+	bool stable=native_gpu_pci_power(ReadConfig,&context.device,context.original,observed);
+	mutex_lock(&sLock);
+	stable=stable && sObservationPhase==ObservationHandshaking
+		&& sObservationLease==context.lease && sRegistersUncached
+		&& sResources.registers==context.registers;
+	mutex_unlock(&sLock);
+	return stable;
+}
 static bool NativeOwnerPower(GroupContext& context)
 {
 	auto& h=*context.handshake;

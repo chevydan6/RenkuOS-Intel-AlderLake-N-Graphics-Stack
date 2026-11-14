@@ -1,6 +1,35 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Latest checkpoint: native demonstration and CPU/GPU benchmark
+
+A native BeAPI window now displays a32×32 source tile, verified BCS GPU readback,
+and timing results. [Benchmark report, CSV, screenshot and exact evidence](experimental/native-gpu/evidence/native-benchmark-003/README.md)
+cover64,256,1024and4096-byte copies. All484requests passed in one boot.
+
+The prototype is slower than warm CPU memcpy throughout this range: the complete
+GPU copy path takes about2.66–2.68ms, versus10–89ns for CPU copies. Upload/copy/readback
+also takes about2.67–2.68ms. Fresh-boot session open/create took97.5ms and first
+copy15.3ms. Measurements include staging, cache maintenance, submission, polling,
+verification and retirement; they do not isolate intrinsic engine time. No larger
+crossover or BCS throughput claim is possible with the current4KiB buffer limit.
+
+Two initial runs stopped at bootstrap; diagnostic evidence identified the PCI
+stability callback (`WaitSet/PowerChanged`). Bootstrap/inspection now uses the
+same native access/power anchor policy as group work, preserving mapping/lease
+checks, full initial admission, legacy diagnostics and Intel hardware sequences.
+The exact differing snapshot field was not captured. See the report for details.
+
+Current installed owner SHA256:
+`dbb36045d998c2440f7c32bd82572946d3ca014bb6a852004c87d614251f841d`.
+The v2 bridge is unchanged from the buffer-interface checkpoint. Native source/
+build/client: `/boot/home/native-benchmark-owner-003`. Run `build/gpu_copy_bench`
+in a fresh output directory, with `--show` for the native window. The demo window
+was captured then closed normally; app_server remains PID127, original component
+hashes match, and the physical lease is released. Further successful copies need
+no reboot. The observed VT-d-disabled restriction remains; general IOMMU support
+is separate work.
+
 ## Latest checkpoint: owned-buffer rectangular copy interface
 
 The narrow [buffer-and-copy API](experimental/native-gpu/BUFFER_COPY.md) now runs

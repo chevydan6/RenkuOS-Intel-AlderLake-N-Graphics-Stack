@@ -1,0 +1,6 @@
+copy failed ioctl=-1 status=-1 stage=5 sequence=30; stop
+session_open_create_us=12
+GPU: 20 repetitions x 3 trials per mode/size; full ioctl or upload+ioctl+readback.
+CPU: warm memcpy batches >=20 ms, timer amortized; GPU data verification included in ioctl.
+First calls measured separately; device may already be initialized. Sizes limited by 4 KiB API.
+Benchmark stopped: GPU completion/data not proven; no further submissions.

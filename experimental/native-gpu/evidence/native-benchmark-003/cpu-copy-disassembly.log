@@ -1,0 +1,32 @@
+
+build/gpu_copy_bench:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000004c50 <CpuCopy(void*, void const*, unsigned long) [clone .constprop.0]>:
+    4c50:	48 8d 15 09 30 00 00 	lea    0x3009(%rip),%rdx        # 7c60 <sCpu>
+    4c57:	89 f9                	mov    %edi,%ecx
+    4c59:	48 89 f8             	mov    %rdi,%rax
+    4c5c:	48 8d 35 fd 4f 00 00 	lea    0x4ffd(%rip),%rsi        # 9c60 <sSource>
+    4c63:	48 89 d7             	mov    %rdx,%rdi
+    4c66:	c1 e9 03             	shr    $0x3,%ecx
+    4c69:	31 d2                	xor    %edx,%edx
+    4c6b:	f3 48 a5             	rep movsq (%rsi),(%rdi)
+    4c6e:	a8 04                	test   $0x4,%al
+    4c70:	74 09                	je     4c7b <CpuCopy(void*, void const*, unsigned long) [clone .constprop.0]+0x2b>
+    4c72:	8b 16                	mov    (%rsi),%edx
+    4c74:	89 17                	mov    %edx,(%rdi)
+    4c76:	ba 04 00 00 00       	mov    $0x4,%edx
+    4c7b:	a8 02                	test   $0x2,%al
+    4c7d:	74 0c                	je     4c8b <CpuCopy(void*, void const*, unsigned long) [clone .constprop.0]+0x3b>
+    4c7f:	0f b7 0c 16          	movzwl (%rsi,%rdx,1),%ecx
+    4c83:	66 89 0c 17          	mov    %cx,(%rdi,%rdx,1)
+    4c87:	48 83 c2 02          	add    $0x2,%rdx
+    4c8b:	a8 01                	test   $0x1,%al
+    4c8d:	74 07                	je     4c96 <CpuCopy(void*, void const*, unsigned long) [clone .constprop.0]+0x46>
+    4c8f:	0f b6 04 16          	movzbl (%rsi,%rdx,1),%eax
+    4c93:	88 04 17             	mov    %al,(%rdi,%rdx,1)
+    4c96:	c3                   	ret
+    4c97:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+    4c9e:	00 00 

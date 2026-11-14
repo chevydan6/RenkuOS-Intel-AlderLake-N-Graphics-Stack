@@ -27,6 +27,7 @@ g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 \
  -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_copy_sample.cpp -o build/gpu_copy_sample
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. buffer_copy_sample.cpp -o build/buffer_copy_sample
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_copy_bench.cpp -lbe -o build/gpu_copy_bench
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. buffer_copy_smoke.cpp -o build/buffer_copy_smoke
 ./build/buffer_copy_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. copy_image_smoke.cpp -o build/copy_image_smoke
