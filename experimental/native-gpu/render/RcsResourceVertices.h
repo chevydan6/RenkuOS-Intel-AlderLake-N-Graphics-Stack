@@ -8,7 +8,8 @@ namespace NativeGpu {
 // Only the vertex-buffer packet's low address changes from the v2 workload.
 class RcsResourceVertices {
 public:
- static constexpr uint32_t VertexGpu=0x408000;
+ // Keep this distinct page beyond the 64x64 target and post-sync page.
+ static constexpr uint32_t VertexGpu=0x40b000;
  static bool Build(uint32_t* const* pages,uint32_t* resource,const uint32_t* words) {
   if(!pages || !resource || (reinterpret_cast<uintptr_t>(resource)&4095)
    || !RcsUserVertices::Validate(words))return false;

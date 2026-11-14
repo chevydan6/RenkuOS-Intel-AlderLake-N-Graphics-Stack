@@ -2,6 +2,7 @@
 // Included in the permanent owner after NativeExecution.inc's shared adapters.
 #include "RenderModule.h"
 #include "render/RcsHardwareProfile.h"
+#include "render/RcsDrawImage64.h"
 #include "render/RcsOwnership.h"
 #include "render/RcsContextImage.h"
 #include "render/RcsEngine.h"
@@ -76,7 +77,7 @@ static addr_t sRenderBacking[4];
 static bool sRenderReady,sRenderPageHold,sRenderPublished,sRenderDefaultValid,sRenderRetired;
 static uint32_t sRenderCursor;
 static bool sRenderHideCompletion;
-static uint32_t* sRenderData[8];
+static uint32_t* sRenderData[NativeGpu::RcsDrawImage64::PageCount];
 static bool sRenderUserDraw;
 static uint32_t sRenderExpectedPixel=NativeGpu::RcsDrawImage::RenderedPixel;
 static bool sRenderResourceDraw,sRenderArenaDraw,sRenderPublicBatchDraw,sRenderPublicShaderDraw;
@@ -132,8 +133,9 @@ static bool NativeRenderAllocate()
   }
  }
  IntelN100PpgttTree::Backend backend={NULL,NativeRenderHold,NativeRenderDrop,NativeAllocate,NativeFree};
- if(!sRenderTree.Build(backend,0x400000,8,3,3,IntelN100DirectoryUncached))return false;
- for(unsigned i=0;i<8;i++){
+ if(!sRenderTree.Build(backend,0x400000,NativeGpu::RcsDrawImage64::PageCount,
+   3,3,IntelN100DirectoryUncached))return false;
+ for(unsigned i=0;i<NativeGpu::RcsDrawImage64::PageCount;i++){
   IntelN100PpgttTree::Page page={};if(!sRenderTree.Describe(8+i,page))return false;
   sRenderData[i]=(uint32_t*)page.cpu;
  }

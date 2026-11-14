@@ -1,0 +1,4 @@
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":7,"stage":12,"sequence":5,"observed":5,"draw_index":0,"draw_count":1,"vertex_bo":257,"shader_bo":132,"vertex_shader_bo":0,"image_bo":131,"checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5583,"write_ioctl_us":6,"submit_us":5592}
+Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d draws=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":8,"stage":12,"sequence":6,"observed":6,"vertex_bo":385,"shader_bo":260,"vertex_shader_bo":133,"image_bo":259,"checked":777,"matched":777,"pixel_hash":"77323fd5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5312,"write_ioctl_us":6,"submit_us":5320}
+Native Vulkan N100 triangle: PASS shape=0 hash=77323fd5 draws=1

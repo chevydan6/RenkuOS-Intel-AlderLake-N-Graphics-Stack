@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 #include "RcsResourceVertices.h"
+#include "RcsDrawImage64.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 using namespace NativeGpu;
+static_assert(RcsResourceVertices::VertexGpu>=RcsDrawImage::GpuBase
+ +RcsDrawImage64::PageCount*4096,"vertex resource overlaps 64x64 draw image");
 int main() {
  alignas(4096) uint32_t storage[9][1024]={};
  uint32_t* pages[8];for(unsigned i=0;i<8;i++)pages[i]=storage[i];

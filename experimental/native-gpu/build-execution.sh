@@ -3,7 +3,7 @@
 set -euo pipefail
 test "$(uname -s)" = Haiku
 sha256sum -c baseline-owner.sha256
-owner_source=/boot/home/i915-mapping-002/source
+owner_source=${INTEL_OWNER_SOURCE:-/boot/home/i915-mapping-002/source}
 private=/boot/system/develop/headers/private
 graphics="$owner_source/headers/private/graphics"
 mkdir -p build

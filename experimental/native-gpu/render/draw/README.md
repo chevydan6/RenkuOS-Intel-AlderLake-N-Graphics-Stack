@@ -51,6 +51,10 @@ eight-page, 32×32 layout; no 64×64 hardware submission is enabled.
 `RcsDrawImage64` constructs that eleven-page layout from the verified 32×32
 image plus the fifteen changed words. Its [CPU checkpoint](../../evidence/native-rcs-image64-037/README.md)
 compares every packet and shader word against `RcsDrawGenerated64.h`.
+The [N100 mapping checkpoint](../../evidence/native-rcs-ppgtt11-038/README.md)
+reserves those eleven pages in the owner and moves the separate legacy vertex
+page to `0x40b000`. Existing 32×32 draw paths passed on hardware; the 64×64
+request and readback are still unimplemented.
 
 `check_image.py` decodes actual command words against Mesa's imported gen120 XML (independent of pack macros) and verifies real VS+FS dispatch, SIMD pointers, TRILIST, surface/resource addresses, disabled blend/depth/compression, and exact shader binary bytes. The C++ smoke verifies validation-before-write, poison, all four vertex variants, exact shader bytes and batch termination.
 
