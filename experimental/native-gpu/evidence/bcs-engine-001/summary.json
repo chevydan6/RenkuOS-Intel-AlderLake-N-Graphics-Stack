@@ -1,0 +1,8 @@
+{
+  "native_kernel_compile": true,
+  "native_simulated_io_smoke": true,
+  "gpu_execution": false,
+  "hardware_register_stores": 0,
+  "archive_sha256": "9acbe026aaf0b4571d5a8db995cd08ebda0a25592b8e46c16fa0559658f0b69e",
+  "native_bundle": "/boot/home/native-bcs-engine-001"
+}

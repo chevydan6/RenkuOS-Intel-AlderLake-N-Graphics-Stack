@@ -31,3 +31,10 @@ Ported-from-license: MIT
 
 The reused native helpers retain their own original licenses and provenance in
 workstreams/gpu-next and research/n100-submission. New native integration is MIT.
+
+BcsEngine.h adds fixed BCS0 initialization and two-port ELSQ publication from
+Linux v6.6 intel_execlists_submission.c (MIT). It is not yet called by the native
+execution owner. The actual kernel SDK compile and native simulated-IO smoke
+pass; see [BCS engine evidence](evidence/bcs-engine-001/README.md). Its caller
+must supply the retained ownership, forcewake and memory/DMA/cache/TLB policy.
+No hardware submission or retirement is claimed.

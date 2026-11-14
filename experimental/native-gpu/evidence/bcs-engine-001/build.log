@@ -1,0 +1,2 @@
+BCS init/ELSQ smoke: PASS (simulated IO, not GPU execution)
+NATIVE_BCS_ENGINE_BUILD_PASSED
