@@ -1,0 +1,16 @@
+{
+  "client": "/boot/home/native-rcs-owner-005/build/gpu_render_sample",
+  "host": "renkuos-n100",
+  "rounds": 16,
+  "expected_hashes": [
+    "28616d2d",
+    "814e0c35",
+    "77323fd5",
+    "d8b0a07d"
+  ],
+  "start_unix_ns": 1794653527645789970,
+  "client_sha256": "4234b4d3987f3977e96075e980bf6130450893f838b06dbfbb4dab8923540b1c",
+  "end_unix_ns": 1794653542156913536,
+  "final_sequence": 2746,
+  "draws_passed": 64
+}
