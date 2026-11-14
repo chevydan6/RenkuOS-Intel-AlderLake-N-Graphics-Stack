@@ -1,0 +1,24 @@
+native_render version=1 mode=1 ioctl=0 status=0 stage=6 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00000001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=0 cursor=0 checked=0 matched=0 target_hash=00000000 interior=0,0 exterior=0,0 CSB=0000000000000000/0000000000000000
+nonce=00000000/00000000 complement=00000000 sequence=0/0 tail=0 reset=0/0 engine=0/0 csb=0
+RCS read-only probe: PASS
+native_render version=1 mode=2 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00000001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=0 matched=0 target_hash=00000000 interior=0,0 exterior=0,0 CSB=03ff800000008001/0000800003ff8000
+nonce=02bd28ef/02bd28ef complement=fd42d710 sequence=1/1 tail=336 reset=11/0 engine=4/0 csb=0
+RCS command-streamer bootstrap: PASS (no shader draw)
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000010001/0001000003ff8000
+nonce=02bde979/02bde979 complement=fd421686 sequence=2/2 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS

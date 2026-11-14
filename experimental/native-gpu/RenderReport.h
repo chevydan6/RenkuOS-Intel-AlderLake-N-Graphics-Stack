@@ -52,6 +52,10 @@ struct native_gpu_render_command {
  // Version 7: variant is a file-local vertex BO handle; reserved is a
  // different file-local fragment shader BO handle. Both pages and the
  // combined fixed batch are validated before GPU publication.
+ // Version 8: version 7 plus a third, distinct file-local vertex shader BO
+ // handle in output[0..3] on input. The owner validates its complete page,
+ // copies the approved instructions into its private VS page, and overwrites
+ // output with rendered pixels on success.
  uint8_t output[4096];
 };
 static_assert(sizeof(native_gpu_render_report)==240,"render report ABI");

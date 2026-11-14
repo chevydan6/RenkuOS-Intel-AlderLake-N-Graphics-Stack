@@ -1,0 +1,6 @@
+ 02:39:24  up   0:01,  0 users,  load average: 0.07, 0.04, 0.01
+d314345fd7523d5b6bd9c7ad784ab7a1aa9af331919154fda5e447ecd35c36df  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+80b97ea7bd21c021cdefaf0cce83b39fccb30c1d750df6562761c1aa529f39a3  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_native_execution_bridge
+fdd85665ff0ee1989285fcf9e7796598529b94bf3d6ad8fb266c8a7232d2a075  /boot/home/native-rcs-v8-028/rollback/intel_memory_owner
+3c627564f538d62e87342e3da6968b4843170ee14044e1bc2c6d1a916c22680f  /boot/home/native-rcs-v8-028/rollback/intel_native_execution_bridge
+DEVICE_PRESENT
