@@ -1,0 +1,1551 @@
+ninja: Entering directory `build-compiler'
+[1/485] Generating src/git_sha1.h with a custom command
+[2/485] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_opt_algebraic.c.o
+[3/485] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_opcodes.c.o
+[4/485] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_constant_expressions.c.o
+[5/485] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_intrinsics.c.o
+[6/485] Compiling C object src/compiler/nir/libnir.a.p/nir.c.o
+[7/485] Compiling C object src/compiler/nir/libnir.a.p/nir_builder.c.o
+[8/485] Compiling C object src/compiler/nir/libnir.a.p/nir_builtin_builder.c.o
+[9/485] Compiling C object src/compiler/nir/libnir.a.p/nir_convert_address_format.c.o
+[10/485] Compiling C object src/compiler/nir/libnir.a.p/nir_clip_cull_distance_io_utils.c.o
+[11/485] Compiling C object src/compiler/nir/libnir.a.p/nir_clone.c.o
+[12/485] Compiling C object src/compiler/nir/libnir.a.p/nir_control_flow.c.o
+[13/485] Compiling C object src/compiler/nir/libnir.a.p/nir_deref.c.o
+[14/485] Compiling C object src/compiler/nir/libnir.a.p/nir_divergence_analysis.c.o
+[15/485] Compiling C object src/compiler/nir/libnir.a.p/nir_dominance.c.o
+[16/485] Compiling C object src/compiler/nir/libnir.a.p/nir_dominance_lca.c.o
+[17/485] Compiling C object src/compiler/nir/libnir.a.p/nir_downgrade_pls_vars.c.o
+[18/485] Compiling C object src/compiler/nir/libnir.a.p/nir_fixup_is_exported.c.o
+[19/485] Compiling C object src/compiler/nir/libnir.a.p/nir_format_convert.c.o
+[20/485] Compiling C object src/compiler/nir/libnir.a.p/nir_from_ssa.c.o
+[21/485] Compiling C object src/compiler/nir/libnir.a.p/nir_functions.c.o
+[22/485] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_info.c.o
+[23/485] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_output_deps.c.o
+[24/485] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_tcs_info.c.o
+[25/485] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_types.c.o
+[26/485] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_xfb_info.c.o
+[27/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_group_loads.c.o
+[28/485] Compiling C object src/compiler/nir/libnir.a.p/nir_gs_count_vertices.c.o
+[29/485] Compiling C object src/compiler/nir/libnir.a.p/nir_inline_sysval.c.o
+[30/485] Compiling C object src/compiler/nir/libnir.a.p/nir_inline_uniforms.c.o
+[31/485] Compiling C object src/compiler/nir/libnir.a.p/nir_instr_set.c.o
+[32/485] Compiling C object src/compiler/nir/libnir.a.p/nir_io_add_xfb_info.c.o
+[33/485] Compiling C object src/compiler/nir/libnir.a.p/nir_legacy.c.o
+[34/485] Compiling C object src/compiler/nir/libnir.a.p/nir_linking_helpers.c.o
+[35/485] Compiling C object src/compiler/nir/libnir.a.p/nir_liveness.c.o
+[36/485] Compiling C object src/compiler/nir/libnir.a.p/nir_loop_analyze.c.o
+[37/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_abort.c.o
+[38/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_alu.c.o
+[39/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_alu_width.c.o
+[40/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_alpha.c.o
+[41/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_amul.c.o
+[42/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_array_deref_of_vec.c.o
+[43/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_atomics_to_ssbo.c.o
+[44/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bitmap.c.o
+[45/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_blend.c.o
+[46/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bool_to_float.c.o
+[47/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bool_to_int32.c.o
+[48/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_calls_to_builtins.c.o
+[49/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_cl_images.c.o
+[50/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clamp_color_outputs.c.o
+[51/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clip.c.o
+[52/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clip_disable.c.o
+[53/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clip_halfz.c.o
+[54/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_const_arrays_to_uniforms.c.o
+[55/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_continue_constructs.c.o
+[56/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_convert_alu_types.c.o
+[57/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_cooperative_matrix.c.o
+[58/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_variable_initializers.c.o
+[59/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_discard_if.c.o
+[60/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_double_ops.c.o
+[61/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_explicit_io.c.o
+[62/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fb_read.c.o
+[63/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_flatshade.c.o
+[64/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_floats.c.o
+[65/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_flrp.c.o
+[66/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fp16_conv.c.o
+[67/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fragcoord_wtrans.c.o
+[68/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_frag_coord_to_pixel_coord.c.o
+[69/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fragcolor.c.o
+[70/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_frexp.c.o
+[71/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_global_vars_to_local.c.o
+[72/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_goto_ifs.c.o
+[73/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_gs_intrinsics.c.o
+[74/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_halt_to_return.c.o
+[75/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_helper_writes.c.o
+[76/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_load_const_to_scalar.c.o
+[77/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_locals_to_regs.c.o
+[78/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_idiv.c.o
+[79/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_image.c.o
+[80/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_image_atomics_to_global.c.o
+[81/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_indirect_derefs_to_if_else_trees.c.o
+[82/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_input_attachments.c.o
+[83/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_int64.c.o
+[84/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_interpolation.c.o
+[85/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_int_to_float.c.o
+[86/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io.c.o
+[87/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_array_vars_to_elements.c.o
+[88/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_indirect_loads.c.o
+[89/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_vars_to_temporaries.c.o
+[90/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_to_scalar.c.o
+[91/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_vars_to_scalar.c.o
+[92/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_is_helper_invocation.c.o
+[93/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_multiview.c.o
+[94/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_mediump.c.o
+[95/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_mem_access_bit_sizes.c.o
+[96/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_memcpy.c.o
+[97/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_memory_model.c.o
+[98/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_non_uniform_access.c.o
+[99/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_packing.c.o
+[100/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_passthrough_edgeflags.c.o
+[101/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_patch_vertices.c.o
+[102/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_phis_to_scalar.c.o
+[103/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_pntc_ytransform.c.o
+[104/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_point_size.c.o
+[105/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_point_smooth.c.o
+[106/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_poly_line_smooth.c.o
+[107/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_printf.c.o
+[108/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_reg_intrinsics_to_ssa.c.o
+[109/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_readonly_images_to_tex.c.o
+[110/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_returns.c.o
+[111/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_robust_access.c.o
+[112/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_samplers.c.o
+[113/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_sample_shading.c.o
+[114/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_scratch.c.o
+[115/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_scratch_to_var.c.o
+[116/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_shader_calls.c.o
+[117/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_single_sampled.c.o
+[118/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_ssbo.c.o
+[119/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_subgroups.c.o
+[120/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_system_values.c.o
+[121/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_task_shader.c.o
+[122/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_terminate_to_demote.c.o
+[123/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_tess_coord_z.c.o
+[124/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_tex_shadow.c.o
+[125/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_tex.c.o
+[126/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_texcoord_replace.c.o
+[127/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_texcoord_replace_late.c.o
+[128/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_two_sided_color.c.o
+[129/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_undef_to_zero.c.o
+[130/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_vars_to_ssa.c.o
+[131/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_var_copies.c.o
+[132/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_vec_to_regs.c.o
+[133/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_vec3_to_vec4.c.o
+[134/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_view_index_to_device_index.c.o
+[135/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_viewport_transform.c.o
+[136/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_wpos_center.c.o
+[137/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_wpos_ytransform.c.o
+[138/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_wrmasks.c.o
+[139/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_xfb_to_stores.c.o
+[140/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bit_size.c.o
+[141/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_ubo_vec4.c.o
+[142/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_uniforms_to_ubo.c.o
+[143/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_workgroup_size.c.o
+[144/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_sysvals_to_varyings.c.o
+[145/485] Compiling C object src/compiler/nir/libnir.a.p/nir_metadata.c.o
+[146/485] Compiling C object src/compiler/nir/libnir.a.p/nir_mod_analysis.c.o
+[147/485] Compiling C object src/compiler/nir/libnir.a.p/nir_move_output_stores_to_end.c.o
+[148/485] Compiling C object src/compiler/nir/libnir.a.p/nir_move_vec_src_uses_to_dest.c.o
+[149/485] Compiling C object src/compiler/nir/libnir.a.p/nir_normalize_cubemap_coords.c.o
+[150/485] Compiling C object src/compiler/nir/libnir.a.p/nir_normalize_sin_cos.c.o
+[151/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_access.c.o
+[152/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_barriers.c.o
+[153/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_barycentric.c.o
+[154/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_call.c.o
+[155/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_clip_cull_const.c.o
+[156/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_combine_stores.c.o
+[157/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_comparison_pre.c.o
+[158/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_constant_folding.c.o
+[159/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_copy_prop_vars.c.o
+[160/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_copy_propagate.c.o
+[161/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_cse.c.o
+[162/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_dce.c.o
+[163/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_dead_cf.c.o
+[164/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_dead_write_vars.c.o
+[165/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_find_array_copies.c.o
+[166/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_fp_math_ctrl.c.o
+[167/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_frag_coord_to_pixel_coord.c.o
+[168/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_fragdepth.c.o
+[169/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_gcm.c.o
+[170/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_generate_bfi.c.o
+[171/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_idiv_const.c.o
+[172/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_if.c.o
+[173/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_intrinsics.c.o
+[174/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_large_constants.c.o
+[175/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_licm.c.o
+[176/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_load_skip_helpers.c.o
+[177/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_load_store_vectorize.c.o
+[178/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_loop.c.o
+[179/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_loop_unroll.c.o
+[180/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_memcpy.c.o
+[181/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_move.c.o
+[182/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_move_discards_to_top.c.o
+[183/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_move_to_top.c.o
+[184/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_mqsad.c.o
+[185/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_non_uniform_access.c.o
+[186/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_offsets.c.o
+[187/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_peephole_select.c.o
+[188/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_phi_precision.c.o
+[189/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_phi_to_bool.c.o
+[190/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_preamble.c.o
+[191/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_ray_queries.c.o
+[192/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_reassociate.c.o
+[193/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_reassociate_bfi.c.o
+[194/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_rematerialize_compares.c.o
+[195/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_remove_phis.c.o
+[196/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_scalar_array_vars_to_vec.c.o
+[197/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_shared_vars_to_subgroup.c.o
+[198/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_shrink_stores.c.o
+[199/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_shrink_vectors.c.o
+[200/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_sink.c.o
+[201/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_uadd_carry.c.o
+[202/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_undef.c.o
+[203/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_uniform_atomics.c.o
+[204/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_uniform_subgroup.c.o
+[205/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_uub.c.o
+[206/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_varyings.c.o
+[207/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_vectorize.c.o
+[208/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_vectorize_io.c.o
+[209/485] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_vectorize_io_vars.c.o
+[210/485] Compiling C object src/compiler/nir/libnir.a.p/nir_passthrough_gs.c.o
+[211/485] Compiling C object src/compiler/nir/libnir.a.p/nir_passthrough_tcs.c.o
+[212/485] Compiling C object src/compiler/nir/libnir.a.p/nir_phi_builder.c.o
+[213/485] Compiling C object src/compiler/nir/libnir.a.p/nir_print.c.o
+[214/485] Compiling C object src/compiler/nir/libnir.a.p/nir_propagate_invariant.c.o
+[215/485] Compiling C object src/compiler/nir/libnir.a.p/nir_range_analysis.c.o
+[216/485] Compiling C object src/compiler/nir/libnir.a.p/nir_recompute_io_bases.c.o
+[217/485] Compiling C object src/compiler/nir/libnir.a.p/nir_remove_dead_variables.c.o
+[218/485] Compiling C object src/compiler/nir/libnir.a.p/nir_remove_outputs.c.o
+[219/485] Compiling C object src/compiler/nir/libnir.a.p/nir_remove_tex_shadow.c.o
+[220/485] Compiling C object src/compiler/nir/libnir.a.p/nir_repair_ssa.c.o
+[221/485] Compiling C object src/compiler/nir/libnir.a.p/nir_scale_fdiv.c.o
+[222/485] Compiling C object src/compiler/nir/libnir.a.p/nir_schedule.c.o
+[223/485] Compiling C object src/compiler/nir/libnir.a.p/nir_search.c.o
+[224/485] Compiling C object src/compiler/nir/libnir.a.p/nir_separate_merged_clip_cull_io.c.o
+[225/485] Compiling C object src/compiler/nir/libnir.a.p/nir_serialize.c.o
+[226/485] Compiling C object src/compiler/nir/libnir.a.p/nir_shader_bisect.c.o
+[227/485] Compiling C object src/compiler/nir/libnir.a.p/nir_split_64bit_vec3_and_vec4.c.o
+[228/485] Compiling C object src/compiler/nir/libnir.a.p/nir_split_conversions.c.o
+[229/485] Compiling C object src/compiler/nir/libnir.a.p/nir_split_per_member_structs.c.o
+[230/485] Compiling C object src/compiler/nir/libnir.a.p/nir_split_var_copies.c.o
+[231/485] Compiling C object src/compiler/nir/libnir.a.p/nir_split_vars.c.o
+[232/485] Compiling C object src/compiler/nir/libnir.a.p/nir_sweep.c.o
+[233/485] Compiling C object src/compiler/nir/libnir.a.p/nir_to_lcssa.c.o
+[234/485] Compiling C object src/compiler/nir/libnir.a.p/nir_trivialize_registers.c.o
+[235/485] Compiling C object src/compiler/nir/libnir.a.p/nir_unlower_io_to_vars.c.o
+[236/485] Compiling C object src/compiler/nir/libnir.a.p/nir_use_dominance.c.o
+[237/485] Compiling C object src/compiler/nir/libnir.a.p/nir_validate.c.o
+[238/485] Compiling C object src/compiler/nir/libnir.a.p/nir_worklist.c.o
+[239/485] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_atomics.c.o
+[240/485] Compiling C object src/compiler/spirv/libvtn.a.p/meson-generated_.._spirv_info.c.o
+[241/485] Compiling C object src/compiler/spirv/libvtn.a.p/meson-generated_.._vtn_gather_types.c.o
+[242/485] Compiling C object src/compiler/spirv/libvtn.a.p/gl_spirv.c.o
+[243/485] Compiling C object src/compiler/spirv/libvtn.a.p/spirv_to_nir.c.o
+[244/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_alu.c.o
+[245/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_amd.c.o
+[246/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_cfg.c.o
+[247/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_cmat.c.o
+[248/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_debug.c.o
+[249/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_glsl450.c.o
+[250/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_opencl.c.o
+[251/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_structured_cfg.c.o
+[252/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_subgroup.c.o
+[253/485] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_variables.c.o
+[254/485] Compiling C object src/intel/mda/libmda.a.p/debug_archiver.c.o
+[255/485] Compiling C object src/intel/mda/libmda.a.p/mda_match.c.o
+[256/485] Compiling C object src/intel/mda/libmda.a.p/slice.c.o
+[257/485] Compiling C object src/intel/mda/libmda.a.p/tar.c.o
+[258/485] Compiling C object src/intel/dev/libintel_dev.a.p/meson-generated_.._intel_wa.c.o
+[259/485] Compiling C object src/intel/dev/libintel_dev.a.p/i915_intel_device_info.c.o
+[260/485] Compiling C object src/intel/dev/libintel_dev.a.p/xe_intel_device_info.c.o
+[261/485] Compiling C object src/intel/dev/libintel_dev.a.p/intel_debug.c.o
+[262/485] Compiling C object src/intel/dev/libintel_dev.a.p/intel_device_info.c.o
+[263/485] Compiling C object src/intel/dev/libintel_dev.a.p/intel_hwconfig.c.o
+[264/485] Compiling C object src/intel/dev/libintel_dev.a.p/intel_kmd.c.o
+[265/485] Compiling C object src/intel/isl/libisl_per_hw_ver40.a.p/isl_gfx4.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx4.c:25:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx4.h:27,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx4.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[266/485] Compiling C object src/intel/isl/libisl_per_hw_ver40.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen40_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:32,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[267/485] Compiling C object src/intel/isl/libisl_per_hw_ver40.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen40_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:32,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[268/485] Compiling C object src/intel/isl/libisl_per_hw_ver40.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen40_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:32,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[269/485] Compiling C object src/intel/isl/libisl_per_hw_ver50.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen50_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:36,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[270/485] Compiling C object src/intel/isl/libisl_per_hw_ver50.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen50_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:36,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[271/485] Compiling C object src/intel/isl/libisl_per_hw_ver50.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen50_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:36,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[272/485] Compiling C object src/intel/isl/libisl_per_hw_ver60.a.p/isl_gfx6.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx6.c:25:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx6.h:27,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx6.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[273/485] Compiling C object src/intel/isl/libisl_per_hw_ver60.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen60_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:38,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[274/485] Compiling C object src/intel/isl/libisl_per_hw_ver60.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen60_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:38,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[275/485] Compiling C object src/intel/isl/libisl_per_hw_ver60.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen60_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:38,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[276/485] Compiling C object src/intel/isl/libisl_per_hw_ver70.a.p/isl_gfx7.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx7.c:25:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx7.h:27,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx7.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[277/485] Compiling C object src/intel/isl/libisl_per_hw_ver70.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen70_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:40,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[278/485] Compiling C object src/intel/isl/libisl_per_hw_ver70.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen70_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:40,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[279/485] Compiling C object src/intel/isl/libisl_per_hw_ver70.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen70_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:40,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[280/485] Compiling C object src/intel/isl/libisl_per_hw_ver75.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen75_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:42,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[281/485] Compiling C object src/intel/isl/libisl_per_hw_ver75.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen75_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:42,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[282/485] Compiling C object src/intel/isl/libisl_per_hw_ver75.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen75_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:42,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[283/485] Compiling C object src/intel/isl/libisl_per_hw_ver80.a.p/isl_gfx8.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx8.c:25:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx8.h:27,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx8.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[284/485] Compiling C object src/intel/isl/libisl_per_hw_ver80.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen80_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:44,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[285/485] Compiling C object src/intel/isl/libisl_per_hw_ver80.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen80_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:44,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[286/485] Compiling C object src/intel/isl/libisl_per_hw_ver80.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen80_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:44,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[287/485] Compiling C object src/intel/isl/libisl_per_hw_ver90.a.p/isl_gfx9.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx9.c:26:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx8.h:27,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx9.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[288/485] Compiling C object src/intel/isl/libisl_per_hw_ver90.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen90_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:46,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[289/485] Compiling C object src/intel/isl/libisl_per_hw_ver90.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen90_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:46,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[290/485] Compiling C object src/intel/isl/libisl_per_hw_ver90.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen90_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:46,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[291/485] Compiling C object src/intel/isl/libisl_per_hw_ver110.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen110_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[292/485] Compiling C object src/intel/isl/libisl_per_hw_ver110.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen110_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[293/485] Compiling C object src/intel/isl/libisl_per_hw_ver110.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen110_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[294/485] Compiling C object src/intel/isl/libisl_per_hw_ver120.a.p/isl_gfx12.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx12.c:26:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx9.h:27,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx12.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[295/485] Compiling C object src/intel/isl/libisl_per_hw_ver120.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen120_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:50,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[296/485] Compiling C object src/intel/isl/libisl_per_hw_ver120.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen120_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:50,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[297/485] Compiling C object src/intel/isl/libisl_per_hw_ver120.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen120_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:50,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[298/485] Compiling C object src/intel/isl/libisl_per_hw_ver125.a.p/isl_gfx12.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx12.c:26:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx9.h:27,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx12.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[299/485] Compiling C object src/intel/isl/libisl_per_hw_ver125.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen125_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:52,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[300/485] Compiling C object src/intel/isl/libisl_per_hw_ver125.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen125_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:52,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[301/485] Compiling C object src/intel/isl/libisl_per_hw_ver125.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/gen125_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:52,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[302/485] Compiling C object src/intel/isl/libisl_per_hw_ver200.a.p/isl_gfx20.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx20.c:26:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/compiler/shader_enums.h:32,
+                 from ../mesa-26.3.0/src/intel/dev/intel_debug.h:30,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx20.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[303/485] Compiling C object src/intel/isl/libisl_per_hw_ver200.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe2_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:54,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[304/485] Compiling C object src/intel/isl/libisl_per_hw_ver200.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe2_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:54,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[305/485] Compiling C object src/intel/isl/libisl_per_hw_ver200.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe2_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:54,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[306/485] Compiling C object src/intel/isl/libisl_per_hw_ver300.a.p/isl_gfx20.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx20.c:26:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/compiler/shader_enums.h:32,
+                 from ../mesa-26.3.0/src/intel/dev/intel_debug.h:30,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx20.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[307/485] Compiling C object src/intel/isl/libisl_per_hw_ver300.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe3_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:56,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[308/485] Compiling C object src/intel/isl/libisl_per_hw_ver300.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe3_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:56,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[309/485] Compiling C object src/intel/isl/libisl_per_hw_ver300.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe3_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:56,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[310/485] Compiling C object src/intel/isl/libisl_per_hw_ver350.a.p/isl_gfx20.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_gfx20.c:26:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/compiler/shader_enums.h:32,
+                 from ../mesa-26.3.0/src/intel/dev/intel_debug.h:30,
+                 from ../mesa-26.3.0/src/intel/isl/isl_gfx20.c:24:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[311/485] Compiling C object src/intel/isl/libisl_per_hw_ver350.a.p/isl_emit_cpb.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe3p_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:58,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_cpb.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[312/485] Compiling C object src/intel/isl/libisl_per_hw_ver350.a.p/isl_emit_depth_stencil.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:40:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe3p_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:58,
+                 from ../mesa-26.3.0/src/intel/isl/isl_emit_depth_stencil.c:38:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[313/485] Compiling C object src/intel/isl/libisl_per_hw_ver350.a.p/isl_surface_state.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/bitpack_helpers.h:31,
+                 from src/intel/genxml/xe3p_pack.h:34,
+                 from ../mesa-26.3.0/src/intel/genxml/genX_pack.h:58,
+                 from ../mesa-26.3.0/src/intel/isl/isl_surface_state.c:39:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[314/485] Compiling C object src/intel/isl/libisl_tiled_memcpy.a.p/isl_tiled_memcpy_normal.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_tiled_memcpy.c:37,
+                 from ../mesa-26.3.0/src/intel/isl/isl_tiled_memcpy_normal.c:33:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/intel/isl/isl_tiled_memcpy.c:35:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[315/485] Compiling C object src/intel/isl/libisl_tiled_memcpy_sse41.a.p/isl_tiled_memcpy_sse41.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_tiled_memcpy.c:37,
+                 from ../mesa-26.3.0/src/intel/isl/isl_tiled_memcpy_sse41.c:34:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/intel/isl/isl_tiled_memcpy.c:35:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[316/485] Compiling C object src/intel/isl/libisl.a.p/meson-generated_.._isl_format_layout.c.o
+[317/485] Compiling C object src/intel/isl/libisl.a.p/isl.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl.c:42:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/compiler/shader_enums.h:32,
+                 from ../mesa-26.3.0/src/intel/dev/intel_debug.h:30,
+                 from ../mesa-26.3.0/src/intel/isl/isl.c:29:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[318/485] Compiling C object src/intel/isl/libisl.a.p/isl_aux_info.c.o
+[319/485] Compiling C object src/intel/isl/libisl.a.p/isl_drm.c.o
+[320/485] Compiling C object src/intel/isl/libisl.a.p/isl_format.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_format.c:27:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/util/format/u_format.h:34,
+                 from ../mesa-26.3.0/src/intel/isl/isl.h:48,
+                 from ../mesa-26.3.0/src/intel/isl/isl_format.c:26:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[321/485] Compiling C object src/intel/isl/libisl.a.p/isl_storage_image.c.o
+In file included from ../mesa-26.3.0/src/intel/isl/isl_storage_image.c:24:
+../mesa-26.3.0/src/intel/isl/isl_priv.h:103: warning: "MIN" redefined
+  103 | #define MIN(a, b) ((a) < (b) ? (a) : (b))
+      | 
+In file included from /boot/system/develop/headers/bsd/sys/param.h:9,
+                 from ../mesa-26.3.0/src/util/u_math.h:55,
+                 from ../mesa-26.3.0/src/util/os_misc.h:42,
+                 from ../mesa-26.3.0/src/util/u_debug.h:50,
+                 from ../mesa-26.3.0/src/compiler/shader_enums.h:32,
+                 from ../mesa-26.3.0/src/intel/dev/intel_device_info.h:33,
+                 from ../mesa-26.3.0/src/intel/isl/isl_priv.h:31:
+/boot/system/develop/headers/posix/sys/param.h:21: note: this is the location of the previous definition
+   21 | #       define MIN(a,b) (((a) < (b)) ? (a) : (b))
+      | 
+../mesa-26.3.0/src/intel/isl/isl_priv.h:104: warning: "MAX" redefined
+  104 | #define MAX(a, b) ((a) > (b) ? (a) : (b))
+      | 
+/boot/system/develop/headers/posix/sys/param.h:24: note: this is the location of the previous definition
+   24 | #       define MAX(a,b) (((a) > (b)) ? (a) : (b))
+      | 
+[322/485] Compiling C object src/intel/common/libintel_common.a.p/i915_intel_engine.c.o
+[323/485] Compiling C object src/intel/common/libintel_common.a.p/i915_intel_gem.c.o
+[324/485] Compiling C object src/intel/common/libintel_common.a.p/xe_intel_device_query.c.o
+[325/485] Compiling C object src/intel/common/libintel_common.a.p/xe_intel_engine.c.o
+[326/485] Compiling C object src/intel/common/libintel_common.a.p/xe_intel_gem.c.o
+[327/485] Compiling C object src/intel/common/libintel_common.a.p/xe_intel_queue.c.o
+[328/485] Compiling C object src/intel/common/libintel_common.a.p/intel_aux_map.c.o
+[329/485] Compiling C object src/intel/common/libintel_common.a.p/intel_bind_timeline.c.o
+[330/485] Compiling C object src/intel/common/libintel_common.a.p/intel_common.c.o
+[331/485] Compiling C object src/intel/common/libintel_common.a.p/intel_compute_slm.c.o
+[332/485] Compiling C object src/intel/common/libintel_common.a.p/intel_debug_identifier.c.o
+[333/485] Compiling C object src/intel/common/libintel_common.a.p/intel_engine.c.o
+[334/485] Compiling C object src/intel/common/libintel_common.a.p/intel_gem.c.o
+[335/485] Compiling C object src/intel/common/libintel_common.a.p/intel_l3_config.c.o
+[336/485] Compiling C object src/intel/common/libintel_common.a.p/intel_urb_config.c.o
+[337/485] Compiling C object src/intel/common/libintel_common.a.p/intel_sample_positions.c.o
+[338/485] Compiling C object src/intel/common/libintel_common.a.p/intel_uuid.c.o
+[339/485] Compiling C object src/intel/common/libintel_common.a.p/intel_measure.c.o
+[340/485] Compiling C object src/intel/common/libintel_common.a.p/intel_pagefault.c.o
+[341/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir.c.o
+[342/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_blockify_uniform_loads.c.o
+[343/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_clamp_image_1d_2d_array_sizes.c.o
+[344/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_clamp_per_vertex_loads.c.o
+[345/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_lower_fragment_outputs.c.o
+[346/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_lower_non_uniform_barycentric_at_sample.c.o
+[347/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_lower_non_uniform_resource_intel.c.o
+[348/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_lower_printf.c.o
+[349/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_lower_shading_rate_output.c.o
+[350/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_lower_sparse.c.o
+[351/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_lower_vec2_surface_sampler.c.o
+[352/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_opt_atomic_branch.c.o
+[353/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_opt_peephole_ffma.c.o
+[354/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_opt_peephole_imul32x16.c.o
+[355/485] Compiling C object src/intel/compiler/libintel_compiler_nir.a.p/intel_nir_tcs_workarounds.c.o
+[356/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/meson-generated_.._gen_opcodes.cpp.o
+[357/485] Compiling C object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_names.c.o
+[358/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_compact.cpp.o
+[359/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_control_flow.cpp.o
+[360/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_parse.cpp.o
+[361/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_print.cpp.o
+[362/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_encoding.cpp.o
+[363/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_encoding_pre_xe.cpp.o
+[364/485] Compiling C++ object src/intel/compiler/gen/libintel_compiler_gen.a.p/gen_validate.cpp.o
+[365/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/meson-generated_.._brw_nir_lower_fsign.c.o
+[366/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/meson-generated_.._brw_nir_workarounds.c.o
+[367/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/meson-generated_.._.._brw_device_sha1_gen.c.o
+[368/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_analysis.cpp.o
+[369/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_analysis_def.cpp.o
+[370/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_analysis_liveness.cpp.o
+[371/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_analysis_performance.cpp.o
+[372/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_builder.cpp.o
+[373/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_cfg.cpp.o
+[374/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_bs.cpp.o
+[375/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_cs.cpp.o
+[376/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_fs.cpp.o
+[377/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_gs.cpp.o
+[378/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_mesh.cpp.o
+[379/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_tcs.cpp.o
+[380/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_tes.cpp.o
+[381/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_compile_vs.cpp.o
+[382/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_compiler.c.o
+[383/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_eu.c.o
+[384/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_from_nir.cpp.o
+../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp: In function 'void brw_from_nir_emit_texture(nir_to_brw_state&, nir_tex_instr*)':
+../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6401:32: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 6401 |          tex->const_offsets[i] = offset;
+      |          ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+In file included from ../mesa-26.3.0/src/intel/compiler/brw/brw_cfg.h:12,
+                 from ../mesa-26.3.0/src/intel/compiler/brw/brw_analysis.h:8,
+                 from ../mesa-26.3.0/src/intel/compiler/brw/brw_shader.h:8,
+                 from ../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6:
+../mesa-26.3.0/src/intel/compiler/brw/brw_inst.h:334:11: note: at offset 3 into destination object 'brw_tex_inst::const_offsets' of size 3
+  334 |    int8_t const_offsets[3];
+      |           ^~~~~~~~~~~~~
+../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6401:32: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 6401 |          tex->const_offsets[i] = offset;
+      |          ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+../mesa-26.3.0/src/intel/compiler/brw/brw_inst.h:334:11: note: at offset 3 into destination object 'brw_tex_inst::const_offsets' of size 3
+  334 |    int8_t const_offsets[3];
+      |           ^~~~~~~~~~~~~
+../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6401:32: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 6401 |          tex->const_offsets[i] = offset;
+      |          ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+../mesa-26.3.0/src/intel/compiler/brw/brw_inst.h:334:11: note: at offset 3 into destination object 'brw_tex_inst::const_offsets' of size 3
+  334 |    int8_t const_offsets[3];
+      |           ^~~~~~~~~~~~~
+[385/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_inst.cpp.o
+[386/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_load_reg.cpp.o
+[387/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower.cpp.o
+[388/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_dpas.cpp.o
+[389/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_fill_spill.cpp.o
+[390/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_integer_multiplication.cpp.o
+[391/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_logical_sends.cpp.o
+[392/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_pack.cpp.o
+[393/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_regioning.cpp.o
+[394/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_scoreboard.cpp.o
+[395/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_simd_width.cpp.o
+[396/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_lower_subgroup_ops.cpp.o
+[397/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir.c.o
+[398/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_fence_shared_stores.c.o
+[399/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_cooperative_matrix.c.o
+[400/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_cs_intrinsics.c.o
+[401/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_alpha_to_coverage.c.o
+[402/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_divergent_barriers.c.o
+[403/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_fs_barycentrics.c.o
+[404/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_fs_load_output.c.o
+[405/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_fully_covered.c.o
+[406/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_immediate_offsets.c.o
+[407/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_intersection_shader.c.o
+[408/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_ray_queries.c.o
+[409/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_rt_intrinsics.c.o
+[410/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_rt_intrinsics_pre_trace.c.o
+[411/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_sample_index_in_coord.c.o
+[412/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_shader_calls.c.o
+[413/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_storage_image.c.o
+[414/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_texel_address.c.o
+[415/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_lower_texture.c.o
+[416/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_opt_divergent_atomics.c.o
+[417/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_wa_18019110168.c.o
+[418/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_opt_fsat.c.o
+[419/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_opt_systolic_vectorize.c.o
+[420/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_nir_rt.c.o
+[421/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt.cpp.o
+[422/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_address_reg_load.cpp.o
+[423/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_algebraic.cpp.o
+[424/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_bank_conflicts.cpp.o
+[425/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_cmod_propagation.cpp.o
+[426/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_cmp_flag_destination.cpp.o
+[427/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_combine_constants.cpp.o
+[428/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_copy_propagation.cpp.o
+[429/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_cse.cpp.o
+[430/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_dead_code_eliminate.cpp.o
+[431/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_fill_spill.cpp.o
+[432/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_mac.cpp.o
+[433/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_predicate_logic.cpp.o
+[434/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_register_coalesce.cpp.o
+[435/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_saturate_propagation.cpp.o
+[436/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_txf_combiner.cpp.o
+[437/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_opt_virtual_grfs.cpp.o
+[438/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_packed_float.c.o
+[439/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_print.cpp.o
+[440/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_reg.cpp.o
+[441/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_reg_allocate.cpp.o
+[442/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_reg_type.c.o
+[443/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_sampler.c.o
+[444/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_schedule_instructions.cpp.o
+[445/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_shader.cpp.o
+[446/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_simd_selection.cpp.o
+[447/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_thread_payload.cpp.o
+[448/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_to_binary.cpp.o
+[449/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_validate.cpp.o
+[450/485] Compiling C object src/intel/compiler/brw/libintel_compiler.a.p/brw_vue_map.c.o
+[451/485] Compiling C++ object src/intel/compiler/brw/libintel_compiler.a.p/brw_workaround.cpp.o
+[452/485] Linking static target src/c11/impl/libmesa_util_c11.a
+[453/485] Linking static target src/util/blake3/libblake3.a
+[454/485] Linking static target src/util/libmesa_util_clflush.a
+[455/485] Linking static target src/util/libmesa_util_clflushopt.a
+[456/485] Linking static target src/util/libmesa_util_simd.a
+[457/485] Linking static target src/util/libmesa_util.a
+[458/485] Linking static target src/util/libxmlconfig.a
+[459/485] Linking static target src/compiler/libcompiler.a
+[460/485] Linking static target src/compiler/nir/libnir.a
+[461/485] Linking static target src/compiler/spirv/libvtn.a
+[462/485] Linking static target src/intel/mda/libmda.a
+[463/485] Linking static target src/intel/dev/libintel_dev.a
+[464/485] Linking static target src/intel/isl/libisl_per_hw_ver40.a
+[465/485] Linking static target src/intel/isl/libisl_per_hw_ver50.a
+[466/485] Linking static target src/intel/isl/libisl_per_hw_ver60.a
+[467/485] Linking static target src/intel/isl/libisl_per_hw_ver70.a
+[468/485] Linking static target src/intel/isl/libisl_per_hw_ver75.a
+[469/485] Linking static target src/intel/isl/libisl_per_hw_ver80.a
+[470/485] Linking static target src/intel/isl/libisl_per_hw_ver90.a
+[471/485] Linking static target src/intel/isl/libisl_per_hw_ver110.a
+[472/485] Linking static target src/intel/isl/libisl_per_hw_ver120.a
+[473/485] Linking static target src/intel/isl/libisl_per_hw_ver125.a
+[474/485] Linking static target src/intel/isl/libisl_per_hw_ver200.a
+[475/485] Linking static target src/intel/isl/libisl_per_hw_ver300.a
+[476/485] Linking static target src/intel/isl/libisl_per_hw_ver350.a
+[477/485] Linking static target src/intel/isl/libisl_tiled_memcpy.a
+[478/485] Linking static target src/intel/isl/libisl_tiled_memcpy_sse41.a
+[479/485] Linking static target src/intel/isl/libisl.a
+[480/485] Linking static target src/intel/common/libintel_common.a
+[481/485] Linking static target src/intel/compiler/libintel_compiler_nir.a
+[482/485] Linking static target src/intel/compiler/gen/libintel_compiler_gen.a
+[483/485] Linking static target src/intel/compiler/brw/libintel_compiler.a
+[484/485] Compiling C object src/intel/compiler/brw/native-rcs-shaders.p/native_rcs_shaders.c.o
+[485/485] Linking target src/intel/compiler/brw/native-rcs-shaders

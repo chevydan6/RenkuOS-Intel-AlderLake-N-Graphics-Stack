@@ -42,6 +42,9 @@ dispatch offsets, scratch, relocation, and invalid code cases.
 
 The host Meson build can still link host libraries such as libdrm, but this
 harness does not access a GPU or require Linux kernel graphics services at
-runtime. Native RenkuOS userspace compilation and Vulkan SPIR-V ingestion
-remain separate steps. Source attribution and MIT license are retained in
-`native_rcs_shaders.c` and `LICENSE.MIT`.
+runtime. A subsequent [native Haiku compiler proof](../../../evidence/native-haiku-compiler-vm-003/README.md)
+built both this direct-NIR harness and a Vulkan SPIR-V harness inside a
+disposable RenkuOS VM. Their outputs matched the host artifacts byte for byte.
+The native compiler is not yet integrated into `libvulkan.so`. Source
+attribution and MIT license are retained in `native_rcs_shaders.c` and
+`LICENSE.MIT`.

@@ -1,0 +1,9 @@
+ninja: Entering directory `build-compiler'
+[1/6] Generating src/git_sha1.h with a custom command
+[2/3] Compiling C object src/intel/compiler/brw/native-spirv-shaders.p/native_spirv_compile_spirv.c.o
+[3/3] Linking target src/intel/compiler/brw/native-spirv-shaders
+FAILED: [code=1] src/intel/compiler/brw/native-spirv-shaders 
+c++  -o src/intel/compiler/brw/native-spirv-shaders src/intel/compiler/brw/native-spirv-shaders.p/native_spirv_compile_spirv.c.o -Wl,--as-needed -Wl,--no-undefined -Wl,-O1 -Wl,--start-group src/intel/compiler/brw/libintel_compiler.a src/intel/compiler/libintel_compiler_nir.a src/util/libmesa_util.a src/util/libmesa_util_clflush.a src/util/libmesa_util_clflushopt.a src/util/libmesa_util_simd.a src/util/blake3/libblake3.a src/c11/impl/libmesa_util_c11.a src/intel/dev/libintel_dev.a src/compiler/nir/libnir.a src/compiler/libcompiler.a src/util/libxmlconfig.a src/compiler/spirv/libvtn.a src/intel/mda/libmda.a src/intel/common/libintel_common.a src/intel/isl/libisl.a src/intel/isl/libisl_per_hw_ver40.a src/intel/isl/libisl_per_hw_ver50.a src/intel/isl/libisl_per_hw_ver60.a src/intel/isl/libisl_per_hw_ver70.a src/intel/isl/libisl_per_hw_ver75.a src/intel/isl/libisl_per_hw_ver80.a src/intel/isl/libisl_per_hw_ver90.a src/intel/isl/libisl_per_hw_ver110.a src/intel/isl/libisl_per_hw_ver120.a src/intel/isl/libisl_per_hw_ver125.a src/intel/isl/libisl_per_hw_ver200.a src/intel/isl/libisl_per_hw_ver300.a src/intel/isl/libisl_per_hw_ver350.a src/intel/isl/libisl_tiled_memcpy.a src/intel/isl/libisl_tiled_memcpy_sse41.a src/intel/compiler/gen/libintel_compiler_gen.a -lm -Wl,--end-group
+/boot/system/develop/tools/bin/../lib/gcc/x86_64-unknown-haiku/13.3.0/../../../../x86_64-unknown-haiku/bin/ld: final link failed: No space left on device
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.

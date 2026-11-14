@@ -1,0 +1,3 @@
+artifacts/*.nir -diff
+artifacts-spirv/*.nir -diff
+logs/*.log -diff

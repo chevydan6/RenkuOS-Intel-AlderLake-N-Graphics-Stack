@@ -12,12 +12,13 @@ def require(condition):
     if not condition:
         raise ValueError("artifact violates supported N100 shader schema")
 
-def check(root):
+def check(root, harness_source=None):
     m = json.loads((root / 'metadata.json').read_text())
     require(m['schema_version'] == 1)
     require(m['mesa_version'] == '26.3.0' and m['mesa_archive_sha256'] == ARCHIVE)
     require(m['pci_device_id'] == 0x46d1 and m['graphics_verx10'] == 120)
-    require(m['harness_sha256'] == hashlib.sha256(Path(__file__).with_name('native_rcs_shaders.c').read_bytes()).hexdigest())
+    source = Path(harness_source) if harness_source else Path(__file__).with_name('native_rcs_shaders.c')
+    require(m['harness_sha256'] == hashlib.sha256(source.read_bytes()).hexdigest())
     require(m['constant_color'] == [1, .25, 0, 1])
     for name in ('vs', 'fs'):
         p = m[name]
@@ -59,7 +60,12 @@ def check(root):
 
 if __name__ == '__main__':
     try:
-        check(Path(sys.argv[1]))
+        if len(sys.argv) == 2:
+            check(Path(sys.argv[1]))
+        elif len(sys.argv) == 4 and sys.argv[2] == '--harness-source':
+            check(Path(sys.argv[1]), sys.argv[3])
+        else:
+            raise ValueError('usage: check_artifacts.py ARTIFACT_DIR [--harness-source SOURCE]')
     except (AssertionError, KeyError, ValueError, OSError, IndexError) as exc:
         print(f'FAIL: {type(exc).__name__}: {exc}', file=sys.stderr)
         sys.exit(1)

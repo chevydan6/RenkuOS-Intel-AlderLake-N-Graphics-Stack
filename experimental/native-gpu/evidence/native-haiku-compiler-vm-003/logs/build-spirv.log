@@ -1,0 +1,4 @@
+ninja: Entering directory `build-compiler'
+[1/6] Generating src/git_sha1.h with a custom command
+[2/3] Compiling C object src/intel/compiler/brw/native-spirv-shaders.p/compile_spirv.c.o
+[3/3] Linking target src/intel/compiler/brw/native-spirv-shaders
