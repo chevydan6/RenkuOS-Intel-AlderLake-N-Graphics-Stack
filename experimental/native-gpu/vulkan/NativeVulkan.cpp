@@ -64,6 +64,7 @@ struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
 struct VkCommandBuffer_T;
 struct VkCommandPool_T {
  VkDevice_T* device;VkCommandPool_T* next;VkCommandBuffer_T* commands;
+ VkCommandPoolCreateFlags flags;
 };
 struct VkCommandBuffer_T {
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
@@ -864,12 +865,14 @@ vkCreateCommandPool(VkDevice device,const VkCommandPoolCreateInfo* info,
  const VkAllocationCallbacks* allocator,VkCommandPool* pool)
 {
  if(pool)*pool=VK_NULL_HANDLE;
- if(!device || !info || !pool || allocator || info->pNext || info->flags
+ if(!device || !info || !pool || allocator || info->pNext
+  || (info->flags&~VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)
   || info->sType!=VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO
   || info->queueFamilyIndex)return VK_ERROR_FEATURE_NOT_PRESENT;
  VkCommandPool_T* value=(VkCommandPool_T*)calloc(1,sizeof(VkCommandPool_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
- value->device=device;value->next=device->pools;device->pools=value;
+ value->device=device;value->flags=info->flags;
+ value->next=device->pools;device->pools=value;
  *pool=value;return VK_SUCCESS;
 }
 
@@ -887,20 +890,35 @@ vkDestroyCommandPool(VkDevice device,VkCommandPool pool,const VkAllocationCallba
  *current=pool->next;free(pool);
 }
 
+static void ResetCommandState(VkCommandBuffer_T* command)
+{
+ command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
+ command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+ command->vertex=VK_NULL_HANDLE;
+ command->recording=false;command->inRenderPass=false;
+ command->drawn=false;command->complete=false;command->invalid=false;
+}
+
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkResetCommandPool(VkDevice device,VkCommandPool pool,VkCommandPoolResetFlags flags)
 {
  if(!device || !pool || pool->device!=device
   || (flags&~VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT))
   return VK_ERROR_INITIALIZATION_FAILED;
- for(VkCommandBuffer_T* command=pool->commands;command;command=command->next){
-  command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
-  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
-  command->vertex=VK_NULL_HANDLE;
-  command->recording=false;command->inRenderPass=false;
-  command->drawn=false;command->complete=false;command->invalid=false;
- }
+ for(VkCommandBuffer_T* command=pool->commands;command;command=command->next)
+  ResetCommandState(command);
  return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkResetCommandBuffer(VkCommandBuffer command,VkCommandBufferResetFlags flags)
+{
+ if(!command || !command->pool || !command->device
+  || (flags&~VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT))
+  return VK_ERROR_INITIALIZATION_FAILED;
+ if(!(command->pool->flags&VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT))
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ ResetCommandState(command);return VK_SUCCESS;
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -938,12 +956,10 @@ vkBeginCommandBuffer(VkCommandBuffer command,const VkCommandBufferBeginInfo* inf
 {
  if(!command || !info || info->pNext || info->flags || info->pInheritanceInfo
   || info->sType!=VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-  || command->recording || command->complete)return VK_ERROR_INITIALIZATION_FAILED;
- command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
- command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
- command->vertex=VK_NULL_HANDLE;
- command->recording=true;command->inRenderPass=false;
- command->drawn=false;command->invalid=false;
+  || command->recording || (command->complete &&
+   !(command->pool->flags&VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)))
+  return VK_ERROR_INITIALIZATION_FAILED;
+ ResetCommandState(command);command->recording=true;
  return VK_SUCCESS;
 }
 
@@ -1124,6 +1140,7 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkCreateCommandPool);
  VK_PROC(vkDestroyCommandPool);
  VK_PROC(vkResetCommandPool);
+ VK_PROC(vkResetCommandBuffer);
  VK_PROC(vkAllocateCommandBuffers);
  VK_PROC(vkFreeCommandBuffers);
  VK_PROC(vkBeginCommandBuffer);

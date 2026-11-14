@@ -18,6 +18,8 @@ host fences now support creation, status, reset, wait, and signaling after a
 successful synchronous queue submission; they have only been tested in the VM.
 `vkResetCommandPool` now returns allocated command buffers to the initial
 state for reuse; that path has also only been tested in the VM.
+Pools created with `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` also
+support `vkResetCommandBuffer` and implicit reset when recording begins again.
 Unsupported instance extensions, device extensions, layers, and requested
 features are rejected.
 Device creation bootstraps the existing RCS owner. Vulkan memory allocation
@@ -101,4 +103,5 @@ records the current read-only physical boot volume and the restored VM probe.
 The [fence checkpoint](../evidence/native-vulkan-fence-009/README.md) records
 the VM fence tests; hardware execution with a fence remains pending.
 The [command reset checkpoint](../evidence/native-vulkan-command-reset-010/README.md)
-records the VM command-buffer reuse test.
+records pool reset, and [checkpoint 011](../evidence/native-vulkan-command-reset-011/README.md)
+records individual and implicit reset in the VM.

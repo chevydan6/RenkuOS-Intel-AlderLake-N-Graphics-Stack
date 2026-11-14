@@ -40,7 +40,24 @@ int main()
  if(vkEndCommandBuffer(command)!=VK_SUCCESS)return 7;
  if(reset(&device,pool,0)!=VK_SUCCESS)return 8;
  if(vkBeginCommandBuffer(command,&begin)!=VK_SUCCESS)return 9;
+ auto resetOne=(PFN_vkResetCommandBuffer)vkGetDeviceProcAddr(&device,"vkResetCommandBuffer");
+ if(!resetOne)return 10;
+ if(resetOne(command,0)==VK_SUCCESS)return 11;
  vkDestroyCommandPool(&device,pool,nullptr);
- puts("Vulkan command-pool reset: reused recording and executable buffers");
+ create.flags=VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+ if(vkCreateCommandPool(&device,&create,nullptr,&pool)!=VK_SUCCESS)return 12;
+ allocation.commandPool=pool;command=VK_NULL_HANDLE;
+ if(vkAllocateCommandBuffers(&device,&allocation,&command)!=VK_SUCCESS || !command)return 13;
+ if(vkBeginCommandBuffer(command,&begin)!=VK_SUCCESS
+  || resetOne(command,VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT)!=VK_SUCCESS
+  || vkBeginCommandBuffer(command,&begin)!=VK_SUCCESS)return 14;
+ vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
+ vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,&pipeline);
+ vkCmdBindVertexBuffers(command,0,1,buffers,offsets);
+ vkCmdDraw(command,3,1,0,0);vkCmdEndRenderPass(command);
+ if(vkEndCommandBuffer(command)!=VK_SUCCESS
+  || vkBeginCommandBuffer(command,&begin)!=VK_SUCCESS)return 15;
+ vkDestroyCommandPool(&device,pool,nullptr);
+ puts("Vulkan command reset: pool, explicit buffer, and implicit begin reuse");
  return 0;
 }
