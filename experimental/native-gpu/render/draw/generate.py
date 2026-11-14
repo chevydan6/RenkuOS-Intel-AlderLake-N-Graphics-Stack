@@ -42,7 +42,7 @@ args=shlex.split(ninja[link:].splitlines()[0].split(' = ',1)[1])
 subprocess.run(['c++','-o',str(work/'emit')]+objects+args,cwd=build,check=True)
 packed=subprocess.check_output([str(work/'emit')])
 # Add the exact compiler artifact bytes, not disassembly or regenerated shaders.
-shader='\nnamespace NativeGpu { namespace RcsDrawData {\n'
+shader='\nnamespace NativeGpu { namespace '+('RcsDrawData64' if a.dimension==64 else 'RcsDrawData')+' {\n'
 for name in ['vs','fs']:
  b=(artifacts/(name+'.bin')).read_bytes(); assert len(b)==m[name]['program_size']
  words=struct.unpack('<'+'I'*(len(b)//4),b)

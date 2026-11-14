@@ -8,7 +8,7 @@ The canonical [32×32 header](../../render/draw/RcsDrawGenerated.h) and manifest
 were refreshed from that build. The CPU draw-image smoke passed.
 
 The same emitter, compiled with `--dimension 64`, produced the isolated
-[64×64 packet artifact](RcsDrawGenerated64.h) and [manifest](manifest64.json).
+[64×64 packet artifact](../../render/draw/RcsDrawGenerated64.h) and [manifest](manifest64.json).
 `verify-dimensions.py` passed with only these expected changes:
 
 | State | 32×32 | 64×64 |

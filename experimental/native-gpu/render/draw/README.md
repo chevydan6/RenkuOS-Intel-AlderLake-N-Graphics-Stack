@@ -48,6 +48,9 @@ post-sync scratch beyond a four-page target and increases the state address
 range to eleven pages. The [dimension checkpoint](../../evidence/native-rcs-dimension-036/README.md)
 records the exact packet delta. The native owner and Vulkan ABI still use the
 eight-page, 32×32 layout; no 64×64 hardware submission is enabled.
+`RcsDrawImage64` constructs that eleven-page layout from the verified 32×32
+image plus the fifteen changed words. Its [CPU checkpoint](../../evidence/native-rcs-image64-037/README.md)
+compares every packet and shader word against `RcsDrawGenerated64.h`.
 
 `check_image.py` decodes actual command words against Mesa's imported gen120 XML (independent of pack macros) and verifies real VS+FS dispatch, SIMD pointers, TRILIST, surface/resource addresses, disabled blend/depth/compression, and exact shader binary bytes. The C++ smoke verifies validation-before-write, poison, all four vertex variants, exact shader bytes and batch termination.
 
