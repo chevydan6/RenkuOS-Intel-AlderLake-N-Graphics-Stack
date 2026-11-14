@@ -21,7 +21,8 @@ mesa_swpipe and the Software Pipe add-on. Neither establishes hardware OpenGL.
 - Retain Intel hardware sequences and licenses. Native adaptation remains the
   strategy; do not resume full LinuxKPI/i915 source closure.
 - Change the GPU owner/bridge and userspace tools. The user explicitly excluded
-  RenkuOS kernel/ACPI work. Preserve the display driver, accelerant and boot media.
+  RenkuOS kernel/ACPI work. Preserve display programming, accelerant and boot media;
+  a narrow private graphics-driver handoff is part of the approved coordination.
 - Keep one request in flight initially and bounded polling. Admit direct DMA
   only while all observed VT-d units have translation disabled; general IOMMU
   support remains separate.
@@ -63,6 +64,15 @@ publication. If that cannot exclude the existing accelerant's ring producer,
 identify the exact handoff change needed rather than silently changing display
 components or treating a read-only inventory as ownership transfer. Preserve the
 known-working display baseline during this investigation.
+
+The matching native profile already guards ALD ring allocation, setup, teardown
+and legacy producer hooks. The remaining missing contract is a trusted private
+acknowledgment from that graphics driver to the resident owner. Add only a call
+after successful display-owner initialization, passing its real display lease
+and the supported display-only profile. Old drivers never acknowledge and cannot
+admit RCS. A missing acknowledgment leaves normal display usable. Withdraw/drain
+inside the resident owner's display-release path. Do not expose a user ioctl
+that can assert this profile, or change display registers to implement it.
 
 Classify each initialization register change as engine-local or shared GT state.
 Shared PAT/MOCS/workarounds/MCR changes require device-wide serialization through

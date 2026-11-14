@@ -3,7 +3,7 @@
 #define INTEL_N100_CONTEXT_STATUS_H
 #include <stdint.h>
 
-// Offline Gen12 (pre-XeHP) BCS0 helpers. No allocation, MMIO or publication.
+// Offline Gen12 (pre-XeHP) BCS0/RCS0 helpers. No allocation, MMIO or publication.
 // Source/field review: research/n100-submission/CONTEXT-STATUS-DESIGN.md.
 static inline bool
 intel_n100_bcs_descriptor(uint32_t identity, uint8_t revision,
@@ -18,6 +18,22 @@ intel_n100_bcs_descriptor(uint32_t identity, uint8_t revision,
 	// VALID | FORCE_RESTORE | legacy64 addressing(3 << 3) | PRIVILEGE.
 	// HW COPY_ENGINE_CLASS=3, instance=0, counter=0. No EU priority flags.
 	*output = contextGgtt | 0x11dULL | (uint64_t(tag) << 37) | (3ULL << 61);
+	return true;
+}
+
+// RCS0 fresh backing: ppHWSP + 13 register-image pages + two WA pages.
+// Arithmetic only; neither this descriptor nor its construction grants ownership.
+static inline bool
+intel_n100_rcs_descriptor(uint32_t identity, uint8_t revision,
+	uint64_t contextGgtt, uint32_t tag, uint64_t* output)
+{
+	if (!output || identity != 0x46d18086 || revision != 0
+		|| (contextGgtt & 4095) || contextGgtt > (1ULL << 32) - 65536
+		|| tag == 0 || tag >= 0x7ff)
+		return false;
+	// Same addressing/restore flags as BCS, HW RENDER_ENGINE_CLASS=0,
+	// instance=0, counter=0. No EU priority flags.
+	*output = contextGgtt | 0x11dULL | (uint64_t(tag) << 37);
 	return true;
 }
 
@@ -38,7 +54,7 @@ intel_n100_csb_decode(uint64_t raw)
 		(raw & 1) != 0, (raw & 4) != 0};
 }
 
-// One-shot software ledger for an isolated, initially idle BCS0, one descriptor,
+// One-shot software ledger for an isolated, initially idle BCS0 or RCS0, one descriptor,
 // zero counter, no preemption or resubmission. Serialize every call. The caller
 // must establish visibility, CSB order/no overrun, deadline and error handling.
 // Generation is a software envelope, not a generation encoded by the hardware.
@@ -56,12 +72,14 @@ public:
 		uint64_t generation, raw[2], attemptedRaw;
 		uint32_t tag, accepted;
 	};
-	IntelN100ContextStatus() : fReport() {}
+	IntelN100ContextStatus() : fReport(), fEngineClass(3) {}
 	const Report& LastReport() const { return fReport; }
-	bool Arm(uint64_t generation, uint32_t tag)
+	bool Arm(uint64_t generation, uint32_t tag, uint32_t engineClass = 3)
 	{
-		if (fReport.state != Empty || !generation || !tag || tag >= 0x7ff)
+		if (fReport.state != Empty || !generation || !tag || tag >= 0x7ff
+			|| (engineClass != 0 && engineClass != 3))
 			return false;
+		fEngineClass = engineClass; // Explicit software expectation, never MMIO authority.
 		fReport.generation = generation;
 		fReport.tag = tag;
 		fReport.state = AwaitingActivation;
@@ -78,7 +96,7 @@ public:
 		// entry under a bounded deadline; never advance the CSB head on poison.
 		if (raw == UINT64_MAX) return AwaitingEntryWrite;
 		IntelN100CsbEvent e = intel_n100_csb_decode(raw);
-		if (e.engineClass != 3 || e.instance != 0) return Fail(WrongEngine);
+		if (e.engineClass != fEngineClass || e.instance != 0) return Fail(WrongEngine);
 		if ((e.toTag != 0x7ff && e.toTag != fReport.tag)
 			|| (e.awayTag != 0x7ff && e.awayTag != fReport.tag))
 			return Fail(WrongTag);
@@ -111,5 +129,6 @@ private:
 		return Rejected;
 	}
 	Report fReport;
+	uint32_t fEngineClass;
 };
 #endif

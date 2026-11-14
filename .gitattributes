@@ -2,3 +2,5 @@
 *.patch -whitespace
 # Preserve the sanitizer's raw shadow-byte legend in archived defect evidence.
 tests/evidence/**/no-lock.log -whitespace
+# Keep Mesa nir_print_shader output byte-identical, including its final blank line.
+experimental/native-gpu/render/compiler/artifacts/*.nir whitespace=-blank-at-eof

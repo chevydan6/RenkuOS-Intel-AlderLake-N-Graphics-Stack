@@ -53,13 +53,16 @@ public:
 	};
 	IntelN100CsbReader() : fReport(), fEvents() {}
 	const Report& LastReport() const { return fReport; }
+	// Software event filter only: default BCS0; explicitly select class0 for RCS0.
 	bool Run(const Io& io, uint64_t generation, uint32_t tag,
-		uint64_t budgetUs, uint32_t pollLimit, uint32_t initialTail = 11)
+		uint64_t budgetUs, uint32_t pollLimit, uint32_t initialTail = 11,
+		uint32_t engineClass = 3)
 	{
 		if (fReport.phase != Idle) return false; // Preserve the completed attempt.
 		if (!io.now || !io.safe || !io.read32 || !io.read64 || !io.acquire
 			|| !io.relax || !budgetUs || budgetUs > 250000 || !pollLimit
-			|| pollLimit > 65536 || initialTail >= kN100CsbEntries || !fEvents.Arm(generation, tag))
+			|| pollLimit > 65536 || initialTail >= kN100CsbEntries
+			|| !fEvents.Arm(generation, tag, engineClass))
 			return Fail(InvalidInput);
 		fReport.events = fEvents.LastReport();
 		fReport.initialTail = initialTail;
