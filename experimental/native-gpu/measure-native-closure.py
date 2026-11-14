@@ -16,12 +16,12 @@ def dependencies(path, bundle):
     for item in shlex.split(contents.split(":", 1)[1]):
         yield posixpath.normpath(item if item.startswith("/") else f"{bundle}/{item}")
 
-def category(path, bundle):
+def category(path, bundle, owner_source):
     if path == f"{bundle}/IntelMemoryOwner-execution.cpp":
         return "generated_owner"
     if path.startswith(bundle + "/"):
         return "native_bundle"
-    if path.startswith("/boot/home/i915-mapping-002/source/"):
+    if path.startswith(owner_source + "/"):
         return "haiku_owner_source"
     if path.startswith("/boot/system/develop/"):
         return "haiku_sdk"
@@ -56,6 +56,7 @@ def main():
     parser.add_argument("--deps", type=Path, required=True)
     parser.add_argument("--bundle", required=True)
     parser.add_argument("--host", default="renkuos-n100")
+    parser.add_argument("--owner-source", default="/boot/home/i915-mapping-002/source")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     bundle = str(PurePosixPath(args.bundle))
@@ -63,19 +64,20 @@ def main():
     if {p.name for p in depfiles} != {"owner.d", "bridge.d", "native_page_bridge.d", "kernel_cpp.d"}:
         raise SystemExit("expected four owner/bridge runtime depfiles")
     paths = sorted({item for depfile in depfiles for item in dependencies(depfile, bundle)})
+    owner_source = str(PurePosixPath(args.owner_source))
     extras = [f"{bundle}/LICENSE.intel",
-              "/boot/home/i915-mapping-002/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp"]
+              f"{owner_source}/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp"]
     paths = sorted(set(paths + extras))
     raw = remote_metadata(args.host, paths)
-    files = [{"path": path, "category": category(path, bundle),
+    files = [{"path": path, "category": category(path, bundle, owner_source),
               "bytes": raw[path][1], "sha256": raw[path][0]}
              for path in paths]
     totals = {}
     for entry in files:
         group = totals.setdefault(entry["category"], {"files": 0, "bytes": 0})
         group["files"] += 1; group["bytes"] += entry["bytes"]
-    manifest = {"schema": 1, "scope": "N100 owner/bridge runtime compile inputs and two provenance extras",
-                "host": args.host, "bundle": bundle,
+    manifest = {"schema": 1, "scope": "native owner/bridge runtime compile inputs and two provenance extras",
+                "host": args.host, "bundle": bundle, "owner_source": owner_source,
                 "depfile_sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in depfiles},
                 "totals": totals, "files": files,
                 "model_tokenizer": None, "model_tokens": None,

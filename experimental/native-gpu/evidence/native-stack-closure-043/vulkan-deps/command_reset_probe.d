@@ -1,0 +1,36 @@
+/boot/home/test-work/compiler-pipeline-restored-008/vulkan/build-compiler/command_reset_probe: \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/command_reset_probe.cpp \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/NativeVulkan.cpp \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vulkan/vulkan.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vulkan/vk_platform.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vulkan/vulkan_core.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h264std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codecs_common.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h264std_encode.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h264std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h265std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h265std_encode.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h265std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h264std_decode.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_h265std_decode.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_av1std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_av1std_decode.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_av1std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_av1std_encode.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_vp9std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_vp9std_decode.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/include/vk_video/vulkan_video_codec_vp9std.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../RenderReport.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../ResourceCommand.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/KnownSpirv.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/draw/RcsDrawGenerated.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/CompiledKnownShader.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/RcsPublicShader.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/RcsDrawImage.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/draw/RcsDrawGenerated.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/RcsDepthVertex.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/RcsRotateVertex.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/RcsUserVertices.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/RcsDepthVertex.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/RcsRotateVertex.h \
+ /boot/home/test-work/compiler-pipeline-restored-008/vulkan/../render/compiler/mesa-26.3.0/IntelSpirvRuntime.h
