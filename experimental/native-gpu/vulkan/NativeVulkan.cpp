@@ -17,10 +17,12 @@ struct VkDevice_T;
 struct VkShaderModule_T;
 struct VkDeviceMemory_T;
 struct VkBuffer_T;
+struct VkImage_T;
 struct VkQueue_T { VkDevice_T* device; };
 struct VkDevice_T {
  VkPhysicalDevice physical;int fd;VkQueue_T queue;
- VkShaderModule_T* shaders;VkDeviceMemory_T* memory;VkBuffer_T* buffers;
+ VkShaderModule_T* shaders;VkDeviceMemory_T* memory;
+ VkBuffer_T* buffers;VkImage_T* images;
 };
 struct VkShaderModule_T { VkDevice_T* device; VkShaderModule_T* next; size_t bytes; uint32_t* code; };
 struct VkDeviceMemory_T {
@@ -30,6 +32,7 @@ struct VkDeviceMemory_T {
 struct VkBuffer_T {
  VkDevice_T* device;VkBuffer_T* next;VkDeviceSize bytes;VkDeviceMemory memory;
 };
+struct VkImage_T { VkDevice_T* device;VkImage_T* next;VkDeviceMemory memory; };
 
 static bool ProbeN100(VkPhysicalDevice_T* physical)
 {
@@ -209,6 +212,10 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
   VkBuffer_T* next=device->buffers->next;
   free(device->buffers);device->buffers=next;
  }
+ while(device->images){
+  VkImage_T* next=device->images->next;
+  free(device->images);device->images=next;
+ }
  while(device->memory){
   VkDeviceMemory_T* next=device->memory->next;
   native_gpu_resource_command c={};c.version=1;
@@ -295,6 +302,47 @@ vkGetBufferMemoryRequirements(VkDevice device,VkBuffer buffer,
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateImage(VkDevice device,const VkImageCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkImage* image)
+{
+ if(image)*image=VK_NULL_HANDLE;
+ if(!device || !info || !image || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO
+  || info->imageType!=VK_IMAGE_TYPE_2D || info->format!=VK_FORMAT_B8G8R8A8_UNORM
+  || info->extent.width!=32 || info->extent.height!=32 || info->extent.depth!=1
+  || info->mipLevels!=1 || info->arrayLayers!=1
+  || info->samples!=VK_SAMPLE_COUNT_1_BIT || info->tiling!=VK_IMAGE_TILING_LINEAR
+  || info->usage!=(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+  || info->sharingMode!=VK_SHARING_MODE_EXCLUSIVE
+  || info->initialLayout!=VK_IMAGE_LAYOUT_UNDEFINED)
+  return VK_ERROR_FORMAT_NOT_SUPPORTED;
+ VkImage_T* value=(VkImage_T*)calloc(1,sizeof(VkImage_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->next=device->images;device->images=value;
+ *image=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyImage(VkDevice device,VkImage image,const VkAllocationCallbacks*)
+{
+ if(!device || !image)return;
+ VkImage_T** current=&device->images;
+ while(*current && *current!=image)current=&(*current)->next;
+ if(*current){*current=image->next;free(image);}
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkGetImageMemoryRequirements(VkDevice device,VkImage image,
+ VkMemoryRequirements* requirements)
+{
+ if(!requirements)return;
+ memset(requirements,0,sizeof(*requirements));
+ if(!device || !image || image->device!=device)return;
+ requirements->size=4096;requirements->alignment=4096;
+ requirements->memoryTypeBits=1;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkAllocateMemory(VkDevice device,const VkMemoryAllocateInfo* info,
  const VkAllocationCallbacks* allocator,VkDeviceMemory* memory)
 {
@@ -326,6 +374,7 @@ vkFreeMemory(VkDevice device,VkDeviceMemory memory,const VkAllocationCallbacks*)
 {
  if(!device || !memory)return;
  for(VkBuffer_T* b=device->buffers;b;b=b->next)if(b->memory==memory)return;
+ for(VkImage_T* i=device->images;i;i=i->next)if(i->memory==memory)return;
  VkDeviceMemory_T** current=&device->memory;
  while(*current && *current!=memory)current=&(*current)->next;
  if(!*current)return;
@@ -344,6 +393,16 @@ vkBindBufferMemory(VkDevice device,VkBuffer buffer,VkDeviceMemory memory,
   || memory->bytes<((buffer->bytes+4095)&~VkDeviceSize(4095)))
   return VK_ERROR_OUT_OF_DEVICE_MEMORY;
  buffer->memory=memory;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkBindImageMemory(VkDevice device,VkImage image,VkDeviceMemory memory,
+ VkDeviceSize offset)
+{
+ if(!device || !image || !memory || image->device!=device
+  || memory->device!=device || image->memory || offset || memory->bytes<4096)
+  return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+ image->memory=memory;return VK_SUCCESS;
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -422,9 +481,13 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkCreateBuffer);
  VK_PROC(vkDestroyBuffer);
  VK_PROC(vkGetBufferMemoryRequirements);
+ VK_PROC(vkCreateImage);
+ VK_PROC(vkDestroyImage);
+ VK_PROC(vkGetImageMemoryRequirements);
  VK_PROC(vkAllocateMemory);
  VK_PROC(vkFreeMemory);
  VK_PROC(vkBindBufferMemory);
+ VK_PROC(vkBindImageMemory);
  VK_PROC(vkMapMemory);
  VK_PROC(vkUnmapMemory);
  VK_PROC(vkFlushMappedMemoryRanges);

@@ -160,3 +160,10 @@ memory type is host-visible and noncoherent, matching the explicit transfer
 path. The next userspace blocker remains graphics-pipeline and command-buffer
 translation into the bounded RCS draw contract. Vulkan has not submitted a
 draw, and the current ABI does not offer general command submission.
+
+The fixed 32×32 BGRA Vulkan image object now accepts a 4 KiB owner BO as its
+memory. Image creation rejects unsupported dimensions. Sixteen physical image
+object sessions and the v6 hardware draw passed; see
+`evidence/native-vulkan-image-003/`. The image does not yet receive rendered
+pixels through Vulkan; render-pass, pipeline, command, queue, and readback
+semantics remain to be implemented.

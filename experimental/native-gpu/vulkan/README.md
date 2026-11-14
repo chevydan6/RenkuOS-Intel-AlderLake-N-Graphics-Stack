@@ -17,8 +17,9 @@ Shader modules are copied and owned by the device; they are not executed yet.
 Device creation bootstraps the existing RCS owner. Vulkan memory allocation
 creates an owner BO, and explicit flush/invalidate copies mapped staging data
 through the native resource ioctl. This memory type is host-visible and
-noncoherent. The native interface currently supports one 64 KiB heap and
-vertex-buffer usage only; there is no Vulkan draw submission yet.
+noncoherent. The native interface currently supports one 64 KiB heap,
+vertex-buffer usage, and one 32×32 linear BGRA color image shape; there is no
+Vulkan draw submission yet.
 
 ## Reproduce on the N100
 
@@ -49,6 +50,8 @@ a vertex buffer, flushes known triangle vertices into its owner BO, invalidates
 and checks the exact readback, and rejects a one-byte allocation for that
 buffer. [Memory checkpoint evidence](../evidence/native-vulkan-memory-002/README.md)
 records physical repetitions, binary hashes, and direct compile inputs.
+The [image checkpoint](../evidence/native-vulkan-image-003/README.md) verifies
+the fixed output-image allocation and binding path.
 
 `KnownSpirv.h` is generated from the validated Vulkan 1.2 assembly fixtures
 in `../render/compiler/mesa-26.3.0/spirv/` using `generate-known-spirv.py` and

@@ -99,6 +99,28 @@ int main()
  vkFreeMemory(device,tiny,nullptr);
  vkDestroyBuffer(device,buffer,nullptr);
  vkFreeMemory(device,memoryObject,nullptr);
+ VkImageCreateInfo imageInfo={};imageInfo.sType=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+ imageInfo.imageType=VK_IMAGE_TYPE_2D;imageInfo.format=VK_FORMAT_B8G8R8A8_UNORM;
+ imageInfo.extent={32,32,1};imageInfo.mipLevels=1;imageInfo.arrayLayers=1;
+ imageInfo.samples=VK_SAMPLE_COUNT_1_BIT;imageInfo.tiling=VK_IMAGE_TILING_LINEAR;
+ imageInfo.usage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+ imageInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
+ VkImage image=VK_NULL_HANDLE;
+ if(vkCreateImage(device,&imageInfo,nullptr,&image)!=VK_SUCCESS || !image)return 27;
+ VkMemoryRequirements imageRequirements={};
+ vkGetImageMemoryRequirements(device,image,&imageRequirements);
+ if(imageRequirements.size!=4096 || imageRequirements.alignment!=4096
+  || imageRequirements.memoryTypeBits!=1)return 28;
+ allocation.allocationSize=imageRequirements.size;
+ VkDeviceMemory imageMemory=VK_NULL_HANDLE;
+ if(vkAllocateMemory(device,&allocation,nullptr,&imageMemory)!=VK_SUCCESS
+  || vkBindImageMemory(device,image,imageMemory,0)!=VK_SUCCESS)return 29;
+ imageInfo.extent.width=33;
+ VkImage unsupportedImage=VK_NULL_HANDLE;
+ if(vkCreateImage(device,&imageInfo,nullptr,&unsupportedImage)==VK_SUCCESS
+  || unsupportedImage)return 30;
+ vkDestroyImage(device,image,nullptr);
+ vkFreeMemory(device,imageMemory,nullptr);
  vkDestroyShaderModule(device,fs,nullptr);
  vkDestroyShaderModule(device,vs,nullptr);
  vkDestroyDevice(device,nullptr);
