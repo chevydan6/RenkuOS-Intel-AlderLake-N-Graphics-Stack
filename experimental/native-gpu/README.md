@@ -106,3 +106,15 @@ The BCS foundation does not establish shader execution or hardware OpenGL/Vulkan
 See the [render-engine phase and Mesa source-tree guide](../../research/n100-submission/MESA-RENDER-ENGINE-PHASE.md)
 for the additional context, compiler, resource, synchronization and presentation
 contracts, including versioned Iris/Haiku/ANV reference paths.
+
+## Native window presenter
+
+`build/buffer_window` animates completed BCS-copy snapshots in a native window.
+Its worker validates retirement/readback before a bounded message handoff; the
+UI thread alone updates a B_RGB32 bitmap and calls synchronous DrawBitmap.
+The mode button and `--cpu` select CPU presentation. Failed GPU use is latched
+off and falls back to independent CPU pixels. `--frames N` bounds production
+and holds the last image; `--test-fallback-after N` is a deliberate client-side
+fallback check. See [native window evidence and limitations](evidence/native-window-003/README.md).
+The source is CPU-generated and the GPU performs BCS copies; shader rendering,
+zero-copy presentation and desktop compositing are not implemented by this app.

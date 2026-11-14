@@ -1,0 +1,8 @@
+presented frame=1 mode=BCS-copy sequence=632 job_us=5102 bitmap_stride=128 hash=eca756a5
+presented frame=2 mode=BCS-copy sequence=633 job_us=2875 bitmap_stride=128 hash=c500a345
+presented frame=3 mode=BCS-copy sequence=634 job_us=2851 bitmap_stride=128 hash=d8511025
+presented frame=4 mode=BCS-copy sequence=635 job_us=2810 bitmap_stride=128 hash=d052c445
+worker stopped produced=4 gpu=4 cpu=0 last_gpu_sequence=635 gpu_available=1
+window frames=4 gpu=4 cpu=0 complete
+window closed; worker joined
+window destroyed; worker joined

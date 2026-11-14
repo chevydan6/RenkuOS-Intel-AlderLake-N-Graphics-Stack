@@ -1,6 +1,37 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Latest checkpoint: one native window presenting BCS buffers
+
+The user selected a window presenter using BCS buffers now, with shader rendering
+connected later. `experimental/native-gpu/buffer_window.cpp` now presents verified
+32x32 opaque BGRX snapshots through BBitmap and synchronous DrawBitmap/app_server.
+The GPU job runs on a worker; one outstanding message bounds the handoff; only
+the window thread mutates its bitmap. Completion/readback validation precedes
+publication. Failed GPU use is latched off for the client, and CPU fallback uses
+independent memory rather than the uncertain GPU destination. Close stops/joins
+the worker before destroying the view/session. Correct row stride, resize redraw
+and mouse mode switching were checked.
+
+[Native window evidence, screenshots and lifetime rules](experimental/native-gpu/evidence/native-window-003/README.md):
+final build showed four GPU frames; another run showed four GPU frames followed
+by eight CPU frames after a deliberate client fallback check, with no further
+submissions. Actual mouse mode switching and close while active passed. The
+fallback check was not a hardware fault injection. Host/native focused policy
+smoke and native -Werror build passed. All windows closed, app_server remains
+PID127, original component hashes match and the physical lease is released.
+
+Native executable/source: `/boot/home/native-window-003/buffer_window`.
+Run continuously, or use `--cpu`, `--frames N` and the documented
+`--test-fallback-after N` client check. The existing v2 owner/bridge are unchanged;
+this application needs no driver installation or reboot. The normal native
+bundle recipe builds `build/buffer_window` for future bundles.
+
+This is a readback bridge: CPU generates the source, BCS copies it and app_server
+draws the completed bitmap. It does not claim shader rendering, zero-copy scanout,
+GPU desktop composition or a performance improvement. Larger surfaces, renderer
+integration and desktop presentation remain the separate phases described below.
+
 ## Separate render-engine phase: shaders, OpenGL and Vulkan
 
 The [Mesa source-tree guide and render-phase boundary](research/n100-submission/MESA-RENDER-ENGINE-PHASE.md)

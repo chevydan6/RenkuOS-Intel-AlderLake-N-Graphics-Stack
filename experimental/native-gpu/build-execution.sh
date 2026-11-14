@@ -28,6 +28,9 @@ g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 \
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_copy_sample.cpp -o build/gpu_copy_sample
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. buffer_copy_sample.cpp -o build/buffer_copy_sample
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_copy_bench.cpp -lbe -o build/gpu_copy_bench
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. buffer_window.cpp -lbe -o build/buffer_window
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. presentation_smoke.cpp -o build/presentation_smoke
+./build/presentation_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. buffer_copy_smoke.cpp -o build/buffer_copy_smoke
 ./build/buffer_copy_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. copy_image_smoke.cpp -o build/copy_image_smoke

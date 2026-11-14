@@ -1,0 +1,16 @@
+presented frame=1 mode=BCS-copy sequence=636 job_us=3695 bitmap_stride=128 hash=eca756a5
+presented frame=2 mode=BCS-copy sequence=637 job_us=2852 bitmap_stride=128 hash=c500a345
+presented frame=3 mode=BCS-copy sequence=638 job_us=2599 bitmap_stride=128 hash=d8511025
+presented frame=4 mode=BCS-copy sequence=639 job_us=2830 bitmap_stride=128 hash=d052c445
+presented frame=5 mode=CPU sequence=0 job_us=14 bitmap_stride=128 hash=e0d9bc25
+presented frame=6 mode=CPU sequence=0 job_us=4 bitmap_stride=128 hash=d7770a45
+presented frame=7 mode=CPU sequence=0 job_us=5 bitmap_stride=128 hash=c097a925
+presented frame=8 mode=CPU sequence=0 job_us=5 bitmap_stride=128 hash=1fa3a7c5
+presented frame=9 mode=CPU sequence=0 job_us=5 bitmap_stride=128 hash=7ac23925
+presented frame=10 mode=CPU sequence=0 job_us=5 bitmap_stride=128 hash=caf44fc5
+presented frame=11 mode=CPU sequence=0 job_us=4 bitmap_stride=128 hash=8ebb0b65
+presented frame=12 mode=CPU sequence=0 job_us=5 bitmap_stride=128 hash=c2672545
+worker stopped produced=12 gpu=4 cpu=8 last_gpu_sequence=639 gpu_available=0
+window frames=12 gpu=4 cpu=8 complete
+window closed; worker joined
+window destroyed; worker joined
