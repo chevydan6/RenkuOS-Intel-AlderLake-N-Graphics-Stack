@@ -1,0 +1,100 @@
+
+profiling results for summary "all" (1):
+  tick interval:  100 us
+  total ticks:    2624 (262400 us)
+  expected ticks: 3512 (missed 888)
+  unknown ticks:  0 (0 us,   0.00%)
+  dropped ticks:  0 (0 us,   0.00%)
+
+        hits     unknown    image
+  ------------------------------------------------------------------------------
+        1352           0       67 /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+        1105           0       23 x86
+           4           0        4 /boot/home/native-vulkan-profile-020/vulkan/build-compiler/libvulkan.so
+           1           0        1 /boot/home/native-vulkan-profile-020/vulkan/build-compiler/triangle_probe
+          14           0        7 /boot/system/lib/libroot.so
+          98           0       10 kernel_x86_64
+           1           0       83 /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/intel_native_execution
+          23           0       22 pci
+           6           0        9 /boot/home/native-vulkan-profile-020/lib/libSPIRV-Tools-shared.so
+          20           0        8 /boot/home/native-vulkan-profile-020/lib/librenku_intel_compiler.so
+
+        hits       in us    in %   image  function
+  ------------------------------------------------------------------------------
+        1104      110400   42.07      23  ECAMPCIController::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int&)
+         840       84000   32.01      67  GroupRead(void*, unsigned int, unsigned int&)
+         220       22000    8.38      67  NativeDmaStillDirect()
+         128       12800    4.88      67  NativeVisible(void*)
+          69        6900    2.63      67  NativeRenderRequest(void*, unsigned long)
+          52        5200    1.98      67  NativeRenderRawRead(void*, unsigned int, unsigned int&)
+          18        1800    0.69      10  _mutex_lock(mutex*, void*)
+          17        1700    0.65      10  memcpy
+          15        1500    0.57      67  NativeOwnerPower(GroupContext&)
+          14        1400    0.53      10  __system_time_rdtscp()
+          12        1200    0.46      22  PCI::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)
+          11        1100    0.42      22  pci_read_config
+           9         900    0.34      10  _mutex_unlock(mutex*)
+           8         800    0.30      67  NativeResourceTransfer(unsigned long, bool, unsigned int, unsigned long, unsigned char*, unsigned int)
+           8         800    0.30      10  BPrivate::AbstractModuleDevice::Control(void*, int, void*, unsigned long)
+           7         700    0.27      67  NativeRenderRead(void*, unsigned int, unsigned int&)
+           5         500    0.19      67  NativeRenderStatus32(void*, unsigned int, unsigned int&)
+           4         400    0.15      67  ResetSafe(void*)
+           4         400    0.15      10  common_ioctl(file_descriptor*, unsigned long, void*, unsigned long)
+           4         400    0.15      10  get_fd
+           4         400    0.15      10  devfs_ioctl(fs_volume*, fs_vnode*, void*, unsigned int, void*, unsigned long)
+           3         300    0.11       8  brw_opt_bank_conflicts(brw_shader&)
+           3         300    0.11       7  _kern_ioctl
+           3         300    0.11       8  ra_set_finalize
+           3         300    0.11      10  x86_page_fault_exception
+           2         200    0.08      67  NativeRenderRawWrite(void*, unsigned int, unsigned int)
+           2         200    0.08       7  strcmp
+           2         200    0.08      10  (anonymous namespace)::LegacyDevice::Control(void*, int, void*, unsigned long)
+           2         200    0.08       4  vkQueueSubmit
+           2         200    0.08       7  omalloc
+           2         200    0.08      10  smp_broadcast_ici
+           2         200    0.08      10  object_cache_alloc
+           1         100    0.04       8  nir_split_conversions
+           1         100    0.04       9  spvtools::FriendlyNameMapper::SaveName(unsigned int, std::string const&)
+           1         100    0.04       9  spvtools::val::ValidationState_t::HasAnyOfCapabilities(spvtools::EnumSet<spv::Capability> const&) const
+           1         100    0.04       9  spvtools::val::BasicBlock::SetImmediateStructuralDominator(spvtools::val::BasicBlock*)
+           1         100    0.04       9  spvtools::LookupOpcode(spv::Op, spvtools::InstructionDesc const**)
+           1         100    0.04       9  spvVersionForTargetEnv(spv_target_env)
+           1         100    0.04       9  spvtools::FriendlyNameMapper::ParseInstruction(spv_parsed_instruction_t const&)
+           1         100    0.04       8  brw_from_nir_emit_intrinsic(nir_to_brw_state&, brw_builder const&, nir_intrinsic_instr*)
+           1         100    0.04       8  brw_inst::is_partial_write(unsigned int) const
+           1         100    0.04       8  brw_inst::flags_written(intel_device_info const*) const
+           1         100    0.04       8  std::vector<(anonymous namespace)::dependency, std::allocator<(anonymous namespace)::dependency> >& std::vector<std::vector<(anonymous namespace)::dependency, std::allocator<(anonymous namespace)::dependency> >, std::allocator<std::vector<(anonymous namespace)::dependency, std::allocator<(anonymous namespace)::dependency> > > >::emplace_back<std::vector<(anonymous namespace)::dependency, std::allocator<(anonymous namespace)::dependency> > >(std::vector<(anonymous namespace)::dependency, std::allocator<(anonymous namespace)::dependency> >&&) [clone .isra.0]
+           1         100    0.04       8  (anonymous namespace)::propagate_block_scoreboards(brw_shader const*, std::vector<(anonymous namespace)::ordered_address, std::allocator<(anonymous namespace)::ordered_address> > const&, (anonymous namespace)::equivalence_relation&)
+           1         100    0.04       8  brw_opt_cmod_propagation(brw_shader&)
+           1         100    0.04       8  brw_opt_dead_code_eliminate(brw_shader&)
+           1         100    0.04       8  brw_opt_compact_virtual_grfs(brw_shader&)
+           1         100    0.04       8  intel_nir_opt_peephole_imul32x16
+           1         100    0.04       8  u_printf_length
+           1         100    0.04       8  nir_opt_16bit_tex_image
+           1         100    0.04       8  can_sink_instr
+           1         100    0.04       8  nir_algebraic_automaton
+           1         100    0.04       7  find
+           1         100    0.04      67  HandshakePciStable(void*)
+           1         100    0.04      67  NativeGpu::RcsEngine::Publish(NativeGpu::RcsEngine::IO const&, unsigned long)
+           1         100    0.04      23  gPciControllerDriver::{lambda(void*, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)#1}::_FUN(void*, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)
+           1         100    0.04       4  vkGetFenceStatus
+           1         100    0.04       4  vkResetFences
+           1         100    0.04       1  main
+           1         100    0.04       7  __mutex_lock
+           1         100    0.04       7  __mutex_unlock
+           1         100    0.04       7  __recursive_lock_lock
+           1         100    0.04       7  memchr
+           1         100    0.04       7  strlen
+           1         100    0.04       7  memset
+           1         100    0.04      83  ControlLocked(Session&, unsigned int, void*, unsigned long)
+           1         100    0.04      10  BKernel::SystemTimeUserTimer::Schedule(long, long, unsigned int, long&, long&)
+           1         100    0.04      10  mutex_switch_from_read_lock
+           1         100    0.04      10  fd_ioctl(bool, int, unsigned int, void*, unsigned long)
+           1         100    0.04      10  MemoryManager::FreeRawOrReturnCache(void*, unsigned int)
+           1         100    0.04      10  bool (anonymous namespace)::user_access<(anonymous namespace)::arch_cpu_user_memcpy(void*, void const*, unsigned long)::{lambda()#1}>((anonymous namespace)::arch_cpu_user_memcpy(void*, void const*, unsigned long)::{lambda()#1})
+           1         100    0.04      10  set_page_state(vm_page*, int)
+           1         100    0.04      10  VMCache::LookupPage(long)
+           1         100    0.04      10  VMCache::InsertPage(vm_page*, long)
+           1         100    0.04      10  x86_64_syscall_entry
+           1         100    0.04      10  X86VMTranslationMap64Bit::MaxPagesNeededToMap(unsigned long, unsigned long) const
+           1         100    0.04      10  X86VMTranslationMap::Lock()

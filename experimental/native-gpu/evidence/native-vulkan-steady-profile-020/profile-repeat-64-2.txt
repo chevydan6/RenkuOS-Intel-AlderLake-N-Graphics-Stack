@@ -1,0 +1,101 @@
+
+profiling results for summary "all" (1):
+  tick interval:  100 us
+  total ticks:    2617 (261700 us)
+  expected ticks: 3514 (missed 897)
+  unknown ticks:  0 (0 us,   0.00%)
+  dropped ticks:  0 (0 us,   0.00%)
+
+        hits     unknown    image
+  ------------------------------------------------------------------------------
+        1404           0       67 /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+        1042           0       23 x86
+          10           0        4 /boot/home/native-vulkan-profile-020/vulkan/build-compiler/libvulkan.so
+           1           0        1 /boot/home/native-vulkan-profile-020/vulkan/build-compiler/triangle_probe
+          21           0        7 /boot/system/lib/libroot.so
+          93           0       10 kernel_x86_64
+           3           0       83 /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/intel_native_execution
+          20           0       22 pci
+           1           0        3 /boot/system/runtime_loader
+           5           0        9 /boot/home/native-vulkan-profile-020/lib/libSPIRV-Tools-shared.so
+          17           0        8 /boot/home/native-vulkan-profile-020/lib/librenku_intel_compiler.so
+
+        hits       in us    in %   image  function
+  ------------------------------------------------------------------------------
+        1036      103600   39.59      23  ECAMPCIController::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int&)
+         897       89700   34.28      67  GroupRead(void*, unsigned int, unsigned int&)
+         225       22500    8.60      67  NativeDmaStillDirect()
+         128       12800    4.89      67  NativeVisible(void*)
+          67        6700    2.56      67  NativeRenderRequest(void*, unsigned long)
+          54        5400    2.06      67  NativeRenderRawRead(void*, unsigned int, unsigned int&)
+          19        1900    0.73      10  _mutex_unlock(mutex*)
+          17        1700    0.65      10  _mutex_lock(mutex*, void*)
+          15        1500    0.57      10  __system_time_rdtscp()
+          11        1100    0.42      22  PCI::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)
+          10        1000    0.38      67  NativeResourceTransfer(unsigned long, bool, unsigned int, unsigned long, unsigned char*, unsigned int)
+          10        1000    0.38      10  memcpy
+           9         900    0.34      22  pci_read_config
+           7         700    0.27      10  x86_page_fault_exception
+           5         500    0.19      67  NativeOwnerPower(GroupContext&)
+           5         500    0.19      67  NativeRenderStatus32(void*, unsigned int, unsigned int&)
+           5         500    0.19       4  vkGetFenceStatus
+           4         400    0.15      10  devfs_ioctl(fs_volume*, fs_vnode*, void*, unsigned int, void*, unsigned long)
+           4         400    0.15      10  common_ioctl(file_descriptor*, unsigned long, void*, unsigned long)
+           4         400    0.15      67  NativeRenderRead(void*, unsigned int, unsigned int&)
+           3         300    0.11      67  ResetSafe(void*)
+           3         300    0.11      23  X86PCIControllerMethPcie::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int&) [clone .localalias]
+           3         300    0.11       4  vkWaitForFences
+           3         300    0.11      83  ControlLocked(Session&, unsigned int, void*, unsigned long)
+           3         300    0.11       8  brw_opt_bank_conflicts(brw_shader&)
+           3         300    0.11      67  NativeGpu::RcsEngine::Publish(NativeGpu::RcsEngine::IO const&, unsigned long)
+           3         300    0.11      23  gPciControllerDriver::{lambda(void*, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)#1}::_FUN(void*, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)
+           3         300    0.11       7  free
+           2         200    0.08       9  spvtools::val::IdPass(spvtools::val::ValidationState_t&, spvtools::val::Instruction*)
+           2         200    0.08      10  set_page_state(vm_page*, int)
+           2         200    0.08      10  BPrivate::AbstractModuleDevice::Control(void*, int, void*, unsigned long)
+           2         200    0.08       4  vkQueueSubmit
+           2         200    0.08      10  smp_broadcast_ici
+           2         200    0.08       7  omalloc
+           2         200    0.08       7  ofree.constprop.0
+           2         200    0.08       8  ra_set_finalize
+           2         200    0.08       7  __ioctl
+           2         200    0.08       7  system_time
+           2         200    0.08       7  __system_time_rdtscp()
+           2         200    0.08       7  __mutex_unlock
+           1         100    0.04       9  spvtools::val::CfgPass(spvtools::val::ValidationState_t&, spvtools::val::Instruction const*)
+           1         100    0.04       9  spvtools::val::(anonymous namespace)::ValidateBinaryUsingContextAndValidationState(spv_context_t const&, unsigned int const*, unsigned long, spv_diagnostic_t**, spvtools::val::ValidationState_t*)
+           1         100    0.04       3  find_symbol(image_t*, SymbolLookupInfo const&)
+           1         100    0.04       9  spvtools::val::ExtensionPass(spvtools::val::ValidationState_t&, spvtools::val::Instruction const*)
+           1         100    0.04       8  brw_opt_dead_code_eliminate(brw_shader&)
+           1         100    0.04       8  brw_reg::component_size(unsigned int) const
+           1         100    0.04       8  brw_performance::brw_performance(brw_shader const*)
+           1         100    0.04       8  get_exec_type(brw_inst const*)
+           1         100    0.04       8  (anonymous namespace)::update_inst_scoreboard(brw_shader const*, std::vector<(anonymous namespace)::ordered_address, std::allocator<(anonymous namespace)::ordered_address> > const&, brw_inst const*, unsigned int, (anonymous namespace)::scoreboard&) [clone .isra.0]
+           1         100    0.04       8  (anonymous namespace)::propagate_block_scoreboards(brw_shader const*, std::vector<(anonymous namespace)::ordered_address, std::allocator<(anonymous namespace)::ordered_address> > const&, (anonymous namespace)::equivalence_relation&)
+           1         100    0.04      10  AddressSpaceLockerBase::GetAddressSpaceByAreaID(int)
+           1         100    0.04       8  intel_device_info_init_common.isra.0
+           1         100    0.04       8  intel_get_device_info_from_pci_id
+           1         100    0.04       8  nir_deref_instr_create
+           1         100    0.04       8  nir_intrinsic_instr_create
+           1         100    0.04       8  nir_lower_fp16_casts
+           1         100    0.04       8  nir_lower_int64_float_conversions
+           1         100    0.04      10  get_fd
+           1         100    0.04       1  main
+           1         100    0.04       7  tls_address
+           1         100    0.04       7  strcmp
+           1         100    0.04       7  __allocate_pages
+           1         100    0.04       7  find
+           1         100    0.04       7  _malloc_init
+           1         100    0.04       7  insert.constprop.0
+           1         100    0.04      67  HandshakeRead(void*, unsigned int&)
+           1         100    0.04      10  put_fd
+           1         100    0.04      67  NativeRenderGroupSafe(void*)
+           1         100    0.04      10  fd_ioctl(bool, int, unsigned int, void*, unsigned long)
+           1         100    0.04      10  object_cache_alloc
+           1         100    0.04      10  vm_soft_fault(VMAddressSpace*, unsigned long, bool, bool, bool, vm_page**)
+           1         100    0.04      10  user_memcpy
+           1         100    0.04      10  vm_page_fault(unsigned long, unsigned long, bool, bool, bool, unsigned long*)
+           1         100    0.04      10  VMCache::LookupPage(long)
+           1         100    0.04      67  IntelN100Forcewake::RunWithInspection(IntelN100Forcewake::IO const&, IntelN100Forcewake::InspectionResult (*)(void*, unsigned long))
+           1         100    0.04      10  system_time
+           1         100    0.04      10  memcmp

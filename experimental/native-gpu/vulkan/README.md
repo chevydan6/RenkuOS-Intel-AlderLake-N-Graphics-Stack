@@ -113,6 +113,10 @@ records 64 exact N100 draws submitted with fences.
 The [submission timing checkpoint](../evidence/native-vulkan-submit-timing-019/README.md)
 records 128 physical draws and opt-in host-observed ioctl and submit durations;
 GPU execution time remains unisolated.
+The [steady-state profile](../evidence/native-vulkan-steady-profile-020/README.md)
+records 64 repeated submissions of one command buffer, fence, and BO set,
+alongside three Haiku kernel profiles that point to PCI and forcewake checks as
+the largest sampled CPU costs.
 The [command reset checkpoint](../evidence/native-vulkan-command-reset-010/README.md)
 records pool reset, and [checkpoint 011](../evidence/native-vulkan-command-reset-011/README.md)
 records individual and implicit reset in the VM.

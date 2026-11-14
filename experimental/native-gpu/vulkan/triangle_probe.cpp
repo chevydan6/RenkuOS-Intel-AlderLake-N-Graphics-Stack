@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "KnownSpirv.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static_assert(RenkuKnownSpirv::Vertex[1]==0x00010000
@@ -16,13 +17,16 @@ static_assert(RenkuKnownSpirv::Vertex[1]==0x00010000
 
 int main(int argc,char** argv)
 {
- if((argc!=2 && argc!=3) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
-  || (argc==3 && strcmp(argv[2],"half") && strcmp(argv[2],"green75")
-   && strcmp(argv[2],"green90")))return 40;
+ if((argc<2 || argc>4) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
+  || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
+   && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
- bool half=argc==3 && !strcmp(argv[2],"half");
- bool green75=argc==3 && !strcmp(argv[2],"green75");
- bool green90=argc==3 && !strcmp(argv[2],"green90");
+ bool half=argc>=3 && !strcmp(argv[2],"half");
+ bool green75=argc>=3 && !strcmp(argv[2],"green75");
+ bool green90=argc>=3 && !strcmp(argv[2],"green90");
+ char* repeatEnd=nullptr;
+ unsigned long repeats=argc==4?strtoul(argv[3],&repeatEnd,10):1;
+ if(!repeats || repeats>64 || (argc==4 && (!repeatEnd || *repeatEnd)))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
  memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
  bool alternateChanged=false;
@@ -226,9 +230,13 @@ int main(int argc,char** argv)
   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_TIMEOUT,48);
  VkSubmitInfo submit={};submit.sType=VK_STRUCTURE_TYPE_SUBMIT_INFO;
  submit.commandBufferCount=1;submit.pCommandBuffers=&command;
- REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
- REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
-  && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
+ for(unsigned i=0;i<repeats;i++){
+  if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
+   && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
+  REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
+  REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
+   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
+ }
 
  mapped=nullptr;
  REQUIRE(vkMapMemory(device,imageMemory,0,4096,0,&mapped)==VK_SUCCESS && mapped,28);
@@ -250,10 +258,10 @@ int main(int argc,char** argv)
     green75?expectedGreen75[shape]:expectedHalf[shape]),30);
  }else REQUIRE(hash==expected[shape] && pixels[0]==0x19537bad,30);
  vkUnmapMemory(device,imageMemory);
- if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
- else if(green75)printf("Native Vulkan N100 0.75-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
- else if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
- else printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x\n",shape,hash);
+ if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ else if(green75)printf("Native Vulkan N100 0.75-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ else if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ else printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
 
  vkFreeCommandBuffers(device,pool,1,&command);
  vkDestroyCommandPool(device,pool,nullptr);

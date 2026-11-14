@@ -229,3 +229,11 @@ median synchronous render ioctl was 5,949 µs and total submit was 5,960 µs;
 see `evidence/native-vulkan-submit-timing-019/`. The render ioctl includes
 kernel work, GPU execution, completion polling, and validation, so it is not
 an isolated GPU execution measurement.
+
+A bounded repeat mode now reuses one recorded Vulkan command buffer and fence
+across 64 physical N100 submissions, with exact output and ordered completion.
+Its median traced submit was 5,184 µs. Three Haiku kernel profiles consistently
+sampled PCI configuration reads most often, followed by forcewake ACK reads;
+the profiler missed roughly one quarter of expected ticks. See
+`evidence/native-vulkan-steady-profile-020/`. No kernel safety checks were
+removed based on these measurements.

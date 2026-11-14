@@ -1,0 +1,93 @@
+
+profiling results for summary "all" (1):
+  tick interval:  100 us
+  total ticks:    2173 (217300 us)
+  expected ticks: 3027 (missed 854)
+  unknown ticks:  0 (0 us,   0.00%)
+  dropped ticks:  0 (0 us,   0.00%)
+
+        hits     unknown    image
+  ------------------------------------------------------------------------------
+        1094           0       67 /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+         952           0       23 x86
+           6           0        4 /boot/home/native-vulkan-profile-020/vulkan/build-compiler/libvulkan.so
+          10           0        7 /boot/system/lib/libroot.so
+          72           0       10 kernel_x86_64
+           1           0       83 /boot/system/non-packaged/add-ons/kernel/drivers/dev/misc/intel_native_execution
+          10           0       22 pci
+           1           0        3 /boot/system/runtime_loader
+           7           0        9 /boot/home/native-vulkan-profile-020/lib/libSPIRV-Tools-shared.so
+           2           0        5 /boot/system/lib/libstdc++.so.6.0.32
+          18           0        8 /boot/home/native-vulkan-profile-020/lib/librenku_intel_compiler.so
+
+        hits       in us    in %   image  function
+  ------------------------------------------------------------------------------
+         949       94900   43.67      23  ECAMPCIController::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int&)
+         498       49800   22.92      67  GroupRead(void*, unsigned int, unsigned int&)
+         224       22400   10.31      67  NativeDmaStillDirect()
+         128       12800    5.89      67  NativeVisible(void*)
+          75        7500    3.45      67  NativeRenderRawRead(void*, unsigned int, unsigned int&)
+          65        6500    2.99      67  NativeRenderRequest(void*, unsigned long)
+          60        6000    2.76      67  NativeGpu::RcsUserVertices::Validate(unsigned int const*, NativeGpu::RcsUserVertices::Coord*)
+          19        1900    0.87      67  NativeRenderRead(void*, unsigned int, unsigned int&)
+          13        1300    0.60      10  _mutex_unlock(mutex*)
+          10        1000    0.46      10  common_ioctl(file_descriptor*, unsigned long, void*, unsigned long)
+          10        1000    0.46      10  __system_time_rdtscp()
+           9         900    0.41      10  devfs_ioctl(fs_volume*, fs_vnode*, void*, unsigned int, void*, unsigned long)
+           8         800    0.37      67  NativeOwnerPower(GroupContext&)
+           8         800    0.37      10  _mutex_lock(mutex*, void*)
+           6         600    0.28       4  vkQueueSubmit
+           5         500    0.23      22  pci_read_config
+           5         500    0.23      22  PCI::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)
+           5         500    0.23      10  memcpy
+           5         500    0.23      10  get_fd
+           5         500    0.23      67  NativeResourceTransfer(unsigned long, bool, unsigned int, unsigned long, unsigned char*, unsigned int)
+           5         500    0.23      67  NativeRenderStatus32(void*, unsigned int, unsigned int&)
+           3         300    0.14      10  x86_page_fault_exception
+           3         300    0.14       7  _kern_ioctl
+           3         300    0.14      67  ResetSafe(void*)
+           2         200    0.09       7  omalloc
+           2         200    0.09       7  __mutex_unlock
+           2         200    0.09      23  gPciControllerDriver::{lambda(void*, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)#1}::_FUN(void*, unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int*)
+           2         200    0.09       8  ra_set_finalize
+           2         200    0.09      10  fd_ioctl(bool, int, unsigned int, void*, unsigned long)
+           2         200    0.09       8  brw_opt_bank_conflicts(brw_shader&)
+           2         200    0.09       8  (anonymous namespace)::propagate_block_scoreboards(brw_shader const*, std::vector<(anonymous namespace)::ordered_address, std::allocator<(anonymous namespace)::ordered_address> > const&, (anonymous namespace)::equivalence_relation&)
+           1         100    0.05       5  __gnu_cxx::stdio_sync_filebuf<char, std::char_traits<char> >::sync()
+           1         100    0.05       8  brw_lower_logical_sends(brw_shader&)
+           1         100    0.05       8  renku_intel_compile_vulkan_pair
+           1         100    0.05       5  std::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::overflow(int)
+           1         100    0.05       9  spvtools::val::(anonymous namespace)::CheckDecorationsOfBuffers(spvtools::val::ValidationState_t&)
+           1         100    0.05       9  std::__detail::_Map_base<spvtools::val::BasicBlock const*, std::pair<spvtools::val::BasicBlock const* const, spvtools::CFA<spvtools::val::BasicBlock>::CalculateDominators(std::vector<spvtools::val::BasicBlock const*, std::allocator<spvtools::val::BasicBlock const*> > const&, std::function<std::vector<spvtools::val::BasicBlock*, std::allocator<spvtools::val::BasicBlock*> > const* (spvtools::val::BasicBlock const*)>)::block_detail>, std::allocator<std::pair<spvtools::val::BasicBlock const* const, spvtools::CFA<spvtools::val::BasicBlock>::CalculateDominators(std::vector<spvtools::val::BasicBlock const*, std::allocator<spvtools::val::BasicBlock const*> > const&, std::function<std::vector<spvtools::val::BasicBlock*, std::allocator<spvtools::val::BasicBlock*> > const* (spvtools::val::BasicBlock const*)>)::block_detail> >, std::__detail::_Select1st, std::equal_to<spvtools::val::BasicBlock const*>, std::hash<spvtools::val::BasicBlock const*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](spvtools::val::BasicBlock const* const&)
+           1         100    0.05       9  spvtools::val::ValidateStructuredSelections(spvtools::val::ValidationState_t&, std::vector<spvtools::val::BasicBlock const*, std::allocator<spvtools::val::BasicBlock const*> > const&)
+           1         100    0.05       8  brw_allocate_registers(brw_shader&, bool)
+           1         100    0.05       8  brw_inst::is_math() const
+           1         100    0.05       8  brw_opt_dead_code_eliminate(brw_shader&)
+           1         100    0.05       8  brw_opt_compact_virtual_grfs(brw_shader&)
+           1         100    0.05      10  AVLTreeBase::Next(AVLTreeNode*) const
+           1         100    0.05       8  (anonymous namespace)::required_exec_type(intel_device_info const*, brw_inst const*)
+           1         100    0.05       8  linear_zalloc_child_array
+           1         100    0.05       8  nir_lower_fp16_casts
+           1         100    0.05       8  nir_lower_vars_to_ssa_impl
+           1         100    0.05       8  nir_opt_load_store_vectorize
+           1         100    0.05       8  nir_opt_remove_phis
+           1         100    0.05      10  (anonymous namespace)::LegacyDevice::Control(void*, int, void*, unsigned long)
+           1         100    0.05      67  NativeRenderStatus64(void*, unsigned int, unsigned long&)
+           1         100    0.05      67  NativeRenderOwnerLocked(bool)
+           1         100    0.05      67  GroupWrite(void*, unsigned int, unsigned int)
+           1         100    0.05      67  NativeGpu::RcsEngine::Publish(NativeGpu::RcsEngine::IO const&, unsigned long)
+           1         100    0.05      23  X86PCIControllerMethPcie::ReadConfig(unsigned char, unsigned char, unsigned char, unsigned short, unsigned char, unsigned int&) [clone .localalias]
+           1         100    0.05       7  system_time
+           1         100    0.05       7  memset
+           1         100    0.05       7  free
+           1         100    0.05      10  BPrivate::AbstractModuleDevice::Control(void*, int, void*, unsigned long)
+           1         100    0.05       9  spvtools::val::ValidateBuiltIns(spvtools::val::ValidationState_t&)
+           1         100    0.05      10  object_cache_alloc
+           1         100    0.05      10  set_page_state(vm_page*, int)
+           1         100    0.05      10  VMCache::InsertPage(vm_page*, long)
+           1         100    0.05      10  x86_64_syscall_entry
+           1         100    0.05      83  ControlLocked(Session&, unsigned int, void*, unsigned long)
+           1         100    0.05       3  strcmp
+           1         100    0.05       9  spvtools::AssemblyGrammar::filterCapsAgainstTargetEnv(spv::Capability const*, unsigned int) const
+           1         100    0.05       9  spvTakeFirstMatchableOperand(std::vector<spv_operand_type_t, std::allocator<spv_operand_type_t> >*)
+           1         100    0.05       9  spvtools::LookupOperand(spv_operand_type_t, unsigned int, spvtools::OperandDesc const**)
