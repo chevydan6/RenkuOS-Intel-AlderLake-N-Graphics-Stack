@@ -16,16 +16,16 @@ def main():
     parser.add_argument("spirv_tools", type=Path)
     args = parser.parse_args()
     tool = args.spirv_tools.resolve()
-    text = ["// SPDX-License-Identifier: MIT", "// Generated from the pinned Vulkan 1.2 SPIR-V assembly fixtures.",
+    text = ["// SPDX-License-Identifier: MIT", "// Generated from the pinned Vulkan 1.0 SPIR-V assembly fixtures.",
             "#ifndef RENKU_NATIVE_KNOWN_SPIRV_H", "#define RENKU_NATIVE_KNOWN_SPIRV_H",
             "#include <stdint.h>", "namespace RenkuKnownSpirv {"]
     with tempfile.TemporaryDirectory(prefix="renku-spirv-") as temp:
         for stage, name in (("vert", "Vertex"), ("frag", "Fragment")):
             source = ASSEMBLY / f"triangle.{stage}.spvasm"
             output = Path(temp) / f"triangle.{stage}.spv"
-            subprocess.run([str(tool / "spirv-as"), "--target-env", "vulkan1.2",
+            subprocess.run([str(tool / "spirv-as"), "--target-env", "vulkan1.0",
                             str(source), "-o", str(output)], check=True)
-            subprocess.run([str(tool / "spirv-val"), "--target-env", "vulkan1.2",
+            subprocess.run([str(tool / "spirv-val"), "--target-env", "vulkan1.0",
                             str(output)], check=True)
             data = output.read_bytes()
             words = struct.unpack("<" + "I" * (len(data) // 4), data)

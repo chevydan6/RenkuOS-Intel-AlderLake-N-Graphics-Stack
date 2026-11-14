@@ -2,24 +2,27 @@
 
 This direct-linked RenkuOS `libvulkan.so` uses Khronos Vulkan headers from the
 pinned Mesa 26.3.0 archive. It currently implements instance and physical
-device enumeration, one graphics device and queue, shader-module object
-lifetime, and one native owner-backed vertex-buffer memory path. Physical
-device discovery probes the installed N100 owner through
-the native execution bridge. No DRM/GEM, Linux loader, window system, base
-kernel change, or Mesa runtime library is involved.
+device enumeration, one graphics device and queue, owner-backed memory,
+fixed-shape render target objects, and one bounded graphics pipeline and draw
+path. Physical device discovery probes the installed N100 owner through the
+native execution bridge. No DRM/GEM, Linux loader, window system, base kernel
+change, or Mesa runtime library is involved.
 
 The library is intentionally kept in an isolated build bundle. Its reported
-Vulkan 1.0 version is an **experimental API target**, not a conformance claim:
-core pipeline, general memory, command-buffer, synchronization, presentation, and
-general shader compilation paths are still missing. Unsupported instance
-extensions, device extensions, layers, and requested features are rejected.
-Shader modules are copied and owned by the device; they are not executed yet.
+Vulkan 1.0 version is an **experimental API target**, not a conformance claim.
+It accepts only the two SPIR-V fixtures and a fixed N100 pipeline and command
+shape. General shader compilation, resource formats, command streams,
+semaphores, fences, presentation, and broad Vulkan compatibility remain open.
+Unsupported instance extensions, device extensions, layers, and requested
+features are rejected.
 Device creation bootstraps the existing RCS owner. Vulkan memory allocation
 creates an owner BO, and explicit flush/invalidate copies mapped staging data
 through the native resource ioctl. This memory type is host-visible and
 noncoherent. The native interface currently supports one 64 KiB heap,
-vertex-buffer usage, and one 32×32 linear BGRA color image shape; there is no
-Vulkan draw submission yet.
+vertex-buffer usage, and one 32×32 linear BGRA color image shape. A synchronous
+`vkQueueSubmit` submits one owner-validated hardware triangle and copies the
+completed pixels into the bound image BO. Set `RENKU_VK_TRACE=1` for a concise
+JSON submission report; normal draws skip the diagnostic print.
 
 ## Reproduce on the N100
 
@@ -34,12 +37,13 @@ python3 experimental/native-gpu/vulkan/prepare-headers.py \
 
 The headers
 retain Khronos copyright and `Apache-2.0 OR MIT` SPDX notices. Copy that
-directory's `include/`, this directory's sources, and both `../RenderReport.h`
-and `../ResourceCommand.h` into `/boot/home/native-vulkan-abi-001/` with the same
-layout, then run:
+directory's `include/`, this directory's sources, both `../RenderReport.h` and
+`../ResourceCommand.h`, and `../render/draw/RcsDrawGenerated.h` with its
+`LICENSE-MIT-Intel.txt` into `/boot/home/native-vulkan-triangle-005/` with the
+same layout, then run:
 
 ```sh
-bash /boot/home/native-vulkan-abi-001/vulkan/build-native.sh
+bash /boot/home/native-vulkan-triangle-005/vulkan/build-native.sh
 ```
 
 The physical test passed `vkCreateInstance`, `vkEnumeratePhysicalDevices`,
@@ -56,9 +60,12 @@ The [render-target checkpoint](../evidence/native-vulkan-target-004/README.md)
 verifies the image-view, render-pass, and framebuffer chain for that shape.
 The [combined owner checkpoint](../evidence/rcs-combined-015/README.md) now
 allows one hardware draw to consume both public vertex and shader BOs. Vulkan
-pipeline and command submission still need to connect to that owner request.
+pipeline and command submission now reach that request. The
+[Vulkan triangle evidence](../evidence/native-vulkan-triangle-005/README.md)
+records four image hashes, repeated physical draws, structured trace, and
+direct compile-input sizes.
 
-`KnownSpirv.h` is generated from the validated Vulkan 1.2 assembly fixtures
+`KnownSpirv.h` is generated from the validated Vulkan 1.0 assembly fixtures
 in `../render/compiler/mesa-26.3.0/spirv/` using `generate-known-spirv.py` and
 SPIRV-Tools. Its vertex and fragment module hashes match the Mesa compiler
 proof. This fixture does not imply arbitrary SPIR-V support in RenkuOS.

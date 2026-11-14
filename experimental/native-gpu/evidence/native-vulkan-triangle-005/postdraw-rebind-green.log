@@ -1,0 +1,2 @@
+{"event":"vk_queue_submit","ioctl":0,"version":7,"stage":12,"sequence":807,"observed":807,"vertex_bo":84993,"shader_bo":772,"image_bo":44419,"checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0}
+Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d

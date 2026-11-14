@@ -184,3 +184,16 @@ against the new add-ons. The owner still validates one known shader and fixed
 batch. The next step is to translate a bounded Vulkan pipeline and command
 buffer into this version 7 request and copy its verified 32×32 output into
 the bound Vulkan image.
+
+The direct-linked native Vulkan library now creates the bounded pipeline,
+records a standard Vulkan triangle command buffer, submits owner version 7,
+and returns the verified 32×32 pixels through the bound Vulkan image BO.
+Four application-provided vertex shapes each passed 16 physical N100 draws
+with distinct expected hashes. The owner control and read-only probe passed
+afterward; a structured `RENKU_VK_TRACE=1` capture links the Vulkan submit to
+the owner sequence and BO handles. See `evidence/native-vulkan-triangle-005/`.
+This is the first real Vulkan application draw, with a synchronous CPU copy of
+the completed image. It supports only the known SPIR-V pair and fixed graphics
+state. General native shader compilation, Vulkan synchronization, additional
+formats and workloads, presentation, performance work, and conformance remain
+open.

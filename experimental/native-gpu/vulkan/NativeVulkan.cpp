@@ -2,7 +2,10 @@
 #include <vulkan/vulkan.h>
 #include "../RenderReport.h"
 #include "../ResourceCommand.h"
+#include "KnownSpirv.h"
+#include "../render/draw/RcsDrawGenerated.h"
 #include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -21,12 +24,16 @@ struct VkImage_T;
 struct VkImageView_T;
 struct VkRenderPass_T;
 struct VkFramebuffer_T;
+struct VkPipelineLayout_T;
+struct VkPipeline_T;
+struct VkCommandPool_T;
 struct VkQueue_T { VkDevice_T* device; };
 struct VkDevice_T {
- VkPhysicalDevice physical;int fd;VkQueue_T queue;
+ VkPhysicalDevice physical;int fd;VkQueue_T queue;bool trace;
  VkShaderModule_T* shaders;VkDeviceMemory_T* memory;
  VkBuffer_T* buffers;VkImage_T* images;VkImageView_T* views;
  VkRenderPass_T* passes;VkFramebuffer_T* framebuffers;
+ VkPipelineLayout_T* layouts;VkPipeline_T* pipelines;VkCommandPool_T* pools;
 };
 struct VkShaderModule_T { VkDevice_T* device; VkShaderModule_T* next; size_t bytes; uint32_t* code; };
 struct VkDeviceMemory_T {
@@ -42,6 +49,20 @@ struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next; };
 struct VkFramebuffer_T {
  VkDevice_T* device;VkFramebuffer_T* next;
  VkRenderPass pass;VkImageView view;
+};
+struct VkPipelineLayout_T { VkDevice_T* device;VkPipelineLayout_T* next; };
+struct VkPipeline_T {
+ VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;uint32_t shaderHandle;
+};
+struct VkCommandBuffer_T;
+struct VkCommandPool_T {
+ VkDevice_T* device;VkCommandPool_T* next;VkCommandBuffer_T* commands;
+};
+struct VkCommandBuffer_T {
+ VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
+ VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
+ VkBuffer boundVertex;VkBuffer vertex;
+ bool recording;bool inRenderPass;bool drawn;bool complete;bool invalid;
 };
 
 static bool ProbeN100(VkPhysicalDevice_T* physical)
@@ -207,6 +228,7 @@ vkCreateDevice(VkPhysicalDevice physical,const VkDeviceCreateInfo* info,
  VkDevice_T* value=(VkDevice_T*)calloc(1,sizeof(VkDevice_T));
  if(!value){close(fd);return VK_ERROR_OUT_OF_HOST_MEMORY;}
  value->physical=physical;value->fd=fd;value->queue.device=value;
+ value->trace=getenv("RENKU_VK_TRACE")!=nullptr;
  *device=value;return VK_SUCCESS;
 }
 
@@ -237,6 +259,25 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
  while(device->framebuffers){
   VkFramebuffer_T* next=device->framebuffers->next;
   free(device->framebuffers);device->framebuffers=next;
+ }
+ while(device->pipelines){
+  VkPipeline_T* next=device->pipelines->next;
+  native_gpu_resource_command c={};c.version=1;
+  c.action=NATIVE_GPU_RESOURCE_DESTROY;c.handle=device->pipelines->shaderHandle;
+  ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c));
+  free(device->pipelines);device->pipelines=next;
+ }
+ while(device->layouts){
+  VkPipelineLayout_T* next=device->layouts->next;
+  free(device->layouts);device->layouts=next;
+ }
+ while(device->pools){
+  VkCommandPool_T* next=device->pools->next;
+  while(device->pools->commands){
+   VkCommandBuffer_T* command=device->pools->commands;
+   device->pools->commands=command->next;free(command);
+  }
+  free(device->pools);device->pools=next;
  }
  while(device->memory){
   VkDeviceMemory_T* next=device->memory->next;
@@ -587,6 +628,342 @@ vkInvalidateMappedMemoryRanges(VkDevice device,uint32_t count,
  const VkMappedMemoryRange* ranges)
 {return TransferMapped(device,count,ranges,false);}
 
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreatePipelineLayout(VkDevice device,const VkPipelineLayoutCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkPipelineLayout* layout)
+{
+ if(layout)*layout=VK_NULL_HANDLE;
+ if(!device || !info || !layout || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
+  || info->setLayoutCount || info->pushConstantRangeCount)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ VkPipelineLayout_T* value=(VkPipelineLayout_T*)calloc(1,sizeof(VkPipelineLayout_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->next=device->layouts;device->layouts=value;
+ *layout=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyPipelineLayout(VkDevice device,VkPipelineLayout layout,
+ const VkAllocationCallbacks*)
+{
+ if(!device || !layout)return;
+ VkPipelineLayout_T** current=&device->layouts;
+ while(*current && *current!=layout)current=&(*current)->next;
+ if(*current){*current=layout->next;free(layout);}
+}
+
+static bool KnownStage(VkDevice device,const VkPipelineShaderStageCreateInfo& stage,
+ VkShaderStageFlagBits expected,const uint32_t* code,size_t bytes)
+{
+ return stage.sType==VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
+  && !stage.pNext && !stage.flags && stage.stage==expected
+  && stage.module && stage.module->device==device
+  && stage.module->bytes==bytes && !memcmp(stage.module->code,code,bytes)
+  && stage.pName && !strcmp(stage.pName,"main") && !stage.pSpecializationInfo;
+}
+
+static bool KnownGraphicsPipeline(VkDevice device,const VkGraphicsPipelineCreateInfo& p)
+{
+ if(p.sType!=VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO || p.pNext || p.flags
+  || p.stageCount!=2 || !p.pStages || !p.layout || p.layout->device!=device
+  || !p.renderPass || p.renderPass->device!=device || p.subpass
+  || p.pTessellationState || p.pDepthStencilState || p.pDynamicState
+  || !p.pVertexInputState || !p.pInputAssemblyState || !p.pViewportState
+  || !p.pRasterizationState || !p.pMultisampleState || !p.pColorBlendState)
+  return false;
+ if(!KnownStage(device,p.pStages[0],VK_SHADER_STAGE_VERTEX_BIT,
+   RenkuKnownSpirv::Vertex,sizeof(RenkuKnownSpirv::Vertex))
+  || !KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
+   RenkuKnownSpirv::Fragment,sizeof(RenkuKnownSpirv::Fragment)))return false;
+ const auto& in=*p.pVertexInputState;
+ if(in.sType!=VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+  || in.pNext || in.flags || in.vertexBindingDescriptionCount!=1
+  || in.vertexAttributeDescriptionCount!=1 || !in.pVertexBindingDescriptions
+  || !in.pVertexAttributeDescriptions)return false;
+ const auto& binding=in.pVertexBindingDescriptions[0];
+ const auto& attr=in.pVertexAttributeDescriptions[0];
+ if(binding.binding || binding.stride!=16 || binding.inputRate!=VK_VERTEX_INPUT_RATE_VERTEX
+  || attr.location || attr.binding || attr.format!=VK_FORMAT_R32G32B32A32_SFLOAT
+  || attr.offset)return false;
+ const auto& assembly=*p.pInputAssemblyState;
+ if(assembly.sType!=VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
+  || assembly.pNext || assembly.flags
+  || assembly.topology!=VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+  || assembly.primitiveRestartEnable)return false;
+ const auto& view=*p.pViewportState;
+ if(view.sType!=VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO
+  || view.pNext || view.flags || view.viewportCount!=1 || !view.pViewports
+  || view.scissorCount!=1 || !view.pScissors)return false;
+ const auto& viewport=view.pViewports[0];
+ const auto& scissor=view.pScissors[0];
+ if(viewport.x || viewport.y || viewport.width!=32 || viewport.height!=32
+  || viewport.minDepth!=0 || viewport.maxDepth!=1
+  || scissor.offset.x || scissor.offset.y || scissor.extent.width!=32
+  || scissor.extent.height!=32)return false;
+ const auto& raster=*p.pRasterizationState;
+ if(raster.sType!=VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO
+  || raster.pNext || raster.flags || raster.depthClampEnable
+  || raster.rasterizerDiscardEnable || raster.depthBiasEnable
+  || raster.polygonMode!=VK_POLYGON_MODE_FILL || raster.cullMode!=VK_CULL_MODE_NONE
+  || raster.frontFace!=VK_FRONT_FACE_COUNTER_CLOCKWISE || raster.lineWidth!=1)
+  return false;
+ const auto& samples=*p.pMultisampleState;
+ if(samples.sType!=VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
+  || samples.pNext || samples.flags || samples.rasterizationSamples!=VK_SAMPLE_COUNT_1_BIT
+  || samples.sampleShadingEnable || samples.alphaToCoverageEnable
+  || samples.alphaToOneEnable || samples.pSampleMask)return false;
+ const auto& blend=*p.pColorBlendState;
+ if(blend.sType!=VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO
+  || blend.pNext || blend.flags || blend.logicOpEnable
+  || blend.attachmentCount!=1 || !blend.pAttachments
+  || blend.pAttachments[0].blendEnable
+  || blend.pAttachments[0].colorWriteMask!=
+   (VK_COLOR_COMPONENT_R_BIT|VK_COLOR_COMPONENT_G_BIT|VK_COLOR_COMPONENT_B_BIT
+    |VK_COLOR_COMPONENT_A_BIT))return false;
+ return true;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
+ const VkGraphicsPipelineCreateInfo* infos,const VkAllocationCallbacks* allocator,
+ VkPipeline* pipelines)
+{
+ if(pipelines && count)for(uint32_t i=0;i<count;i++)pipelines[i]=VK_NULL_HANDLE;
+ if(!device || cache || count!=1 || !infos || !pipelines || allocator
+  || !KnownGraphicsPipeline(device,infos[0]))return VK_ERROR_FEATURE_NOT_PRESENT;
+ VkPipeline_T* value=(VkPipeline_T*)calloc(1,sizeof(VkPipeline_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ native_gpu_resource_command c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_CREATE;
+ c.size=4096;
+ if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0){
+  free(value);return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+ }
+ value->shaderHandle=c.handle;
+ c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_WRITE;
+ c.handle=value->shaderHandle;c.bytes=sizeof(NativeGpu::RcsDrawData::Fs);
+ memcpy(c.data,NativeGpu::RcsDrawData::Fs,c.bytes);
+ if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0){
+  native_gpu_resource_command destroy={};destroy.version=1;
+  destroy.action=NATIVE_GPU_RESOURCE_DESTROY;destroy.handle=value->shaderHandle;
+  ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&destroy,sizeof(destroy));
+  free(value);return VK_ERROR_DEVICE_LOST;
+ }
+ value->device=device;value->pass=infos[0].renderPass;
+ value->next=device->pipelines;device->pipelines=value;
+ *pipelines=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyPipeline(VkDevice device,VkPipeline pipeline,const VkAllocationCallbacks*)
+{
+ if(!device || !pipeline)return;
+ VkPipeline_T** current=&device->pipelines;
+ while(*current && *current!=pipeline)current=&(*current)->next;
+ if(!*current)return;
+ native_gpu_resource_command c={};c.version=1;
+ c.action=NATIVE_GPU_RESOURCE_DESTROY;c.handle=pipeline->shaderHandle;
+ if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0)return;
+ *current=pipeline->next;free(pipeline);
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateCommandPool(VkDevice device,const VkCommandPoolCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkCommandPool* pool)
+{
+ if(pool)*pool=VK_NULL_HANDLE;
+ if(!device || !info || !pool || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO
+  || info->queueFamilyIndex)return VK_ERROR_FEATURE_NOT_PRESENT;
+ VkCommandPool_T* value=(VkCommandPool_T*)calloc(1,sizeof(VkCommandPool_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->next=device->pools;device->pools=value;
+ *pool=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyCommandPool(VkDevice device,VkCommandPool pool,const VkAllocationCallbacks*)
+{
+ if(!device || !pool)return;
+ VkCommandPool_T** current=&device->pools;
+ while(*current && *current!=pool)current=&(*current)->next;
+ if(!*current)return;
+ while(pool->commands){
+  VkCommandBuffer_T* next=pool->commands->next;
+  free(pool->commands);pool->commands=next;
+ }
+ *current=pool->next;free(pool);
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkAllocateCommandBuffers(VkDevice device,const VkCommandBufferAllocateInfo* info,
+ VkCommandBuffer* commands)
+{
+ if(commands && info && info->commandBufferCount)
+  for(uint32_t i=0;i<info->commandBufferCount;i++)commands[i]=VK_NULL_HANDLE;
+ if(!device || !info || !commands || info->pNext
+  || info->sType!=VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
+  || !info->commandPool || info->commandPool->device!=device
+  || info->level!=VK_COMMAND_BUFFER_LEVEL_PRIMARY || info->commandBufferCount!=1)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ VkCommandBuffer_T* value=(VkCommandBuffer_T*)calloc(1,sizeof(VkCommandBuffer_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->pool=info->commandPool;
+ value->next=info->commandPool->commands;info->commandPool->commands=value;
+ commands[0]=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkFreeCommandBuffers(VkDevice device,VkCommandPool pool,uint32_t count,
+ const VkCommandBuffer* commands)
+{
+ if(!device || !pool || pool->device!=device || (count && !commands))return;
+ for(uint32_t i=0;i<count;i++){
+  VkCommandBuffer_T** current=&pool->commands;
+  while(*current && *current!=commands[i])current=&(*current)->next;
+  if(*current){VkCommandBuffer_T* value=*current;*current=value->next;free(value);}
+ }
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkBeginCommandBuffer(VkCommandBuffer command,const VkCommandBufferBeginInfo* info)
+{
+ if(!command || !info || info->pNext || info->flags || info->pInheritanceInfo
+  || info->sType!=VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+  || command->recording || command->complete)return VK_ERROR_INITIALIZATION_FAILED;
+ command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
+ command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+ command->vertex=VK_NULL_HANDLE;
+ command->recording=true;command->inRenderPass=false;
+ command->drawn=false;command->invalid=false;
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdBeginRenderPass(VkCommandBuffer command,const VkRenderPassBeginInfo* info,
+ VkSubpassContents contents)
+{
+ if(!command)return;
+ if(!command->recording || command->inRenderPass || !info || info->pNext
+  || info->sType!=VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO
+  || !info->renderPass || !info->framebuffer
+  || info->renderPass->device!=command->device
+  || info->framebuffer->device!=command->device
+  || info->framebuffer->pass!=info->renderPass
+  || info->renderArea.offset.x || info->renderArea.offset.y
+  || info->renderArea.extent.width!=32 || info->renderArea.extent.height!=32
+  || info->clearValueCount || contents!=VK_SUBPASS_CONTENTS_INLINE){
+  command->invalid=true;return;
+ }
+ command->pass=info->renderPass;command->framebuffer=info->framebuffer;
+ command->inRenderPass=true;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdBindPipeline(VkCommandBuffer command,VkPipelineBindPoint bindPoint,
+ VkPipeline pipeline)
+{
+ if(!command)return;
+ if(!command->recording || !command->inRenderPass
+  || bindPoint!=VK_PIPELINE_BIND_POINT_GRAPHICS || !pipeline
+  || pipeline->device!=command->device || pipeline->pass!=command->pass){
+  command->invalid=true;return;
+ }
+ command->pipeline=pipeline;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdBindVertexBuffers(VkCommandBuffer command,uint32_t first,uint32_t count,
+ const VkBuffer* buffers,const VkDeviceSize* offsets)
+{
+ if(!command)return;
+ if(!command->recording || !command->inRenderPass || first || count!=1
+  || !buffers || !offsets || !buffers[0]
+  || buffers[0]->device!=command->device || !buffers[0]->memory || offsets[0]){
+  command->invalid=true;return;
+ }
+ command->boundVertex=buffers[0];
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
+ uint32_t firstVertex,uint32_t firstInstance)
+{
+ if(!command)return;
+ if(!command->recording || !command->inRenderPass || !command->pipeline
+  || !command->boundVertex || command->drawn || vertices!=3 || instances!=1
+  || firstVertex || firstInstance){command->invalid=true;return;}
+ command->vertex=command->boundVertex;command->drawn=true;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdEndRenderPass(VkCommandBuffer command)
+{
+ if(!command)return;
+ if(!command->recording || !command->inRenderPass || !command->drawn){
+  command->invalid=true;return;
+ }
+ command->inRenderPass=false;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkEndCommandBuffer(VkCommandBuffer command)
+{
+ if(!command || !command->recording || command->inRenderPass
+  || !command->drawn || command->invalid)return VK_ERROR_INITIALIZATION_FAILED;
+ command->recording=false;command->complete=true;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence fence)
+{
+ if(!queue || !queue->device || count!=1 || !submits || fence)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ const VkSubmitInfo& submit=submits[0];
+ if(submit.sType!=VK_STRUCTURE_TYPE_SUBMIT_INFO || submit.pNext
+  || submit.waitSemaphoreCount || submit.signalSemaphoreCount
+  || submit.commandBufferCount!=1 || !submit.pCommandBuffers)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ VkCommandBuffer command=submit.pCommandBuffers[0];
+ if(!command || command->device!=queue->device || !command->complete
+  || !command->framebuffer || !command->pipeline || !command->vertex
+  || !command->vertex->memory || !command->framebuffer->view
+  || !command->framebuffer->view->image
+  || !command->framebuffer->view->image->memory)return VK_ERROR_INITIALIZATION_FAILED;
+ VkDevice device=queue->device;
+ native_gpu_render_command draw={};draw.version=7;draw.mode=NATIVE_GPU_RENDER_DRAW;
+ draw.variant=command->vertex->memory->handle;
+ draw.reserved=command->pipeline->shaderHandle;
+ int status=ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&draw,sizeof(draw));
+ const auto& r=draw.report;
+ uint32_t hash=2166136261u;
+ const uint32_t* pixels=(const uint32_t*)draw.output;
+ for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
+ if(device->trace)fprintf(stderr,
+  "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"version\":%u,"
+  "\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
+  "\"vertex_bo\":%u,\"shader_bo\":%u,\"image_bo\":%u,"
+  "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
+  "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u}\n",
+  status,r.version,r.stage,r.sequence,r.observed_sequence,
+  draw.variant,draw.reserved,command->framebuffer->view->image->memory->handle,
+  r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error);
+ if(status!=0 || r.status || r.version!=7 || r.stage!=NATIVE_GPU_RENDER_STAGE_COMPLETE
+  || !r.known_profile || !r.owner_granted || !r.sequence
+  || r.observed_sequence!=r.sequence || r.nonce!=r.observed_nonce
+  || r.observed_complement!=~r.nonce || r.checked_pixels<500
+  || r.matched_pixels!=r.checked_pixels || hash!=r.target_hash
+  || r.fault || r.engine_stage!=4 || r.engine_error || r.csb_error)
+  return VK_ERROR_DEVICE_LOST;
+ native_gpu_resource_command write={};write.version=1;
+ write.action=NATIVE_GPU_RESOURCE_WRITE;
+ write.handle=command->framebuffer->view->image->memory->handle;
+ write.bytes=sizeof(draw.output);memcpy(write.data,draw.output,write.bytes);
+ if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write))!=0)
+  return VK_ERROR_DEVICE_LOST;
+ return VK_SUCCESS;
+}
+
 #define VK_PROC(name) if(!strcmp(pName,#name))return (PFN_vkVoidFunction)name
 extern "C" VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetDeviceProcAddr(VkDevice device,const char* pName)
@@ -619,6 +996,22 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkUnmapMemory);
  VK_PROC(vkFlushMappedMemoryRanges);
  VK_PROC(vkInvalidateMappedMemoryRanges);
+ VK_PROC(vkCreatePipelineLayout);
+ VK_PROC(vkDestroyPipelineLayout);
+ VK_PROC(vkCreateGraphicsPipelines);
+ VK_PROC(vkDestroyPipeline);
+ VK_PROC(vkCreateCommandPool);
+ VK_PROC(vkDestroyCommandPool);
+ VK_PROC(vkAllocateCommandBuffers);
+ VK_PROC(vkFreeCommandBuffers);
+ VK_PROC(vkBeginCommandBuffer);
+ VK_PROC(vkCmdBeginRenderPass);
+ VK_PROC(vkCmdBindPipeline);
+ VK_PROC(vkCmdBindVertexBuffers);
+ VK_PROC(vkCmdDraw);
+ VK_PROC(vkCmdEndRenderPass);
+ VK_PROC(vkEndCommandBuffer);
+ VK_PROC(vkQueueSubmit);
  return nullptr;
 }
 

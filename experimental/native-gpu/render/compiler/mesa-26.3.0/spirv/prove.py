@@ -37,9 +37,9 @@ def main():
     for stage in ("vert", "frag"):
         source = HERE / f"triangle.{stage}.spvasm"
         spv[stage] = work / f"triangle.{stage}.spv"
-        run([str(tools / "spirv-as"), "--target-env", "vulkan1.2",
+        run([str(tools / "spirv-as"), "--target-env", "vulkan1.0",
              str(source), "-o", str(spv[stage])])
-        run([str(tools / "spirv-val"), "--target-env", "vulkan1.2",
+        run([str(tools / "spirv-val"), "--target-env", "vulkan1.0",
              str(spv[stage])])
 
     source = HERE / "compile_spirv.c"

@@ -1,8 +1,8 @@
 {
   "mesa_version": "26.3.0",
   "harness_sha256": "089ad0287574d70b642067534e7b498ba8aebb6b44ccf7ed96a353b14eefd684",
-  "vertex_spirv_sha256": "123eed3ed146f3283df0610c545e9c7a20c940a383959861268d3fd8752269c3",
-  "fragment_spirv_sha256": "742d9520216f1d4ef3b7905cb115883392f4be1be6832f841917c87a1c0e3854",
+  "vertex_spirv_sha256": "2600423ddbd1575456ed163da45593361c41811e45ba413b53afb9fcdd72315a",
+  "fragment_spirv_sha256": "d1ad98503d1d100de336747219852879f65cf769e72fc63d0a96f3760a0efe60",
   "vs_machine_code_sha256": "cf08637755fa472911ca133f49e64693b5d1f460f2963dd5ec5e44dbb3cdab58",
   "fs_machine_code_sha256": "b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b",
   "same_machine_code_as_hardware_tested_direct_nir": true

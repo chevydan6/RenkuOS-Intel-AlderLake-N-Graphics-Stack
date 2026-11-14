@@ -20,6 +20,8 @@ def category(path, bundle):
         return "khronos_headers"
     if path == bundle + "/vulkan/NativeVulkan.cpp":
         return "driver_source"
+    if path.startswith(bundle + "/render/draw/"):
+        return "intel_draw_fixture"
     if path in (bundle + "/RenderReport.h", bundle + "/ResourceCommand.h"):
         return "native_abi"
     if path.startswith(bundle + "/vulkan/"):
@@ -34,9 +36,14 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     depfiles = sorted(args.deps.glob("*.d"))
-    if {p.name for p in depfiles} != {"libvulkan.d", "api_probe.d"}:
+    names = {p.name for p in depfiles}
+    if names not in ({"libvulkan.d", "api_probe.d"},
+                     {"libvulkan.d", "api_probe.d", "triangle_probe.d"}):
         raise ValueError("expected library and probe GCC depfiles")
     paths = sorted({p for dep in depfiles for p in paths_from_depfile(dep)})
+    if args.bundle + "/render/draw/RcsDrawGenerated.h" in paths:
+        paths.append(args.bundle + "/render/draw/LICENSE-MIT-Intel.txt")
+        paths.sort()
     if any("\n" in p or "\t" in p for p in paths):
         raise ValueError("unsupported path in depfile")
     marker = "RENKU_VULKAN_SOURCE_PATHS"
@@ -63,7 +70,7 @@ def main():
         group = totals.setdefault(entry["category"], {"files": 0, "bytes": 0})
         group["files"] += 1
         group["bytes"] += entry["bytes"]
-    manifest = {"schema": 1, "scope": "native Vulkan ABI library and probe direct compile inputs",
+    manifest = {"schema": 1, "scope": "native Vulkan library and probe direct compile inputs",
                 "host": args.host, "bundle": args.bundle,
                 "depfile_sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                                    for p in depfiles},
