@@ -7,8 +7,8 @@
 #include <string.h>
 
 // This bridge deliberately accepts only the SPIR-V pair already proven on the
-// N100. The compiler API does not yet fully validate arbitrary SPIR-V, and the
-// native owner currently accepts one exact fragment machine program.
+// N100. SPIRV-Tools validates Vulkan 1.0 modules in the compiler, but this
+// pipeline and the native owner still accept one exact fragment program.
 static bool CompileKnownFragment(const uint32_t* vertex,size_t vertexBytes,
  const uint32_t* fragment,size_t fragmentBytes,void* output,size_t capacity)
 {

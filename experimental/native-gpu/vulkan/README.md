@@ -83,9 +83,11 @@ regression path.
 The alternate pipeline compiles the accepted Vulkan 1.0 SPIR-V pair during
 `vkCreateGraphicsPipelines`, verifies both machine programs against the
 hardware-tested bytes, and uploads the compiled fragment program. It rejects
-all other SPIR-V before calling the compiler because the small compiler API
-does not yet provide full SPIR-V validation and the owner accepts one exact
-fragment program. The VM test reaches owner allocation with the accepted pair
+all other SPIR-V before calling the compiler because the owner accepts one
+exact fragment program. The compiler now validates input modules with
+SPIRV-Tools for Vulkan 1.0. The VM test reaches owner allocation with the accepted pair
 and rejects an altered pair before that call. It does not execute GPU work;
 physical N100 rendering still needs validation before this build can replace
-the fixed-program path. [VM evidence](../evidence/native-vulkan-compiler-pipeline-006/README.md).
+the fixed-program path. [Pipeline VM evidence](../evidence/native-vulkan-compiler-pipeline-006/README.md)
+and [validator VM evidence](../evidence/native-intel-validator-007/README.md)
+record the two checkpoints.

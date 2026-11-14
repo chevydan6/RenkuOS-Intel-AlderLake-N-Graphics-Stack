@@ -6,6 +6,7 @@
 #include "IntelSpirvRuntime.h"
 #include <stdio.h>
 #include <string.h>
+#include <spirv-tools/libspirv.h>
 #include "compiler/nir/nir_builder.h"
 #include "compiler/spirv/nir_spirv.h"
 #include "compiler/spirv/spirv_info.h"
@@ -30,6 +31,29 @@ static int valid_spirv(const uint32_t* words,size_t count)
   && words[1]==0x00010000;
 }
 
+int renku_intel_validate_vulkan10(const uint32_t* words,size_t count,
+ char* error,size_t capacity)
+{
+ if(!valid_spirv(words,count))return failure(RENKU_INTEL_COMPILE_INVALID,
+  error,capacity,"invalid Vulkan 1.0 SPIR-V header or size");
+ if(error && capacity)error[0]=0;
+ spv_context context=spvContextCreate(SPV_ENV_VULKAN_1_0);
+ if(!context)return failure(RENKU_INTEL_COMPILE_OUT_OF_MEMORY,error,capacity,
+  "SPIR-V validator allocation failed");
+ spv_diagnostic diagnostic=NULL;
+ spv_result_t result=spvValidateBinary(context,words,count,&diagnostic);
+ if(result!=SPV_SUCCESS && error && capacity)
+  snprintf(error,capacity,"SPIR-V word %zu: %s",
+   diagnostic?diagnostic->position.index:0,
+   diagnostic && diagnostic->error?diagnostic->error:"validation failed");
+ spvDiagnosticDestroy(diagnostic);
+ spvContextDestroy(context);
+ if(result==SPV_SUCCESS)return RENKU_INTEL_COMPILE_OK;
+ if(result==SPV_ERROR_OUT_OF_MEMORY)return RENKU_INTEL_COMPILE_OUT_OF_MEMORY;
+ if(result==SPV_ERROR_INTERNAL)return RENKU_INTEL_COMPILE_FAILED;
+ return RENKU_INTEL_COMPILE_INVALID;
+}
+
 static void fill_stage(RenkuIntelStage* out,const struct brw_stage_prog_data* p)
 {
  out->bytes=p->program_size;out->grf_used=p->grf_used;
@@ -46,6 +70,10 @@ int renku_intel_compile_vulkan_pair(const uint32_t* vertex,size_t vertex_words,
   || !valid_spirv(vertex,vertex_words) || !valid_spirv(fragment,fragment_words))
   return failure(RENKU_INTEL_COMPILE_INVALID,error,error_capacity,
    "invalid Vulkan 1.0 SPIR-V or output");
+ int validation=renku_intel_validate_vulkan10(vertex,vertex_words,error,error_capacity);
+ if(validation)return validation;
+ validation=renku_intel_validate_vulkan10(fragment,fragment_words,error,error_capacity);
+ if(validation)return validation;
  if(error && error_capacity)error[0]=0;
  process_intel_debug_variable();
  void* ctx=ralloc_context(NULL);

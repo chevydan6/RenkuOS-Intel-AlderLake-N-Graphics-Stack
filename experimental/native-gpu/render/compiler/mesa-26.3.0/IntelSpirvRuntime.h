@@ -37,8 +37,12 @@ typedef struct {
  RenkuIntelStage vertex, fragment;
 } RenkuIntelCompilePair;
 
+/* Validate a Vulkan 1.0 SPIR-V module before NIR translation. */
+int renku_intel_validate_vulkan10(const uint32_t* words, size_t word_count,
+ char* error, size_t error_capacity);
+
 /* Input sizes are in 32-bit words. Caller supplies valid Vulkan 1.0 SPIR-V;
- * this small adapter checks the header and bounds, not every SPIR-V rule.
+ * the native validator checks the module before NIR translation.
  * Caller owns the output code buffers.
  * Returns 0 on success; a negative status on invalid input, compilation
  * failure, unsupported hardware profile, or insufficient output capacity.

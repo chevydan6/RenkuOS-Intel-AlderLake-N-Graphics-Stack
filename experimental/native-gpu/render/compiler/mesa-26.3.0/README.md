@@ -45,12 +45,20 @@ harness does not access a GPU or require Linux kernel graphics services at
 runtime. A subsequent [native Haiku compiler proof](../../../evidence/native-haiku-compiler-vm-003/README.md)
 built both this direct-NIR harness and a Vulkan SPIR-V harness inside a
 disposable RenkuOS VM. Their outputs matched the host artifacts byte for byte.
-The native compiler is not yet integrated into `libvulkan.so`. Source
-attribution and MIT license are retained in `native_rcs_shaders.c` and
+Source attribution and MIT license are retained in `native_rcs_shaders.c` and
 `LICENSE.MIT`.
 
 An [in-process native compiler API](../../../evidence/native-intel-compiler-api-005/README.md)
 now accepts the same validated Vulkan 1.0 SPIR-V pair in memory and returns
 the byte-identical N100 programs and selected Intel stage metadata. It is a
 separate shared library; the Vulkan pipeline path still uses its known-good
-fixture until runtime integration and hardware testing are complete.
+fixture in the default physical build. An [alternate pipeline build](../../../evidence/native-vulkan-compiler-pipeline-006/README.md)
+compiles the known SPIR-V pair during pipeline creation and compares both
+programs with the proven bytes. The compiler library now links native
+SPIRV-Tools for Vulkan 1.0 module validation before NIR translation. Build it
+with `-Dspirv-tools=disabled` so Mesa's unrelated optional SPIRV-Tools paths
+remain out of the selected compiler closure; the explicit validator dependency
+in `prepare-haiku.py` still remains required.
+The [native validator checkpoint](../../../evidence/native-intel-validator-007/README.md)
+records package hashes, invalid-module rejection, unchanged machine code, and
+the new runtime library dependency.

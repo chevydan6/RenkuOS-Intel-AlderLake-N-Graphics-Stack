@@ -76,13 +76,19 @@ executable('native-spirv-shaders', 'native_spirv/compile_spirv.c',
 """)
     runtime_marker = "# Native in-process Intel SPIR-V compiler."
     content = meson.read_text()
-    if runtime_marker not in content:
-        meson.write_text(content + "\n" + runtime_marker + "\n" + """
-shared_library('renku_intel_compiler', 'native_runtime/intel_spirv_runtime.c',
+    runtime_old = """shared_library('renku_intel_compiler', 'native_runtime/intel_spirv_runtime.c',
   include_directories: [inc_include, inc_src, inc_intel, inc_intel_compiler],
   dependencies: [idep_intel_compiler_brw, idep_intel_dev],
-  install: false)
-""")
+  install: false)"""
+    runtime_new = """shared_library('renku_intel_compiler', 'native_runtime/intel_spirv_runtime.c',
+  include_directories: [inc_include, inc_src, inc_intel, inc_intel_compiler],
+  dependencies: [idep_intel_compiler_brw, idep_intel_dev,
+                 dependency('SPIRV-Tools-shared')],
+  install: false)"""
+    if runtime_marker not in content:
+        meson.write_text(content + "\n" + runtime_marker + "\n" + runtime_new + "\n")
+    elif runtime_new not in content:
+        replace_once(meson, runtime_old, runtime_new)
     copy_probe(HERE / "native_rcs_shaders.c", brw / "native_rcs_shaders.c")
     copy_probe(HERE / "spirv/compile_spirv.c", brw / "native_spirv/compile_spirv.c")
     copy_file(HERE / "intel_spirv_runtime.c", brw / "native_runtime/intel_spirv_runtime.c")

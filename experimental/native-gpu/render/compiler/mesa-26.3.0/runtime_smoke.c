@@ -29,6 +29,18 @@ int main(int argc,char** argv)
  uint32_t invalid[5]={0};
  if(renku_intel_compile_vulkan_pair(invalid,5,fs,fn,&result,error,sizeof(error))
   !=RENKU_INTEL_COMPILE_INVALID || !error[0])return 9;
+ uint32_t* malformed=malloc(vn*4);
+ if(!malformed)return 11;
+ memcpy(malformed,vs,vn*4);
+ malformed[5]=0x00000011; /* zero-word OpCapability, header remains valid */
+ if(renku_intel_validate_vulkan10(vs,vn,error,sizeof(error))
+  !=RENKU_INTEL_COMPILE_OK || error[0])return 12;
+ if(renku_intel_validate_vulkan10(malformed,vn,error,sizeof(error))
+  !=RENKU_INTEL_COMPILE_INVALID || !error[0])return 13;
+ printf("validator rejected malformed SPIR-V: %s\n",error);
+ if(renku_intel_compile_vulkan_pair(malformed,vn,fs,fn,&result,error,sizeof(error))
+  !=RENKU_INTEL_COMPILE_INVALID || !error[0])return 14;
+ free(malformed);
  int status=renku_intel_compile_vulkan_pair(vs,vn,fs,fn,&result,error,sizeof(error));
  if(status){fprintf(stderr,"compile status=%d: %s\n",status,error);return 4;}
  RenkuIntelCompilePair tooSmall=result;tooSmall.fragment.capacity=1;
