@@ -104,3 +104,11 @@ at the public BO. Sixty-four N100 hardware draws and all v1–v4 64-draw
 controls passed; see `evidence/rcs-public-batch-001/`. This proves a bounded
 userspace command-buffer path. It does not satisfy ANV's general command
 submission, sync, or VM-binding contract.
+
+The installed v5 owner/bridge compile inputs are now hash-inventoried from
+four GCC depfiles. The 140 recorded files total 663,470 bytes, including
+311,805 bytes of Haiku SDK headers and a generated owner translation unit
+that duplicates canonical owner content. The scope and complete manifest are
+in `evidence/native-closure-001/`. This is a current native RCS input baseline,
+not a Vulkan closure or model-token count. Mesa ANV's selected host compile
+inputs above remain a separate, much larger measurement.

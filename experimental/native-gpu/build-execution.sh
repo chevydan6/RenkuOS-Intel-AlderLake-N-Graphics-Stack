@@ -8,6 +8,7 @@ private=/boot/system/develop/headers/private
 graphics="$owner_source/headers/private/graphics"
 mkdir -p build
 flags=(-std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC
+ -MMD
  -ffreestanding -fno-builtin -fno-exceptions -fno-rtti -fno-use-cxa-atexit
  -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1
  -I. -Iinclude -I"$owner_source/build/config_headers"
