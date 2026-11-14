@@ -1,0 +1,7 @@
+green=00000000 status=0 error= vs=128 fs=208 scratch=0/0 reloc=0/0 vs_exact=1 other_diff=0 immediates=00000000/00000000
+green=3dcccccd status=0 error= vs=128 fs=208 scratch=0/0 reloc=0/0 vs_exact=1 other_diff=0 immediates=3dcccccd/3dcccccd
+green=3e800000 status=0 error= vs=128 fs=208 scratch=0/0 reloc=0/0 vs_exact=1 other_diff=0 immediates=3e800000/3e800000
+green=3f000000 status=0 error= vs=128 fs=208 scratch=0/0 reloc=0/0 vs_exact=1 other_diff=0 immediates=3f000000/3f000000
+green=3f400000 status=0 error= vs=128 fs=208 scratch=0/0 reloc=0/0 vs_exact=1 other_diff=0 immediates=3f400000/3f400000
+green=3f666666 status=0 error= vs=128 fs=208 scratch=0/0 reloc=0/0 vs_exact=1 other_diff=0 immediates=3f666666/3f666666
+green=3f800000 status=0 error= vs=128 fs=208 scratch=0/0 reloc=0/0 vs_exact=1 other_diff=12 immediates=3f800000/3f800000
