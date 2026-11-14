@@ -94,7 +94,8 @@ appropriate. Linux-only interface scaffolding can stay archived.
 
 ## New code saved in this handoff
 
-[experimental/native-gpu](experimental/native-gpu) is the native continuation:
+[experimental/native-gpu](https://github.com/chevydan6/haiku-intel-gpu/tree/codex/i915-native-adaptation/experimental/native-gpu)
+on the continuation branch contains the new code:
 
 - RequestImage.h composes the existing context, descriptor, HWSP and nonce helpers
   into a fixed Gen12 BCS0 request image. It adds a stalling MI_FLUSH_DW before the
@@ -132,6 +133,14 @@ submit these borrowed objects and then reuse its ordinary cleanup. The execution
 owner/ABI must retain the complete request until retirement or established reset.
 
 ## Next work, in order
+
+Intel documentation inventory: [docs/INTEL_GPU_DOCUMENTATION.md](docs/INTEL_GPU_DOCUMENTATION.md).
+There is no complete cached Intel N100 GPU manual set: the local PDF search found
+zero PDFs. The repository's existing detailed research is source-pinned i915/native
+implementation evidence. Official Intel public PRM/platform datasheet links were
+located, but related-platform manuals must not be treated as N100-specific without
+checking applicability. Preserve this gap and cross-check the fields needed by the
+native execution path; do not claim all Intel documentation is already present.
 
 1. Build the new native preparation module against the actual installed SDK,
    reusing the existing mapping owner's headers and native_page_bridge.cpp.
