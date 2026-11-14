@@ -42,3 +42,8 @@ version exceeded SPIR-V 1.0. Reassembling the same sources with the Vulkan
 proof confirms both modules still compile to the exact same hardware-tested
 VS/FS bytes. The native Vulkan triangle application now uses these Vulkan
 1.0 modules.
+
+The [compiler closure measurement](../../../../evidence/spirv-compiler-closure-001/README.md)
+builds this SPIR-V harness with `--gc-sections` and no `libdrm` link. The
+vertex and fragment binaries remain byte-identical. Its linker and include
+inventory measures the current host build, not a minimal Haiku-native port.

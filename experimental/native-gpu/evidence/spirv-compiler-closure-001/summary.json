@@ -1,0 +1,21 @@
+{
+  "mesa_version": "26.3.0",
+  "target": "Vulkan SPIR-V -> NIR -> N100 Intel code harness",
+  "linked_objects": 354,
+  "compiled_sources": 318,
+  "files": 1018,
+  "file_counts": {
+    "external": 433,
+    "generated": 49,
+    "mesa": 535,
+    "project": 1
+  },
+  "source_bytes": {
+    "external": 6074136,
+    "generated": 62392205,
+    "mesa": 14150712,
+    "project": 8616
+  },
+  "requires_libdrm": false,
+  "note": "Host harness link/includes; excludes generators not in dep closure. Counts full files, including inactive code, and is not a minimal port. Section GC removes uncalled DRM discovery from the executable."
+}
