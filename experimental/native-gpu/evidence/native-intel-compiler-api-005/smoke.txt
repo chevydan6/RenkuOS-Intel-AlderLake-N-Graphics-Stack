@@ -1,0 +1,6 @@
+native Intel compiler API: VS=128 FS=208
+native Intel compiler API: VS=128 FS=208
+cf08637755fa472911ca133f49e64693b5d1f460f2963dd5ec5e44dbb3cdab58  vs.bin
+b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b  fs.bin
+cf08637755fa472911ca133f49e64693b5d1f460f2963dd5ec5e44dbb3cdab58  half-vs.bin
+ea9fadfaeaa943979f55e30be1b48dc0732b041061699819d34f2bca2e7ef2aa  half-fs.bin

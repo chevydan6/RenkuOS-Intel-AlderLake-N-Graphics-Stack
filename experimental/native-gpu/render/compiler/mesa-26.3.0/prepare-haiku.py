@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 # Copyright 2026 Native GPU validation contributors
-"""Add isolated native shader compiler probes to an extracted Mesa 26.3.0 tree."""
+"""Add native shader compiler probes and runtime API to Mesa 26.3.0."""
 
 import hashlib
 from pathlib import Path
@@ -34,13 +34,21 @@ def copy_probe(source: Path, destination: Path) -> None:
     header.write_text(expected)
 
 
+def copy_file(source: Path, destination: Path) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists() and destination.read_bytes() != source.read_bytes():
+        raise SystemExit(f"refusing to replace changed runtime source: {destination}")
+    shutil.copyfile(source, destination)
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         raise SystemExit("usage: prepare-haiku.py EXTRACTED_MESA_26_3_0_TREE")
     root = Path(sys.argv[1]).resolve()
     if not (root / "VERSION").exists() or (root / "VERSION").read_text().strip() != "26.3.0":
         raise SystemExit("expected an extracted Mesa 26.3.0 source tree")
-    for source in (HERE / "native_rcs_shaders.c", HERE / "spirv/compile_spirv.c"):
+    for source in (HERE / "native_rcs_shaders.c", HERE / "spirv/compile_spirv.c",
+                   HERE / "intel_spirv_runtime.c", HERE / "IntelSpirvRuntime.h"):
         if not source.is_file():
             raise SystemExit(f"missing compiler probe: {source}")
 
@@ -66,9 +74,20 @@ executable('native-spirv-shaders', 'native_spirv/compile_spirv.c',
   dependencies: [idep_intel_compiler_brw, idep_intel_dev],
   install: false)
 """)
+    runtime_marker = "# Native in-process Intel SPIR-V compiler."
+    content = meson.read_text()
+    if runtime_marker not in content:
+        meson.write_text(content + "\n" + runtime_marker + "\n" + """
+shared_library('renku_intel_compiler', 'native_runtime/intel_spirv_runtime.c',
+  include_directories: [inc_include, inc_src, inc_intel, inc_intel_compiler],
+  dependencies: [idep_intel_compiler_brw, idep_intel_dev],
+  install: false)
+""")
     copy_probe(HERE / "native_rcs_shaders.c", brw / "native_rcs_shaders.c")
     copy_probe(HERE / "spirv/compile_spirv.c", brw / "native_spirv/compile_spirv.c")
-    print(f"prepared native Mesa compiler probes: {root}")
+    copy_file(HERE / "intel_spirv_runtime.c", brw / "native_runtime/intel_spirv_runtime.c")
+    copy_file(HERE / "IntelSpirvRuntime.h", brw / "native_runtime/IntelSpirvRuntime.h")
+    print(f"prepared native Mesa compiler components: {root}")
 
 
 if __name__ == "__main__":

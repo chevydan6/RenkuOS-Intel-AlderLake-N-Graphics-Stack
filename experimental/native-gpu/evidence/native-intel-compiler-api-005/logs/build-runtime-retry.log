@@ -1,0 +1,4 @@
+ninja: Entering directory `build-compiler'
+[1/6] Generating src/git_sha1.h with a custom command
+[2/3] Compiling C object src/intel/compiler/brw/librenku_intel_compiler.so.p/native_runtime_intel_spirv_runtime.c.o
+[3/3] Linking target src/intel/compiler/brw/librenku_intel_compiler.so

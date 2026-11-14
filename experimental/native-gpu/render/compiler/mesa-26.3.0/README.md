@@ -48,3 +48,9 @@ disposable RenkuOS VM. Their outputs matched the host artifacts byte for byte.
 The native compiler is not yet integrated into `libvulkan.so`. Source
 attribution and MIT license are retained in `native_rcs_shaders.c` and
 `LICENSE.MIT`.
+
+An [in-process native compiler API](../../../evidence/native-intel-compiler-api-005/README.md)
+now accepts the same validated Vulkan 1.0 SPIR-V pair in memory and returns
+the byte-identical N100 programs and selected Intel stage metadata. It is a
+separate shared library; the Vulkan pipeline path still uses its known-good
+fixture until runtime integration and hardware testing are complete.

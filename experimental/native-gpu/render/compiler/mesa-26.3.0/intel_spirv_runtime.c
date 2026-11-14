@@ -1,0 +1,128 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright 2026 Native GPU validation contributors
+ * Compiler setup adapted from Mesa 26.3.0 blorp_brw.c:
+ * Copyright 2012 Intel Corporation, MIT.
+ */
+#include "IntelSpirvRuntime.h"
+#include <stdio.h>
+#include <string.h>
+#include "compiler/nir/nir_builder.h"
+#include "compiler/spirv/nir_spirv.h"
+#include "compiler/spirv/spirv_info.h"
+#include "brw/brw_compiler.h"
+#include "brw/brw_nir.h"
+#include "dev/intel_device_info.h"
+#include "dev/intel_debug.h"
+#include "util/ralloc.h"
+
+static void compiler_log(void* data, unsigned* id, const char* format, ...)
+{(void)data;(void)id;(void)format;}
+
+static int failure(int code, char* error, size_t capacity, const char* message)
+{
+ if(error && capacity)snprintf(error,capacity,"%s",message ? message : "compiler failed");
+ return code;
+}
+
+static int valid_spirv(const uint32_t* words,size_t count)
+{
+ return words && count>=5 && count<=262144 && words[0]==0x07230203
+  && words[1]==0x00010000;
+}
+
+static void fill_stage(RenkuIntelStage* out,const struct brw_stage_prog_data* p)
+{
+ out->bytes=p->program_size;out->grf_used=p->grf_used;
+ out->dispatch_grf_start_reg=p->dispatch_grf_start_reg;
+ out->total_scratch=p->total_scratch;out->num_relocs=p->num_relocs;
+}
+
+int renku_intel_compile_vulkan_pair(const uint32_t* vertex,size_t vertex_words,
+ const uint32_t* fragment,size_t fragment_words,
+ RenkuIntelCompilePair* output,char* error,size_t error_capacity)
+{
+ if(!output || output->abi_version!=RENKU_INTEL_COMPILER_ABI
+  || !output->vertex.code || !output->fragment.code
+  || !valid_spirv(vertex,vertex_words) || !valid_spirv(fragment,fragment_words))
+  return failure(RENKU_INTEL_COMPILE_INVALID,error,error_capacity,
+   "invalid Vulkan 1.0 SPIR-V or output");
+ if(error && error_capacity)error[0]=0;
+ process_intel_debug_variable();
+ void* ctx=ralloc_context(NULL);
+ if(!ctx)return failure(RENKU_INTEL_COMPILE_OUT_OF_MEMORY,error,error_capacity,
+  "compiler allocation failed");
+ struct intel_device_info dev;
+ if(!intel_get_device_info_from_pci_id(0x46d1,&dev)
+  || dev.ver!=12 || dev.verx10!=120){
+  ralloc_free(ctx);return failure(RENKU_INTEL_COMPILE_WRONG_DEVICE,error,error_capacity,
+   "unexpected N100 device profile");
+ }
+ struct brw_compiler* compiler=brw_compiler_create(ctx,&dev);
+ if(!compiler){ralloc_free(ctx);return failure(RENKU_INTEL_COMPILE_OUT_OF_MEMORY,
+  error,error_capacity,"compiler allocation failed");}
+ compiler->shader_debug_log=compiler_log;compiler->shader_perf_log=compiler_log;
+ glsl_type_singleton_init_or_ref();
+ int status=0;const char* message=NULL;
+ struct spirv_capabilities caps={0};caps.Shader=true;
+ struct spirv_to_nir_options spv={0};
+ spv.environment=NIR_SPIRV_VULKAN;spv.capabilities=&caps;
+ spv.ubo_addr_format=nir_address_format_32bit_index_offset;
+ spv.ssbo_addr_format=nir_address_format_32bit_index_offset;
+ spv.phys_ssbo_addr_format=nir_address_format_64bit_global;
+ spv.push_const_addr_format=nir_address_format_32bit_offset;
+ spv.shared_addr_format=nir_address_format_32bit_offset;
+ spv.task_payload_addr_format=nir_address_format_32bit_offset;
+ nir_shader* vs=spirv_to_nir(vertex,vertex_words,NULL,MESA_SHADER_VERTEX,"main",
+  &spv,&compiler->nir_options[MESA_SHADER_VERTEX]);
+ nir_shader* fs=spirv_to_nir(fragment,fragment_words,NULL,MESA_SHADER_FRAGMENT,"main",
+  &spv,&compiler->nir_options[MESA_SHADER_FRAGMENT]);
+ if(!vs || !fs){status=RENKU_INTEL_COMPILE_FAILED;message="SPIR-V translation failed";goto done;}
+ struct brw_nir_compiler_opts opts={0};
+ brw_preprocess_nir(compiler,vs,&opts);
+ nir_shader_gather_info(vs,nir_shader_get_entrypoint(vs));
+ struct brw_vs_prog_data vp={0};vp.inputs_read=vs->info.inputs_read;
+ brw_compute_vue_map(&dev,&vp.base.vue_map,vs->info.outputs_written,
+  vs->info.separate_shader,1);
+ struct brw_vs_prog_key vk={0};
+ struct brw_compile_params vparams={.mem_ctx=ctx,.nir=vs,.key=&vk.base,
+  .prog_data=&vp.base.base};
+ const unsigned* vcode=brw_compile(compiler,&vparams);
+ if(!vcode){status=RENKU_INTEL_COMPILE_FAILED;
+  message=vparams.error_str?vparams.error_str:"vertex compile failed";goto done;}
+ brw_preprocess_nir(compiler,fs,&opts);
+ nir_shader_gather_info(fs,nir_shader_get_entrypoint(fs));
+ struct brw_fs_prog_data fp={0};
+ struct brw_fs_prog_key fk={0};fk.nr_color_regions=1;fk.multisample_fbo=INTEL_NEVER;
+ struct brw_compile_params fparams={.mem_ctx=ctx,.nir=fs,.key=&fk.base,
+  .prog_data=&fp.base,.fs={.max_polygons=1}};
+ const unsigned* fcode=brw_compile(compiler,&fparams);
+ if(!fcode){status=RENKU_INTEL_COMPILE_FAILED;
+  message=fparams.error_str?fparams.error_str:"fragment compile failed";goto done;}
+ if(!vp.base.base.program_size || !fp.base.program_size
+  || vp.base.base.total_scratch || fp.base.total_scratch
+  || vp.base.base.num_relocs || fp.base.num_relocs){
+  status=RENKU_INTEL_COMPILE_UNSUPPORTED;
+  message="unsupported shader scratch or relocations";goto done;
+ }
+ if(vp.base.base.program_size>output->vertex.capacity
+  || fp.base.program_size>output->fragment.capacity){
+  status=RENKU_INTEL_COMPILE_OUTPUT_TOO_SMALL;
+  message="output code buffer too small";goto done;
+ }
+ RenkuIntelStage v={0},f={0};
+ v.code=output->vertex.code;v.capacity=output->vertex.capacity;
+ f.code=output->fragment.code;f.capacity=output->fragment.capacity;
+ fill_stage(&v,&vp.base.base);fill_stage(&f,&fp.base);
+ v.urb_read_length=vp.base.urb_read_length;
+ v.urb_entry_size=vp.base.urb_entry_size;v.dispatch_mode=vp.base.dispatch_mode;
+ f.dispatch_8=fp.dispatch_8;f.dispatch_16=fp.dispatch_16;
+ f.dispatch_32=fp.dispatch_32;f.prog_offset_16=fp.prog_offset_16;
+ f.prog_offset_32=fp.prog_offset_32;
+ f.dispatch_grf_start_reg_16=fp.dispatch_grf_start_reg_16;
+ f.dispatch_grf_start_reg_32=fp.dispatch_grf_start_reg_32;
+ memcpy(v.code,vcode,v.bytes);memcpy(f.code,fcode,f.bytes);
+ output->vertex=v;output->fragment=f;
+done:
+ if(status)failure(status,error,error_capacity,message);
+ glsl_type_singleton_decref();ralloc_free(ctx);return status;
+}
