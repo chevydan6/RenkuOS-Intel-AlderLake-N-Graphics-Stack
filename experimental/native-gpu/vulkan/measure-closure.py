@@ -22,6 +22,8 @@ def category(path, bundle):
         return "driver_source"
     if path.startswith(bundle + "/render/draw/"):
         return "intel_draw_fixture"
+    if path.startswith(bundle + "/render/"):
+        return "native_render_headers"
     if path in (bundle + "/RenderReport.h", bundle + "/ResourceCommand.h"):
         return "native_abi"
     if path.startswith(bundle + "/vulkan/"):
@@ -37,9 +39,12 @@ def main():
     args = parser.parse_args()
     depfiles = sorted(args.deps.glob("*.d"))
     names = {p.name for p in depfiles}
-    required = {"libvulkan.d", "api_probe.d"}
-    optional = {"triangle_probe.d", "fence_probe.d", "command_reset_probe.d"}
-    if not required.issubset(names) or not names.issubset(required | optional):
+    required = {"libvulkan.d"}
+    api_probes = {"api_probe.d", "compiler_pipeline_api_probe.d"}
+    optional = {"triangle_probe.d", "fence_probe.d", "command_reset_probe.d",
+                "compiler_pipeline_probe.d"}
+    if (not required.issubset(names) or not (names & api_probes)
+            or not names.issubset(required | api_probes | optional)):
         raise ValueError("expected library and probe GCC depfiles")
     paths = sorted({p for dep in depfiles for p in paths_from_depfile(dep)})
     if args.bundle + "/render/draw/RcsDrawGenerated.h" in paths:
