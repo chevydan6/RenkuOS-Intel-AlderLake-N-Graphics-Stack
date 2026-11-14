@@ -1,5 +1,8 @@
 # RenkuOS Intel GPU development
 
+For the active Linux i915 port, start with the
+[cross-computer handoff](I915_PORT_HANDOFF.md).
+
 Astra High #2: private Intel N100 / Alder Lake-N graphics development for RenkuOS,
 with independent Terra research and validation. Target: `8086:46d1`, revision 00.
 Haiku research, patches and tests are preserved on `gpu/alderlake-n`.
