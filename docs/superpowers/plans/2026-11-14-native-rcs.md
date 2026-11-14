@@ -68,14 +68,14 @@ Interface: host executable `native-rcs-shaders OUTPUT_DIRECTORY` produces
 Metadata records Mesa/archive identity, key fields, program sizes, dispatch
 width/offsets, GRF starts, VUE/URB layout, inputs/barycentrics, scratch and relocs.
 
-- [ ] Verify upstream Mesa26.1.8 archive checksum and prepare isolated build tools.
-- [ ] Write artifact checks that fail with no real compiled shader artifacts.
-- [ ] Build a vec4-position pass-through VS and constant-color FS with NIR builder,
+- [x] Verify upstream Mesa26.1.8 archive checksum and prepare isolated build tools.
+- [x] Write artifact checks that fail with no real compiled shader artifacts.
+- [x] Build a vec4-position pass-through VS and constant-color FS with NIR builder,
   `brw_preprocess_nir`, VS VUE setup and `brw_compile_vs/fs`. Use the Mesa Meson
   dependency graph, not a hand-maintained compiler object list.
-- [ ] Reject unresolved relocations/nonzero scratch for this initial shader pair;
+- [x] Reject unresolved relocations/nonzero scratch for this initial shader pair;
   serialize scalar fields/arrays explicitly, never raw program-data structs.
-- [ ] Compile and check actual nonempty Gen12 code and reproducible metadata;
+- [x] Compile and check actual nonempty Gen12 code and reproducible metadata;
   review independently and commit. This proves compilation only, not execution.
 
 ## Task3: ownership, resource layout and RCS engine initialization
@@ -84,8 +84,9 @@ Files: owner generation/integration, new render engine/profile headers and
 `render/OWNERSHIP.md`. Add only the narrow handoff needed after source audit.
 
 - [ ] Trace matching native display source and all primary-ring writers; record
-  an enforceable exclusion contract before reset. Pinned accelerant currently
-  programs primary RCS ring at0x2030 and exposes command producers.
+  an enforceable exclusion contract before reset. The matching native ALD display profile already skips legacy ring allocation,
+  setup/teardown and producer hooks; use that audited profile, not upstream
+  callsites alone, to define private admission.
 - [ ] Classify engine-local/shared GT stores and synchronize shared changes.
 - [ ] Implement a bounded admission check that rejects missing/stale ownership;
   verify rejection without publishing GPU work.
@@ -145,3 +146,6 @@ active for any remaining user-requested Mesa integration.
  31ec677ca24e7ed86e35f367f40a29d3d9f51c06. No RCS hardware changes yet.
 
 - Task1 implemented and independently reviewed: exact pinned register/WA image and strict C++11 fixture pass; CPU construction only. No RCS hardware operation.
+
+- Task2 complete: real Mesa Intel compiler emits VS176bytes/FS112bytes; clean recipe, repeated byte-identical artifacts and focused checker regressions pass. Review fixed invalid VUE/SIMD-offset acceptance, scoped re-review clean.
+- Task3 audit correction: matching native display sources already exclude ALD legacy ring writers; no display patch inferred. CPU ownership policy and hardware operation profile are subcomponents, not hardware admission proof.
