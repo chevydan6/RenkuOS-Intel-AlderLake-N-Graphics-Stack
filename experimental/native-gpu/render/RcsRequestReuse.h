@@ -65,6 +65,30 @@ public:
   }
   check=r;return r.checked && r.matched==r.checked;
  }
+ static bool Inspect64(uint32_t* const* pages,unsigned variant,Check& check,
+  uint32_t renderedPixel=RcsDrawImage::RenderedPixel) {
+  if(!pages || variant>=4)return false;
+  for(unsigned p=6;p<10;p++)if(!pages[p])return false;
+  Check r={0,0,2166136261u,0,0};
+  r.interior=((RcsDrawImage::InteriorY(variant)*2)<<16)
+   |(RcsDrawImage::InteriorX(variant)*2);
+  r.exterior=((RcsDrawImage::ExteriorY(variant)*2)<<16)
+   |(RcsDrawImage::ExteriorX(variant)*2);
+  for(unsigned y=0;y<64;y++)for(unsigned x=0;x<64;x++){
+   unsigned index=y*64+x;
+   uint32_t observed=pages[6+index/1024][index%1024];
+   r.hash=(r.hash^observed)*16777619u;
+   bool outer=x<6 || x>=58 || y<6 || y>=58;
+   bool central=x>=12 && x<52 && y>=12 && y<52;
+   int diagonal=(variant&1)?int(x+y)-63:int(x)-int(y);
+   bool clearEdge=diagonal<=-6 || diagonal>=6;
+   if(!outer && !(central && clearEdge))continue;
+   bool inside=variant<2?diagonal>0:diagonal<0;
+   uint32_t expected=!outer && inside?renderedPixel:RcsDrawImage::Poison;
+   ++r.checked;r.matched+=observed==expected;
+  }
+  check=r;return r.checked>=2000 && r.matched==r.checked;
+ }
 };
 }
 #endif

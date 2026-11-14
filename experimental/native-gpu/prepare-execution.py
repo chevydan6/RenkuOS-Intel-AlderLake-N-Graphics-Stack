@@ -53,7 +53,7 @@ assert text.count(hook)==1
 text=text.replace(hook,'static bool sNativeExecutionActive;\nstatic bool NativeHandshakePciStable(void* data);\n'+hook+'\tif(sNativeExecutionActive)return NativeHandshakePciStable(data);\n')
 text=text.replace(anchor,'static status_t ObservationOperations(int32 operation, ...);\n#include "NativeExecution.inc"\n\n'+anchor)
 anchor='module_info* modules[] = {\n';assert text.count(anchor)==1
-text=text.replace(anchor,anchor+'\t(module_info*)&sNativeExecutionModule,\n\t(module_info*)&sNativeRenderModule,\n\t(module_info*)&sNativeResourceModule,\n')
+text=text.replace(anchor,anchor+'\t(module_info*)&sNativeExecutionModule,\n\t(module_info*)&sNativeRenderModule,\n\t(module_info*)&sNativeRenderLargeModule,\n\t(module_info*)&sNativeResourceModule,\n')
 (out/'IntelMemoryOwner-execution.cpp').write_text(text)
 (out/'baseline-owner.sha256').write_text(expected+'  /boot/home/i915-mapping-002/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp\n')
 (out/'payload.sha256').write_text(''.join(hashlib.sha256(f.read_bytes()).hexdigest()+'  '+str(f.relative_to(out))+'\n' for f in sorted(out.rglob('*')) if f.is_file()))

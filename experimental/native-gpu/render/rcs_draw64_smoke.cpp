@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Offline image construction check against the Mesa 26.3 64x64 packet artifact.
 #include "RcsDrawImage64.h"
+#include "RcsRequestReuse.h"
 #include "draw/RcsDrawGenerated64.h"
 #include <assert.h>
 #include <stdio.h>
@@ -33,6 +34,27 @@ int main()
   for(unsigned word=0;word<1024;word++)assert(pages[10][word]==0);
   assert(pages[3][3]==0x3f800000 && pages[3][7]==0x3f800000
    && pages[3][11]==0x3f800000);
+  const int corner[4][2]={{8,8},{56,8},{56,56},{8,56}};
+  for(int y=0;y<64;y++)for(int x=0;x<64;x++){
+   bool inside=true;
+   for(unsigned edge=0;edge<3;edge++){
+    const int* a=corner[(variant+edge)&3];
+    const int* b=corner[(variant+(edge+1)%3)&3];
+    int cross=(b[0]-a[0])*(2*y+1-2*a[1])
+     -(b[1]-a[1])*(2*x+1-2*a[0]);
+    if(cross<=0)inside=false;
+   }
+   if(inside){unsigned index=unsigned(y*64+x);
+    pages[6+index/1024][index%1024]=NativeGpu::RcsDrawImage::RenderedPixel;}
+  }
+  NativeGpu::RcsRequestReuse::Check check={};
+  bool matched=NativeGpu::RcsRequestReuse::Inspect64(pages,variant,check);
+  if(!matched)fprintf(stderr,"variant=%u checked=%u matched=%u interior=%u,%u\n",
+   variant,check.checked,check.matched,check.interior&65535,check.interior>>16);
+  assert(matched);
+  unsigned inside=(check.interior>>16)*64+(check.interior&65535);
+  pages[6+inside/1024][inside%1024]=NativeGpu::RcsDrawImage::Poison;
+  assert(!NativeGpu::RcsRequestReuse::Inspect64(pages,variant,check));
  }
  puts("RCS 64x64 CPU packet image: PASS (no hardware submission)");
 }

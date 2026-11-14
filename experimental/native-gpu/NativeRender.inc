@@ -79,6 +79,7 @@ static uint32_t sRenderCursor;
 static bool sRenderHideCompletion;
 static uint32_t* sRenderData[NativeGpu::RcsDrawImage64::PageCount];
 static bool sRenderUserDraw;
+static bool sRenderLargeDraw;
 static uint32_t sRenderExpectedPixel=NativeGpu::RcsDrawImage::RenderedPixel;
 static bool sRenderResourceDraw,sRenderArenaDraw,sRenderPublicBatchDraw,sRenderPublicShaderDraw;
 static bool sRenderCombinedDraw,sRenderPublicVertexDraw,sRenderResourceReady;
@@ -372,7 +373,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  if(!NativeCachePolicy(data))return false;
  }
  sRenderRetired=false;
- if(draw && !(sRenderPublicBatchDraw
+ if(draw && !(sRenderLargeDraw
+  ? NativeGpu::RcsDrawImage64::Build(sRenderData,r.variant)
+  : sRenderPublicBatchDraw
   ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
   : sRenderArenaDraw
   ? NativeGpu::RcsResourceVertices::BuildAt(sRenderData,sRenderUserVertices,sRenderArenaGpu)
@@ -435,7 +438,13 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  // the complete ppHWSP/register-image default. Keep both WA pages in place.
  if(draw){
   bool matched=false;
-  if(sRenderUserDraw){
+  if(sRenderLargeDraw){
+   NativeGpu::RcsRequestReuse::Check check={};
+   matched=NativeGpu::RcsRequestReuse::Inspect64(
+    sRenderData,r.variant,check,sRenderExpectedPixel);
+   r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
+   r.interior_xy=check.interior;r.exterior_xy=check.exterior;
+  }else if(sRenderUserDraw){
    NativeGpu::RcsUserVertices::Check check={};
    matched=NativeGpu::RcsUserVertices::Inspect(
     sRenderData[NativeGpu::RcsDrawImage::Target],
@@ -491,10 +500,12 @@ static IntelN100PciPower::Result NativeRenderCapturePci(IntelN100PciSnapshot& sn
  }
  return result;
 }
-static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t resourceSession)
+static status_t RunNativeRenderOwned(native_gpu_render_command* command,
+ uint64_t resourceSession,uint8_t* largeExtra=nullptr)
 {
  if(!command)return B_BAD_VALUE;
  uint32_t version=command->version,mode=command->mode,variant=command->variant;
+ bool largeDraw=version==9 && mode==NATIVE_GPU_RENDER_DRAW && largeExtra;
  bool resourceDraw=version==3 && mode==NATIVE_GPU_RENDER_DRAW;
  bool arenaDraw=version==4 && mode==NATIVE_GPU_RENDER_DRAW;
  bool publicBatchDraw=version==5 && mode==NATIVE_GPU_RENDER_DRAW;
@@ -510,7 +521,8 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  bool valid=(command->reserved==0
   && ((version==1 && ((mode==NATIVE_GPU_RENDER_DRAW && variant<4)
     || ((mode==NATIVE_GPU_RENDER_PROBE || mode==NATIVE_GPU_RENDER_BOOTSTRAP) && variant==0)))
-   || (userDraw && variant==0 && NativeGpu::RcsUserVertices::Validate(userVertices))))
+   || (userDraw && variant==0 && NativeGpu::RcsUserVertices::Validate(userVertices))
+   || (largeDraw && variant<4)))
   || (arenaDraw && variant==0 && command->reserved!=0 && resourceSession!=0)
   || (publicBatchDraw && variant!=0 && command->reserved!=0 && resourceSession!=0)
   || (publicShaderDraw && variant<4 && command->reserved!=0 && resourceSession!=0)
@@ -594,6 +606,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  }
  if(publicVertexDraw)memcpy(sRenderPublicVertexCode,vertexWords,sizeof(sRenderPublicVertexCode));
  sRenderUserDraw=userDraw || arenaDraw || publicBatchDraw || combinedDraw;
+ sRenderLargeDraw=largeDraw;
  sRenderResourceDraw=resourceDraw;
  sRenderArenaDraw=arenaDraw || combinedDraw;sRenderArenaGpu=arenaGpu;
  sRenderPublicBatchDraw=publicBatchDraw;sRenderPublicBatchGpu=publicBatchGpu;
@@ -686,10 +699,19 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  NativeRenderSnapshotLocked(r);output=r;
  if(retired && mode==NATIVE_GPU_RENDER_DRAW)
   memcpy(command->output,sRenderData[NativeGpu::RcsDrawImage::Target],sizeof(command->output));
+ if(retired && largeDraw)
+  for(unsigned p=1;p<NativeGpu::RcsDrawImage64::TargetPages;p++)
+   memcpy(largeExtra+(p-1)*4096,sRenderData[NativeGpu::RcsDrawImage64::Target+p],4096);
  mutex_unlock(&sLock);return r.status;
 }
 static status_t RunNativeRender(native_gpu_render_command* command)
 {return RunNativeRenderOwned(command,0);}
+static status_t RunNativeRenderLarge(native_gpu_render_large_command* command)
+{
+ if(!command)return B_BAD_VALUE;
+ memset(command->extra,0,sizeof(command->extra));
+ return RunNativeRenderOwned(&command->base,0,command->extra);
+}
 static status_t NativeResourceDraw(uint64_t session,native_gpu_render_command* command)
 {
  if(!command || (command->version!=4 && command->version!=5 && command->version!=6
@@ -841,6 +863,9 @@ static status_t NativeResourceDestroy(uint64_t session,uint32_t handle)
 }
 static native_gpu_render_module sNativeRenderModule={
  {NATIVE_GPU_RENDER_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeRender,NativeRcsAcknowledgeDisplay
+};
+static native_gpu_render_large_module sNativeRenderLargeModule={
+ {NATIVE_GPU_RENDER_LARGE_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeRenderLarge
 };
 static native_gpu_resource_module sNativeResourceModule={
  {NATIVE_GPU_RESOURCE_MODULE,B_KEEP_LOADED,ObservationOperations},NativeResourceOpen,

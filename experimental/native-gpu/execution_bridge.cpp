@@ -18,6 +18,8 @@ struct Session {
  native_gpu_copy command;
  native_gpu_render_module* renderModule;
  native_gpu_render_command render;
+ native_gpu_render_large_module* largeModule;
+ native_gpu_render_large_command large;
  native_gpu_resource_module* resourceModule;
  uint64_t resourceSession;
  native_gpu_resource_command resource;
@@ -31,8 +33,12 @@ static status_t Open(const char*,uint32,void** cookie)
  if(status!=B_OK){mutex_destroy(&s->lock);free(s);return status;}
  status=get_module(NATIVE_GPU_RENDER_MODULE,(module_info**)&s->renderModule);
  if(status!=B_OK){put_module(NATIVE_GPU_EXECUTION_MODULE);mutex_destroy(&s->lock);free(s);return status;}
- status=get_module(NATIVE_GPU_RESOURCE_MODULE,(module_info**)&s->resourceModule);
+ status=get_module(NATIVE_GPU_RENDER_LARGE_MODULE,(module_info**)&s->largeModule);
  if(status!=B_OK){put_module(NATIVE_GPU_RENDER_MODULE);put_module(NATIVE_GPU_EXECUTION_MODULE);
+  mutex_destroy(&s->lock);free(s);return status;}
+ status=get_module(NATIVE_GPU_RESOURCE_MODULE,(module_info**)&s->resourceModule);
+ if(status!=B_OK){put_module(NATIVE_GPU_RENDER_LARGE_MODULE);
+  put_module(NATIVE_GPU_RENDER_MODULE);put_module(NATIVE_GPU_EXECUTION_MODULE);
   mutex_destroy(&s->lock);free(s);return status;}
  s->module->session_opened();
  *cookie=s;return B_OK;
@@ -51,6 +57,7 @@ static status_t Free(void* cookie)
  if(s->resourceSession)s->resourceModule->close(s->resourceSession);
  s->module->session_closed();
  put_module(NATIVE_GPU_RESOURCE_MODULE);
+ put_module(NATIVE_GPU_RENDER_LARGE_MODULE);
  put_module(NATIVE_GPU_RENDER_MODULE);
  put_module(NATIVE_GPU_EXECUTION_MODULE);
  mutex_destroy(&s->lock);free(s);return B_OK;
@@ -95,6 +102,13 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
    status=s.resourceModule->draw(s.resourceSession,&s.render);
   }else status=s.renderModule->run(&s.render);
   status_t copied=user_memcpy(buffer,&s.render,bytes);
+  return copied==B_OK?status:copied;
+ }
+ if(operation==NATIVE_GPU_RENDER_LARGE_IOCTL){
+  if(bytes!=sizeof(s.large))return B_BAD_VALUE;
+  status_t status=user_memcpy(&s.large,buffer,bytes);if(status!=B_OK)return status;
+  status=s.largeModule->run(&s.large);
+  status_t copied=user_memcpy(buffer,&s.large,bytes);
   return copied==B_OK?status:copied;
  }
  if(operation==NATIVE_GPU_LIFECYCLE_CONTROL){

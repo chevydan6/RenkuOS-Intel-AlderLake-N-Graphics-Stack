@@ -1,0 +1,48 @@
+large64 ioctl=0 status=0 stage=12 sequence=14/14 checked=2582/2582 hash=8aaee2f5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=15/15 checked=2582/2582 hash=51c4f4a5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=16/16 checked=2582/2582 hash=7b48f3e5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=17/17 checked=2582/2582 hash=ec787cd5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=18/18 checked=2582/2582 hash=8aaee2f5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=19/19 checked=2582/2582 hash=51c4f4a5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=20/20 checked=2582/2582 hash=7b48f3e5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=21/21 checked=2582/2582 hash=ec787cd5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=22/22 checked=2582/2582 hash=8aaee2f5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=23/23 checked=2582/2582 hash=51c4f4a5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=24/24 checked=2582/2582 hash=7b48f3e5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=25/25 checked=2582/2582 hash=ec787cd5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=26/26 checked=2582/2582 hash=8aaee2f5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=27/27 checked=2582/2582 hash=51c4f4a5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=28/28 checked=2582/2582 hash=7b48f3e5 fault=00000000
+RCS 64x64 N100 draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=29/29 checked=2582/2582 hash=ec787cd5 fault=00000000
+RCS 64x64 N100 draw: PASS
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff8000000f0001/000f000003ff8000
+nonce=11933b2f/11933b2f complement=ee6cc4d0 sequence=30/30 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+rcs_resource_vertices ioctl=0 status=0 version=3 stage=12 refusal=0 sequence=31/31
+pixels=777/777 hash=d8b0a07d interior=6,6 exterior=0,0 engine=4/0 csb=0 fault=00000000
+RCS resource vertex hardware draw: PASS
+combined ioctl=0 status=0 version=7 stage=12 sequence=32/32 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+Native Vulkan N100 triangle: PASS shape=0 hash=77323fd5 draws=1
+Native Vulkan N100 RGB triangle: PASS shape=0 hash=6f2bc92d draws=1
+Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d draws=1
