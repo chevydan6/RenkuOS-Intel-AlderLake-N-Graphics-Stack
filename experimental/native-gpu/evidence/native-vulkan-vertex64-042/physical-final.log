@@ -1,0 +1,35 @@
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":4,"observed":4,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5548,"write_ioctl_us":15,"submit_us":5568}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":5,"observed":5,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5502,"write_ioctl_us":13,"submit_us":5520}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":6,"observed":6,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5387,"write_ioctl_us":13,"submit_us":5405}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":7,"observed":7,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5411,"write_ioctl_us":16,"submit_us":5433}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":8,"observed":8,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5469,"write_ioctl_us":12,"submit_us":5487}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":9,"observed":9,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5470,"write_ioctl_us":13,"submit_us":5489}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":10,"observed":10,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5362,"write_ioctl_us":13,"submit_us":5380}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":11,"observed":11,"draw_index":0,"draw_count":1,"vertex_bo":385,"shader_bo":388,"vertex_shader_bo":389,"image_bo":387,"checked":3476,"matched":3476,"pixel_hash":"7b48f3e5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5454,"write_ioctl_us":14,"submit_us":5473}
+Native Vulkan N100 64x64 rotated-vertex triangle: PASS shape=0 hash=7b48f3e5 draws=8
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":12,"observed":12,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5329,"write_ioctl_us":13,"submit_us":5347}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":13,"observed":13,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5258,"write_ioctl_us":13,"submit_us":5277}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":14,"observed":14,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5276,"write_ioctl_us":14,"submit_us":5295}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":15,"observed":15,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5253,"write_ioctl_us":14,"submit_us":5272}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":16,"observed":16,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5259,"write_ioctl_us":13,"submit_us":5277}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":17,"observed":17,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5266,"write_ioctl_us":14,"submit_us":5285}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":18,"observed":18,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5261,"write_ioctl_us":14,"submit_us":5280}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":11,"stage":12,"sequence":19,"observed":19,"draw_index":0,"draw_count":1,"vertex_bo":513,"shader_bo":516,"vertex_shader_bo":517,"image_bo":515,"checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5292,"write_ioctl_us":14,"submit_us":5311}
+Native Vulkan N100 64x64 depth-vertex triangle: PASS shape=0 hash=8aaee2f5 draws=8
+Native Vulkan N100 64x64 triangle: PASS shape=0 hash=8aaee2f5 draws=1
+Native Vulkan N100 64x64 triangle: PASS shape=1 hash=9ca44bcd draws=1
+Native Vulkan N100 64x64 triangle: PASS shape=2 hash=23ba4705 draws=1
+Native Vulkan N100 64x64 triangle: PASS shape=3 hash=b0d153c5 draws=1
+Native Vulkan N100 64x64 RGB triangle: PASS shape=0 hash=7a1ac675 draws=1
+Native Vulkan N100 64x64 RGB triangle: PASS shape=1 hash=e178394d draws=1
+Native Vulkan N100 64x64 RGB triangle: PASS shape=2 hash=49942685 draws=1
+Native Vulkan N100 64x64 RGB triangle: PASS shape=3 hash=9eff5945 draws=1
+Native Vulkan N100 triangle: PASS shape=0 hash=77323fd5 draws=1
+Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d draws=1
+Native Vulkan N100 RGB triangle: PASS shape=0 hash=6f2bc92d draws=1
+large_resource64 ioctl=0 status=0 stage=12 sequence=31/31 checked=3476/3476 hash=8aaee2f5 fault=00000000
+RCS 64x64 resource draw: PASS
+large64 ioctl=0 status=0 stage=12 sequence=32/32 checked=2582/2582 hash=8aaee2f5 fault=00000000
+RCS 64x64 N100 draw: PASS
+combined ioctl=0 status=0 version=7 stage=12 sequence=33/33 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS

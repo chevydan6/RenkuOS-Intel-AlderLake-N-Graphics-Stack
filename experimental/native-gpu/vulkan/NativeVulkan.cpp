@@ -1220,9 +1220,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
      || recorded.pipeline->pass!=recorded.framebuffer->pass
      || !recorded.vertex || recorded.vertex->device!=device
      || !recorded.vertex->memory)return VK_ERROR_INITIALIZATION_FAILED;
-    if(recorded.pipeline->width!=recorded.framebuffer->view->image->width
-     || (recorded.pipeline->width==64
-      && recorded.pipeline->vertexShaderHandle))
+    if(recorded.pipeline->width!=recorded.framebuffer->view->image->width)
      return VK_ERROR_FEATURE_NOT_PRESENT;
    }
   }
@@ -1236,11 +1234,12 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=large?10:recorded.pipeline->vertexShaderHandle?8:7;
+ draw.version=large?(recorded.pipeline->vertexShaderHandle?11:10):
+  recorded.pipeline->vertexShaderHandle?8:7;
  draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=recorded.vertex->memory->handle;
  draw.reserved=recorded.pipeline->shaderHandle;
- if(draw.version==8)
+ if(draw.version==8 || draw.version==11)
   memcpy(draw.output,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
  const bigtime_t submitStart=device->trace?system_time():0;

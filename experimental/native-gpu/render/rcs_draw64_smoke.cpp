@@ -74,5 +74,16 @@ int main()
  NativeGpu::RcsUserVertices::Check dynamicCheck={};
  assert(NativeGpu::RcsUserVertices::Inspect64(pages,vertexWords,dynamicCheck));
  assert(dynamicCheck.checked>=2000 && dynamicCheck.matched==dynamicCheck.checked);
+ uint32_t rotated[12]={};
+ assert(NativeGpu::RcsPublicShader::ExpectedVertices(
+  NativeGpu::RcsPublicShader::RotateHalfturn,vertexWords,rotated));
+ assert(RcsDrawImage64::Build(pages,2));
+ for(int y=0;y<64;y++)for(int x=0;x<64;x++){
+  bool inside=x>=8 && y>=8 && x<56 && y<56 && x<y;
+  if(inside){unsigned index=unsigned(y*64+x);
+   pages[6+index/1024][index%1024]=NativeGpu::RcsDrawImage::RenderedPixel;}
+ }
+ assert(NativeGpu::RcsUserVertices::Inspect64(pages,rotated,dynamicCheck));
+ assert(dynamicCheck.checked>=2000 && dynamicCheck.matched==dynamicCheck.checked);
  puts("RCS 64x64 CPU packet image: PASS (no hardware submission)");
 }

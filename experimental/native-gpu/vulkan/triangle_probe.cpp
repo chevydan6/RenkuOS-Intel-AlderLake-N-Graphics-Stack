@@ -45,8 +45,8 @@ int main(int argc,char** argv)
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
  bool twoPipelines=dual || multiPass;
- if(large && (half || green75 || green90 || depth
-  || rotate || named || twoPipelines || batch))return 40;
+ if(large && (half || green75 || green90 || named || twoPipelines
+  || batch || (depth && shape!=0)))return 40;
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats!=2))return 40;
@@ -360,7 +360,8 @@ int main(int argc,char** argv)
    0x8aaee2f5,0x9ca44bcd,0x23ba4705,0xb0d153c5};
   const uint32_t expectedLargeRgb[4]={
    0x7a1ac675,0xe178394d,0x49942685,0x9eff5945};
-  REQUIRE(hash==(rgb?expectedLargeRgb[shape]:expectedLarge[shape])
+  REQUIRE(hash==(rotate?0x7b48f3e5:
+   rgb?expectedLargeRgb[shape]:expectedLarge[shape])
    && pixels[0]==0x19537bad,30);
  }else if(half || green75 || green90 || rgb || twoPipelines){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
@@ -379,7 +380,8 @@ int main(int argc,char** argv)
    && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
  if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
-  rgb?"RGB ":"",shape,hash,repeats);
+  rotate?"rotated-vertex ":depth?"depth-vertex ":rgb?"RGB ":"",
+  shape,hash,repeats);
  else if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(dual)printf("Native Vulkan N100 dual pipeline: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(rgb)printf("Native Vulkan N100 RGB triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
