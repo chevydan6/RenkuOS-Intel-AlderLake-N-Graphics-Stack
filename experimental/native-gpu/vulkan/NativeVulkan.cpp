@@ -4,6 +4,9 @@
 #include "../ResourceCommand.h"
 #include "KnownSpirv.h"
 #include "../render/draw/RcsDrawGenerated.h"
+#ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+#include "CompiledKnownShader.h"
+#endif
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -732,6 +735,16 @@ vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
  if(pipelines && count)for(uint32_t i=0;i<count;i++)pipelines[i]=VK_NULL_HANDLE;
  if(!device || cache || count!=1 || !infos || !pipelines || allocator
   || !KnownGraphicsPipeline(device,infos[0]))return VK_ERROR_FEATURE_NOT_PRESENT;
+#ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+ uint8_t compiledFs[sizeof(NativeGpu::RcsDrawData::Fs)]={};
+ if(!CompileKnownFragment(infos[0].pStages[0].module->code,
+    infos[0].pStages[0].module->bytes,infos[0].pStages[1].module->code,
+    infos[0].pStages[1].module->bytes,compiledFs,sizeof(compiledFs)))
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ const void* fragmentCode=compiledFs;
+#else
+ const void* fragmentCode=NativeGpu::RcsDrawData::Fs;
+#endif
  VkPipeline_T* value=(VkPipeline_T*)calloc(1,sizeof(VkPipeline_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
  native_gpu_resource_command c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_CREATE;
@@ -742,7 +755,7 @@ vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
  value->shaderHandle=c.handle;
  c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_WRITE;
  c.handle=value->shaderHandle;c.bytes=sizeof(NativeGpu::RcsDrawData::Fs);
- memcpy(c.data,NativeGpu::RcsDrawData::Fs,c.bytes);
+ memcpy(c.data,fragmentCode,c.bytes);
  if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0){
   native_gpu_resource_command destroy={};destroy.version=1;
   destroy.action=NATIVE_GPU_RESOURCE_DESTROY;destroy.handle=value->shaderHandle;
