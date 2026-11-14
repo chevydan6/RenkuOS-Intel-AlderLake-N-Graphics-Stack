@@ -1,0 +1,13 @@
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":8,"stage":12,"sequence":17,"observed":17,"vertex_bo":1793,"shader_bo":1540,"vertex_shader_bo":773,"image_bo":1667,"checked":777,"matched":777,"pixel_hash":"6f2bc92d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5247,"write_ioctl_us":6,"submit_us":5255}
+Native Vulkan N100 RGB triangle: PASS shape=0 hash=6f2bc92d draws=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":8,"stage":12,"sequence":18,"observed":18,"vertex_bo":1921,"shader_bo":1668,"vertex_shader_bo":901,"image_bo":1795,"checked":758,"matched":758,"pixel_hash":"a4e13743","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5360,"write_ioctl_us":6,"submit_us":5368}
+Native Vulkan N100 RGB triangle: PASS shape=1 hash=a4e13743 draws=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":8,"stage":12,"sequence":19,"observed":19,"vertex_bo":2049,"shader_bo":1796,"vertex_shader_bo":1029,"image_bo":1923,"checked":766,"matched":766,"pixel_hash":"ce445d05","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5236,"write_ioctl_us":6,"submit_us":5244}
+Native Vulkan N100 RGB triangle: PASS shape=2 hash=ce445d05 draws=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":8,"stage":12,"sequence":20,"observed":20,"vertex_bo":2177,"shader_bo":1924,"vertex_shader_bo":1157,"image_bo":2051,"checked":760,"matched":760,"pixel_hash":"fffe3dc5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5227,"write_ioctl_us":6,"submit_us":5235}
+Native Vulkan N100 RGB triangle: PASS shape=3 hash=fffe3dc5 draws=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":7,"stage":12,"sequence":21,"observed":21,"vertex_bo":2305,"shader_bo":2052,"vertex_shader_bo":0,"image_bo":2179,"checked":777,"matched":777,"pixel_hash":"6f2bc92d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5377,"write_ioctl_us":5,"submit_us":5385}
+Native Vulkan N100 RGB triangle: PASS shape=0 hash=6f2bc92d draws=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":7,"stage":12,"sequence":22,"observed":22,"vertex_bo":2433,"shader_bo":2180,"vertex_shader_bo":0,"image_bo":2307,"checked":777,"matched":777,"pixel_hash":"6f2bc92d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5961,"write_ioctl_us":5,"submit_us":5969}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":7,"stage":12,"sequence":23,"observed":23,"vertex_bo":2433,"shader_bo":2180,"vertex_shader_bo":0,"image_bo":2307,"checked":777,"matched":777,"pixel_hash":"6f2bc92d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5941,"write_ioctl_us":9,"submit_us":5952}
+Native Vulkan N100 RGB triangle: PASS shape=0 hash=6f2bc92d draws=2

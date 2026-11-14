@@ -58,7 +58,8 @@ struct VkFramebuffer_T {
 };
 struct VkPipelineLayout_T { VkDevice_T* device;VkPipelineLayout_T* next; };
 struct VkPipeline_T {
- VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;uint32_t shaderHandle;
+ VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;
+ uint32_t shaderHandle,vertexShaderHandle;
 };
 struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
 struct VkCommandBuffer_T;
@@ -273,6 +274,10 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
   native_gpu_resource_command c={};c.version=1;
   c.action=NATIVE_GPU_RESOURCE_DESTROY;c.handle=device->pipelines->shaderHandle;
   ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c));
+  if(device->pipelines->vertexShaderHandle){
+   c.handle=device->pipelines->vertexShaderHandle;
+   ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c));
+  }
   free(device->pipelines);device->pipelines=next;
  }
  while(device->layouts){
@@ -826,14 +831,19 @@ vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
  if(!device || cache || count!=1 || !infos || !pipelines || allocator
   || !KnownGraphicsPipeline(device,infos[0]))return VK_ERROR_FEATURE_NOT_PRESENT;
 #ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+ uint8_t compiledVs[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
+ size_t compiledVsBytes=0;
  uint8_t compiledFs[sizeof(NativeGpu::RcsDrawData::Fs)]={};
- if(!CompileKnownFragment(infos[0].pStages[0].module->code,
+ if(!CompileKnownPipeline(infos[0].pStages[0].module->code,
     infos[0].pStages[0].module->bytes,infos[0].pStages[1].module->code,
-    infos[0].pStages[1].module->bytes,compiledFs,sizeof(compiledFs)))
+    infos[0].pStages[1].module->bytes,compiledVs,sizeof(compiledVs),
+    &compiledVsBytes,compiledFs,sizeof(compiledFs)))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  const void* fragmentCode=compiledFs;
+ const bool customVertex=compiledVsBytes==sizeof(compiledVs);
 #else
  const void* fragmentCode=NativeGpu::RcsDrawData::Fs;
+ const bool customVertex=false;
 #endif
  VkPipeline_T* value=(VkPipeline_T*)calloc(1,sizeof(VkPipeline_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -852,6 +862,32 @@ vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
   ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&destroy,sizeof(destroy));
   free(value);return VK_ERROR_DEVICE_LOST;
  }
+ if(customVertex){
+  c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_CREATE;c.size=4096;
+  if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0){
+   native_gpu_resource_command destroy={};destroy.version=1;
+   destroy.action=NATIVE_GPU_RESOURCE_DESTROY;destroy.handle=value->shaderHandle;
+   ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&destroy,sizeof(destroy));
+   free(value);
+   return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+  }
+  value->vertexShaderHandle=c.handle;
+  c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_WRITE;
+  c.handle=value->vertexShaderHandle;
+#ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+  c.bytes=compiledVsBytes;memcpy(c.data,compiledVs,c.bytes);
+#endif
+  if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0){
+   native_gpu_resource_command destroy={};destroy.version=1;
+   destroy.action=NATIVE_GPU_RESOURCE_DESTROY;
+   destroy.handle=value->vertexShaderHandle;
+   ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&destroy,sizeof(destroy));
+   destroy.handle=value->shaderHandle;
+   ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&destroy,sizeof(destroy));
+   free(value);
+   return VK_ERROR_DEVICE_LOST;
+  }
+ }
  value->device=device;value->pass=infos[0].renderPass;
  value->next=device->pipelines;device->pipelines=value;
  *pipelines=value;return VK_SUCCESS;
@@ -865,7 +901,13 @@ vkDestroyPipeline(VkDevice device,VkPipeline pipeline,const VkAllocationCallback
  while(*current && *current!=pipeline)current=&(*current)->next;
  if(!*current)return;
  native_gpu_resource_command c={};c.version=1;
- c.action=NATIVE_GPU_RESOURCE_DESTROY;c.handle=pipeline->shaderHandle;
+ c.action=NATIVE_GPU_RESOURCE_DESTROY;
+ if(pipeline->vertexShaderHandle){
+  c.handle=pipeline->vertexShaderHandle;
+  if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0)return;
+  pipeline->vertexShaderHandle=0;
+ }
+ c.handle=pipeline->shaderHandle;
  if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0)return;
  *current=pipeline->next;free(pipeline);
 }
@@ -1080,9 +1122,14 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  for(uint32_t i=0;i<count;i++){
  for(uint32_t j=0;j<submits[i].commandBufferCount;j++){
  VkCommandBuffer command=submits[i].pCommandBuffers[j];
- native_gpu_render_command draw={};draw.version=7;draw.mode=NATIVE_GPU_RENDER_DRAW;
+ native_gpu_render_command draw={};
+ draw.version=command->pipeline->vertexShaderHandle?8:7;
+ draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=command->vertex->memory->handle;
  draw.reserved=command->pipeline->shaderHandle;
+ if(draw.version==8)
+  memcpy(draw.output,&command->pipeline->vertexShaderHandle,
+   sizeof(command->pipeline->vertexShaderHandle));
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&draw,sizeof(draw));
  const bigtime_t renderDone=device->trace?system_time():0;
@@ -1090,7 +1137,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  uint32_t hash=2166136261u;
  const uint32_t* pixels=(const uint32_t*)draw.output;
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
- const bool valid=status==0 && !r.status && r.version==7
+ const bool valid=status==0 && !r.status && r.version==draw.version
   && r.stage==NATIVE_GPU_RENDER_STAGE_COMPLETE
   && r.known_profile && r.owner_granted && r.sequence
   && r.observed_sequence==r.sequence && r.nonce==r.observed_nonce
@@ -1111,12 +1158,13 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(device->trace)fprintf(stderr,
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
-  "\"vertex_bo\":%u,\"shader_bo\":%u,\"image_bo\":%u,"
+  "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,"
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
   "\"render_ioctl_us\":%lld,\"write_ioctl_us\":%lld,\"submit_us\":%lld}\n",
   status,writeStatus,r.version,r.stage,r.sequence,r.observed_sequence,
-  draw.variant,draw.reserved,command->framebuffer->view->image->memory->handle,
+  draw.variant,draw.reserved,command->pipeline->vertexShaderHandle,
+  command->framebuffer->view->image->memory->handle,
   r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error,
   (long long)(renderDone-submitStart),(long long)(writeDone-writeStart),
   (long long)(system_time()-submitStart));

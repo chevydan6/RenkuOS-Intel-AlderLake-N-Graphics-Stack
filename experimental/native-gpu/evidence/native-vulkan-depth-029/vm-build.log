@@ -1,0 +1,10 @@
+compiler pipeline probe: accepted bounded RGB machine code; rejected changed instructions and invalid input
+Vulkan API probe: accepted bounded RGB pipeline; rejected 1.0 green pipeline
+Vulkan fence probe: timed wait; empty submit signal; reset; signaled creation; wait-any/all
+Vulkan command reset: pool, explicit buffer, and implicit begin reuse
+29b2a9704874acd4dea73d3914e833781729692feb07b146708f985ec1ac34ec  /boot/home/test-work/compiler-pipeline-restored-008/vulkan/build-compiler/libvulkan.so
+811450648bb366a551d8bfbf964e14f6993254f6e4f3188702534857b6b9a00a  /boot/home/test-work/compiler-pipeline-restored-008/vulkan/build-compiler/compiler_pipeline_probe
+0fdbd3eb286a401b257e965c80414888434f22b61259231047b731d52235e8a1  /boot/home/test-work/compiler-pipeline-restored-008/vulkan/build-compiler/compiler_pipeline_api_probe
+49ec72d38103a9f2ede4d13cb863177b1fc160229c2675c1ab84912716b40b9f  /boot/home/test-work/compiler-pipeline-restored-008/vulkan/build-compiler/fence_probe
+c9c60ed414e7c4ed3cd993e66c46374e2b3277d1760a57a856239aef35d091c8  /boot/home/test-work/compiler-pipeline-restored-008/vulkan/build-compiler/command_reset_probe
+be1c7c7f1867e030340d3021dcec847492561b3a15d868610f1d713b5cb6b629  /boot/home/test-work/compiler-pipeline-restored-008/vulkan/build-compiler/triangle_probe

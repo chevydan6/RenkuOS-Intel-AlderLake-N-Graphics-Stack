@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "CompiledKnownShader.h"
 #include "RgbSpirvFixture.h"
+#include "DepthSpirvFixture.h"
+#include "../render/RcsDepthVertex.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -70,6 +72,14 @@ int main()
    if(memcmp(fragment,expected,sizeof(expected)))return 13;
   }
  }
+ uint8_t depthVertex[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
+ size_t depthBytes=0;
+ if(!CompileKnownPipeline(RenkuDepthSpirv::Vertex,
+    sizeof(RenkuDepthSpirv::Vertex),RenkuKnownSpirv::Fragment,
+    sizeof(RenkuKnownSpirv::Fragment),depthVertex,sizeof(depthVertex),
+    &depthBytes,fragment,sizeof(fragment)))return 14;
+ if(depthBytes!=sizeof(depthVertex)
+  || memcmp(depthVertex,NativeGpu::RcsDepthVertex::Words,depthBytes))return 15;
  puts("compiler pipeline probe: accepted bounded RGB machine code; rejected changed instructions and invalid input");
  return 0;
 }
