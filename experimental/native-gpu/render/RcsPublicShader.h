@@ -2,6 +2,7 @@
 #ifndef NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #define NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #include "RcsDrawImage.h"
+#include "RcsDrawImage64.h"
 #include "RcsDepthVertex.h"
 #include "RcsRotateVertex.h"
 #include "RcsUserVertices.h"
@@ -65,7 +66,7 @@ public:
   return true;
  }
  static bool PatchBatchWithVertex(uint32_t* words,unsigned dwords,
-  uint64_t shaderGpu,uint64_t vertexGpu) {
+  uint64_t shaderGpu,uint64_t vertexGpu,bool large=false) {
   if(!words || dwords!=1024 || !ValidGpu(shaderGpu) || !ValidGpu(vertexGpu)
    || shaderGpu==vertexGpu)return false;
   unsigned slot=1024;
@@ -77,7 +78,8 @@ public:
    }
   if(slot==1024)return false;
   for(unsigned i=0;i<1024;i++)
-   if(words[i]!=(i==slot?uint32_t(vertexGpu):Original(i)))return false;
+   if(words[i]!=(i==slot?uint32_t(vertexGpu):
+    large?RcsDrawImage64::BatchWord(i):Original(i)))return false;
   words[44]=0x20001;
   words[239]=uint32_t(shaderGpu-RcsDrawImage::GpuBase);
   words[248]=words[239]+0x80;

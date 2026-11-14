@@ -28,6 +28,9 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
+ const bool large=getenv("RENKU_VK_TARGET_64")!=nullptr;
+ const uint32_t dimension=large?64:32;
+ const uint32_t imageBytes=dimension*dimension*4;
  bool half=argc>=3 && !strcmp(argv[2],"half");
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
@@ -42,6 +45,8 @@ int main(int argc,char** argv)
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
  bool twoPipelines=dual || multiPass;
+ if(large && (half || green75 || green90 || depth
+  || rotate || named || twoPipelines || batch))return 40;
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats!=2))return 40;
@@ -82,8 +87,8 @@ int main(int argc,char** argv)
  REQUIRE(vkGetPhysicalDeviceImageFormatProperties(physical,VK_FORMAT_B8G8R8A8_UNORM,
   VK_IMAGE_TYPE_2D,VK_IMAGE_TILING_LINEAR,
   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT,0,
-  &imageFormat)==VK_SUCCESS && imageFormat.maxExtent.width==32
-  && imageFormat.maxExtent.height==32 && imageFormat.maxResourceSize==4096,58);
+  &imageFormat)==VK_SUCCESS && imageFormat.maxExtent.width==64
+  && imageFormat.maxExtent.height==64 && imageFormat.maxResourceSize==16384,58);
  float priority=1;
  VkDeviceQueueCreateInfo queueInfo={};queueInfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
  queueInfo.queueFamilyIndex=0;queueInfo.queueCount=1;queueInfo.pQueuePriorities=&priority;
@@ -155,7 +160,7 @@ int main(int argc,char** argv)
 
  VkImageCreateInfo imageInfo={};imageInfo.sType=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
  imageInfo.imageType=VK_IMAGE_TYPE_2D;imageInfo.format=VK_FORMAT_B8G8R8A8_UNORM;
- imageInfo.extent={32,32,1};imageInfo.mipLevels=1;imageInfo.arrayLayers=1;
+ imageInfo.extent={dimension,dimension,1};imageInfo.mipLevels=1;imageInfo.arrayLayers=1;
  imageInfo.samples=VK_SAMPLE_COUNT_1_BIT;imageInfo.tiling=VK_IMAGE_TILING_LINEAR;
  imageInfo.usage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
   |(colorOnly?0:VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
@@ -163,7 +168,7 @@ int main(int argc,char** argv)
  VkImage image=VK_NULL_HANDLE;
  REQUIRE(vkCreateImage(device,&imageInfo,nullptr,&image)==VK_SUCCESS,13);
  vkGetImageMemoryRequirements(device,image,&requirement);
- REQUIRE(requirement.size==4096 && requirement.memoryTypeBits==1,14);
+ REQUIRE(requirement.size==imageBytes && requirement.memoryTypeBits==1,14);
  allocation.allocationSize=requirement.size;
  VkDeviceMemory imageMemory=VK_NULL_HANDLE;
  REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&imageMemory)==VK_SUCCESS,15);
@@ -191,7 +196,7 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateRenderPass(device,&passInfo,nullptr,&pass)==VK_SUCCESS,18);
  VkFramebufferCreateInfo fbInfo={};fbInfo.sType=VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
  fbInfo.renderPass=pass;fbInfo.attachmentCount=1;fbInfo.pAttachments=&view;
- fbInfo.width=32;fbInfo.height=32;fbInfo.layers=1;
+ fbInfo.width=dimension;fbInfo.height=dimension;fbInfo.layers=1;
  VkFramebuffer framebuffer=VK_NULL_HANDLE;
  REQUIRE(vkCreateFramebuffer(device,&fbInfo,nullptr,&framebuffer)==VK_SUCCESS,19);
 
@@ -210,8 +215,8 @@ int main(int argc,char** argv)
  input.vertexAttributeDescriptionCount=1;input.pVertexAttributeDescriptions=&attribute;
  VkPipelineInputAssemblyStateCreateInfo assembly={};assembly.sType=VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
  assembly.topology=VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
- VkViewport viewport={0,0,32,32,0,1};
- VkRect2D scissor={{0,0},{32,32}};
+ VkViewport viewport={0,0,float(dimension),float(dimension),0,1};
+ VkRect2D scissor={{0,0},{dimension,dimension}};
  VkPipelineViewportStateCreateInfo viewportState={};viewportState.sType=VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
  viewportState.viewportCount=1;viewportState.pViewports=&viewport;
  viewportState.scissorCount=1;viewportState.pScissors=&scissor;
@@ -294,7 +299,7 @@ int main(int argc,char** argv)
  REQUIRE(vkBeginCommandBuffer(command,&begin)==VK_SUCCESS,24);
  VkRenderPassBeginInfo render={};render.sType=VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
  render.renderPass=pass;render.framebuffer=framebuffer;
- render.renderArea={{0,0},{32,32}};
+ render.renderArea={{0,0},{dimension,dimension}};
  vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline);
  VkDeviceSize offset=0;vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
@@ -342,15 +347,22 @@ int main(int argc,char** argv)
  }
 
  mapped=nullptr;
- REQUIRE(vkMapMemory(device,imageMemory,0,4096,0,&mapped)==VK_SUCCESS && mapped,28);
- range.memory=imageMemory;range.size=4096;
+ REQUIRE(vkMapMemory(device,imageMemory,0,imageBytes,0,&mapped)==VK_SUCCESS && mapped,28);
+ range.memory=imageMemory;range.size=imageBytes;
  REQUIRE(vkInvalidateMappedMemoryRanges(device,1,&range)==VK_SUCCESS,29);
  uint32_t hash=2166136261u;
  const uint32_t* pixels=(const uint32_t*)mapped;
- for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
+ for(unsigned i=0;i<dimension*dimension;i++)hash=(hash^pixels[i])*16777619u;
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(half || green75 || green90 || rgb || twoPipelines){
+ if(large){
+  const uint32_t expectedLarge[4]={
+   0x8aaee2f5,0x9ca44bcd,0x23ba4705,0xb0d153c5};
+  const uint32_t expectedLargeRgb[4]={
+   0x7a1ac675,0xe178394d,0x49942685,0x9eff5945};
+  REQUIRE(hash==(rgb?expectedLargeRgb[shape]:expectedLarge[shape])
+   && pixels[0]==0x19537bad,30);
+ }else if(half || green75 || green90 || rgb || twoPipelines){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
   const uint32_t expectedGreen75[4]={0x28e87f2d,0xa6f78dc3,0xcef9f105,0xabd7c545};
   const uint32_t expectedGreen90[4]={0x979c9f2d,0x6a3fddc3,0x44297d05,0xd034dd45};
@@ -366,7 +378,9 @@ int main(int argc,char** argv)
   && (!rotate || (pixels[20*32+10]==0xffff4000
    && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
- if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
+  rgb?"RGB ":"",shape,hash,repeats);
+ else if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(dual)printf("Native Vulkan N100 dual pipeline: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(rgb)printf("Native Vulkan N100 RGB triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);

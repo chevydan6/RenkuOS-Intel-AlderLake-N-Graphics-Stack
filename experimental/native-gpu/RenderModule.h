@@ -14,6 +14,6 @@ struct native_gpu_render_module {
 };
 struct native_gpu_render_large_module {
  module_info info;
- status_t (*run)(native_gpu_render_large_command*);
+ status_t (*run)(uint64_t resourceSession,native_gpu_render_large_command*);
 };
 #endif

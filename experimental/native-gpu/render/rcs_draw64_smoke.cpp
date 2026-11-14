@@ -2,6 +2,8 @@
 // Offline image construction check against the Mesa 26.3 64x64 packet artifact.
 #include "RcsDrawImage64.h"
 #include "RcsRequestReuse.h"
+#include "RcsResourceVertices.h"
+#include "RcsPublicShader.h"
 #include "draw/RcsDrawGenerated64.h"
 #include <assert.h>
 #include <stdio.h>
@@ -56,5 +58,21 @@ int main()
   pages[6+inside/1024][inside%1024]=NativeGpu::RcsDrawImage::Poison;
   assert(!NativeGpu::RcsRequestReuse::Inspect64(pages,variant,check));
  }
+ assert(RcsDrawImage64::Build(pages,0));
+ uint32_t vertexWords[12];memcpy(vertexWords,pages[3],sizeof(vertexWords));
+ assert(NativeGpu::RcsUserVertices::Validate(vertexWords));
+ assert(NativeGpu::RcsResourceVertices::PatchAddressOnly(pages,0x410000));
+ assert(pages[3][0]==0);
+ assert(NativeGpu::RcsPublicShader::PatchBatchWithVertex(
+  pages[0],1024,0x411000,0x410000,true));
+ assert(pages[0][44]==0x20001 && pages[0][239]==0x11000);
+ for(int y=0;y<64;y++)for(int x=0;x<64;x++){
+  bool inside=x>=8 && y>=8 && x<56 && y<56 && x>y;
+  if(inside){unsigned index=unsigned(y*64+x);
+   pages[6+index/1024][index%1024]=NativeGpu::RcsDrawImage::RenderedPixel;}
+ }
+ NativeGpu::RcsUserVertices::Check dynamicCheck={};
+ assert(NativeGpu::RcsUserVertices::Inspect64(pages,vertexWords,dynamicCheck));
+ assert(dynamicCheck.checked>=2000 && dynamicCheck.matched==dynamicCheck.checked);
  puts("RCS 64x64 CPU packet image: PASS (no hardware submission)");
 }

@@ -14,6 +14,16 @@ public:
  static constexpr unsigned TargetHeight=64, TargetPitch=256;
  static constexpr unsigned Target=6, PostSync=10;
 
+ static uint32_t BatchWord(unsigned index) {
+  switch(index){
+   case 2:case 25:return 0x0040a000;
+   case 41:case 44:return 0x0000b001;
+   case 53:return 0x0040a008;
+   case 290:return 0x003f003f;
+   default:return index<RcsDrawImage::BatchDwords?RcsDrawData::Batch[index]:0;
+  }
+ }
+
  static bool Build(uint32_t* const* pages,unsigned variant,
   uint64_t gpuBase=RcsDrawImage::GpuBase)
  {

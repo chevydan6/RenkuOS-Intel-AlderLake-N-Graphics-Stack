@@ -27,9 +27,19 @@ public:
   memset(pages[RcsDrawImage::Vertices],0,4096);
   return true;
  }
+ // Use after a prebuilt 64x64 image; keep its viewport, surfaces, and target.
+ static bool PatchAddressOnly(uint32_t* const* pages,uint64_t gpu) {
+  if(!pages || gpu<0x410000 || gpu>=0x420000 || (gpu&4095))return false;
+  if(!PatchAddress(pages,uint32_t(gpu)))return false;
+  memset(pages[RcsDrawImage::Vertices],0,4096);
+  return true;
+ }
 private:
  static bool Patch(uint32_t* const* pages,const uint32_t* words,uint32_t gpu) {
   if(!RcsUserVertices::Build(pages,words))return false;
+  return PatchAddress(pages,gpu);
+ }
+ static bool PatchAddress(uint32_t* const* pages,uint32_t gpu) {
   uint32_t* batch=pages[RcsDrawImage::Batch];
   unsigned found=RcsDrawImage::BatchDwords;
   for(unsigned i=0;i+4<RcsDrawImage::BatchDwords;i++)

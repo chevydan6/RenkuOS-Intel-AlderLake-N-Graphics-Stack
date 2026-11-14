@@ -60,6 +60,29 @@ public:
   return haveInterior && haveExterior && found.matched==found.checked;
  }
 
+ static bool Inspect64(uint32_t* const* pages,const uint32_t* words,Check& check,
+  uint32_t renderedPixel=RcsDrawImage::RenderedPixel) {
+  Coord points[3]={};
+  if(!pages || !Validate(words,points))return false;
+  for(unsigned p=6;p<10;p++)if(!pages[p])return false;
+  Check found={0,0,2166136261u,0,0};
+  bool haveInterior=false,haveExterior=false;
+  for(int y=0;y<64;y++)for(int x=0;x<64;x++){
+   unsigned index=unsigned(y*64+x);
+   uint32_t observed=pages[6+index/1024][index%1024];
+   found.hash=(found.hash^observed)*16777619u;
+   int kind=Classify(points,x,y,2);
+   if(kind<0)continue;
+   found.matched+=observed==(kind?renderedPixel:RcsDrawImage::Poison);
+   found.checked++;
+   if(kind==1 && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
+   if(kind==0 && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}
+  }
+  check=found;
+  return haveInterior && haveExterior && found.checked>=2000
+   && found.matched==found.checked;
+ }
+
 private:
  static bool Decode(uint32_t bits,int& pixel) {
   static constexpr uint32_t encoded[25]={
@@ -72,12 +95,13 @@ private:
   return false;
  }
  static int Abs(int value){return value<0?-value:value;}
- static int Classify(const Coord* p,int x,int y) {
-  if(x<3 || x>=29 || y<3 || y>=29)return 0;
+ static int Classify(const Coord* p,int x,int y,int scale=1) {
+  if(x<3*scale || x>=29*scale || y<3*scale || y>=29*scale)return 0;
   bool inside=true;
   for(unsigned i=0;i<3;i++){
    unsigned j=(i+1)%3;
-   int ax=2*p[i].x,ay=2*p[i].y,bx=2*p[j].x,by=2*p[j].y;
+   int ax=2*scale*p[i].x,ay=2*scale*p[i].y;
+   int bx=2*scale*p[j].x,by=2*scale*p[j].y;
    int edge=(bx-ax)*(2*y+1-ay)-(by-ay)*(2*x+1-ax);
    int extent=Abs(bx-ax)>Abs(by-ay)?Abs(bx-ax):Abs(by-ay);
    if(Abs(edge)<=4*extent)return -1; // Ignore two-pixel raster edge band.

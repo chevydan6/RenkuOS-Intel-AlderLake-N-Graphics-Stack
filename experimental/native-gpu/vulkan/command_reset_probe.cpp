@@ -22,7 +22,7 @@ int main()
  if(reset(&device,pool,VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT)!=VK_SUCCESS)return 5;
  if(vkBeginCommandBuffer(command,&begin)!=VK_SUCCESS)return 6;
  VkRenderPass_T pass={};pass.device=&device;
- VkImage_T image={};image.device=&device;
+ VkImage_T image={};image.device=&device;image.width=32;
  VkImageView_T view={};view.device=&device;view.image=&image;
  VkFramebuffer_T framebuffer={};framebuffer.device=&device;framebuffer.pass=&pass;
  framebuffer.view=&view;

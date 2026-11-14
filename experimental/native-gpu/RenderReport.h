@@ -59,8 +59,10 @@ struct native_gpu_render_command {
  // output with rendered pixels on success.
  uint8_t output[4096];
 };
-// Separate ioctl: version 9 returns a 64x64 BGRA image. The v1-v8 4 KiB ABI
-// remains unchanged. No user GPU address or packet word is accepted.
+// Separate ioctl: version 9 returns a fixed 64x64 BGRA image. Version 10
+// uses version-7's file-local vertex and fragment handles with the 64x64
+// target. The v1-v8 4 KiB ABI remains unchanged. No user GPU address or
+// packet word is accepted.
 struct native_gpu_render_large_command {
  native_gpu_render_command base;
  uint8_t extra[12288];

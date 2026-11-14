@@ -374,7 +374,7 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  }
  sRenderRetired=false;
  if(draw && !(sRenderLargeDraw
-  ? NativeGpu::RcsDrawImage64::Build(sRenderData,r.variant)
+  ? NativeGpu::RcsDrawImage64::Build(sRenderData,sRenderCombinedDraw?0:r.variant)
   : sRenderPublicBatchDraw
   ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
   : sRenderArenaDraw
@@ -384,6 +384,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   : sRenderUserDraw
    ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
    : NativeGpu::RcsDrawImage::Build(sRenderData,r.variant)))return false;
+ if(draw && sRenderLargeDraw && sRenderCombinedDraw
+  && !NativeGpu::RcsResourceVertices::PatchAddressOnly(sRenderData,sRenderArenaGpu))
+  return false;
  if(draw && sRenderPublicBatchDraw){
   memset(sRenderData[NativeGpu::RcsDrawImage::Batch],0,4096);
   memset(sRenderData[NativeGpu::RcsDrawImage::Vertices],0,4096);
@@ -392,7 +395,7 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   bool patched=sRenderCombinedDraw
    ?NativeGpu::RcsPublicShader::PatchBatchWithVertex(
     sRenderData[NativeGpu::RcsDrawImage::Batch],1024,
-    sRenderPublicShaderGpu,sRenderArenaGpu)
+    sRenderPublicShaderGpu,sRenderArenaGpu,sRenderLargeDraw)
    :NativeGpu::RcsPublicShader::PatchBatch(
     sRenderData[NativeGpu::RcsDrawImage::Batch],1024,sRenderPublicShaderGpu);
   if(!patched)return false;
@@ -438,7 +441,13 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  // the complete ppHWSP/register-image default. Keep both WA pages in place.
  if(draw){
   bool matched=false;
-  if(sRenderLargeDraw){
+  if(sRenderLargeDraw && sRenderCombinedDraw){
+   NativeGpu::RcsUserVertices::Check check={};
+   matched=NativeGpu::RcsUserVertices::Inspect64(
+    sRenderData,sRenderUserVertices,check,sRenderExpectedPixel);
+   r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
+   r.interior_xy=check.interior;r.exterior_xy=check.exterior;
+  }else if(sRenderLargeDraw){
    NativeGpu::RcsRequestReuse::Check check={};
    matched=NativeGpu::RcsRequestReuse::Inspect64(
     sRenderData,r.variant,check,sRenderExpectedPixel);
@@ -505,13 +514,15 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
 {
  if(!command)return B_BAD_VALUE;
  uint32_t version=command->version,mode=command->mode,variant=command->variant;
- bool largeDraw=version==9 && mode==NATIVE_GPU_RENDER_DRAW && largeExtra;
+ bool largeDraw=(version==9 || version==10)
+  && mode==NATIVE_GPU_RENDER_DRAW && largeExtra;
  bool resourceDraw=version==3 && mode==NATIVE_GPU_RENDER_DRAW;
  bool arenaDraw=version==4 && mode==NATIVE_GPU_RENDER_DRAW;
  bool publicBatchDraw=version==5 && mode==NATIVE_GPU_RENDER_DRAW;
  bool publicShaderDraw=version==6 && mode==NATIVE_GPU_RENDER_DRAW;
  bool publicVertexDraw=version==8 && mode==NATIVE_GPU_RENDER_DRAW;
- bool combinedDraw=(version==7 || publicVertexDraw) && mode==NATIVE_GPU_RENDER_DRAW;
+ bool combinedDraw=(version==7 || version==10 || publicVertexDraw)
+  && mode==NATIVE_GPU_RENDER_DRAW;
  bool userDraw=(version==2 || resourceDraw) && mode==NATIVE_GPU_RENDER_DRAW;
  uint32_t userVertices[12]={};
  uint32_t expectedVertices[12]={};
@@ -522,11 +533,11 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   && ((version==1 && ((mode==NATIVE_GPU_RENDER_DRAW && variant<4)
     || ((mode==NATIVE_GPU_RENDER_PROBE || mode==NATIVE_GPU_RENDER_BOOTSTRAP) && variant==0)))
    || (userDraw && variant==0 && NativeGpu::RcsUserVertices::Validate(userVertices))
-   || (largeDraw && variant<4)))
+   || (largeDraw && version==9 && variant<4)))
   || (arenaDraw && variant==0 && command->reserved!=0 && resourceSession!=0)
   || (publicBatchDraw && variant!=0 && command->reserved!=0 && resourceSession!=0)
   || (publicShaderDraw && variant<4 && command->reserved!=0 && resourceSession!=0)
-  || (combinedDraw && variant!=0 && command->reserved!=0
+  || (combinedDraw && (!largeDraw || version==10) && variant!=0 && command->reserved!=0
    && variant!=command->reserved && resourceSession!=0
    && (!publicVertexDraw || (vertexShaderHandle!=0
     && vertexShaderHandle!=variant && vertexShaderHandle!=command->reserved)));
@@ -706,11 +717,13 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
 }
 static status_t RunNativeRender(native_gpu_render_command* command)
 {return RunNativeRenderOwned(command,0);}
-static status_t RunNativeRenderLarge(native_gpu_render_large_command* command)
+static status_t RunNativeRenderLarge(uint64_t resourceSession,
+ native_gpu_render_large_command* command)
 {
  if(!command)return B_BAD_VALUE;
+ if(command->base.version!=9 && command->base.version!=10)return B_BAD_VALUE;
  memset(command->extra,0,sizeof(command->extra));
- return RunNativeRenderOwned(&command->base,0,command->extra);
+ return RunNativeRenderOwned(&command->base,resourceSession,command->extra);
 }
 static status_t NativeResourceDraw(uint64_t session,native_gpu_render_command* command)
 {

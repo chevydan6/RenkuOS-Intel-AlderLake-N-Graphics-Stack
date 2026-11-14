@@ -49,7 +49,9 @@ struct VkDeviceMemory_T {
 struct VkBuffer_T {
  VkDevice_T* device;VkBuffer_T* next;VkDeviceSize bytes;VkDeviceMemory memory;
 };
-struct VkImage_T { VkDevice_T* device;VkImage_T* next;VkDeviceMemory memory; };
+struct VkImage_T {
+ VkDevice_T* device;VkImage_T* next;VkDeviceMemory memory;uint32_t width;
+};
 struct VkImageView_T { VkDevice_T* device;VkImageView_T* next;VkImage image; };
 struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next; };
 struct VkFramebuffer_T {
@@ -59,7 +61,7 @@ struct VkFramebuffer_T {
 struct VkPipelineLayout_T { VkDevice_T* device;VkPipelineLayout_T* next; };
 struct VkPipeline_T {
  VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;
- uint32_t shaderHandle,vertexShaderHandle;
+ uint32_t shaderHandle,vertexShaderHandle,width;
 };
 struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
 struct VkCommandBuffer_T;
@@ -167,9 +169,9 @@ vkGetPhysicalDeviceProperties(VkPhysicalDevice physical,VkPhysicalDeviceProperti
  properties->vendorID=0x8086;properties->deviceID=0x46d1;
  properties->deviceType=VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
  strcpy(properties->deviceName,"RenkuOS Intel N100 experimental Vulkan");
- properties->limits.maxImageDimension2D=32;
- properties->limits.maxFramebufferWidth=32;
- properties->limits.maxFramebufferHeight=32;
+ properties->limits.maxImageDimension2D=64;
+ properties->limits.maxFramebufferWidth=64;
+ properties->limits.maxFramebufferHeight=64;
  properties->limits.maxColorAttachments=1;
  properties->limits.maxMemoryAllocationCount=16;
 }
@@ -203,10 +205,10 @@ vkGetPhysicalDeviceImageFormatProperties(VkPhysicalDevice physical,VkFormat form
   || !(usage&VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
   || (usage&~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT))
   || flags)return VK_ERROR_FORMAT_NOT_SUPPORTED;
- properties->maxExtent={32,32,1};
+ properties->maxExtent={64,64,1};
  properties->maxMipLevels=1;properties->maxArrayLayers=1;
  properties->sampleCounts=VK_SAMPLE_COUNT_1_BIT;
- properties->maxResourceSize=4096;
+ properties->maxResourceSize=16384;
  return VK_SUCCESS;
 }
 
@@ -493,7 +495,8 @@ vkCreateImage(VkDevice device,const VkImageCreateInfo* info,
  if(!device || !info || !image || allocator || info->pNext || info->flags
   || info->sType!=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO
   || info->imageType!=VK_IMAGE_TYPE_2D || info->format!=VK_FORMAT_B8G8R8A8_UNORM
-  || info->extent.width!=32 || info->extent.height!=32 || info->extent.depth!=1
+  || (info->extent.width!=32 && info->extent.width!=64)
+  || info->extent.height!=info->extent.width || info->extent.depth!=1
   || info->mipLevels!=1 || info->arrayLayers!=1
   || info->samples!=VK_SAMPLE_COUNT_1_BIT || info->tiling!=VK_IMAGE_TILING_LINEAR
   || !(info->usage&VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
@@ -503,7 +506,8 @@ vkCreateImage(VkDevice device,const VkImageCreateInfo* info,
   return VK_ERROR_FORMAT_NOT_SUPPORTED;
  VkImage_T* value=(VkImage_T*)calloc(1,sizeof(VkImage_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
- value->device=device;value->next=device->images;device->images=value;
+ value->device=device;value->width=info->extent.width;
+ value->next=device->images;device->images=value;
  *image=value;return VK_SUCCESS;
 }
 
@@ -523,7 +527,8 @@ vkGetImageMemoryRequirements(VkDevice device,VkImage image,
  if(!requirements)return;
  memset(requirements,0,sizeof(*requirements));
  if(!device || !image || image->device!=device)return;
- requirements->size=4096;requirements->alignment=4096;
+ requirements->size=VkDeviceSize(image->width)*image->width*4;
+ requirements->alignment=4096;
  requirements->memoryTypeBits=1;
 }
 
@@ -606,8 +611,10 @@ vkCreateFramebuffer(VkDevice device,const VkFramebufferCreateInfo* info,
   || info->sType!=VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO
   || !info->renderPass || info->renderPass->device!=device
   || info->attachmentCount!=1 || !info->pAttachments || !info->pAttachments[0]
-  || info->pAttachments[0]->device!=device || info->width!=32
-  || info->height!=32 || info->layers!=1)return VK_ERROR_INITIALIZATION_FAILED;
+  || info->pAttachments[0]->device!=device
+  || info->width!=info->pAttachments[0]->image->width
+  || info->height!=info->width || info->layers!=1)
+  return VK_ERROR_INITIALIZATION_FAILED;
  VkFramebuffer_T* value=(VkFramebuffer_T*)calloc(1,sizeof(VkFramebuffer_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
  value->device=device;value->pass=info->renderPass;
@@ -684,7 +691,8 @@ vkBindImageMemory(VkDevice device,VkImage image,VkDeviceMemory memory,
  VkDeviceSize offset)
 {
  if(!device || !image || !memory || image->device!=device
-  || memory->device!=device || image->memory || offset || memory->bytes<4096)
+  || memory->device!=device || image->memory || offset
+  || memory->bytes<VkDeviceSize(image->width)*image->width*4)
   return VK_ERROR_OUT_OF_DEVICE_MEMORY;
  image->memory=memory;return VK_SUCCESS;
 }
@@ -829,10 +837,12 @@ static bool KnownGraphicsPipeline(VkDevice device,const VkGraphicsPipelineCreate
   || view.scissorCount!=1 || !view.pScissors)return false;
  const auto& viewport=view.pViewports[0];
  const auto& scissor=view.pScissors[0];
- if(viewport.x || viewport.y || viewport.width!=32 || viewport.height!=32
+ if(viewport.x || viewport.y || (viewport.width!=32 && viewport.width!=64)
+  || viewport.height!=viewport.width
   || viewport.minDepth!=0 || viewport.maxDepth!=1
-  || scissor.offset.x || scissor.offset.y || scissor.extent.width!=32
-  || scissor.extent.height!=32)return false;
+  || scissor.offset.x || scissor.offset.y
+  || scissor.extent.width!=viewport.width
+  || scissor.extent.height!=viewport.width)return false;
  const auto& raster=*p.pRasterizationState;
  if(raster.sType!=VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO
   || raster.pNext || raster.flags || raster.depthClampEnable
@@ -918,6 +928,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
   }
  }
  value->device=device;value->pass=info.renderPass;
+ value->width=uint32_t(info.pViewportState->pViewports[0].width);
  value->next=device->pipelines;device->pipelines=value;
  *pipeline=value;return VK_SUCCESS;
 }
@@ -1098,7 +1109,8 @@ vkCmdBeginRenderPass(VkCommandBuffer command,const VkRenderPassBeginInfo* info,
   || info->framebuffer->device!=command->device
   || info->framebuffer->pass!=info->renderPass
   || info->renderArea.offset.x || info->renderArea.offset.y
-  || info->renderArea.extent.width!=32 || info->renderArea.extent.height!=32
+  || info->renderArea.extent.width!=info->framebuffer->view->image->width
+  || info->renderArea.extent.height!=info->renderArea.extent.width
   || info->clearValueCount || contents!=VK_SUBPASS_CONTENTS_INLINE){
   command->invalid=true;return;
  }
@@ -1208,6 +1220,10 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
      || recorded.pipeline->pass!=recorded.framebuffer->pass
      || !recorded.vertex || recorded.vertex->device!=device
      || !recorded.vertex->memory)return VK_ERROR_INITIALIZATION_FAILED;
+    if(recorded.pipeline->width!=recorded.framebuffer->view->image->width
+     || (recorded.pipeline->width==64
+      && recorded.pipeline->vertexShaderHandle))
+     return VK_ERROR_FEATURE_NOT_PRESENT;
    }
   }
  }
@@ -1216,8 +1232,11 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  VkCommandBuffer command=submits[i].pCommandBuffers[j];
  for(size_t k=0;k<command->drawCount;k++){
  const auto& recorded=command->draws[k];
- native_gpu_render_command draw={};
- draw.version=recorded.pipeline->vertexShaderHandle?8:7;
+ const bool large=recorded.framebuffer->view->image->width==64;
+ native_gpu_render_large_command largeDraw={};
+ native_gpu_render_command smallDraw={};
+ native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
+ draw.version=large?10:recorded.pipeline->vertexShaderHandle?8:7;
  draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=recorded.vertex->memory->handle;
  draw.reserved=recorded.pipeline->shaderHandle;
@@ -1225,28 +1244,36 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   memcpy(draw.output,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
  const bigtime_t submitStart=device->trace?system_time():0;
- int status=ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&draw,sizeof(draw));
+ int status=large
+  ?ioctl(device->fd,NATIVE_GPU_RENDER_LARGE_IOCTL,&largeDraw,sizeof(largeDraw))
+  :ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&smallDraw,sizeof(smallDraw));
  const bigtime_t renderDone=device->trace?system_time():0;
  const auto& r=draw.report;
  uint32_t hash=2166136261u;
  const uint32_t* pixels=(const uint32_t*)draw.output;
- for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
+ const uint32_t* extraPixels=(const uint32_t*)largeDraw.extra;
+ for(unsigned i=0;i<(large?4096u:1024u);i++)
+  hash=(hash^(i<1024?pixels[i]:extraPixels[i-1024]))*16777619u;
  const bool valid=status==0 && !r.status && r.version==draw.version
   && r.stage==NATIVE_GPU_RENDER_STAGE_COMPLETE
   && r.known_profile && r.owner_granted && r.sequence
   && r.observed_sequence==r.sequence && r.nonce==r.observed_nonce
-  && r.observed_complement==~r.nonce && r.checked_pixels>=500
+  && r.observed_complement==~r.nonce && r.checked_pixels>=(large?2000u:500u)
   && r.matched_pixels==r.checked_pixels && hash==r.target_hash
   && !r.fault && r.engine_stage==4 && !r.engine_error && !r.csb_error;
  int writeStatus=-1;
  bigtime_t writeStart=renderDone,writeDone=renderDone;
  if(valid){
-  native_gpu_resource_command write={};write.version=1;
-  write.action=NATIVE_GPU_RESOURCE_WRITE;
-  write.handle=recorded.framebuffer->view->image->memory->handle;
-  write.bytes=sizeof(draw.output);memcpy(write.data,draw.output,write.bytes);
   if(device->trace)writeStart=system_time();
-  writeStatus=ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write));
+  for(unsigned p=0;p<(large?4u:1u);p++){
+   native_gpu_resource_command write={};write.version=1;
+   write.action=NATIVE_GPU_RESOURCE_WRITE;
+   write.handle=recorded.framebuffer->view->image->memory->handle;
+   write.offset=uint64_t(p)*4096;write.bytes=4096;
+   memcpy(write.data,p?largeDraw.extra+(p-1)*4096:draw.output,4096);
+   writeStatus=ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write));
+   if(writeStatus!=0)break;
+  }
   if(device->trace)writeDone=system_time();
  }
  if(device->trace)fprintf(stderr,

@@ -29,10 +29,10 @@ int main()
  if(getImageFormat(physical,VK_FORMAT_B8G8R8A8_UNORM,VK_IMAGE_TYPE_2D,
    VK_IMAGE_TILING_LINEAR,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
    |VK_IMAGE_USAGE_TRANSFER_SRC_BIT,0,&imageFormat)!=VK_SUCCESS
-  || imageFormat.maxExtent.width!=32 || imageFormat.maxExtent.height!=32
+  || imageFormat.maxExtent.width!=64 || imageFormat.maxExtent.height!=64
   || imageFormat.maxExtent.depth!=1 || imageFormat.maxMipLevels!=1
   || imageFormat.maxArrayLayers!=1 || imageFormat.sampleCounts!=VK_SAMPLE_COUNT_1_BIT
-  || imageFormat.maxResourceSize!=4096)return 19;
+  || imageFormat.maxResourceSize!=16384)return 19;
  if(getImageFormat(physical,VK_FORMAT_B8G8R8A8_UNORM,VK_IMAGE_TYPE_2D,
    VK_IMAGE_TILING_LINEAR,VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,0,
    &imageFormat)!=VK_SUCCESS)return 21;
