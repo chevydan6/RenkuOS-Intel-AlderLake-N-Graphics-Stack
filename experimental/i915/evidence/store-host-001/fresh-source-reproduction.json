@@ -1,0 +1,15 @@
+{
+  "checkedAtUTC": "2026-11-14",
+  "sourceCommit": "57d16db",
+  "nativeValidationPending": true,
+  "linuxRevision": "ffc253263a1375a65fa6c9f62a893e9767fbebfa",
+  "renkuRevision": "4799bb5a188c4bb6bbef967287640cc21a061a0d",
+  "linuxImportCount": 118,
+  "payloadFileCount": 7111,
+  "referenceFiles": 6783,
+  "matchesPreparedStore002Manifest": true,
+  "manifestSHA256": "c2d544cb5b408269a8c6eb03d4c8d5fd6914eea23377479c4e957fb4caac62ea",
+  "nativeAccess": "SSH2222 no route to host; no ICMP reply from NanoKVM; no native job started",
+  "targetCCompileExit": 0,
+  "sourceTreesClean": true
+}

@@ -112,6 +112,14 @@ git -C ../renku-source sparse-checkout set headers build/config_headers
 git -C ../renku-source checkout --detach 4799bb5a188c4bb6bbef967287640cc21a061a0d
 ```
 
+The original computer now also has verified persistent replacements at
+`/home/dan/i915-sources/linux-v6.6` and
+`/home/dan/i915-sources/renku-source`. A fresh bundle generated from those trees
+reproduced all 7,111 prepared store002 payload files byte-for-byte, including
+6,783 reference files. The target-header C build passed from the restored paths.
+See the [reproduction record](experimental/i915/evidence/store-host-001/fresh-source-reproduction.json).
+This restores the source setup; it does not validate the new code on RenkuOS.
+
 Access credentials are **not in this repository**. Transfer them privately if
 needed. The old computer's `/home/dan/i915-vm/private/` contains the existing SSH
 key, known-host records and NanoKVM connection configuration. Never commit that
