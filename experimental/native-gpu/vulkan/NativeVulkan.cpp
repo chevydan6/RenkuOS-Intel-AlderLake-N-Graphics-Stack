@@ -755,10 +755,14 @@ static bool KnownGraphicsPipeline(VkDevice device,const VkGraphicsPipelineCreate
   || !p.pVertexInputState || !p.pInputAssemblyState || !p.pViewportState
   || !p.pRasterizationState || !p.pMultisampleState || !p.pColorBlendState)
   return false;
+ bool knownFragment=KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
+  RenkuKnownSpirv::Fragment,sizeof(RenkuKnownSpirv::Fragment));
+#ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+ knownFragment=knownFragment || KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
+  RenkuKnownSpirv::FragmentHalf,sizeof(RenkuKnownSpirv::FragmentHalf));
+#endif
  if(!KnownStage(device,p.pStages[0],VK_SHADER_STAGE_VERTEX_BIT,
-   RenkuKnownSpirv::Vertex,sizeof(RenkuKnownSpirv::Vertex))
-  || !KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
-   RenkuKnownSpirv::Fragment,sizeof(RenkuKnownSpirv::Fragment)))return false;
+   RenkuKnownSpirv::Vertex,sizeof(RenkuKnownSpirv::Vertex)) || !knownFragment)return false;
  const auto& in=*p.pVertexInputState;
  if(in.sType!=VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
   || in.pNext || in.flags || in.vertexBindingDescriptionCount!=1

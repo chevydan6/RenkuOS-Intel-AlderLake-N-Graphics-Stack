@@ -11,8 +11,9 @@ build. A separate compiler-backed build is described below.
 
 The library is intentionally kept in an isolated build bundle. Its reported
 Vulkan 1.0 version is an **experimental API target**, not a conformance claim.
-It accepts only the two SPIR-V fixtures and a fixed N100 pipeline and command
-shape. General shader compilation, resource formats, command streams,
+The hardware-tested default build accepts one vertex and one fragment SPIR-V
+fixture and a fixed N100 pipeline and command shape. General shader execution,
+resource formats, command streams,
 semaphores, presentation, and broad Vulkan compatibility remain open. Basic
 host fences now support creation, status, reset, wait, and signaling after a
 successful synchronous queue submission; they have only been tested in the VM.
@@ -74,26 +75,30 @@ direct compile-input sizes.
 
 `KnownSpirv.h` is generated from the validated Vulkan 1.0 assembly fixtures
 in `../render/compiler/mesa-26.3.0/spirv/` using `generate-known-spirv.py` and
-SPIRV-Tools. Its vertex and fragment module hashes match the Mesa compiler
-proof. This fixture does not imply arbitrary SPIR-V support in RenkuOS.
+SPIRV-Tools. Its original vertex and fragment module hashes match the Mesa
+compiler proof. A half-green fragment fixture is used only by the alternate
+compiler-backed build. These fixtures do not imply arbitrary SPIR-V support.
 
 ## Compiler-backed pipeline experiment
 
 `build-compiler-pipeline.sh` builds an alternate `libvulkan.so` on Haiku with
 the native Mesa 26.3.0 Intel compiler library. Set `RENKU_VULKAN_HEADERS` to
 the extracted Khronos header directory and `RENKU_INTEL_COMPILER_LIB_DIR` to
-the directory containing `librenku_intel_compiler.so`. The script also builds
-and runs two probes. The original `build-native.sh` remains the physical N100
+the directory containing `librenku_intel_compiler.so`. The script builds and
+runs four VM probes and compiles a hardware triangle probe. The original
+`build-native.sh` remains the physical N100
 regression path.
 
-The alternate pipeline compiles the accepted Vulkan 1.0 SPIR-V pair during
-`vkCreateGraphicsPipelines`, verifies both machine programs against the
-hardware-tested bytes, and uploads the compiled fragment program. It rejects
-all other SPIR-V before calling the compiler because the owner accepts one
-exact fragment program. The compiler-backed build validates modules for Vulkan
+The alternate pipeline compiles either exact Vulkan 1.0 SPIR-V pair during
+`vkCreateGraphicsPipelines`, verifies the original against hardware-tested
+machine bytes and the half-green fragment against its compiler-proven bytes,
+then uploads the compiled fragment program. Other shader pairs are rejected
+before compilation. The matching VM owner source admits exactly these two
+programs; the physical installed owner still admits the original only.
+The compiler-backed build validates modules for Vulkan
 1.0 with SPIRV-Tools at `vkCreateShaderModule`, before pipeline creation. The
 VM probe rejects a semantically malformed module at that call, reaches owner
-allocation with the accepted pair, and rejects an altered pair before owner
+allocation with both accepted pairs, and rejects an altered pair before owner
 submission. It does not execute GPU work;
 physical N100 rendering still needs validation before this build can replace
 the fixed-program path. [Pipeline VM evidence](../evidence/native-vulkan-compiler-pipeline-006/README.md)
@@ -105,3 +110,6 @@ the VM fence tests; hardware execution with a fence remains pending.
 The [command reset checkpoint](../evidence/native-vulkan-command-reset-010/README.md)
 records pool reset, and [checkpoint 011](../evidence/native-vulkan-command-reset-011/README.md)
 records individual and implicit reset in the VM.
+The [two-shader owner checkpoint](../evidence/native-rcs-two-shaders-013/README.md)
+and [Vulkan checkpoint 014](../evidence/native-vulkan-two-shaders-014/README.md)
+record VM builds and the pending half-green hardware test.

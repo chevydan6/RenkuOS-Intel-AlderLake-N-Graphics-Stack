@@ -20,7 +20,8 @@ def main():
             "#ifndef RENKU_NATIVE_KNOWN_SPIRV_H", "#define RENKU_NATIVE_KNOWN_SPIRV_H",
             "#include <stdint.h>", "namespace RenkuKnownSpirv {"]
     with tempfile.TemporaryDirectory(prefix="renku-spirv-") as temp:
-        for stage, name in (("vert", "Vertex"), ("frag", "Fragment")):
+        for stage, name in (("vert", "Vertex"), ("frag", "Fragment"),
+                            ("frag.half", "FragmentHalf")):
             source = ASSEMBLY / f"triangle.{stage}.spvasm"
             output = Path(temp) / f"triangle.{stage}.spv"
             subprocess.run([str(tool / "spirv-as"), "--target-env", "vulkan1.0",

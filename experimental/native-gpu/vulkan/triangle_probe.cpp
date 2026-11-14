@@ -6,7 +6,8 @@
 #include <string.h>
 
 static_assert(RenkuKnownSpirv::Vertex[1]==0x00010000
- && RenkuKnownSpirv::Fragment[1]==0x00010000,
+ && RenkuKnownSpirv::Fragment[1]==0x00010000
+ && RenkuKnownSpirv::FragmentHalf[1]==0x00010000,
  "Advertised Vulkan 1.0 requires the SPIR-V 1.0 fixture");
 
 #define REQUIRE(condition,code) do { if(!(condition)) { \
@@ -15,8 +16,10 @@ static_assert(RenkuKnownSpirv::Vertex[1]==0x00010000
 
 int main(int argc,char** argv)
 {
- if(argc!=2 || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1])return 40;
+ if((argc!=2 && argc!=3) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
+  || (argc==3 && strcmp(argv[2],"half")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
+ bool half=argc==3;
  VkApplicationInfo app={};app.sType=VK_STRUCTURE_TYPE_APPLICATION_INFO;
  app.apiVersion=VK_API_VERSION_1_0;
  VkInstanceCreateInfo instanceInfo={};instanceInfo.sType=VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -40,8 +43,9 @@ int main(int argc,char** argv)
  moduleInfo.pCode=RenkuKnownSpirv::Vertex;moduleInfo.codeSize=sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
- moduleInfo.pCode=RenkuKnownSpirv::Fragment;
- moduleInfo.codeSize=sizeof(RenkuKnownSpirv::Fragment);
+ moduleInfo.pCode=half?RenkuKnownSpirv::FragmentHalf:RenkuKnownSpirv::Fragment;
+ moduleInfo.codeSize=half?sizeof(RenkuKnownSpirv::FragmentHalf):
+  sizeof(RenkuKnownSpirv::Fragment);
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -169,7 +173,7 @@ int main(int argc,char** argv)
  memcpy(alteredFs,RenkuKnownSpirv::Fragment,sizeof(alteredFs));
  bool changed=false;
  for(unsigned i=0;i<sizeof(alteredFs)/sizeof(alteredFs[0]);i++)
-  if(alteredFs[i]==0x3e800000){alteredFs[i]=0x3f000000;changed=true;break;}
+  if(alteredFs[i]==0x3e800000){alteredFs[i]=0x3f400000;changed=true;break;}
  REQUIRE(changed,31);
  moduleInfo.pCode=alteredFs;moduleInfo.codeSize=sizeof(alteredFs);
  VkShaderModule alternate=VK_NULL_HANDLE;
@@ -219,9 +223,14 @@ int main(int argc,char** argv)
  const uint32_t* pixels=(const uint32_t*)mapped;
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- REQUIRE(hash==expected[shape] && pixels[0]==0x19537bad,30);
+ if(half){
+  const unsigned interiorX[4]={20,20,10,10},interiorY[4]={10,20,20,10};
+  REQUIRE(pixels[interiorY[shape]*32+interiorX[shape]]==0xffff8000
+   && pixels[0]==0x19537bad && hash!=expected[shape],30);
+ }else REQUIRE(hash==expected[shape] && pixels[0]==0x19537bad,30);
  vkUnmapMemory(device,imageMemory);
- printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x\n",shape,hash);
+ if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x\n",shape,hash);
+ else printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x\n",shape,hash);
 
  vkFreeCommandBuffers(device,pool,1,&command);
  vkDestroyCommandPool(device,pool,nullptr);

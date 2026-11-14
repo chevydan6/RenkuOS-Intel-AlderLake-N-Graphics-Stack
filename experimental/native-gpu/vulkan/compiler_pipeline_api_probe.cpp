@@ -16,6 +16,10 @@ int main()
  create.pCode=malformed;
  if(vkCreateShaderModule(&device,&create,nullptr,&checked)
   !=VK_ERROR_INITIALIZATION_FAILED || checked)return 4;
+ create.pCode=RenkuKnownSpirv::FragmentHalf;
+ create.codeSize=sizeof(RenkuKnownSpirv::FragmentHalf);
+ if(vkCreateShaderModule(&device,&create,nullptr,&checked)!=VK_SUCCESS || !checked)return 5;
+ vkDestroyShaderModule(&device,checked,nullptr);
  VkShaderModule_T vs={};vs.device=&device;vs.bytes=sizeof(RenkuKnownSpirv::Vertex);
  vs.code=const_cast<uint32_t*>(RenkuKnownSpirv::Vertex);
  VkShaderModule_T fs={};fs.device=&device;fs.bytes=sizeof(RenkuKnownSpirv::Fragment);
@@ -52,11 +56,21 @@ int main()
  VkPipeline pipeline=VK_NULL_HANDLE;
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
   !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 1;
+ fs.code=const_cast<uint32_t*>(RenkuKnownSpirv::FragmentHalf);
+ fs.bytes=sizeof(RenkuKnownSpirv::FragmentHalf);
+ if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
+  !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 6;
+ fs.code=const_cast<uint32_t*>(RenkuKnownSpirv::Fragment);
+ fs.bytes=sizeof(RenkuKnownSpirv::Fragment);
  uint32_t altered[sizeof(RenkuKnownSpirv::Fragment)/4];
- memcpy(altered,RenkuKnownSpirv::Fragment,sizeof(altered));altered[5]^=1;
+ memcpy(altered,RenkuKnownSpirv::Fragment,sizeof(altered));
+ bool changed=false;
+ for(unsigned i=0;i<sizeof(altered)/4;i++)
+  if(altered[i]==0x3e800000){altered[i]=0x3f400000;changed=true;break;}
+ if(!changed)return 7;
  fs.code=altered;
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
   !=VK_ERROR_FEATURE_NOT_PRESENT || pipeline)return 2;
- puts("Vulkan API probe: rejected malformed shader module; compiled accepted pipeline; rejected altered pipeline");
+ puts("Vulkan API probe: validated both modules; compiled both pipelines; rejected altered pipeline");
  return 0;
 }
