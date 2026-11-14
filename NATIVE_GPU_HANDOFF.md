@@ -1,6 +1,36 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Latest checkpoint: owned-buffer rectangular copy interface
+
+The narrow [buffer-and-copy API](experimental/native-gpu/BUFFER_COPY.md) now runs
+on the physical N100. Each open session owns two fixed4KiB CPU staging buffers;
+handles, byte ranges, dimensions, pitches, bounds and non-overlap are validated
+before publication. All commands and GPU addresses are built in the kernel.
+GPU execution uses the resident owner's separate pinned pages; no user/staging
+pointer escapes the synchronous call. Visibility and request lifetime rules are
+explicit in the API document. Uncertain execution retains GPU backing and blocks
+submission until reboot. Direct DMA still requires observed VT-d translation
+disabled; general IOMMU support remains separate.
+
+[Native buffer evidence](experimental/native-gpu/evidence/native-buffer-001/README.md):
+three17×5 rectangle copies with source/destination pitches80/96 passed in one
+boot, including bytewise destination-padding verification and rejection of
+same-buffer, out-of-bounds and unowned-session handles. The original4KiB sample
+then passed at sequence4. EIR/fault remain0; app_server remains PID127 and the
+thirteen original display/observer hashes match. The physical lease is released.
+
+Native source/build/client: `/boot/home/native-buffer-001`. Run
+`build/buffer_copy_sample` or `build/gpu_copy_sample`; both may be invoked again
+following successful retirement. **Both owner and bridge now use the private
+native_execution/v2 module** and must be replaced together, with a reboot.
+Current installed owner SHA256:
+`c114d975c83536134b153d328fafc47920d719f4c0a2d69df5ac3f256ff7ce14`.
+Current installed bridge SHA256:
+`30d6283481973cec65cbc58be7922c09df3fe98f9a3fd80d4166e82f89b808c8`.
+The older installer remains guarded for the original pre-execution baseline;
+it is not an upgrade script for these already-installed versions.
+
 ## Latest checkpoint: repeated copies in one boot
 
 The one-attempt-per-boot restriction described by execution005 below is superseded.

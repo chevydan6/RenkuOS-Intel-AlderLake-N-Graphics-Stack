@@ -14,7 +14,10 @@
 #include "CopyRequestImage.h"
 #include "BcsEngine.h"
 #include "NativePciPower.h"
+#include "OwnedBuffers.h"
 
+static native_gpu_copy sNativeCopy;
+static uint32_t sNativeExpected[1024];
 static bool sNativeAttempted, sNativePageHold;
 static bool sNativeReady, sNativeInitialized, sNativeRetired;
 static uint32_t sNativeSequence, sNativeCursor;
@@ -239,7 +242,10 @@ static bool NativeCollectOutput(void* data)
 	for(unsigned i=0;i<4;i++)NativeStatus64(NULL,kN100CsbBuffer+8*i,r.csb_words[i]);
 	r.source_hash=NativeHash(sNativeSource);r.destination_hash=NativeHash(sNativeDestination);
 	r.copy_matched=0;
-	for(unsigned i=0;i<1024;i++)if(sNativeSource[i]==sNativeDestination[i])r.copy_matched++;
+	for(unsigned y=0;y<sNativeCopy.height;y++)
+		for(unsigned x=0;x<sNativeCopy.width;x++)
+			if(sNativeSource[y*(sNativeCopy.source_pitch/4)+x]
+				==sNativeDestination[y*(sNativeCopy.destination_pitch/4)+x])r.copy_matched++;
 	return NativeRead(data,0x2209c,r.mode);
 }
 static bool NativeGroupSafe(void* data)
@@ -269,7 +275,8 @@ static bool NativeWork(void* data,uint64_t deadline)
 		(uint32_t*)sMappingSet.buffers[1].cpu_aperture,(uint32_t*)sMappingSet.buffers[2].cpu_aperture,
 		(uint32_t*)sMappingSet.buffers[3].cpu_aperture};
 	NativeGpu::ImageOutput image;
-	if(!NativeGpu::BuildCopyRequestImage(in,cpu,image,!sNativeInitialized))return false;
+	if(!NativeGpu::BuildCopyRequestImage(in,cpu,image,!sNativeInitialized,sNativeCopy.width,
+		sNativeCopy.height,sNativeCopy.source_pitch,sNativeCopy.destination_pitch))return false;
 	// The HWSP cursor may become visible before its entry write. Poison only
 	// the next two consumed/free slots so wraparound cannot expose old tags.
 	for(unsigned i=1;i<=2;i++) {
@@ -309,7 +316,9 @@ static bool NativeWork(void* data,uint64_t deadline)
 	if(sNativeReport.observed_nonce!=in.nonce || sNativeReport.observed_complement!=~in.nonce
 		|| sNativeReport.observed_sequence!=in.sequence)return false;
 	sNativeReport.stage=13;
-	if(sNativeReport.copy_matched!=1024)return false;
+	if(sNativeReport.copy_matched!=sNativeReport.copy_words)return false;
+	// Verify untouched destination bytes as well as the copied rectangle.
+	for(unsigned i=0;i<1024;i++)if(sNativeDestination[i]!=sNativeExpected[i])return false;
 	uint32_t mode=0;
 	if(!NativeRead(data,0x2209c,mode) || !(mode&0x200) || !NativeSafe(data))return false;
 	sNativeReport.mode=mode;
@@ -321,13 +330,19 @@ static bool NativeWork(void* data,uint64_t deadline)
 	sNativeReport.stage=14;
 	return true;
 }
-static status_t RunNativeExecution(native_gpu_execution_report* output)
+static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source,
+	uint32_t* destination,native_gpu_execution_report* output)
 {
 	if(!output)return B_BAD_VALUE;
+	*output={};output->version=1;output->status=B_BAD_VALUE;
+	if(copy && (!source || !destination || source==destination
+		|| !NativeGpu::ValidCopy(copy->width,copy->height,copy->source_pitch,copy->destination_pitch)))
+		return B_BAD_VALUE;
 	mutex_lock(&sLock);
 	if(sNativeAttempted){mutex_unlock(&sLock);return B_BUSY;}
 	if(sNativeSequence==UINT32_MAX){mutex_unlock(&sLock);return B_BUSY;}
 	sNativeAttempted=true;
+	sNativeCopy=copy?*copy:native_gpu_copy{1,2,1024,1,4096,4096,{}};
 	++sNativeSequence;
 	if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
 	sNativeReport={};sNativeReport.version=1;sNativeReport.status=B_ERROR;
@@ -361,8 +376,17 @@ static status_t RunNativeExecution(native_gpu_execution_report* output)
 	r.mapping=r.dma=r.tables=B_OK;r.pages=sNativeTree.RecordedPages();r.retained=1;
 	r.nonce=(uint32_t(system_time())^sNativeSequence)|1;
 	if(r.nonce==NativeGpu::kPoison || ~r.nonce==NativeGpu::kPoison)r.nonce^=0x915;
-	r.sequence=sNativeSequence;r.copy_words=1024;
-	for(unsigned i=0;i<1024;i++){sNativeSource[i]=r.nonce^(0x9e3779b9u*i);sNativeDestination[i]=NativeGpu::kPoison;}
+	r.sequence=sNativeSequence;r.copy_words=sNativeCopy.width*sNativeCopy.height;
+	// CPU -> GPU: copy only from kernel-owned, session-locked staging. The
+	// publication path flushes WB data and WC request stores with NativeVisible.
+	for(unsigned i=0;i<1024;i++){
+		sNativeSource[i]=copy?source[i]:r.nonce^(0x9e3779b9u*i);
+		sNativeDestination[i]=copy?destination[i]:NativeGpu::kPoison;
+		sNativeExpected[i]=sNativeDestination[i];
+	}
+	for(unsigned y=0;y<sNativeCopy.height;y++)
+		for(unsigned x=0;x<sNativeCopy.width;x++)
+			sNativeExpected[y*(sNativeCopy.destination_pitch/4)+x]=sNativeSource[y*(sNativeCopy.source_pitch/4)+x];
 	r.stage=4;
 	IntelN100PciSnapshot original={};
 	if(IntelN100PciPower::Capture(ReadConfig,&sDevice,sDevice.base,sDevice.size,original)
@@ -415,10 +439,17 @@ static status_t RunNativeExecution(native_gpu_execution_report* output)
 	// not a second observation lease. Both request backing and code stay alive.
 	*output=r;
 	status_t status=r.status;
-	if(success)sNativeAttempted=false;
+	if(success){
+		// GPU -> CPU: NativeCollectOutput invalidated CPU caches after ordered
+		// completion. Only full retirement + power release exposes new data.
+		if(copy)memcpy(destination,sNativeDestination,kNativeBufferBytes);
+		sNativeAttempted=false;
+	}
 	mutex_unlock(&sLock);
 	return status;
 }
+static status_t RunNativeExecution(native_gpu_execution_report* output)
+{ return RunNativeCopy(NULL,NULL,NULL,output); }
 static native_gpu_execution_module sNativeExecutionModule={
-	{NATIVE_GPU_EXECUTION_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeExecution
+	{NATIVE_GPU_EXECUTION_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeExecution,RunNativeCopy
 };

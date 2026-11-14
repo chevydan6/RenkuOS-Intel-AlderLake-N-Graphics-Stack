@@ -43,12 +43,14 @@ The earlier engine-only checkpoint itself made no hardware submission.
 ## Retained native execution prototype
 
 NativeExecution.inc is included into the resident IntelMemoryOwner image. Its
-new native_execution/v1 endpoint owns one fixed nonce + 4KiB PPGTT copy attempt
+native_execution/v2 endpoint owns one kernel-built PPGTT copy request
 at a time. It reuses the mapping lease/pin, existing forcewake/reset helpers,
 request/context image and linear BLT builder. The user client supplies no command
-stream, GPU/CPU address, buffer or callback. One backing set remains pinned for the session and is reused after verified
+stream, GPU/CPU address or callback. The owned-buffer interface is documented
+in [BUFFER_COPY.md](BUFFER_COPY.md), with [native evidence](evidence/native-buffer-001/README.md).
+One GPU backing set remains pinned and is reused after verified
 retirement. An uncertain request blocks further submissions until reboot. This
-is a fixed synchronous copy endpoint, not a general allocation/submission API.
+is a narrow synchronous linear32-bit copy endpoint.
 
 The direct-DMA backend requires the actual boot's DMAR coverage and all enumerated
 VT-d units to have translation disabled; it never disables an enabled IOMMU. The

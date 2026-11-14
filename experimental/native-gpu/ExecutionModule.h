@@ -2,13 +2,14 @@
 #ifndef NATIVE_GPU_EXECUTION_MODULE_H
 #define NATIVE_GPU_EXECUTION_MODULE_H
 #include <module.h>
-#include "ExecutionReport.h"
-#define NATIVE_GPU_EXECUTION_MODULE "bus_managers/intel_memory_owner/native_execution/v1"
+#include "BufferCopy.h"
+#define NATIVE_GPU_EXECUTION_MODULE "bus_managers/intel_memory_owner/native_execution/v2"
 struct native_gpu_execution_module {
 	module_info info;
-	// Fixed kernel-built nonce plus 4KiB copy. One attempt per boot. No user
-	// commands, addresses, buffers or callback inputs. Resident owner keeps
-	// backing after hardware access, even on success, until controlled reboot.
+	// Fixed sample plus synchronous private kernel staging interface. No kernel
+	// pointer/callback escapes this call; only resident backing is GPU-visible.
 	status_t (*run)(native_gpu_execution_report*);
+	status_t (*copy)(const native_gpu_copy*,const uint32_t* source,
+		uint32_t* destination,native_gpu_execution_report*);
 };
 #endif

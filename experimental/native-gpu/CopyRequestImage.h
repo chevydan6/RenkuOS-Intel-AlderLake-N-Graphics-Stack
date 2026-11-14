@@ -11,7 +11,9 @@ namespace NativeGpu {
 // Packet/BLIT_CCTL ordering follows pinned v6.6 gem/selftests/
 // i915_gem_client_blt.c::prepare_blit(), retaining Intel's MIT hardware logic.
 inline bool BuildCopyRequestImage(const ImageInput& in,
-	const ImageBuffers& cpu, ImageOutput& out, bool initializeStatus = true)
+	const ImageBuffers& cpu, ImageOutput& out, bool initializeStatus = true,
+	uint32_t width = 1024, uint32_t height = 1,
+	uint32_t sourcePitch = 4096, uint32_t destinationPitch = 4096)
 {
 	if (!BuildRequestImage(in,cpu,out,initializeStatus)) return false;
 	// Insert 3-dword BLIT_CCTL LRI + 10-dword copy + alignment NOOP between
@@ -20,9 +22,9 @@ inline bool BuildCopyRequestImage(const ImageInput& in,
 	cpu.ring[8]=0x11000001;
 	cpu.ring[9]=0x22204;
 	cpu.ring[10]=0x606; // src/dst MOCS index3 (uncached), encoded index<<1.
-	Gen12Experiment::LinearSurface src={0x200000,4096,4096};
-	Gen12Experiment::LinearSurface dst={0x201000,4096,4096};
-	if (!Gen12Experiment::PackLinearCopy32(dst,src,1024,1,cpu.ring+11,10)) return false;
+	Gen12Experiment::LinearSurface src={0x200000,4096,sourcePitch};
+	Gen12Experiment::LinearSurface dst={0x201000,4096,destinationPitch};
+	if (!Gen12Experiment::PackLinearCopy32(dst,src,width,height,cpu.ring+11,10)) return false;
 	cpu.ring[21]=0;
 	out.tail+=56;
 	out.workaroundTail+=56;
