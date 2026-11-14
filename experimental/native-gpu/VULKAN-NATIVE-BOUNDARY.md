@@ -148,3 +148,15 @@ objects for the two validated SPIR-V fixtures; see `vulkan/` and
 point, but it has not submitted a Vulkan draw or reached conformance. The
 remaining userspace gap is graphics-pipeline, memory, command-buffer, queue
 submission, readback, and presentation semantics over the native owner.
+
+The next native Vulkan slice now creates owner-backed `VkDeviceMemory` and a
+vertex `VkBuffer`, binds them, and uses explicit mapped-memory flush and
+invalidate to verify exact triangle-vertex bytes through the owner resource
+ioctl. Device creation bootstraps the owner even after a clean reboot.
+The N100 probe passed once after reboot, 64 repeated memory sessions, and 64
+more after a requested-size bounds fix; the v6 shader hardware draw passed
+after each series. See `evidence/native-vulkan-memory-002/`. The advertised
+memory type is host-visible and noncoherent, matching the explicit transfer
+path. The next userspace blocker remains graphics-pipeline and command-buffer
+translation into the bounded RCS draw contract. Vulkan has not submitted a
+draw, and the current ABI does not offer general command submission.

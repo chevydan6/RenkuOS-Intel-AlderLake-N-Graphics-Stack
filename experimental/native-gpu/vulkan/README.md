@@ -2,17 +2,23 @@
 
 This direct-linked RenkuOS `libvulkan.so` uses Khronos Vulkan headers from the
 pinned Mesa 26.3.0 archive. It currently implements instance and physical
-device enumeration, one graphics device and queue, and shader-module object
-lifetime. Physical device discovery probes the installed N100 owner through
+device enumeration, one graphics device and queue, shader-module object
+lifetime, and one native owner-backed vertex-buffer memory path. Physical
+device discovery probes the installed N100 owner through
 the native execution bridge. No DRM/GEM, Linux loader, window system, base
 kernel change, or Mesa runtime library is involved.
 
 The library is intentionally kept in an isolated build bundle. Its reported
 Vulkan 1.0 version is an **experimental API target**, not a conformance claim:
-core pipeline, memory, command-buffer, synchronization, presentation, and
+core pipeline, general memory, command-buffer, synchronization, presentation, and
 general shader compilation paths are still missing. Unsupported instance
 extensions, device extensions, layers, and requested features are rejected.
 Shader modules are copied and owned by the device; they are not executed yet.
+Device creation bootstraps the existing RCS owner. Vulkan memory allocation
+creates an owner BO, and explicit flush/invalidate copies mapped staging data
+through the native resource ioctl. This memory type is host-visible and
+noncoherent. The native interface currently supports one 64 KiB heap and
+vertex-buffer usage only; there is no Vulkan draw submission yet.
 
 ## Reproduce on the N100
 
@@ -27,8 +33,9 @@ python3 experimental/native-gpu/vulkan/prepare-headers.py \
 
 The headers
 retain Khronos copyright and `Apache-2.0 OR MIT` SPDX notices. Copy that
-directory's `include/`, this directory's sources, and `../RenderReport.h` into
-`/boot/home/native-vulkan-abi-001/` with the same layout, then run:
+directory's `include/`, this directory's sources, and both `../RenderReport.h`
+and `../ResourceCommand.h` into `/boot/home/native-vulkan-abi-001/` with the same
+layout, then run:
 
 ```sh
 bash /boot/home/native-vulkan-abi-001/vulkan/build-native.sh
@@ -37,8 +44,11 @@ bash /boot/home/native-vulkan-abi-001/vulkan/build-native.sh
 The physical test passed `vkCreateInstance`, `vkEnumeratePhysicalDevices`,
 `vkGetPhysicalDeviceProperties`, queue discovery, `vkCreateDevice`, queue
 creation, both SPIR-V shader modules, function-pointer lookup, and rejection
-of a requested unsupported feature. [Build and closure evidence](../evidence/native-vulkan-abi-001/README.md)
-records binary hashes and direct compile inputs.
+of a requested unsupported feature. The current probe also allocates and binds
+a vertex buffer, flushes known triangle vertices into its owner BO, invalidates
+and checks the exact readback, and rejects a one-byte allocation for that
+buffer. [Memory checkpoint evidence](../evidence/native-vulkan-memory-002/README.md)
+records physical repetitions, binary hashes, and direct compile inputs.
 
 `KnownSpirv.h` is generated from the validated Vulkan 1.2 assembly fixtures
 in `../render/compiler/mesa-26.3.0/spirv/` using `generate-known-spirv.py` and

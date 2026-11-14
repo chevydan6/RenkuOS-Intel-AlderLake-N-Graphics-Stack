@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include <vulkan/vulkan.h>
 #include "../RenderReport.h"
+#include "../ResourceCommand.h"
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,9 +15,21 @@ struct VkPhysicalDevice_T { VkInstance_T* owner; uint32_t revision; };
 struct VkInstance_T { VkPhysicalDevice_T physical; };
 struct VkDevice_T;
 struct VkShaderModule_T;
+struct VkDeviceMemory_T;
+struct VkBuffer_T;
 struct VkQueue_T { VkDevice_T* device; };
-struct VkDevice_T { VkPhysicalDevice physical; int fd; VkQueue_T queue; VkShaderModule_T* shaders; };
+struct VkDevice_T {
+ VkPhysicalDevice physical;int fd;VkQueue_T queue;
+ VkShaderModule_T* shaders;VkDeviceMemory_T* memory;VkBuffer_T* buffers;
+};
 struct VkShaderModule_T { VkDevice_T* device; VkShaderModule_T* next; size_t bytes; uint32_t* code; };
+struct VkDeviceMemory_T {
+ VkDevice_T* device;VkDeviceMemory_T* next;
+ uint32_t handle;uint64_t gpu;VkDeviceSize bytes;uint8_t* host;bool mapped;
+};
+struct VkBuffer_T {
+ VkDevice_T* device;VkBuffer_T* next;VkDeviceSize bytes;VkDeviceMemory memory;
+};
 
 static bool ProbeN100(VkPhysicalDevice_T* physical)
 {
@@ -31,6 +44,16 @@ static bool ProbeN100(VkPhysicalDevice_T* physical)
   || !report.owner_granted || report.identity!=0x46d18086 || report.revision!=0)
   return false;
  physical->revision=report.revision;return true;
+}
+
+static bool EnsureBootstrap(int fd)
+{
+ native_gpu_render_command command={};command.version=1;
+ command.mode=NATIVE_GPU_RENDER_BOOTSTRAP;
+ int status=ioctl(fd,NATIVE_GPU_RENDER_IOCTL,&command,sizeof(command));
+ return (status==0 && command.report.status==0
+  && command.report.stage==NATIVE_GPU_RENDER_STAGE_COMPLETE)
+  || command.report.refusal==NATIVE_GPU_RENDER_ALREADY_BOOTSTRAPPED;
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -140,7 +163,7 @@ vkGetPhysicalDeviceMemoryProperties(VkPhysicalDevice physical,
  memory->memoryTypeCount=1;
  memory->memoryTypes[0].heapIndex=0;
  memory->memoryTypes[0].propertyFlags=VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-  |VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  |VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -167,6 +190,7 @@ vkCreateDevice(VkPhysicalDevice physical,const VkDeviceCreateInfo* info,
   return VK_ERROR_INITIALIZATION_FAILED;
  int fd=open("/dev/misc/intel_native_execution",O_RDONLY);
  if(fd<0)return VK_ERROR_INITIALIZATION_FAILED;
+ if(!EnsureBootstrap(fd)){close(fd);return VK_ERROR_INITIALIZATION_FAILED;}
  VkDevice_T* value=(VkDevice_T*)calloc(1,sizeof(VkDevice_T));
  if(!value){close(fd);return VK_ERROR_OUT_OF_HOST_MEMORY;}
  value->physical=physical;value->fd=fd;value->queue.device=value;
@@ -180,6 +204,17 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
  while(device->shaders){
   VkShaderModule_T* next=device->shaders->next;
   free(device->shaders);device->shaders=next;
+ }
+ while(device->buffers){
+  VkBuffer_T* next=device->buffers->next;
+  free(device->buffers);device->buffers=next;
+ }
+ while(device->memory){
+  VkDeviceMemory_T* next=device->memory->next;
+  native_gpu_resource_command c={};c.version=1;
+  c.action=NATIVE_GPU_RESOURCE_DESTROY;c.handle=device->memory->handle;
+  ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c));
+  free(device->memory->host);free(device->memory);device->memory=next;
  }
  close(device->fd);free(device);
 }
@@ -222,6 +257,156 @@ vkDestroyShaderModule(VkDevice device,VkShaderModule shader,const VkAllocationCa
  if(*current){*current=shader->next;free(shader);}
 }
 
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateBuffer(VkDevice device,const VkBufferCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkBuffer* buffer)
+{
+ if(buffer)*buffer=VK_NULL_HANDLE;
+ if(!device || !info || !buffer || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO
+  || info->sharingMode!=VK_SHARING_MODE_EXCLUSIVE || !info->size
+  || info->size>16*4096 || info->usage!=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ VkBuffer_T* value=(VkBuffer_T*)calloc(1,sizeof(VkBuffer_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->bytes=info->size;
+ value->next=device->buffers;device->buffers=value;*buffer=value;
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyBuffer(VkDevice device,VkBuffer buffer,const VkAllocationCallbacks*)
+{
+ if(!device || !buffer)return;
+ VkBuffer_T** current=&device->buffers;
+ while(*current && *current!=buffer)current=&(*current)->next;
+ if(*current){*current=buffer->next;free(buffer);}
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkGetBufferMemoryRequirements(VkDevice device,VkBuffer buffer,
+ VkMemoryRequirements* requirements)
+{
+ if(!requirements)return;
+ memset(requirements,0,sizeof(*requirements));
+ if(!device || !buffer || buffer->device!=device)return;
+ requirements->size=(buffer->bytes+4095)&~VkDeviceSize(4095);
+ requirements->alignment=4096;requirements->memoryTypeBits=1;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkAllocateMemory(VkDevice device,const VkMemoryAllocateInfo* info,
+ const VkAllocationCallbacks* allocator,VkDeviceMemory* memory)
+{
+ if(memory)*memory=VK_NULL_HANDLE;
+ if(!device || !info || !memory || allocator || info->pNext
+  || info->sType!=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO
+  || !info->allocationSize || info->allocationSize>16*4096
+  || info->memoryTypeIndex!=0)return VK_ERROR_FEATURE_NOT_PRESENT;
+ native_gpu_resource_command c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_CREATE;
+ c.size=info->allocationSize;
+ if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0)
+  return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+ VkDeviceMemory_T* value=(VkDeviceMemory_T*)calloc(1,sizeof(VkDeviceMemory_T));
+ if(value)value->host=(uint8_t*)calloc(1,(size_t)c.size);
+ if(!value || !value->host){
+  native_gpu_resource_command destroy={};destroy.version=1;
+  destroy.action=NATIVE_GPU_RESOURCE_DESTROY;destroy.handle=c.handle;
+  ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&destroy,sizeof(destroy));
+  free(value);return VK_ERROR_OUT_OF_HOST_MEMORY;
+ }
+ value->device=device;value->handle=c.handle;value->gpu=c.gpu;
+ value->bytes=info->allocationSize;
+ value->next=device->memory;device->memory=value;*memory=value;
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkFreeMemory(VkDevice device,VkDeviceMemory memory,const VkAllocationCallbacks*)
+{
+ if(!device || !memory)return;
+ for(VkBuffer_T* b=device->buffers;b;b=b->next)if(b->memory==memory)return;
+ VkDeviceMemory_T** current=&device->memory;
+ while(*current && *current!=memory)current=&(*current)->next;
+ if(!*current)return;
+ native_gpu_resource_command c={};c.version=1;
+ c.action=NATIVE_GPU_RESOURCE_DESTROY;c.handle=memory->handle;
+ if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0)return;
+ *current=memory->next;free(memory->host);free(memory);
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkBindBufferMemory(VkDevice device,VkBuffer buffer,VkDeviceMemory memory,
+ VkDeviceSize offset)
+{
+ if(!device || !buffer || !memory || buffer->device!=device
+  || memory->device!=device || buffer->memory || offset
+  || memory->bytes<((buffer->bytes+4095)&~VkDeviceSize(4095)))
+  return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+ buffer->memory=memory;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkMapMemory(VkDevice device,VkDeviceMemory memory,VkDeviceSize offset,
+ VkDeviceSize size,VkMemoryMapFlags flags,void** data)
+{
+ if(data)*data=nullptr;
+ if(!device || !memory || !data || memory->device!=device || flags
+  || memory->mapped || offset>=memory->bytes)
+  return VK_ERROR_MEMORY_MAP_FAILED;
+ VkDeviceSize length=size==VK_WHOLE_SIZE?memory->bytes-offset:size;
+ if(!length || length>memory->bytes-offset)return VK_ERROR_MEMORY_MAP_FAILED;
+ memory->mapped=true;*data=memory->host+offset;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkUnmapMemory(VkDevice device,VkDeviceMemory memory)
+{if(device && memory && memory->device==device)memory->mapped=false;}
+
+static bool ValidMappedRange(VkDevice device,const VkMappedMemoryRange& range,
+ VkDeviceSize& bytes)
+{
+ if(range.sType!=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE || range.pNext
+  || !range.memory || range.memory->device!=device || !range.memory->mapped
+  || range.offset>=range.memory->bytes)return false;
+ bytes=range.size==VK_WHOLE_SIZE?range.memory->bytes-range.offset:range.size;
+ return bytes && bytes<=range.memory->bytes-range.offset;
+}
+
+static VkResult TransferMapped(VkDevice device,uint32_t count,
+ const VkMappedMemoryRange* ranges,bool write)
+{
+ if(!device || (count && !ranges))return VK_ERROR_MEMORY_MAP_FAILED;
+ for(uint32_t i=0;i<count;i++){
+  VkDeviceSize bytes=0;
+  if(!ValidMappedRange(device,ranges[i],bytes))return VK_ERROR_MEMORY_MAP_FAILED;
+  VkDeviceSize copied=0;
+  while(copied<bytes){
+   native_gpu_resource_command c={};c.version=1;
+   c.action=write?NATIVE_GPU_RESOURCE_WRITE:NATIVE_GPU_RESOURCE_READ;
+   c.handle=ranges[i].memory->handle;c.offset=ranges[i].offset+copied;
+   c.bytes=uint32_t(bytes-copied<4096?bytes-copied:4096);
+   uint8_t* host=ranges[i].memory->host+c.offset;
+   if(write)memcpy(c.data,host,c.bytes);
+   if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0)
+    return VK_ERROR_DEVICE_LOST;
+   if(!write)memcpy(host,c.data,c.bytes);
+   copied+=c.bytes;
+  }
+ }
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkFlushMappedMemoryRanges(VkDevice device,uint32_t count,
+ const VkMappedMemoryRange* ranges)
+{return TransferMapped(device,count,ranges,true);}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkInvalidateMappedMemoryRanges(VkDevice device,uint32_t count,
+ const VkMappedMemoryRange* ranges)
+{return TransferMapped(device,count,ranges,false);}
+
 #define VK_PROC(name) if(!strcmp(pName,#name))return (PFN_vkVoidFunction)name
 extern "C" VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL
 vkGetDeviceProcAddr(VkDevice device,const char* pName)
@@ -234,6 +419,16 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkDeviceWaitIdle);
  VK_PROC(vkCreateShaderModule);
  VK_PROC(vkDestroyShaderModule);
+ VK_PROC(vkCreateBuffer);
+ VK_PROC(vkDestroyBuffer);
+ VK_PROC(vkGetBufferMemoryRequirements);
+ VK_PROC(vkAllocateMemory);
+ VK_PROC(vkFreeMemory);
+ VK_PROC(vkBindBufferMemory);
+ VK_PROC(vkMapMemory);
+ VK_PROC(vkUnmapMemory);
+ VK_PROC(vkFlushMappedMemoryRanges);
+ VK_PROC(vkInvalidateMappedMemoryRanges);
  return nullptr;
 }
 

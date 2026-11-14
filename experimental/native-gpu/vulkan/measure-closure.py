@@ -20,7 +20,7 @@ def category(path, bundle):
         return "khronos_headers"
     if path == bundle + "/vulkan/NativeVulkan.cpp":
         return "driver_source"
-    if path == bundle + "/RenderReport.h":
+    if path in (bundle + "/RenderReport.h", bundle + "/ResourceCommand.h"):
         return "native_abi"
     if path.startswith(bundle + "/vulkan/"):
         return "probe_source"

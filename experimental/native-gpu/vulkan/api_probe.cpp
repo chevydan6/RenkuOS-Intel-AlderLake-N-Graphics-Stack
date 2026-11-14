@@ -37,7 +37,9 @@ int main()
  if(queues!=1 || family.queueCount!=1 || !(family.queueFlags&VK_QUEUE_GRAPHICS_BIT))return 9;
  VkPhysicalDeviceFeatures features={};vkGetPhysicalDeviceFeatures(physical,&features);
  VkPhysicalDeviceMemoryProperties memory={};vkGetPhysicalDeviceMemoryProperties(physical,&memory);
- if(memory.memoryHeapCount!=1 || memory.memoryTypeCount!=1)return 10;
+ if(memory.memoryHeapCount!=1 || memory.memoryTypeCount!=1
+  || !(memory.memoryTypes[0].propertyFlags&VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+  || (memory.memoryTypes[0].propertyFlags&VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))return 10;
  float priority=1.0f;
  VkDeviceQueueCreateInfo queueInfo={};queueInfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
  queueInfo.queueFamilyIndex=0;queueInfo.queueCount=1;queueInfo.pQueuePriorities=&priority;
@@ -57,6 +59,46 @@ int main()
  shaderInfo.pCode=RenkuKnownSpirv::Fragment;
  shaderInfo.codeSize=sizeof(RenkuKnownSpirv::Fragment);
  if(vkCreateShaderModule(device,&shaderInfo,nullptr,&fs)!=VK_SUCCESS || !fs)return 15;
+ VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+ bufferInfo.size=48;bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+ bufferInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
+ VkBuffer buffer=VK_NULL_HANDLE;
+ if(vkCreateBuffer(device,&bufferInfo,nullptr,&buffer)!=VK_SUCCESS || !buffer)return 17;
+ VkMemoryRequirements requirements={};vkGetBufferMemoryRequirements(device,buffer,&requirements);
+ if(requirements.size!=4096 || requirements.alignment!=4096
+  || requirements.memoryTypeBits!=1)return 18;
+ VkMemoryAllocateInfo allocation={};allocation.sType=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+ allocation.allocationSize=requirements.size;allocation.memoryTypeIndex=0;
+ VkDeviceMemory memoryObject=VK_NULL_HANDLE;
+ if(vkAllocateMemory(device,&allocation,nullptr,&memoryObject)!=VK_SUCCESS
+  || !memoryObject)return 19;
+ if(vkBindBufferMemory(device,buffer,memoryObject,0)!=VK_SUCCESS)return 20;
+ void* mapped=nullptr;
+ if(vkMapMemory(device,memoryObject,0,48,0,&mapped)!=VK_SUCCESS || !mapped)return 21;
+ const uint32_t vertices[12]={
+  0xbf400000,0xbf400000,0x3f000000,0x3f800000,
+  0x3f400000,0xbf400000,0x3f000000,0x3f800000,
+  0x3f400000,0x3f400000,0x3f000000,0x3f800000};
+ memcpy(mapped,vertices,sizeof(vertices));
+ VkMappedMemoryRange range={};range.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+ range.memory=memoryObject;range.offset=0;range.size=sizeof(vertices);
+ if(vkFlushMappedMemoryRanges(device,1,&range)!=VK_SUCCESS)return 22;
+ memset(mapped,0,sizeof(vertices));
+ if(vkInvalidateMappedMemoryRanges(device,1,&range)!=VK_SUCCESS
+  || memcmp(mapped,vertices,sizeof(vertices)))return 23;
+ vkUnmapMemory(device,memoryObject);
+ VkBuffer unbound=VK_NULL_HANDLE;
+ if(vkCreateBuffer(device,&bufferInfo,nullptr,&unbound)!=VK_SUCCESS)return 24;
+ allocation.allocationSize=1;
+ VkDeviceMemory tiny=VK_NULL_HANDLE;
+ if(vkAllocateMemory(device,&allocation,nullptr,&tiny)!=VK_SUCCESS)return 25;
+ void* invalidMap=nullptr;
+ if(vkBindBufferMemory(device,unbound,tiny,0)==VK_SUCCESS
+  || vkMapMemory(device,tiny,1,1,0,&invalidMap)==VK_SUCCESS)return 26;
+ vkDestroyBuffer(device,unbound,nullptr);
+ vkFreeMemory(device,tiny,nullptr);
+ vkDestroyBuffer(device,buffer,nullptr);
+ vkFreeMemory(device,memoryObject,nullptr);
  vkDestroyShaderModule(device,fs,nullptr);
  vkDestroyShaderModule(device,vs,nullptr);
  vkDestroyDevice(device,nullptr);
