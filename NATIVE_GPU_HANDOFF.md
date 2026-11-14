@@ -24,9 +24,12 @@ Do not replace GPU execution evidence with increasing CPU test counts.
 
 ## Current outcome and where the work is saved
 
-**GPU command execution and an accelerated sample remain unproven.** No new native
-preparation module has been built with the target SDK, installed or invoked yet.
-The new request-image constructor has one passing host smoke check.
+**GPU command execution and an accelerated sample remain unproven.** The native
+preparation module, bridge and client now compile/export-link against the actual
+SDK. One physical invocation constructed nine PPGTT/scratch pages and the GGTT
+ring/context/status/result backing, then released the unpublished resources with
+mapping/tables/image/cleanup all0. The host image smoke also passes. See
+[native preparation evidence](https://github.com/chevydan6/haiku-intel-gpu/tree/codex/i915-native-adaptation/experimental/native-gpu/evidence/native-prepare-001).
 
 - Active continuation: [codex/i915-native-adaptation](https://github.com/chevydan6/haiku-intel-gpu/tree/codex/i915-native-adaptation).
   This saves the new native code and this handoff, starting from the validated
@@ -104,7 +107,7 @@ on the continuation branch contains the new code:
   HWSP+0x100; the preemption semaphore at+0xc8 starts zero. Result and completion
   start poisoned. Polling uses MI_NOOP in place of MI_USER_INTERRUPT because the
   native display IRQ handler does not own this request.
-- prepare_module.cpp is an **unbuilt native kernel-module prototype**. It borrows
+- prepare_module.cpp is a **native-built, once-invoked preparation prototype**. It borrows
   the existing memory-only GGTT set, uses the previously validated native page
   allocation bridge to build a nine-page PPGTT/scratch hierarchy, prepares actual
   request/context/status/result backing, orders WC writes before CPU readback,
@@ -112,10 +115,16 @@ on the continuation branch contains the new code:
 - PrepareModule.h and PrepareReport.h define the private preparation-module and
   fixed report interfaces. No user MMIO addresses, command streams or pointers
   are exposed. There is no engine-publication operation in this prototype.
+- prepare_bridge.cpp, prepare_client.cpp, build-native.sh and run-native-prepare.sh
+  provide target compilation and one kernel call. Native status fields all0;
+  tails96/104bytes, result_poisoned=1, gpu_submitted=0. The bridge unloaded,26 source
+  hashes and13 production hashes matched, and app_server remained PID127. Actual
+  include-order and freestanding-flag build errors were corrected.
 - request_image_smoke.cpp performs a focused valid-request check. It compiled
   with host G++ using -std=c++17 -O2 -Wall -Wextra -Werror and passed. The initial
   missing-header build was observed before implementation. No new broad matrix,
-  sanitizer/mutation suite or native runtime is claimed for this code.
+  sanitizer/mutation suite is claimed. The native preparation call above is
+  owned-memory/kernel evidence and does not demonstrate GPU execution.
 
 Reproduce that one check from the repository root:
 
@@ -142,10 +151,9 @@ located, but related-platform manuals must not be treated as N100-specific witho
 checking applicability. Preserve this gap and cross-check the fields needed by the
 native execution path; do not claim all Intel documentation is already present.
 
-1. Build the new native preparation module against the actual installed SDK,
-   reusing the existing mapping owner's headers and native_page_bridge.cpp.
-   Add a small bridge/client to invoke one preparation and confirm normal cleanup.
-   A native build script and that bridge/client have not yet been written.
+1. Native preparation is complete for this checkpoint: build/export-link and one
+   bridge/client call passed. Continue with execution integration below; do not
+   expand or repeatedly rerun preparation without a new implementation reason.
 2. Connect the prepared request to a retained native execution owner. Integrate
    existing forcewake/reset, fresh device/DMA admission, PAT/MOCS/cache policy,
    engine initialization, translation invalidation, engine HWSP/CSB setup and
@@ -181,8 +189,9 @@ failure or an unresolved requirement needed for actual execution.
   controller and key; do not duplicate credentials into GitHub.
 - Acquire a fresh bounded exclusive lease at
   /root/power-recovery-20261105/physical-test.lock on NanoKVM for physical operations.
-  The last lease was released and the appliance shell prompt confirmed. No new
-  hardware deployment happened for the native prototype saved here.
+  The last lease was released and the appliance shell prompt confirmed. The new
+  preparation add-on/bridge were temporarily installed and invoked, then their
+  test files removed. Production graphics/owner components were not replaced.
 - NanoKVM boot media remains /root/renku-gpu-test-004/disk.img through its current
   USB mass-storage gadget; preserve that selection and the recovery setup.
 - Native wall time incorrectly reports October1. Session UTC date is November14.
@@ -208,3 +217,25 @@ and logs are in experimental/i915/evidence/physical-page-state-001. Private acce
 helpers are under /home/dan/.local/share/renku-access; Bluetooth control/key is
 under /home/dan/.local/share/govee-control. Credentials and key contents are
 deliberately absent from this handoff and repository.
+
+
+## Latest preparation checkpoint operational note
+
+The preparation module bus_managers/intel_native_prepare/v1 remains resident
+until reboot because of B_KEEP_LOADED, even though its installed test file and
+bridge were removed. Its prepared backing was released successfully. Replacing
+its file would not replace that loaded code; use a controlled reboot before
+expecting a modified v1 implementation to run. No GPU commands were published.
+Raw latest evidence is /boot/home/native-gpu-prepare-001 and locally
+/home/dan/projects/native-gpu-prepare-evidence-001. Source bundle preparation is
+at /home/dan/projects/native-gpu-prepare-bundle-001. Native logs were visible in
+Terminal via NanoKVM; all normal cleanup and baseline checks passed.
+
+
+## Parallel Intel documentation research now available
+
+New documentation-only commits5ae4a83 andc02b93e are preserved on the native branch:
+[Intel documentation / i915 map](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/research/n100-submission/INTEL-DOCUMENTATION-I915-MAP.md)
+and [N100 UHD architecture/capabilities](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/research/n100-submission/N100-UHD-GRAPHICS-RESEARCH.md).
+Use those exact links/sections for the remaining execution integration instead
+of restarting broad research. They are documentation findings, not hardware tests.

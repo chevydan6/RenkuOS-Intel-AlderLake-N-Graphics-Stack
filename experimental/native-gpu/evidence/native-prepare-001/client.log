@@ -1,0 +1,3 @@
+native_prepare version=1 ioctl=0 mapping=0 tables=0 image=0 cleanup=0
+pages=9 tail=96 padded_tail=104 ring_hash=14ff560d context_hash=720005c6 poison=1 gpu_submitted=0
+Native owned request preparation: PASS (not GPU execution)
