@@ -9,7 +9,7 @@ mesa=sys.argv[1];sys.argv=[str(here/'check_image.py'),mesa]
 with contextlib.redirect_stdout(io.StringIO()): decoded=runpy.run_path(str(here/'check_image.py'))
 original=(here/'RcsDrawGenerated.h').read_text();batch=decoded['arrays']['Batch']
 for name,field,value in [('3DSTATE_VS','Enable',0),('3DSTATE_PS_EXTRA','Pixel Shader Valid',0),
- ('3DSTATE_VF_TOPOLOGY','Primitive Topology Type',15),('3DSTATE_PS','Kernel Start Pointer 2',0x5080)]:
+ ('3DSTATE_VF_TOPOLOGY','Primitive Topology Type',15),('3DSTATE_PS','Kernel Start Pointer 2',0x5040)]:
  words=decoded['cmds'][name][0]
  offset=next(i for i in range(len(batch)) if batch[i:i+len(words)]==words)
  f=next(f for f in decoded['fields'](name) if f.attrib['name']==field)

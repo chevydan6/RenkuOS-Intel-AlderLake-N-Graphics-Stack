@@ -1,28 +1,28 @@
 {
-  "mesa_version": "26.1.8",
-  "mesa_archive_sha256": "b320f65874fd9653ac6c0bd1616605387344e1247411a50c797b5f3fb9dc0b55",
+  "mesa_version": "26.3.0",
+  "mesa_archive_sha256": "91d729aa68bb89e4ec857841300bbe922bcb3e52b1f97566ca83930d3b28343a",
   "igt_commit": "31ec677ca24e7ed86e35f367f40a29d3d9f51c06",
-  "metadata_sha256": "cbefa7c071373a2ea1be60e4a23b40b82fcd2614a3db3942b27cd93eb11fb2ba",
-  "gen120_pack_sha256": "bc4345995c685062e419595defef1fe985372bf388c9a4a8661fb3a570aa8ae8",
+  "metadata_sha256": "62ba5668eeffb6a129ac6039df7e809cea65a892a4992158bb631b469b891291",
+  "gen120_pack_sha256": "dec725bc00ccb88fcdb8660fa540ef83352d509603c848af5b7b3025499dffb9",
   "emit_sha256": "c8d7624578f07222706b3a6848285dcc78c11b852c5a6365ba3910c3a0a900f0",
-  "generated_sha256": "97240c60bc9ed841f6634574183148a92d3852232bd24c07a270e00810de9d87",
-  "vs_sha256": "ae634c7ff83ed365bb27acc40161c2047995f7e274c5bba014497324bc1bc614",
-  "fs_sha256": "58bacb3bdebdc9cafb06b15373580fa0e01adc4eb4c6077214a0aec6eb1ee23d",
+  "generated_sha256": "170edca1f69fbd33dea3ec506b9760b94700223fb200f95d5f21664c6f46ea36",
+  "vs_sha256": "cf08637755fa472911ca133f49e64693b5d1f460f2963dd5ec5e44dbb3cdab58",
+  "fs_sha256": "b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b",
   "constants": {
     "VS_URB_SIZE": 1,
-    "VS_READ_LENGTH": 1,
+    "VS_READ_LENGTH": 0,
     "VS_GRF": 2,
     "FS_GRF": 2,
     "FS_GRF16": 2,
-    "FS_OFFSET16": 64
+    "FS_OFFSET16": 128
   },
   "upstream_sources_sha256": {
-    "src/intel/dev/intel_device_info.c": "3bebfbdde876e641e3da0ec53ed1221337292b92f8c88c523cfca2d43cca912a",
+    "src/intel/dev/intel_device_info.c": "dfb69cf8bfc6113bf758e13007d7e8ba2d9a20d2a4384e8c6da0be2d0b0fa468",
     "src/intel/common/intel_l3_config.c": "834d1622fa4723ab3f9f70e87c91fc013eaa3d65de5ef2aa4b972cd4461343a5",
-    "src/intel/common/intel_urb_config.c": "1df8014029d31f4f0b25e03a087ef005524c560907dc35b086924be12eaa90b3",
-    "src/gallium/drivers/iris/iris_state.c": "a29a4d236d3bad265b28b44482cfee34c87338f06edcaa5ab1f4a2705ccb4522",
-    "src/intel/compiler/brw/brw_compiler.h": "5571d5bf944157ab30ae81d11a3ec284300f7b7db6882750950f7c9eeac8a55a",
-    "src/intel/compiler/brw/brw_compile_fs.cpp": "570aa61ad6be3e1a53a1c6e2fdd10f5a9ce1fab84e167171cbe644b1b78d0b2c"
+    "src/intel/common/intel_urb_config.c": "fe5d99d520acf62b568e4f791581e74ac9d402e498b5f7a83222711cf5e98340",
+    "src/gallium/drivers/iris/iris_state.c": "60e26863b43e5858ce1dbdeb69312d336b572f360ae03f9dc4fd417a980f8fa2",
+    "src/intel/compiler/brw/brw_compiler.h": "fd751f86ccc114deb9db63e00d3ae50a4c205d13aac6a1efad9dc350b01b2c6c",
+    "src/intel/compiler/brw/brw_compile_fs.cpp": "662400b0b22a93c1d165ccbcf1d4f0026d191052f209fb0841d365d93a131518"
   },
-  "device_library_sha256": "8e63bf600a8579c48343a9a0c5bc10d9e7bda0d163acefac5d1fede587211605"
+  "device_library_sha256": "862bb2b3a88846e414e544aec307a5739097833ae029315749bac4f50d453e1d"
 }

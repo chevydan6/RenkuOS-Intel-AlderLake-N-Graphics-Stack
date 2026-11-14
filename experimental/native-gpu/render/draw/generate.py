@@ -9,9 +9,9 @@ p.add_argument('host_workspace',type=Path)
 a=p.parse_args()
 here=Path(__file__).resolve().parent
 root=a.compiler_workspace.resolve(); work=a.host_workspace.resolve(); work.mkdir(parents=True,exist_ok=True)
-src=root/'mesa-26.1.8'; build=root/'build'; artifacts=here.parent/'compiler/artifacts'
+src=root/'mesa-26.3.0'; build=root/'build'; artifacts=here.parent/'compiler/mesa-26.3.0/artifacts'
 m=json.loads((artifacts/'metadata.json').read_text())
-assert m['mesa_version']=='26.1.8' and m['pci_device_id']==0x46d1
+assert m['mesa_version']=='26.3.0' and m['pci_device_id']==0x46d1
 vs,fs=m['vs'],m['fs']
 for s in [vs,fs]:
  assert s['total_scratch']==s['total_shared']==s['num_relocs']==s['const_data_size']==0
@@ -50,7 +50,7 @@ shader+='} }\n'
 packed=packed.replace(b'#endif\n',shader.encode()+b'#endif\n')
 (work/'RcsDrawGenerated.h').write_bytes(packed)
 # Human review aid: command/state image bytes independent of C++ wrapper.
-manifest={'mesa_version':'26.1.8','mesa_archive_sha256':m['mesa_archive_sha256'],
+manifest={'mesa_version':'26.3.0','mesa_archive_sha256':m['mesa_archive_sha256'],
  'igt_commit':'31ec677ca24e7ed86e35f367f40a29d3d9f51c06','metadata_sha256':hashlib.sha256((artifacts/'metadata.json').read_bytes()).hexdigest(),
  'gen120_pack_sha256':hashlib.sha256((build/'src/intel/genxml/gen120_pack.h').read_bytes()).hexdigest(),
  'emit_sha256':hashlib.sha256((here/'emit.c').read_bytes()).hexdigest(),'generated_sha256':hashlib.sha256(packed).hexdigest(),

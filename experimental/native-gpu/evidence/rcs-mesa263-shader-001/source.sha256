@@ -1,0 +1,5 @@
+170edca1f69fbd33dea3ec506b9760b94700223fb200f95d5f21664c6f46ea36  experimental/native-gpu/render/draw/RcsDrawGenerated.h
+c770c9959a3431e3869ed36c5fe791a79637819b8596b204bf4164d199f83d28  experimental/native-gpu/render/draw/manifest.json
+cf08637755fa472911ca133f49e64693b5d1f460f2963dd5ec5e44dbb3cdab58  experimental/native-gpu/render/compiler/mesa-26.3.0/artifacts/vs.bin
+b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b  experimental/native-gpu/render/compiler/mesa-26.3.0/artifacts/fs.bin
+62ba5668eeffb6a129ac6039df7e809cea65a892a4992158bb631b469b891291  experimental/native-gpu/render/compiler/mesa-26.3.0/artifacts/metadata.json

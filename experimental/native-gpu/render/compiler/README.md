@@ -1,9 +1,9 @@
 # Offline N100 shader compiler
 
 This directory preserves the Mesa 26.1.8 compiler and artifacts used by the
-current RCS draw image. The separate `mesa-26.3.0/` recipe builds the latest
-pinned Mesa feature release for comparison; its shader bytes are not yet used
-by the physical driver.
+earlier RCS draw image. The separate `mesa-26.3.0/` recipe builds the current
+shader bytes used by the physical N100 owner; see the hardware evidence in
+`../../evidence/rcs-mesa263-shader-001/`.
 
 This compiles actual Intel Gen12 VS and FS machine code with Mesa 26.1.8 BRW.
 It creates NIR directly; no GL context, software rasterizer, GPU access or VM

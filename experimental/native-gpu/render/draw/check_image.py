@@ -39,12 +39,12 @@ assert len(cmds['3DPRIMITIVE'])==1
 def check(n,f,value):
  words=cmds[n][0];actual=get(n,words,f);assert actual==value,(n,f,actual,value)
 check('3DSTATE_VS','Enable',1);check('3DSTATE_VS','SIMD8 Dispatch Enable',1)
-check('3DSTATE_VS','Kernel Start Pointer',0x4000);check('3DSTATE_VS','Vertex URB Entry Read Length',1)
+check('3DSTATE_VS','Kernel Start Pointer',0x4000);check('3DSTATE_VS','Vertex URB Entry Read Length',0)
 check('3DSTATE_VS','Dispatch GRF Start Register For URB Data',2)
 check('3DSTATE_PS_EXTRA','Pixel Shader Valid',1)
 check('3DSTATE_PS','8 Pixel Dispatch Enable',1);check('3DSTATE_PS','16 Pixel Dispatch Enable',1)
 check('3DSTATE_PS','32 Pixel Dispatch Enable',0)
-check('3DSTATE_PS','Kernel Start Pointer 0',0x5000);check('3DSTATE_PS','Kernel Start Pointer 2',0x5040)
+check('3DSTATE_PS','Kernel Start Pointer 0',0x5000);check('3DSTATE_PS','Kernel Start Pointer 2',0x5080)
 check('3DSTATE_PS','Binding Table Entry Count',1);check('3DSTATE_PS','Sampler Count',0)
 check('3DSTATE_PS','Render Target Fast Clear Enable',0)
 check('3DSTATE_VF_TOPOLOGY','Primitive Topology Type',4)
@@ -80,7 +80,7 @@ vb=cmds['3DSTATE_VERTEX_BUFFERS'][0][1:]
 assert get('VERTEX_BUFFER_STATE',vb,'Buffer Starting Address')==0x403000
 assert get('VERTEX_BUFFER_STATE',vb,'Buffer Size')==48
 assert get('VERTEX_BUFFER_STATE',vb,'Buffer Pitch')==16
-assert len(batch)<=1024 and len(arrays['Vs'])*4==176 and len(arrays['Fs'])*4==112
+assert len(batch)<=1024 and len(arrays['Vs'])*4==128 and len(arrays['Fs'])*4==208
 for name in ['vs','fs']:
- assert struct.pack('<'+'I'*len(arrays[name.title()]),*arrays[name.title()])==(a.header.parent.parent/'compiler/artifacts'/f'{name}.bin').read_bytes()
+ assert struct.pack('<'+'I'*len(arrays[name.title()]),*arrays[name.title()])==(a.header.parent.parent/'compiler/mesa-26.3.0/artifacts'/f'{name}.bin').read_bytes()
 print(f'XML decoded {sum(map(len,cmds.values()))} commands / {len(batch)} dwords: enabled VS+PS, TRILIST, fixed bounded resources; CPU checks only')

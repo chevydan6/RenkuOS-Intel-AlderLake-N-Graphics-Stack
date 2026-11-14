@@ -1,9 +1,10 @@
 # Mesa 26.3.0 offline N100 compiler experiment
 
-This versioned recipe builds the existing deterministic VS/FS NIR harness
-against the pinned Mesa 26.3.0 archive. It is a host compiler experiment,
-not a native Vulkan driver or a shader that has run on the N100. The previous
-26.1.8 artifacts remain the known-good source for the current RCS draw image.
+This versioned recipe builds the deterministic VS/FS NIR harness against the
+pinned Mesa 26.3.0 archive. The resulting shader bytes passed the physical
+N100 RCS regression described in `../../../evidence/rcs-mesa263-shader-001/`.
+It is still a host compiler experiment, not a native Vulkan driver. The
+previous 26.1.8 artifacts remain available as the earlier known-good image.
 
 The archive SHA-256 is
 `91d729aa68bb89e4ec857841300bbe922bcb3e52b1f97566ca83930d3b28343a`.
@@ -12,8 +13,8 @@ and full NIR build graphs without selecting a GL or Vulkan driver, then adds
 the narrow executable using Mesa's declared dependencies. Mesa 26.3.0 uses
 the unified `brw_compile` parameters. For this shader, its VS metadata reports
 URB read length zero and entry size one; ANV passes the compiler-reported read
-length to the VS state packet. The existing RCS state image has not yet been
-validated with these new bytes.
+length to the VS state packet. The regenerated RCS state image passed the
+physical N100 regression.
 
 From the repository root, using the already bootstrapped compiler toolchain:
 
@@ -39,6 +40,6 @@ dispatch offsets, scratch, relocation, and invalid code cases.
 
 The host Meson build can still link host libraries such as libdrm, but this
 harness does not access a GPU or require Linux kernel graphics services at
-runtime. Porting the compiler to native RenkuOS and validating the generated
-code on physical hardware remain separate steps. Source attribution and MIT
-license are retained in `native_rcs_shaders.c` and `LICENSE.MIT`.
+runtime. Native RenkuOS userspace compilation and Vulkan SPIR-V ingestion
+remain separate steps. Source attribution and MIT license are retained in
+`native_rcs_shaders.c` and `LICENSE.MIT`.

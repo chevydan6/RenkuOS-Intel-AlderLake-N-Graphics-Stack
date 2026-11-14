@@ -1,0 +1,65 @@
+{
+  "client": "/boot/home/native-rcs-shader-263-013/build/gpu_render_vertices",
+  "owner": "/boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner",
+  "host": "renkuos-n100",
+  "resource": true,
+  "public_buffer": false,
+  "public_batch": false,
+  "rounds": 16,
+  "shapes": [
+    [
+      [
+        4,
+        4,
+        28,
+        4,
+        28,
+        28
+      ],
+      777,
+      "28616d2d"
+    ],
+    [
+      [
+        5,
+        5,
+        27,
+        5,
+        16,
+        27
+      ],
+      758,
+      "d40eb9c3"
+    ],
+    [
+      [
+        4,
+        24,
+        16,
+        4,
+        28,
+        24
+      ],
+      766,
+      "e24aed05"
+    ],
+    [
+      [
+        8,
+        8,
+        24,
+        8,
+        16,
+        24
+      ],
+      760,
+      "984ae945"
+    ]
+  ],
+  "start_unix_ns": 1794662361761360933,
+  "client_sha256": "fe3cabe43f1dd3b408a444fa3665de44e0d236e5c11103dac5ad1ccb732acc54",
+  "owner_sha256": "e06a8125908c9bb61e87cc5c4dba7552485a62235dc2974a2dd14c0b3c658e9e",
+  "end_unix_ns": 1794662375820644314,
+  "final_sequence": 258,
+  "draws_passed": 64
+}
