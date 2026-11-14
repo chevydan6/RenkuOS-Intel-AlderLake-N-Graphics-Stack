@@ -24,12 +24,22 @@ Do not replace GPU execution evidence with increasing CPU test counts.
 
 ## Current outcome and where the work is saved
 
-**GPU command execution and an accelerated sample remain unproven.** The native
-preparation module, bridge and client now compile/export-link against the actual
-SDK. One physical invocation constructed nine PPGTT/scratch pages and the GGTT
-ring/context/status/result backing, then released the unpublished resources with
-mapping/tables/image/cleanup all0. The host image smoke also passes. See
-[native preparation evidence](https://github.com/chevydan6/haiku-intel-gpu/tree/codex/i915-native-adaptation/experimental/native-gpu/evidence/native-prepare-001).
+**The requested native GPU-accelerated sample now runs on RenkuOS.** On the
+physical N100, native execution005 returned ioctl/status0 and copied4096bytes
+between two private PPGTT pages. All1024dwords match; both hashes are2bb2fdc5.
+Nonce032d377f, complementfcd2c880 and ordered sequence1 match. Fresh CSB activation
+and idle-completion records were accepted; BCS mode is0x200, EIR/fault are0, and
+the forcewake group completed release (stage6/status0). app_server remains alive.
+See [actual GPU copy evidence](https://github.com/chevydan6/haiku-intel-gpu/tree/codex/i915-native-adaptation/experimental/native-gpu/evidence/native-copy-005).
+
+The runnable client is
+[gpu_copy_sample.cpp](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/experimental/native-gpu/gpu_copy_sample.cpp).
+This is a real BCS copy workload, not a CPU simulation, a complete 3D/render stack,
+or a general reusable submission API. The initial prototype permits one attempt
+per boot and deliberately retains its request backing until reboot, including
+after success. Power requests were released normally after verified completion.
+The earlier native preparation and engine-only compilation checkpoints remain
+historical evidence below.
 
 - Active continuation: [codex/i915-native-adaptation](https://github.com/chevydan6/haiku-intel-gpu/tree/codex/i915-native-adaptation).
   This saves the new native code and this handoff, starting from the validated
@@ -134,14 +144,14 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -Iworkstreams/gpu-next \
 /tmp/native-gpu-image-smoke
 ```
 
-Important limits: rootPhysical is a pinned CPU physical address, not proven GPU
+Limits of the preparation-only prototype: rootPhysical is a pinned CPU physical address, not proven GPU
 DMA admission. The image uses a fixed N100 profile; hardware execution must obtain
 fresh actual identity/stepping and ownership. Existing mapping/v1 is explicitly
 memory-only and permits end_set only because it has no GPU publication. Do not
 submit these borrowed objects and then reuse its ordinary cleanup. The execution
 owner/ABI must retain the complete request until retirement or established reset.
 
-## Next work, in order
+## Sample execution and current prototype limits
 
 Intel documentation inventory: [docs/INTEL_GPU_DOCUMENTATION.md](docs/INTEL_GPU_DOCUMENTATION.md).
 Use the N100 research map, the applicable Intel Xe-LP manuals and the N100
@@ -149,25 +159,22 @@ paths in pinned open-source drivers. A standalone N100 GPU programming manual
 is **not a prerequisite** and must not block native development. Check concrete
 platform differences as they arise; do not restart broad documentation searches.
 
-1. Native preparation is complete for this checkpoint: build/export-link and one
-   bridge/client call passed. Continue with execution integration below; do not
-   expand or repeatedly rerun preparation without a new implementation reason.
-2. Connect the prepared request to a retained native execution owner. Integrate
-   existing forcewake/reset, fresh device/DMA admission, PAT/MOCS/cache policy,
-   engine initialization, translation invalidation, engine HWSP/CSB setup and
-   ELSQ descriptor publication. Adapt the integration rather than importing the
-   full Linux device/scheduler/memory-manager model.
-3. Prove the nonce/complement and ordered completion with fresh hardware context
-   status and inactivity evidence. Keep the request/power/mappings alive through
-   completion. A timeout must not free pages the GPU could still access.
-4. Wire a small real GPU copy/fill sample using the existing BLT/reference logic.
-   Provide a runnable sample and actual GPU-produced output. A CPU-prepared ring,
-   reset result, passing unit test or GPU-written nonce alone is not the completed
-   GPU-accelerated sample goal.
+1. The requested GPU copy milestone is proven by native-copy-005. Do not repeat
+   CPU preparation or full Linux source-compatibility work as prerequisites.
+2. The native owner now integrates fresh PCI/DMA admission, owned PPGTT/GGTT
+   backing, forcewake/reset, PAT/MOCS/cache/TLB setup, BCS/HWSP initialization,
+   ELSQ publication, ordered completion and CSB interpretation. Intel hardware
+   commands/sequences and existing native helpers are retained with attribution.
+3. Current execution is fixed and single-use per boot. Backing stays retained;
+   another run or replacing resident code requires a controlled reboot. General
+   reusable requests and normal backing reclamation are future native driver work,
+   not functionality claimed by this sample.
+4. This establishes GPU copy-engine acceleration. EU shaders, OpenGL/Vulkan,
+   media acceleration and a complete accelerated desktop are not demonstrated.
 
-Keep checks proportional: compile and one focused smoke per change, then a bounded
-hardware trial when the necessary path is ready. Broaden only for an observed
-failure or an unresolved requirement needed for actual execution.
+Keep checks proportional: focused compilation and actual workload verification.
+The physical iterations below addressed observed failures; no exhaustive matrix
+or unrelated hardening was added.
 
 ## Physical target and current operational state
 
@@ -189,7 +196,9 @@ failure or an unresolved requirement needed for actual execution.
   /root/power-recovery-20261105/physical-test.lock on NanoKVM for physical operations.
   The last lease was released and the appliance shell prompt confirmed. The new
   preparation add-on/bridge were temporarily installed and invoked, then their
-  test files removed. Production graphics/owner components were not replaced.
+  test files removed. That preparation test did not replace production components. The later native
+  execution checkpoint intentionally replaces the resident owner through a
+  controlled reboot; the display driver and accelerant remain unchanged.
 - NanoKVM boot media remains /root/renku-gpu-test-004/disk.img through its current
   USB mass-storage gadget; preserve that selection and the recovery setup.
 - Native wall time incorrectly reports October1. Session UTC date is November14.
@@ -202,9 +211,10 @@ ffc253263a1375a65fa6c9f62a893e9767fbebfa and RenkuOS Source
 recorded Linux revision; preserve those attributions rather than relabeling them.
 
 The existing native bundle source matching the installed mapping interface is on
-the laptop under /boot/home/i915-mapping-002/source. The installed resident owner
-binary SHA256 was0a6ff95a029f125f89fecaab2b899c1346555793b2e620c922837eb27b5a483a
-when inspected. An older gpu-memory-089-001 build has a different hash: do not
+the laptop under /boot/home/i915-mapping-002/source. The pre-execution owner
+binary SHA256 was0a6ff95a029f125f89fecaab2b899c1346555793b2e620c922837eb27b5a483a.
+Its backup is /boot/home/native-gpu-execution-001/previous-intel_memory_owner.
+The current native execution owner hash is recorded in the latest checkpoint below. An older gpu-memory-089-001 build has a different hash: do not
 replace the current owner with that old binary. Resident B_KEEP_LOADED modules
 need a controlled reboot for replacement; file replacement alone changes no
 already-loaded code. Preserve and verify the actual installed baseline first.
@@ -219,15 +229,12 @@ deliberately absent from this handoff and repository.
 
 ## Latest preparation checkpoint operational note
 
-The preparation module bus_managers/intel_native_prepare/v1 remains resident
-until reboot because of B_KEEP_LOADED, even though its installed test file and
-bridge were removed. Its prepared backing was released successfully. Replacing
-its file would not replace that loaded code; use a controlled reboot before
-expecting a modified v1 implementation to run. No GPU commands were published.
-Raw latest evidence is /boot/home/native-gpu-prepare-001 and locally
-/home/dan/projects/native-gpu-prepare-evidence-001. Source bundle preparation is
-at /home/dan/projects/native-gpu-prepare-bundle-001. Native logs were visible in
-Terminal via NanoKVM; all normal cleanup and baseline checks passed.
+At the historical preparation checkpoint, bus_managers/intel_native_prepare/v1
+remained resident under B_KEEP_LOADED after its backing was released and its test
+files removed. Subsequent controlled reboots replaced that boot. Do not assume
+the old preparation module remains loaded now. Its raw evidence is retained in
+/boot/home/native-gpu-prepare-001 and /home/dan/projects/native-gpu-prepare-evidence-001.
+The current resident code is the native execution owner described below.
 
 
 ## Parallel Intel documentation research now available
@@ -256,6 +263,60 @@ The actual RenkuOS kernel SDK compile and one native simulated-IO smoke passed.
 No GPU register stores or GPU work were performed by this check. Evidence:
 [BCS engine build](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/experimental/native-gpu/evidence/bcs-engine-001/README.md).
 Native source/build: /boot/home/native-bcs-engine-001. Its physical lease was
-released after the build. The next implementation task remains connecting the
-owned request and this helper inside the retained owner, with actual device/DMA
-admission and completion/retirement; then run the nonce proof and copy sample.
+released after the build. At that checkpoint the next task was connecting the
+owned request and this helper inside the retained owner. The verified execution
+checkpoint below now implements that connection and proves the copy sample.
+
+## Verified native GPU copy — execution005
+
+Native source/build/client: /boot/home/native-gpu-execution-005.
+Run build/gpu_copy_sample from that directory on a fresh boot with the matching
+owner/bridge installed. The successful boot's single-use request has already been
+consumed; reboot before another invocation. Do not substitute the old v1 prepare
+endpoint or expect copying a new owner file to replace resident code.
+
+Current installed owner SHA256:
+015fac339a45e8ab28e0d22e74299e477d723a705cbe222cc2df7836f89a1fd8.
+Current installed execution bridge SHA256:
+a6744f97565c9b1441249365c09ee843d66cdeb1fe9e144a9a04c36916963c6f.
+The thirteen original display/observer components still match their recorded
+baseline hashes. HDMI build057 and boot media were preserved. app_server PID127
+was present after the trial. The physical lease was released; NanoKVM shell
+prompt was confirmed. SSH2222 was restored through native Terminal after reboot;
+no boot startup script or new credentials were installed.
+
+Raw exact source, objects, binaries and logs:
+/home/dan/projects/native-gpu-execution-evidence-005.tar.gz, SHA256
+569bc2751afb82ac8eb4c32b25ddf82ce1cebe6deafad636e787353411d78780.
+Matching extracted directory: /home/dan/projects/native-gpu-execution-evidence-005.
+The native archive remains /boot/home/native-gpu-execution-evidence-005.tar.gz.
+Published text evidence is experimental/native-gpu/evidence/native-copy-005.
+
+The implementation is NativeExecution.inc included into the retained owner by
+prepare-execution.py. The private native_execution/v1 ABI accepts only a report
+pointer; the unloadable bridge owns no resources or callbacks. One mapping lease
+and operation pin protect all GART backing. Ten independently owned native pages
+hold private source/destination data and PPGTT/scratch tables. The limited DMA
+backend rechecks all enumerated VT-d units with translation disabled; it never
+disables VT-d or treats an enabled IOMMU as identity mapped.
+
+Actual debugging, preserved in the evidence:
+
+- Execution001 stopped before reset/publication on a forcewake safety check.
+- Execution002 issued LOAD, then rejected the assumed CSB cursor progression.
+- Execution003 recorded PCI Capture::Unstable during forcewake acquisition.
+  Native runtime revalidation now checks actual access/power anchors twice,
+  preserving ID/revision/BAR/command/D0 and owner checks without requiring
+  volatile PCI Status/PME bits to equal a historical snapshot. Initial full
+  capability admission is retained. Legacy diagnostic v7 behavior is unchanged.
+- Execution004 proved all1024copiedwords, nonce/complement and breadcrumb correct,
+  but its strict status reader expected slots0/1 while the GPU wrote slots1/2.
+- Execution005 explicitly aligns MMIO, HWSP and reader initial cursor0. It accepts
+  the actual activation03ff800000008019 and idle record0000800003ff8018,
+  verifies the full copy and releases the forcewake group normally. The old
+  helpers keep cursor11 as their default for existing callers.
+
+The complete64-entry native MOCS/L3 expansion was checked against the pinned
+Linux v6.6 table after review caught and corrected an L3 entry mismatch. Native
+compile/export-link, fixed copy image, PCI anchor regression and captured CSB
+regression checks passed. No broader stress/edge-case suite was run.
