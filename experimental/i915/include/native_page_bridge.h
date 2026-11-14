@@ -18,6 +18,14 @@ int32_t renku_vm_page_store_create(size_t, void **);
 int32_t renku_vm_page_store_create_policy(size_t, bool noreserve, void **);
 int32_t renku_vm_page_store_pin(void *, uint64_t *);
 int32_t renku_vm_page_store_unpin(void *);
+/* Sleepable operation; caller retains a writable native pin throughout. Native
+ * software flags only, not hardware PTE harvesting or Linux writeback state.
+ * OR requested flags and return the previous flags under the native cache lock.
+ * Zero requests query. Unknown bits/invalid inputs fail without writing output.
+ * Physical identity by itself does not convey ownership. */
+#define RENKU_VM_PAGE_DIRTY UINT32_C(1)
+#define RENKU_VM_PAGE_ACCESSED UINT32_C(2)
+int32_t renku_vm_page_state_update(uint64_t physical, uint32_t requested, uint32_t *previous);
 struct renku_page_event *renku_vm_page_event_create(void);
 void renku_vm_page_event_delete(struct renku_page_event *);
 void renku_vm_page_event_signal(struct renku_page_event *);

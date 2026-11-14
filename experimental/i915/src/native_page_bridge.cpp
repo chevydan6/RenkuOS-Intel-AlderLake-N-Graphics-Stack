@@ -2,6 +2,8 @@
 // Keep actual native VM/C++ layouts out of the Linux compatibility namespace.
 #include <KernelExport.h>
 #include <vm/vm.h>
+#include <vm/vm_page.h>
+#include <vm/VMCache.h>
 #include <vm_defs.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,6 +76,29 @@ extern "C" int32_t renku_vm_page_store_pin(void *cpu, uint64_t *physical)
 extern "C" int32_t renku_vm_page_store_unpin(void *cpu)
 {
 	return unlock_memory_etc(B_SYSTEM_TEAM, cpu, B_PAGE_SIZE, B_READ_DEVICE);
+}
+extern "C" int32_t renku_vm_page_state_update(uint64_t physical, uint32_t requested, uint32_t *previous)
+{
+	if (!previous || (physical & (B_PAGE_SIZE - 1))
+		|| (requested & ~(RENKU_VM_PAGE_DIRTY | RENKU_VM_PAGE_ACCESSED))
+		|| !interrupts_enabled()) return B_BAD_VALUE;
+	/* The caller's pin protects physical identity through lookup and locking.
+	 * A wired-count check cannot establish that ownership for an arbitrary PFN. */
+	vm_page *page = vm_lookup_page(physical / B_PAGE_SIZE);
+	if (!page) return B_BAD_VALUE;
+	VMCache *cache = vm_cache_acquire_locked_page_cache(page, false);
+	if (!cache) return B_BAD_VALUE;
+	status_t status = B_OK;
+	if (!page->WiredCount()) status = B_BAD_VALUE;
+	else {
+		uint32_t state = (page->modified ? RENKU_VM_PAGE_DIRTY : 0)
+			| (page->accessed ? RENKU_VM_PAGE_ACCESSED : 0);
+		if (requested & RENKU_VM_PAGE_DIRTY) page->modified = true;
+		if (requested & RENKU_VM_PAGE_ACCESSED) page->accessed = true;
+		*previous = state;
+	}
+	cache->ReleaseRefAndUnlock();
+	return status;
 }
 extern "C" struct renku_page_event *renku_vm_page_event_create(void)
 {

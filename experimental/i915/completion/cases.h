@@ -122,11 +122,12 @@ static void Join(worker_id id) { if (pthread_join(id, NULL) != 0) Fatal(); }
 #include "shmem_cases.h"
 #ifdef RENKU_NATIVE
 #include "rcu_cases.h"
+#include "native_page_state_cases.h"
 #endif
 
 static void RunCases(struct completion_report *r)
 {
-	*r = (struct completion_report){.version = 10};
+	*r = (struct completion_report){.version = 11};
 	struct task_struct task;
 	if (!renku_linux_task_register(&task)) Fatal();
 	NamespaceCases(r);
@@ -147,6 +148,7 @@ static void RunCases(struct completion_report *r)
 	PreemptCases(r);
 	NativeBitCases(r);
 	NativeRCUCases(r);
+	NativePageStateCases(r);
 #endif
 	u64 numerator = 100;
 	u32 divisor = 7;

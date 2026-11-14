@@ -29,6 +29,8 @@ cxxflags=(-std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC
  -I"$private/kernel/boot/platform/bios_ia32" -Iinclude)
 g++ "${cxxflags[@]}" -c src/native_page_bridge.cpp -o build/native_page_bridge.o
 objects+=(build/native_page_bridge.o)
+g++ "${cxxflags[@]}" -c completion/native_page_state_test.cpp -o build/native_page_state_test.o
+objects+=(build/native_page_state_test.o)
 g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 \
  -o build/i915_linux_completion_test.driver "${objects[@]}" \
  -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
