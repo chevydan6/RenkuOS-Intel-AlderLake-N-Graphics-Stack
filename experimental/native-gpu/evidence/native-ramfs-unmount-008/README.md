@@ -77,3 +77,22 @@ freeable. The command returned status 0 despite those diagnostics, so that
 status is not evidence of a clean filesystem. This read-only scan did not
 attempt a repair. The exact cause of the read-only mount is still unproven;
 the reported metadata errors warrant preserving the volume before repair.
+
+## Backing-media capacity
+
+The physical boot device identifies as the NanoKVM USB gadget (`3346:1009`).
+On the NanoKVM, the active mass-storage LUN names
+`/root/renku-gpu-test-004/disk.img`; its `ro` setting is `0`. The image's
+logical size is 9,221,177,344 bytes, while `du` reports about 2.7 GiB of
+allocated storage. The NanoKVM root filesystem reports 7.6 GiB total and
+**zero available bytes**. Its `dmesg` did not show a matching write error in
+the bounded search performed here. A full backing filesystem can prevent
+growth of a sparse image despite the guest BFS volume reporting 4.0 GiB free.
+This is a plausible additional cause of the read-only guest state, not proof
+of which failed write first. No NanoKVM media setting or file was changed.
+
+An initial read-only partition image through the guest USB path was stopped
+after it transferred too slowly; its host file is marked `.partial.img.zst`.
+A direct read-only copy of the active NanoKVM image is in progress at
+`/home/dan/ai/backups/renkuos-n100/nanokvm-disk-2026-11-15.img`. That copy
+must be verified complete before it is treated as a recovery backup.
