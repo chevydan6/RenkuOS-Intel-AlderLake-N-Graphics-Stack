@@ -1,0 +1,45 @@
+{
+  "sourceCommit": "614bf8ac1b9c702cae40de2bc75e1c5228162aaf",
+  "implementationCommit": "57d16dbf189374d5f883e0673f52c74bb9717699",
+  "environment": "physical Intel N100, RenkuTest USB, hrev60072+518",
+  "sessionDateUTC": "2026-11-14",
+  "nativeClock": "2026-10-01 (incorrect; not corrected in this run)",
+  "nativeCppBuildPassed": true,
+  "reportVersion": 9,
+  "reportBytes": 112,
+  "completionRuns": 4,
+  "completionChecksPerRun": 49556,
+  "vmaRuns": 4,
+  "vmaChecksPerRun": 650,
+  "totalChecks": 200824,
+  "functionalFailures": 0,
+  "sourceHashChecks": {
+    "initial-source-check.log": {
+      "files": 7111,
+      "failures": 0,
+      "logSHA256": "2606b2d71832ef90e3eaf6b3bdffcfa8a6e5c2ff1bab78949bd1f42c58ba7eae"
+    },
+    "source-check.log": {
+      "files": 7111,
+      "failures": 0,
+      "logSHA256": "2606b2d71832ef90e3eaf6b3bdffcfa8a6e5c2ff1bab78949bd1f42c58ba7eae"
+    },
+    "final-source-check.log": {
+      "files": 7111,
+      "failures": 0,
+      "logSHA256": "2606b2d71832ef90e3eaf6b3bdffcfa8a6e5c2ff1bab78949bd1f42c58ba7eae"
+    }
+  },
+  "componentHashesChecked": 13,
+  "appServerPIDBefore": 127,
+  "appServerPIDAfter": 127,
+  "wholeSourceCompilerExits": {
+    "intel_ring": 1,
+    "i915_gem_phys": 1,
+    "i915_gem_gtt": 1,
+    "i915_gem_shmem": 1
+  },
+  "gpuExecutionDemonstrated": false,
+  "fullDriverBuildPassed": false,
+  "privateEvidenceArchiveSHA256": "d307c5d20624466a3719302d285cae7f2a6eb2c184eafb640d753444a8c8ca14"
+}

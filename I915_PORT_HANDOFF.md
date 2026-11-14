@@ -1,6 +1,27 @@
 <!-- SPDX-License-Identifier: MIT -->
 # i915 port handoff — 2026-11-14
 
+## Latest continuation: native store validation complete
+
+The access blocker and pending native C++/folio/store validation described below
+were resolved on November 14. The unchanged version 9 candidate passed 200,824
+physical native checks, both diagnostic unloads, all 7,111 source hash checks
+and production component postchecks. See
+[physical-store-001](experimental/i915/evidence/physical-store-001/README.md).
+The full original driver still does not compile or execute GPU commands.
+
+**Owner clarification:** SSH is authorized for development, builds and tests,
+as well as transfers and collection. Keep progress visible through NanoKVM;
+the earlier keyboard-only execution restriction was an agent interpretation.
+SSH currently runs on port 2222 for this boot; credentials remain private.
+The owner also authorized recovery power cycles through the paired Govee outlet
+when the laptop hangs, without asking again. Preserve NanoKVM power, boot media
+and the exclusive physical-test lease.
+
+Next: connect native-backed storage to genuine Linux file/address_space/shmem
+interfaces and resolve the process-mm/task compilation boundary. Historical
+checkpoints and the validation recipe below retain their original context.
+
 ## Objective and current branch
 
 Continue porting the original Linux i915 driver to RenkuOS. The goal is a working
@@ -127,14 +148,14 @@ directory, tokens, passwords or private keys. The nonsecret local convenience
 scripts under `/home/dan/i915-vm/` are optional; the NanoKVM UI and standard SSH/SCP
 can perform the same authorized access/transfer actions.
 
-## Immediate next task: native validation
+## Native validation recipe (completed at physical-store-001)
 
 1. Recover RenkuOS input/access, inspect the actual screen and acquire a fresh
    exclusive test lease. Preserve the existing HDMI/display, owner and GART
    baseline. Do not replace the graphics driver for these CPU/VM diagnostics.
-2. Builds and test execution must run **visibly in fullscreen RenkuOS Terminal
-   through NanoKVM keyboard input**. SSH is for transfers/read-only collection;
-   do not compile or execute the test suite over SSH.
+2. Keep development observable in RenkuOS Terminal through NanoKVM. SSH may
+   execute development, builds and tests; displaying a live log in fullscreen
+   native Terminal satisfies the owner's request to watch development.
 3. If needed, start the existing test SSH service visibly in that Terminal:
 
    ```sh
@@ -168,7 +189,9 @@ can perform the same authorized access/transfer actions.
 7. Collect build logs, source checks, binary hashes, runtime reports, unload
    records and full-source compiler errors. Fix actual native failures and retest.
    Native paging/swap pressure needs additional evidence beyond data retention.
-8. Stop the temporary SSH service visibly and release the lease after cleanup:
+8. Release the physical-test lease after cleanup. The owner requested continued
+   SSH access; leave the service available when needed. To stop an obsolete
+   temporary listener after arranging access, its original recipe was:
 
    ```sh
    kill $(cat /boot/home/i915-linuxkpi-access-20261113/sshd.pid)
@@ -216,3 +239,4 @@ Optional artifacts still on the old computer:
 
 Keep native-pending claims explicit when updating GitHub. Do not mark the full
 port complete until the actual driver and required GPU behavior are verified.
+

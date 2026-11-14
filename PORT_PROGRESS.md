@@ -903,3 +903,25 @@ Next connect native-backed store ownership to actual Linux file/address_space
 and shmem APIs, including real GFP, pinning, dirty/accessed, writeback, truncate
 and mapping lifetimes. Whole original i915 files still fail in VM/process
 services; the full driver and GPU execution remain unfinished.
+
+
+## 2026-11-14: physical folio/store validation
+
+The unchanged version 9 candidate now compiles and links with native GCC/G++13.3
+on the physical N100 hrev60072+518. Four49556-check completion/memory runs and
+four650-check VMA regressions total200824 checks, zero functional failures.
+All7111 source checks pass before/after; both diagnostics unload successfully,
+13 production component hashes match and app_server remains PID127. See
+experimental/i915/evidence/physical-store-001 for native logs, artifact hashes,
+clock caveat, exact environment and retained whole-source failures.
+
+The owner clarified that SSH may run development/builds/tests, with progress
+visible through NanoKVM. The prior SSH restriction is superseded. Native access
+and pending C++/folio/store validation are resolved for this checkpoint.
+
+The full i915 driver still does not compile. GTT/ring require real process-mm/task
+integration; physical/shmem GEM require native shmem/VM interfaces beyond the
+internal store. No reclaim/swap-pressure, GPU DMA, submission or retirement is
+established. Continue genuine file/address_space/shmem integration and original
+whole-source closure; do not manufacture VM bounds or successful missing APIs.
+
