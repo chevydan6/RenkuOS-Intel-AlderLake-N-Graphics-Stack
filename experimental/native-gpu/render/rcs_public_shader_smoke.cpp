@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "RcsPublicShader.h"
+#include "RcsDepthVertex.h"
 #include "RcsResourceVertices.h"
 #include <stdio.h>
 #include <string.h>
@@ -96,6 +97,16 @@ int main() {
  combined[0]^=1;
  if(NativeGpu::RcsPublicShader::PatchBatchWithVertex(combined,1024,0x411000,0x410000))
   return 13;
- puts("N100 bounded constant-RGB FS template and batch patch: PASS (CPU only)");
+ alignas(4096) uint32_t vertexPage[1024]={};
+ memcpy(vertexPage,NativeGpu::RcsDepthVertex::Words,
+  sizeof(NativeGpu::RcsDepthVertex::Words));
+ if(!NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1024))return 26;
+ vertexPage[47]^=1;
+ if(NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1024))return 27;
+ vertexPage[47]^=1;vertexPage[1023]=1;
+ if(NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1024))return 28;
+ vertexPage[1023]=0;
+ if(NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1023))return 29;
+ puts("N100 bounded FS/VS templates and batch patch: PASS (CPU only)");
  return 0;
 }

@@ -1,0 +1,6 @@
+result=0 error= vs_bytes=128 vs_scratch=0 vs_relocs=0 vs_grf=128 vs_grf_start=2 vs_urb_read=0 vs_urb_entry=1 vs_dispatch=3 fs_bytes=208
+result=0 error= vs_bytes=192 vs_scratch=0 vs_relocs=0 vs_grf=128 vs_grf_start=2 vs_urb_read=0 vs_urb_entry=1 vs_dispatch=3 fs_bytes=208
+cf08637755fa472911ca133f49e64693b5d1f460f2963dd5ec5e44dbb3cdab58  /boot/home/test-work/closure-current-022/base-vs.bin
+8cddb85cff2dbaed85ba7591abf60165cc01e4234d438dec54853f079a43df0a  /boot/home/test-work/closure-current-022/depth-vs.bin
+b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b  /boot/home/test-work/closure-current-022/base-fs.bin
+b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b  /boot/home/test-work/closure-current-022/depth-fs.bin

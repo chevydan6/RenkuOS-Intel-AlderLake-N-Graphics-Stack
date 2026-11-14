@@ -2,12 +2,20 @@
 #ifndef NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #define NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #include "RcsDrawImage.h"
+#include "RcsDepthVertex.h"
 namespace NativeGpu {
 // Bounded shader BO contract. Accept one 208-byte FS instruction template
 // with paired constant RGB immediates and zero padding. The owner-selected VA
 // replaces two PS pointers; other GPU instructions remain rejected.
 class RcsPublicShader {
 public:
+ // Only the proven 192-byte depth-quarter vertex program and zero padding.
+ static bool ValidateVertexPage(const uint32_t* words,unsigned dwords) {
+  if(!words || dwords!=1024)return false;
+  for(unsigned i=0;i<1024;i++)
+   if(words[i]!=(i<48?RcsDepthVertex::Words[i]:0))return false;
+  return true;
+ }
  static bool ValidateFragment(const uint32_t* words,unsigned dwords) {
   if(!words || dwords!=1024)return false;
   const uint32_t red=words[3],green=words[7],blue=words[11];
@@ -62,6 +70,7 @@ public:
   return true;
  }
 private:
+ static_assert(sizeof(RcsDepthVertex::Words)==192,"depth vertex program changed");
  static constexpr unsigned kFsDwords=sizeof(RcsDrawData::Fs)/sizeof(uint32_t);
  static_assert(sizeof(RcsDrawData::Fs)==208,"Mesa 26.3.0 FS profile changed");
  static_assert(RcsDrawData::Fs[3]==0x3f800000 && RcsDrawData::Fs[35]==0x3f800000
