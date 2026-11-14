@@ -12,6 +12,7 @@ if hashlib.sha256(raw).hexdigest()!=expected:raise SystemExit('Owner baseline mi
 out=a.output;out.mkdir(exist_ok=False,parents=True)
 for path in here.glob('*'):
  if path.is_file() and path.suffix in ('.h','.inc','.cpp','.sh'):shutil.copy2(path,out/path.name)
+shutil.copytree(here/'render',out/'render',ignore=shutil.ignore_patterns('__pycache__'))
 for path in (repo/'workstreams/gpu-next').glob('*.h'):shutil.copy2(path,out/path.name)
 shutil.copy2(repo/'experimental/gen12/LinearCopy.h',out/'LinearCopy.h')
 shutil.copy2(repo/'experimental/gen12/LICENSE.intel',out/'LICENSE.intel')
@@ -20,6 +21,9 @@ for source,dest in [('include/native_page_bridge.h','include/native_page_bridge.
  shutil.copy2(repo/'experimental/i915'/source,out/dest)
 anchor='// v1 acquires v0 through the module manager.'
 text=raw.decode();assert text.count(anchor)==1
+hook='static status_t\nReleaseDisplay(uint64 lease)\n{\n'
+assert text.count(hook)==1
+text=text.replace(hook,'static status_t NativeRcsDisplayClosing(uint64_t lease);\n'+hook+'\tstatus_t nativeClose=NativeRcsDisplayClosing(lease);\n\tif(nativeClose!=B_OK)return nativeClose;\n')
 hook='static bool\nResetOwnerPower(GroupContext& context)\n{\n'
 assert text.count(hook)==1
 text=text.replace(hook,'static bool NativeOwnerPower(GroupContext& context);\n'+hook+'\tif(sNativeExecutionActive)return NativeOwnerPower(context);\n')
@@ -28,7 +32,7 @@ assert text.count(hook)==1
 text=text.replace(hook,'static bool sNativeExecutionActive;\nstatic bool NativeHandshakePciStable(void* data);\n'+hook+'\tif(sNativeExecutionActive)return NativeHandshakePciStable(data);\n')
 text=text.replace(anchor,'static status_t ObservationOperations(int32 operation, ...);\n#include "NativeExecution.inc"\n\n'+anchor)
 anchor='module_info* modules[] = {\n';assert text.count(anchor)==1
-text=text.replace(anchor,anchor+'\t(module_info*)&sNativeExecutionModule,\n')
+text=text.replace(anchor,anchor+'\t(module_info*)&sNativeExecutionModule,\n\t(module_info*)&sNativeRenderModule,\n')
 (out/'IntelMemoryOwner-execution.cpp').write_text(text)
 (out/'baseline-owner.sha256').write_text(expected+'  /boot/home/i915-mapping-002/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp\n')
 (out/'payload.sha256').write_text(''.join(hashlib.sha256(f.read_bytes()).hexdigest()+'  '+str(f.relative_to(out))+'\n' for f in sorted(out.rglob('*')) if f.is_file()))

@@ -25,6 +25,13 @@ public:
   }
   fState=fState==Quiescing?fTarget:Ready;
  }
+ // Read-only diagnostic work shares admission/power draining without claiming
+ // any completed or failed GPU request. Unsafe power/owner state still loses admission.
+ void FinishObservation(bool safe) {
+  if(fState!=Running && fState!=Quiescing)return;
+  if(!safe){fState=Lost;return;}
+  fState=fState==Quiescing?fTarget:Ready;
+ }
  bool Freeze(State target) {
   if(target!=Suspended && target!=Shutdown)return false;
   if(fState==Lost || fState==Shutdown || fState==Quiescing)return false;

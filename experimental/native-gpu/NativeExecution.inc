@@ -19,6 +19,12 @@
 #include "BcsRecovery.h"
 
 extern bool gKernelShutdown;
+static bool sNativeRenderActive, sNativeRenderInitialized;
+static bool NativeRenderRawRead(void*,uint32_t,uint32_t&);
+static bool NativeRenderRawWrite(void*,uint32_t,uint32_t);
+static bool NativeRenderSafe(void*);
+static bool NativeRenderResumeHardware();
+
 static NativeGpu::RequestLifecycle sNativeLifecycle;
 static uint32_t sNativeClients;
 static status_t sNativeLastStatus=B_OK;
@@ -32,6 +38,7 @@ static native_gpu_copy sNativeCopy;
 static uint32_t sNativeExpected[1024];
 static bool sNativePageHold;
 static bool sNativeReady, sNativeInitialized, sNativeRetired;
+static bool sNativeMappingReady, sNativeGroupReusable;
 static uint32_t sNativeSequence, sNativeCursor;
 // The lifecycle gate is acquired before touching any request backing. Only
 // complete retirement + power release permits reuse; failure retains memory.
@@ -149,6 +156,17 @@ static status_t NativeDmaAdmit()
 	}
 	return NativeDmaStillDirect()?B_OK:B_NOT_SUPPORTED;
 }
+// Shared boot-retained mapping and DMA admission, independent of BCS tables.
+static status_t NativeEnsureMapping()
+{
+ if(sNativeMappingReady)return B_OK;
+ status_t status=BeginMappingSet(&sMappingSet);
+ if(status!=B_OK)return status;
+ mutex_lock(&sLock);sMappingRetained=true;mutex_unlock(&sLock);
+ status=NativeDmaAdmit();
+ if(status==B_OK)sNativeMappingReady=true;
+ return status;
+}
 static bool NativeHold(void*) { if(sNativePageHold)return false;sNativePageHold=true;return true; }
 static void NativeDrop(void*) { sNativePageHold=false; }
 static bool NativeAllocate(void*,IntelN100PpgttTree::Page& page)
@@ -175,6 +193,7 @@ static bool NativeOffset(GroupContext& context,uint32_t offset)
 }
 static bool NativeRead(void* data,uint32_t offset,uint32_t& value)
 {
+ if(sNativeRenderActive)return NativeRenderRawRead(data,offset,value);
 	auto& context=*(GroupContext*)data;
 	if(!NativeOffset(context,offset))return false;
 	memory_read_barrier();
@@ -184,6 +203,7 @@ static bool NativeRead(void* data,uint32_t offset,uint32_t& value)
 }
 static bool NativeWrite(void* data,uint32_t offset,uint32_t value)
 {
+ if(sNativeRenderActive)return NativeRenderRawWrite(data,offset,value);
 	auto& context=*(GroupContext*)data;
 	if(!NativeOffset(context,offset))return false;
 	memory_write_barrier();
@@ -193,6 +213,7 @@ static bool NativeWrite(void* data,uint32_t offset,uint32_t value)
 }
 static bool NativeSafe(void* data)
 {
+ if(sNativeRenderActive)return NativeRenderSafe(data);
 	if(gKernelShutdown || !ResetSafe(data) || !NativeDmaStillDirect())return false;
 	uint32_t error=0,fault=0;
 	if(!NativeRead(data,0x220b0,error) || !NativeRead(data,0xcec4,fault))return false;
@@ -234,9 +255,10 @@ static bool NativeCachePolicy(void* data)
 	if(!NativeRead(data,0x400c,value) || value!=5
 		|| !NativeRead(data,0x480c,value) || value!=0)return false;
 	// BCS0 uses an unmasked Gen12 invalidation request. Retain ADL-P OA WA.
-	if(!NativeStoreChecked(data,0xcee4,1) || !NativeStoreChecked(data,0xceec,1))return false;
+	uint32_t invalidate=sNativeRenderActive?0xced8:0xcee4;
+	if(!NativeStoreChecked(data,invalidate,1) || !NativeStoreChecked(data,0xceec,1))return false;
 	for(unsigned tries=0;tries<128;tries++) {
-		if(!NativeSafe(data) || !NativeRead(data,0xcee4,value))return false;
+		if(!NativeSafe(data) || !NativeRead(data,invalidate,value))return false;
 		if(!(value&1))return true;
 		HandshakePause(data);
 	}
@@ -481,14 +503,9 @@ static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source
 	auto& r=sNativeReport;
 	r.stage=1;
 	if(!sNativeReady) {
-	r.mapping=BeginMappingSet(&sMappingSet);
-	if(r.mapping!=B_OK){*output=r;return r.status;}
-	// This is the execution extension of mapping/v1. Its original cleanup API
-	// must never reclaim objects that this path can publish. One retained set
-	// is reused only after proven retirement; failure retains it until reboot.
-	mutex_lock(&sLock);sMappingRetained=true;r.retained=1;mutex_unlock(&sLock);
-	r.stage=2;r.dma=NativeDmaAdmit();
-	if(r.dma!=B_OK){*output=r;return r.status;}
+	r.mapping=NativeEnsureMapping();
+ if(r.mapping!=B_OK){*output=r;return r.status;}
+ r.dma=B_OK;
 	r.stage=3;
 	IntelN100PpgttTree::Backend backend={NULL,NativeHold,NativeDrop,NativeAllocate,NativeFree};
 	if(!sNativeTree.Build(backend,0x200000,2,3,3,IntelN100DirectoryUncached)){
@@ -522,10 +539,11 @@ static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source
 		!=IntelN100PciPower::Success){*output=r;return r.status;}
 	r.identity=original.identity;r.revision=uint8_t(original.classRevision);
 	mutex_lock(&sLock);
-	if(sObservationBlocked || sObservationPhase!=ObservationIdle || (sGroupAttempted && !sNativeRetired)
+	if(sObservationBlocked || sObservationPhase!=ObservationIdle || (sGroupAttempted && !sNativeGroupReusable)
 		|| !sState.DiagnosticAllowed()) {mutex_unlock(&sLock);*output=r;return B_BUSY;}
 	// Previous group is recreated only after its successful release and retirement.
-	if(sNativeRetired){sGroup.~IntelN100ForcewakeGroup();new (&sGroup) IntelN100ForcewakeGroup;}
+	if(sNativeGroupReusable){sGroup.~IntelN100ForcewakeGroup();new (&sGroup) IntelN100ForcewakeGroup;}
+	sNativeGroupReusable=false;
 	sNativeCsb.~IntelN100CsbReader();new (&sNativeCsb) IntelN100CsbReader;
 	sGroupAttempted=true;sObservationPhase=ObservationHandshaking;
 	sObservationLease=sMappingLease;sObservationSnapshot=original;
@@ -545,6 +563,7 @@ static status_t RunNativeCopy(const native_gpu_copy* copy,const uint32_t* source
 		r.group=sGroup.Run(groupIO,original.identity,uint8(original.classRevision),mediaFuse,NativeWork)
 			==IntelN100ForcewakeGroup::Ok?B_OK:B_ERROR;
 		bool released=r.group==B_OK && NativeOwnerPower(context) && NativeDmaStillDirect();
+		sNativeGroupReusable=released;
 		success=released && r.stage==14;
 		requestScope.recovered=released && sNativeRecovered;
 	}
@@ -605,15 +624,17 @@ static bool NativeResumeHardware()
 	// A cold device has no published backing. First submission still performs
 	// full initial admission. Existing backing needs a real reset before any
 	// context/HWSP rewrite, even though this boundary does not put the OS in S3.
+	if(!NativeRenderResumeHardware())return false;
 	if(!sNativeReady)return true;
 	IntelN100PciSnapshot original={};
 	if(IntelN100PciPower::Capture(ReadConfig,&sDevice,sDevice.base,sDevice.size,original)
 		!=IntelN100PciPower::Success || !NativeDmaStillDirect())return false;
 	mutex_lock(&sLock);
 	bool allowed=!sObservationBlocked && sObservationPhase==ObservationIdle
-		&& (!sGroupAttempted || sNativeRetired) && sState.DiagnosticAllowed();
+		&& (!sGroupAttempted || sNativeGroupReusable) && sState.DiagnosticAllowed();
 	if(!allowed){mutex_unlock(&sLock);return false;}
 	sGroup.~IntelN100ForcewakeGroup();new (&sGroup) IntelN100ForcewakeGroup;
+	sNativeGroupReusable=false;
 	sGroupAttempted=true;sObservationPhase=ObservationHandshaking;
 	sObservationLease=sMappingLease;sObservationSnapshot=original;sNativeExecutionActive=true;
 	mutex_unlock(&sLock);
@@ -632,6 +653,7 @@ static bool NativeResumeHardware()
 	}
 	mutex_lock(&sLock);
 	if(success){
+		sNativeGroupReusable=true;
 		sObservationPhase=ObservationIdle;sObservationLease=0;
 		sNativeRebuild=true;sNativeRetired=true;sNativeResetObserved=true;
 	}else{sObservationPhase=ObservationUnknown;sObservationBlocked=true;}
@@ -677,3 +699,5 @@ static native_gpu_execution_module sNativeExecutionModule={
 	{NATIVE_GPU_EXECUTION_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeExecution,RunNativeCopy,
 	NativeLifecycleStatus,NativeSessionOpened,NativeSessionClosed,NativeLifecycleTransition
 };
+
+#include "NativeRender.inc"

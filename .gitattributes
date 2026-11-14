@@ -4,3 +4,6 @@
 tests/evidence/**/no-lock.log -whitespace
 # Keep Mesa nir_print_shader output byte-identical, including its final blank line.
 experimental/native-gpu/render/compiler/artifacts/*.nir whitespace=-blank-at-eof
+
+# Preserve the exact generated Intel draw image and its manifest hash.
+experimental/native-gpu/render/draw/RcsDrawGenerated.h whitespace=-blank-at-eol

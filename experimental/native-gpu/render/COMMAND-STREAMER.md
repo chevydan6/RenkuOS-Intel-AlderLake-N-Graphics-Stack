@@ -65,3 +65,29 @@ c++ -std=c++11 -Wall -Wextra -Werror -pedantic -Iworkstreams/gpu-next experiment
 c++ -std=c++11 -Wall -Wextra -Werror -pedantic -Iworkstreams/gpu-next experimental/native-gpu/csb_cursor_smoke.cpp -o /tmp/csb_cursor_smoke
 /tmp/csb_cursor_smoke
 ```
+
+## Offline RCS recovery
+
+`RcsRecovery::{IO, Run, LastReport}` matches the `BcsRecovery` interface, with
+RCS MMIO base `0x2000`, `MSG_IDLE_CS=0x8000` and render GDRST domain `2`.
+The caller must prove exclusive RCS/shared render-domain ownership, all
+forcewake, DMA safety and bounded callbacks for the whole 10 ms attempt.
+The helper stops CS, disables prefetch, checks idle and refuses outstanding MI
+forcewake. It follows CAT_ERROR/READY preparation, two Gen12.0 domain resets,
+a 50 µs successful-reset settle, and cancellation after successful or failed
+preparation/domain reset. Only disabled RING_CTL, idle and clear GDRST produce
+`Quiescent`; failures retain uncertainty. This grants no power-release or free
+permission and performs no full-GT reset or forced non-ready retry.
+
+Linux v6.6 mappings: `intel_engine_cs.c:397` (`get_reset_domain`), `:1605`
+(`__intel_engine_stop_cs`), `:1682` (`__cs_pending_mi_force_wakes`);
+`intel_reset.c:268` (`gen6_hw_domain_reset`), `:562`
+(`gen8_engine_reset_prepare`), `:603` (`gen8_engine_reset_cancel`), and `:656`
+(`skip_reset` cancellation); `intel_gt_regs.h:658,666,918` define render BIT1
+and MSG_IDLE_CS. Pending forcewake is conservatively rejected; this helper
+does not reproduce Linux's shared-domain GPM completion procedure.
+
+```sh
+c++ -std=c++11 -Wall -Wextra -Werror -pedantic experimental/native-gpu/render/rcs_recovery_smoke.cpp -o /tmp/rcs_recovery_smoke
+/tmp/rcs_recovery_smoke
+```

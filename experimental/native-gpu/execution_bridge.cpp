@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ExecutionModule.h"
+#include "RenderModule.h"
 #include "OwnedBuffers.h"
 int32 api_version=B_CUR_DRIVER_API_VERSION;
 struct Session {
@@ -14,6 +15,8 @@ struct Session {
  NativeGpu::OwnedBuffers buffers;
  native_gpu_buffer_io transfer;
  native_gpu_copy command;
+ native_gpu_render_module* renderModule;
+ native_gpu_render_command render;
 };
 static status_t Open(const char*,uint32,void** cookie)
 {
@@ -22,6 +25,8 @@ static status_t Open(const char*,uint32,void** cookie)
  memset(s,0,sizeof(*s));mutex_init(&s->lock,"native GPU buffer session");
  status_t status=get_module(NATIVE_GPU_EXECUTION_MODULE,(module_info**)&s->module);
  if(status!=B_OK){mutex_destroy(&s->lock);free(s);return status;}
+ status=get_module(NATIVE_GPU_RENDER_MODULE,(module_info**)&s->renderModule);
+ if(status!=B_OK){put_module(NATIVE_GPU_EXECUTION_MODULE);mutex_destroy(&s->lock);free(s);return status;}
  s->module->session_opened();
  *cookie=s;return B_OK;
 }
@@ -37,12 +42,20 @@ static status_t Free(void* cookie)
  // points here, including after failure. The GPU backing stays in the owner.
  Session* s=(Session*)cookie;
  s->module->session_closed();
+ put_module(NATIVE_GPU_RENDER_MODULE);
  put_module(NATIVE_GPU_EXECUTION_MODULE);
  mutex_destroy(&s->lock);free(s);return B_OK;
 }
 static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t bytes)
 {
  if(s.closing)return B_DEV_NOT_READY;
+ if(operation==NATIVE_GPU_RENDER_IOCTL){
+  if(bytes!=sizeof(s.render))return B_BAD_VALUE;
+  status_t status=user_memcpy(&s.render,buffer,bytes);if(status!=B_OK)return status;
+  status=s.renderModule->run(&s.render);
+  status_t copied=user_memcpy(buffer,&s.render,bytes);
+  return copied==B_OK?status:copied;
+ }
  if(operation==NATIVE_GPU_LIFECYCLE_CONTROL){
   if(bytes!=sizeof(native_gpu_lifecycle_control))return B_BAD_VALUE;
   team_info caller={};

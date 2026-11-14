@@ -6,6 +6,31 @@
 int main()
 {
  using L=NativeGpu::RequestLifecycle;
+ L observation;
+ assert(observation.Begin()==L::Accepted);
+ observation.FinishObservation(true);
+ assert(observation.Current()==L::Ready && observation.Completed()==0 && observation.Failed()==0);
+ assert(observation.Begin()==L::Accepted && observation.Freeze(L::Suspended));
+ observation.FinishObservation(true);
+ assert(observation.Current()==L::Suspended && observation.Completed()==0 && observation.Failed()==0);
+ assert(observation.Resume(true) && observation.Begin()==L::Accepted);
+ observation.FinishObservation(false);
+ assert(observation.Current()==L::Lost && observation.Completed()==0 && observation.Failed()==0);
+ L closingObservation;
+ assert(closingObservation.Begin()==L::Accepted && closingObservation.Freeze(L::Shutdown));
+ closingObservation.FinishObservation(true);
+ assert(closingObservation.Current()==L::Shutdown && closingObservation.Completed()==0);
+ // A safely rejected prepublication request drops admission without claiming
+ // a GPU completion; a later genuine uncertain request must still enter Lost.
+ L prepublicationBusy;
+ assert(prepublicationBusy.Begin()==L::Accepted);
+ prepublicationBusy.FinishObservation(true);
+ assert(prepublicationBusy.Current()==L::Ready && prepublicationBusy.Completed()==0
+  && prepublicationBusy.Failed()==0);
+ assert(prepublicationBusy.Begin()==L::Accepted);
+ prepublicationBusy.Finish(false);
+ assert(prepublicationBusy.Current()==L::Lost && prepublicationBusy.Completed()==0
+  && prepublicationBusy.Failed()==1);
  L device;
  assert(device.Current()==L::Cold);
  assert(device.Begin()==L::Accepted);

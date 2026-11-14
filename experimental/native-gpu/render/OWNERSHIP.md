@@ -1,5 +1,10 @@
 # Native RCS cooperative ownership foundation
 
+The policy below is integrated by `../NativeRender.inc` and the private
+[driver handoff](driver-handoff/README.md). Native execution evidence is in
+[the RCS checkpoint](../evidence/native-rcs-003/README.md). The original audit
+and policy-only scope below describe this helper, not the complete adapter.
+
 This is a CPU policy and matching-source audit for part of Task3. It does not
 establish live hardware exclusion, implement the native handoff, initialize RCS,
 allocate render resources, or complete Task3. No hardware permission is supplied

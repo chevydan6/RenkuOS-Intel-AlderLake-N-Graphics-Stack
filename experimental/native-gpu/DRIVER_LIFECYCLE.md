@@ -68,7 +68,7 @@ require effective UID0; query and ordinary owned-buffer copying do not.
 | `quiesce` | Freeze admission before waiting up to 250 ms for the active request to finish or recover. Success reaches Suspended. |
 | `resume` | From Suspended only: revalidate PCI/DMA, acquire power and reset an initialized engine, release power, then reopen admission. Rebuild context on the next copy. |
 | `shutdown` | Freeze admission, drain, then enter terminal Shutdown. Resume cannot reopen it; reboot is required. |
-| `test-timeout` | Arm one global administrative check: hide CSB completion observation for the next valid copy, exercising bounded timeout and real BCS reset without malformed GPU commands. |
+| `test-timeout` | Arm one global administrative check: the next accepted BCS copy or RCS DRAW hides CSB completion observation. BCS exercises bounded timeout and its existing reset; RCS enters Lost and retains backing/power until reboot. RCS PROBE and BOOTSTRAP do not consume the flag. GPU commands remain valid. |
 
 State numbers are Cold=0, Ready=1, Running=2, Quiescing=3, Suspended=4, Lost=5,
 Shutdown=6. Counters count accepted requests, not rejected calls. Timings are
