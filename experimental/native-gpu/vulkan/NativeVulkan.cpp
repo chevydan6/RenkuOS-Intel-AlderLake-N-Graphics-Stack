@@ -313,6 +313,13 @@ vkCreateShaderModule(VkDevice device,const VkShaderModuleCreateInfo* info,
   || info->pNext || info->flags || allocator || !info->pCode || info->codeSize<20
   || info->codeSize>1024*1024 || (info->codeSize&3)
   || info->pCode[0]!=0x07230203)return VK_ERROR_INITIALIZATION_FAILED;
+#ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+ char validationError[256]={};
+ int validation=renku_intel_validate_vulkan10(info->pCode,info->codeSize/4,
+  validationError,sizeof(validationError));
+ if(validation==RENKU_INTEL_COMPILE_OUT_OF_MEMORY)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ if(validation!=RENKU_INTEL_COMPILE_OK)return VK_ERROR_INITIALIZATION_FAILED;
+#endif
  VkShaderModule_T* value=(VkShaderModule_T*)malloc(sizeof(VkShaderModule_T)+info->codeSize);
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
  value->device=device;value->next=device->shaders;value->bytes=info->codeSize;

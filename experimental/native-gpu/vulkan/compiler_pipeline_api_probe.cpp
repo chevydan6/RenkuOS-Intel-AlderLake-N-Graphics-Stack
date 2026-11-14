@@ -6,6 +6,16 @@
 int main()
 {
  VkDevice_T device={};device.fd=-1;
+ VkShaderModuleCreateInfo create={};create.sType=VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+ create.pCode=RenkuKnownSpirv::Vertex;create.codeSize=sizeof(RenkuKnownSpirv::Vertex);
+ VkShaderModule checked=VK_NULL_HANDLE;
+ if(vkCreateShaderModule(&device,&create,nullptr,&checked)!=VK_SUCCESS || !checked)return 3;
+ vkDestroyShaderModule(&device,checked,nullptr);
+ uint32_t malformed[sizeof(RenkuKnownSpirv::Vertex)/4];
+ memcpy(malformed,RenkuKnownSpirv::Vertex,sizeof(malformed));malformed[5]=0x00000011;
+ create.pCode=malformed;
+ if(vkCreateShaderModule(&device,&create,nullptr,&checked)
+  !=VK_ERROR_INITIALIZATION_FAILED || checked)return 4;
  VkShaderModule_T vs={};vs.device=&device;vs.bytes=sizeof(RenkuKnownSpirv::Vertex);
  vs.code=const_cast<uint32_t*>(RenkuKnownSpirv::Vertex);
  VkShaderModule_T fs={};fs.device=&device;fs.bytes=sizeof(RenkuKnownSpirv::Fragment);
@@ -47,6 +57,6 @@ int main()
  fs.code=altered;
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
   !=VK_ERROR_FEATURE_NOT_PRESENT || pipeline)return 2;
- puts("Vulkan pipeline preflight: compiled accepted shader; rejected altered shader before owner call");
+ puts("Vulkan API probe: rejected malformed shader module; compiled accepted pipeline; rejected altered pipeline");
  return 0;
 }

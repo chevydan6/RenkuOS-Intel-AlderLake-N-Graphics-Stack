@@ -55,3 +55,7 @@ Further large compiler builds should run on a disposable Haiku VM or a proper
 cross toolchain. The physical N100 should be reserved for bounded GPU tests
 after its boot and filesystem state are verified. The host compiler proof and
 known-good GPU binaries in the repository were not modified by this attempt.
+
+The later [recovery checkpoint](../native-ramfs-unmount-008/README.md) records
+a Govee power cycle, manual Wi-Fi reconnection, the physical boot volume's
+read-only state, and a successful four-shape N100 Vulkan regression.
