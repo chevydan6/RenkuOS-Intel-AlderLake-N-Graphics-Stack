@@ -822,21 +822,16 @@ static bool KnownGraphicsPipeline(VkDevice device,const VkGraphicsPipelineCreate
  return true;
 }
 
-extern "C" VKAPI_ATTR VkResult VKAPI_CALL
-vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
- const VkGraphicsPipelineCreateInfo* infos,const VkAllocationCallbacks* allocator,
- VkPipeline* pipelines)
+static VkResult CreateGraphicsPipelineOne(VkDevice device,
+ const VkGraphicsPipelineCreateInfo& info,VkPipeline* pipeline)
 {
- if(pipelines && count)for(uint32_t i=0;i<count;i++)pipelines[i]=VK_NULL_HANDLE;
- if(!device || cache || count!=1 || !infos || !pipelines || allocator
-  || !KnownGraphicsPipeline(device,infos[0]))return VK_ERROR_FEATURE_NOT_PRESENT;
 #ifdef RENKU_VULKAN_USE_INTEL_COMPILER
  uint8_t compiledVs[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
  size_t compiledVsBytes=0;
  uint8_t compiledFs[sizeof(NativeGpu::RcsDrawData::Fs)]={};
- if(!CompileKnownPipeline(infos[0].pStages[0].module->code,
-    infos[0].pStages[0].module->bytes,infos[0].pStages[1].module->code,
-    infos[0].pStages[1].module->bytes,compiledVs,sizeof(compiledVs),
+ if(!CompileKnownPipeline(info.pStages[0].module->code,
+    info.pStages[0].module->bytes,info.pStages[1].module->code,
+    info.pStages[1].module->bytes,compiledVs,sizeof(compiledVs),
     &compiledVsBytes,compiledFs,sizeof(compiledFs)))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  const void* fragmentCode=compiledFs;
@@ -888,9 +883,32 @@ vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
    return VK_ERROR_DEVICE_LOST;
   }
  }
- value->device=device;value->pass=infos[0].renderPass;
+ value->device=device;value->pass=info.renderPass;
  value->next=device->pipelines;device->pipelines=value;
- *pipelines=value;return VK_SUCCESS;
+ *pipeline=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
+ const VkGraphicsPipelineCreateInfo* infos,const VkAllocationCallbacks* allocator,
+ VkPipeline* pipelines)
+{
+ if(pipelines && count)for(uint32_t i=0;i<count;i++)pipelines[i]=VK_NULL_HANDLE;
+ if(!device || cache || !count || !infos || !pipelines || allocator)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ for(uint32_t i=0;i<count;i++)
+  if(!KnownGraphicsPipeline(device,infos[i]))return VK_ERROR_FEATURE_NOT_PRESENT;
+ for(uint32_t i=0;i<count;i++){
+  VkResult result=CreateGraphicsPipelineOne(device,infos[i],&pipelines[i]);
+  if(result!=VK_SUCCESS){
+   for(uint32_t j=0;j<i;j++){
+    vkDestroyPipeline(device,pipelines[j],nullptr);
+    pipelines[j]=VK_NULL_HANDLE;
+   }
+   return result;
+  }
+ }
+ return VK_SUCCESS;
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL

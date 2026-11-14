@@ -58,6 +58,15 @@ int main()
  VkPipeline pipeline=VK_NULL_HANDLE;
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
   !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 1;
+ VkGraphicsPipelineCreateInfo pair[2]={info,info};
+ VkPipeline pairOutput[2]={VK_NULL_HANDLE,VK_NULL_HANDLE};
+ if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,2,pair,nullptr,pairOutput)
+  !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pairOutput[0] || pairOutput[1])return 14;
+ VkPipelineRasterizationStateCreateInfo badRaster=raster;
+ badRaster.lineWidth=2;
+ pair[1].pRasterizationState=&badRaster;
+ if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,2,pair,nullptr,pairOutput)
+  !=VK_ERROR_FEATURE_NOT_PRESENT || pairOutput[0] || pairOutput[1])return 15;
  std::vector<uint32_t> namedVertex(std::begin(RenkuKnownSpirv::Vertex),
   std::end(RenkuKnownSpirv::Vertex));
  namedVertex.insert(namedVertex.begin()+17,

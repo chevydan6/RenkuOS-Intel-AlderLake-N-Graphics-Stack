@@ -3,7 +3,7 @@
 This direct-linked RenkuOS `libvulkan.so` uses Khronos Vulkan headers from the
 pinned Mesa 26.3.0 archive. It currently implements instance and physical
 device enumeration, one graphics device and queue, owner-backed memory,
-fixed-shape render target objects, and one bounded graphics pipeline and draw
+fixed-shape render target objects, and bounded graphics pipelines and draws
 path. Physical device discovery probes the installed N100 owner through the
 native execution bridge. No DRM/GEM, Linux loader, window system, base kernel
 change, or Mesa runtime library is involved in the default hardware-tested
@@ -22,6 +22,11 @@ The compiler-backed path accepts multiple submit records and command buffers
 without semaphores; it validates the full call before executing commands in
 order and signals the fence after the final successful draw. A two-submit call
 and the original single-submit path passed on all four triangle shapes.
+It now accepts multiple graphics pipelines in one creation call, validates
+their fixed state before allocation, and rolls back earlier pipelines if a
+later allocation fails. The [N100 dual-pipeline checkpoint](../evidence/native-vulkan-multipipeline-031/README.md)
+records two distinct fragment programs submitted in order, resource-exhaustion
+rollback, and the final pixel readback.
 The [batch checkpoint](../evidence/native-vulkan-batch-025/README.md) records
 the exact output hashes and hardware trace.
 `vkResetCommandPool` now returns allocated command buffers to the initial
