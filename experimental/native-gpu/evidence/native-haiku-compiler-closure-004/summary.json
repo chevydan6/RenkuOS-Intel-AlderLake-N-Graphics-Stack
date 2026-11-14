@@ -1,0 +1,25 @@
+{
+  "mesa_version": "26.3.0",
+  "target": "src/intel/compiler/brw/native-spirv-shaders",
+  "linked_objects": 352,
+  "included_files": 877,
+  "file_counts": {
+    "external": 293,
+    "generated": 49,
+    "mesa": 533,
+    "project_probe": 2
+  },
+  "source_bytes": {
+    "external": 4990336,
+    "generated": 62392205,
+    "mesa": 14025279,
+    "project_probe": 8716
+  },
+  "runtime_libraries": [
+    "libstdc++.so.6",
+    "libgcc_s.so.1",
+    "libroot.so"
+  ],
+  "binary_bytes": 14616304,
+  "note": "Haiku link and include closure; counts full source/header files. Excludes build-only generators and is not a minimal port."
+}
