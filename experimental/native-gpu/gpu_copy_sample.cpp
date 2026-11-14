@@ -18,9 +18,9 @@ int main()
 	printf("PCI result=%u command=%04x/%04x status=%04x/%04x PM=%04x/%04x group_domain=%u reads=%u writes=%u\n",r.pci_result,r.expected_command,r.observed_command,r.expected_status,r.observed_status,r.expected_pm,r.observed_pm,r.group_domain,r.group_reads,r.group_writes);
 	printf("CSB tail=%08x raw=%016llx/%016llx/%016llx/%016llx\n",r.csb_tail_raw,(unsigned long long)r.csb_words[0],(unsigned long long)r.csb_words[1],(unsigned long long)r.csb_words[2],(unsigned long long)r.csb_words[3]);
 	bool passed=status==0 && r.version==1 && r.status==0 && r.stage==14 && r.load_attempted==1
-		&& r.observed_nonce==r.nonce && r.observed_complement==~r.nonce && r.observed_sequence==1
+		&& r.observed_nonce==r.nonce && r.observed_complement==~r.nonce && r.sequence!=0 && r.observed_sequence==r.sequence
 		&& r.copy_words==1024 && r.copy_matched==1024 && r.source_hash==r.destination_hash;
 	puts(passed?"GPU 4KiB copy sample: PASS":"GPU 4KiB copy sample: NOT PROVEN");
-	puts("Request buffers remain owned until reboot for this first execution prototype.");
+	puts("Successful requests retire for reuse; uncertain requests retain backing until reboot.");
 	return passed?0:1;
 }

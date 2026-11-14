@@ -26,7 +26,7 @@ static constexpr uint32_t kPoison = 0x5a5a5a5a;
 // the native display driver's IRQ handler does not own this request.
 // CPU preparation only: callers still establish DMA admission, cache policy,
 // engine initialization and lifetime before any hardware publication.
-inline bool BuildRequestImage(const ImageInput& in, const ImageBuffers& cpu, ImageOutput& out)
+inline bool BuildRequestImage(const ImageInput& in, const ImageBuffers& cpu, ImageOutput& out, bool initializeStatus = true)
 {
 	if (!cpu.ring || !cpu.status || !cpu.result || !cpu.context
 		|| !in.sequence || in.sequence == kPoison
@@ -45,9 +45,10 @@ inline bool BuildRequestImage(const ImageInput& in, const ImageBuffers& cpu, Ima
 	IntelN100ContextImage::Input context = {in.identity, in.revision, in.ggtt[3],
 		in.ggtt[0], in.rootPhysical, 4096, image.tail};
 	if (!IntelN100ContextImage::Build(context, cpu.context, 16384)
-		|| !intel_n100_initialize_hwsp(cpu.status, 4096)) return false;
+		|| (initializeStatus && !intel_n100_initialize_hwsp(cpu.status, 4096))) return false;
 	memset(cpu.ring, 0, 4096);
 	memset(cpu.result, 0x5a, 4096);
+	cpu.status[0xc8/4] = 0;
 	cpu.status[0x40] = kPoison; // Separate from CSB and the zero preempt semaphore.
 	if (!intel_n100_ggtt_nonce_stores(in.ggtt[2], in.nonce, cpu.ring, 1024)) return false;
 	const uint32_t completion[] = {

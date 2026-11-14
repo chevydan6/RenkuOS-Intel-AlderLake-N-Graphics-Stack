@@ -83,6 +83,20 @@ public:
 		fReport.stage = Initialized;
 		return true;
 	}
+	// Owner calls only after CSB switch-away, ordered breadcrumb, visibility
+	// and idle verification. This renews the software deadline, not hardware.
+	bool Rearm(const IO& io, uint64_t deadline)
+	{
+		if (fReport.stage != Published || !Valid(io)) return false;
+		uint64_t now = io.now(io.context);
+		if (now == UINT64_MAX || deadline <= now || deadline - now > 100000)
+			return Fail(InvalidInput);
+		fReport = {};
+		fReport.stage = Initialized;
+		fReport.start = fReport.previous = now;
+		fReport.deadline = deadline;
+		return Check(io);
+	}
 	bool Publish(const IO& io, uint64_t descriptor)
 	{
 		if (fReport.stage != Initialized) return false;

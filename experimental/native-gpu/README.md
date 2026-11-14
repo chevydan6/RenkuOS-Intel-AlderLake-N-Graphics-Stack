@@ -44,11 +44,11 @@ The earlier engine-only checkpoint itself made no hardware submission.
 
 NativeExecution.inc is included into the resident IntelMemoryOwner image. Its
 new native_execution/v1 endpoint owns one fixed nonce + 4KiB PPGTT copy attempt
-per boot. It reuses the mapping lease/pin, existing forcewake/reset helpers,
+at a time. It reuses the mapping lease/pin, existing forcewake/reset helpers,
 request/context image and linear BLT builder. The user client supplies no command
-stream, GPU/CPU address, buffer or callback. All request backing remains owned
-until reboot in this initial prototype, including after success. This is bounded
-experimental retention, not a general allocation/retirement API.
+stream, GPU/CPU address, buffer or callback. One backing set remains pinned for the session and is reused after verified
+retirement. An uncertain request blocks further submissions until reboot. This
+is a fixed synchronous copy endpoint, not a general allocation/submission API.
 
 The direct-DMA backend requires the actual boot's DMAR coverage and all enumerated
 VT-d units to have translation disabled; it never disables an enabled IOMMU. The
@@ -86,6 +86,6 @@ cd /boot/home/native-gpu-execution-005
 build/gpu_copy_sample
 ```
 
-See [logs and hashes](evidence/native-copy-005/README.md). The sample's request
-backing remains retained until reboot; this is copy-engine acceleration rather
-than a complete render/shader or graphics API implementation.
+See [logs and hashes](evidence/native-copy-005/README.md). That checkpoint used one attempt per boot. The current repeated-request
+implementation and seven-copy physical evidence are described in
+[native-repeat-003](evidence/native-repeat-003/README.md).

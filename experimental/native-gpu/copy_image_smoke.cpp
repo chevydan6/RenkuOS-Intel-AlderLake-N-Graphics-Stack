@@ -16,5 +16,11 @@ int main()
 	assert(ring[15]==0x201000 && ring[19]==0x200000);
 	assert(ring[22]==0x13000002 && ring[29]==1);
 	assert(result[0]==NativeGpu::kPoison && status[0x40]==NativeGpu::kPoison);
+	status[kN100CsbWrite/4]=10;
+	status[kN100CsbBuffer/4]=0x12345678;
+	in.sequence=2;in.tag=2;
+	assert(NativeGpu::BuildCopyRequestImage(in,cpu,out,false));
+	assert(status[kN100CsbWrite/4]==10 && status[kN100CsbBuffer/4]==0x12345678);
+	assert(ring[29]==2 && status[0x40]==NativeGpu::kPoison);
 	puts("Native copy request image: PASS (CPU construction only)");
 }

@@ -5,6 +5,7 @@
 // its mapping helpers. All code, ledgers, mappings and callbacks stay in that
 // B_KEEP_LOADED image. No pointer into an unloadable bridge is retained.
 #include <ACPI.h>
+#include <new>
 #include <IntelDmarReserved.h>
 #include <IntelVtdObservation.h>
 #include <IntelN100PpgttTree.h>
@@ -15,6 +16,10 @@
 #include "NativePciPower.h"
 
 static bool sNativeAttempted, sNativePageHold;
+static bool sNativeReady, sNativeInitialized, sNativeRetired;
+static uint32_t sNativeSequence, sNativeCursor;
+// Busy/poisoned is set before touching any request backing. Only the complete
+// retirement + power-release path clears it. Failures retain every allocation.
 static native_gpu_execution_report sNativeReport;
 static IntelN100PpgttTree sNativeTree;
 static NativeGpu::BcsEngine sNativeEngine;
@@ -249,29 +254,42 @@ static bool NativeWork(void* data,uint64_t deadline)
 {
 	auto& context=*(GroupContext*)data;
 	sNativeReport.stage=6;
-	if(!ResetWork(data,deadline))return false;
+	context.resetDeadline=deadline;context.resetLastTime=HandshakeTime(NULL);
+	if(!sNativeInitialized && !ResetWork(data,deadline))return false;
 	sNativeReport.reset=B_OK;
 	if(!NativeSafe(data))return false;
 	sNativeReport.stage=7;
 	uint64_t root=0;if(!sNativeTree.Root(root))return false;
 	auto& h=*context.handshake;
 	NativeGpu::ImageInput in={h.original.identity,uint32_t(uint8_t(h.original.classRevision)),{},
-		root,sNativeReport.nonce,1,1};
+		root,sNativeReport.nonce,sNativeReport.sequence,
+		1+(sNativeReport.sequence-1)%0x7fe};
 	for(unsigned i=0;i<4;i++)in.ggtt[i]=sMappingSet.buffers[i].ggtt_offset;
 	NativeGpu::ImageBuffers cpu={(uint32_t*)sMappingSet.buffers[0].cpu_aperture,
 		(uint32_t*)sMappingSet.buffers[1].cpu_aperture,(uint32_t*)sMappingSet.buffers[2].cpu_aperture,
 		(uint32_t*)sMappingSet.buffers[3].cpu_aperture};
 	NativeGpu::ImageOutput image;
-	if(!NativeGpu::BuildCopyRequestImage(in,cpu,image))return false;
+	if(!NativeGpu::BuildCopyRequestImage(in,cpu,image,!sNativeInitialized))return false;
+	// The HWSP cursor may become visible before its entry write. Poison only
+	// the next two consumed/free slots so wraparound cannot expose old tags.
+	for(unsigned i=1;i<=2;i++) {
+		unsigned slot=(sNativeCursor+i)%kN100CsbEntries;
+		cpu.status[(kN100CsbBuffer+8*slot)/4]=UINT32_MAX;
+		cpu.status[(kN100CsbBuffer+8*slot)/4+1]=UINT32_MAX;
+	}
 	sNativeReport.ring_tail=image.tail;
 	sNativeReport.stage=8;
-	if(!NativeVisible(data) || !NativeCachePolicy(data))return false;
+	if(!NativeVisible(data) || (!sNativeInitialized && !NativeCachePolicy(data)))return false;
 	sNativeReport.stage=9;
 	// Explicitly align native MMIO/software/HWSP cursors at0. This leaves
 	// slots1/2 for the observed N100 activation/idle records; slot0 stays poison.
-	cpu.status[kN100CsbWrite/4]=0;
+	if(!sNativeInitialized)cpu.status[kN100CsbWrite/4]=0;
 	NativeGpu::BcsEngine::IO io={data,HandshakeTime,NativeSafe,NativeRead,NativeWrite,NativeVisible};
-	if(!sNativeEngine.Initialize(io,in.identity,in.revision,in.ggtt[1],deadline,0))return false;
+	if(!sNativeInitialized) {
+		if(!sNativeEngine.Initialize(io,in.identity,in.revision,in.ggtt[1],deadline,0))return false;
+		sNativeInitialized=true;
+	} else if(!sNativeRetired || !sNativeEngine.Rearm(io,deadline))return false;
+	sNativeRetired=false;
 	sNativeReport.stage=10;
 	if(!sNativeEngine.Publish(io,image.descriptor))return false;
 	sNativeReport.engine=B_OK;
@@ -279,7 +297,7 @@ static bool NativeWork(void* data,uint64_t deadline)
 	IntelN100CsbReader::Io csb={data,HandshakeTime,NativeSafe,NativeStatus32,
 		NativeStatus64,NativeAcquire,HandshakePause};
 	uint64_t now=HandshakeTime(NULL);
-	if(now>=deadline || !sNativeCsb.Run(csb,sMappingLease,1,deadline-now,2048,0)){
+	if(now>=deadline || !sNativeCsb.Run(csb,sMappingLease,in.tag,deadline-now,2048,sNativeCursor)){
 		NativeCollectOutput(data);
 		return false;
 	}
@@ -289,12 +307,17 @@ static bool NativeWork(void* data,uint64_t deadline)
 	sNativeReport.stage=12;
 	if(!NativeCollectOutput(data))return false;
 	if(sNativeReport.observed_nonce!=in.nonce || sNativeReport.observed_complement!=~in.nonce
-		|| sNativeReport.observed_sequence!=1)return false;
+		|| sNativeReport.observed_sequence!=in.sequence)return false;
 	sNativeReport.stage=13;
 	if(sNativeReport.copy_matched!=1024)return false;
 	uint32_t mode=0;
 	if(!NativeRead(data,0x2209c,mode) || !(mode&0x200) || !NativeSafe(data))return false;
 	sNativeReport.mode=mode;
+	// CSB switched to idle, matching post-flush breadcrumb and complete data,
+	// then engine-idle/error/owner checks: no GPU access to this context remains.
+	// Keep its mappings pinned, and preserve the consumed CSB tail (i915 process_csb software head).
+	sNativeCursor=sNativeCsb.LastReport().tail;
+	sNativeRetired=true;
 	sNativeReport.stage=14;
 	return true;
 }
@@ -303,18 +326,22 @@ static status_t RunNativeExecution(native_gpu_execution_report* output)
 	if(!output)return B_BAD_VALUE;
 	mutex_lock(&sLock);
 	if(sNativeAttempted){mutex_unlock(&sLock);return B_BUSY;}
+	if(sNativeSequence==UINT32_MAX){mutex_unlock(&sLock);return B_BUSY;}
 	sNativeAttempted=true;
+	++sNativeSequence;
+	if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
 	sNativeReport={};sNativeReport.version=1;sNativeReport.status=B_ERROR;
 	sNativeReport.mapping=sNativeReport.dma=sNativeReport.tables=sNativeReport.bootstrap
 		=sNativeReport.group=sNativeReport.reset=sNativeReport.engine=sNativeReport.csb=B_ERROR;
 	mutex_unlock(&sLock);
 	auto& r=sNativeReport;
 	r.stage=1;
+	if(!sNativeReady) {
 	r.mapping=BeginMappingSet(&sMappingSet);
 	if(r.mapping!=B_OK){*output=r;return r.status;}
 	// This is the execution extension of mapping/v1. Its original cleanup API
 	// must never reclaim objects that this path can publish. One retained set
-	// per boot is deliberate for this first real workload, including success.
+	// is reused only after proven retirement; failure retains it until reboot.
 	mutex_lock(&sLock);sMappingRetained=true;r.retained=1;mutex_unlock(&sLock);
 	r.stage=2;r.dma=NativeDmaAdmit();
 	if(r.dma!=B_OK){*output=r;return r.status;}
@@ -329,9 +356,12 @@ static status_t RunNativeExecution(native_gpu_execution_report* output)
 	sNativeSource=(uint32_t*)page.cpu;
 	if(!sNativeTree.Describe(9,page)){*output=r;return r.status;}
 	sNativeDestination=(uint32_t*)page.cpu;
-	r.nonce=uint32_t(system_time())|1;
+	sNativeReady=true;
+	}
+	r.mapping=r.dma=r.tables=B_OK;r.pages=sNativeTree.RecordedPages();r.retained=1;
+	r.nonce=(uint32_t(system_time())^sNativeSequence)|1;
 	if(r.nonce==NativeGpu::kPoison || ~r.nonce==NativeGpu::kPoison)r.nonce^=0x915;
-	r.sequence=1;r.copy_words=1024;
+	r.sequence=sNativeSequence;r.copy_words=1024;
 	for(unsigned i=0;i<1024;i++){sNativeSource[i]=r.nonce^(0x9e3779b9u*i);sNativeDestination[i]=NativeGpu::kPoison;}
 	r.stage=4;
 	IntelN100PciSnapshot original={};
@@ -339,8 +369,11 @@ static status_t RunNativeExecution(native_gpu_execution_report* output)
 		!=IntelN100PciPower::Success){*output=r;return r.status;}
 	r.identity=original.identity;r.revision=uint8_t(original.classRevision);
 	mutex_lock(&sLock);
-	if(sObservationBlocked || sObservationPhase!=ObservationIdle || sGroupAttempted
+	if(sObservationBlocked || sObservationPhase!=ObservationIdle || (sGroupAttempted && !sNativeRetired)
 		|| !sState.DiagnosticAllowed()) {mutex_unlock(&sLock);*output=r;return B_BUSY;}
+	// Previous group is recreated only after its successful release and retirement.
+	if(sNativeRetired){sGroup.~IntelN100ForcewakeGroup();new (&sGroup) IntelN100ForcewakeGroup;}
+	sNativeCsb.~IntelN100CsbReader();new (&sNativeCsb) IntelN100CsbReader;
 	sGroupAttempted=true;sObservationPhase=ObservationHandshaking;
 	sObservationLease=sMappingLease;sObservationSnapshot=original;
 	sNativeExecutionActive=true;
@@ -380,9 +413,11 @@ static status_t RunNativeExecution(native_gpu_execution_report* output)
 	else{sObservationPhase=ObservationUnknown;sObservationBlocked=true;}
 	// Never RetireObservation(): this transaction uses the mapping lease/pin,
 	// not a second observation lease. Both request backing and code stay alive.
-	mutex_unlock(&sLock);
 	*output=r;
-	return r.status;
+	status_t status=r.status;
+	if(success)sNativeAttempted=false;
+	mutex_unlock(&sLock);
+	return status;
 }
 static native_gpu_execution_module sNativeExecutionModule={
 	{NATIVE_GPU_EXECUTION_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeExecution

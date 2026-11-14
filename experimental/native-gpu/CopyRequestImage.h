@@ -11,9 +11,9 @@ namespace NativeGpu {
 // Packet/BLIT_CCTL ordering follows pinned v6.6 gem/selftests/
 // i915_gem_client_blt.c::prepare_blit(), retaining Intel's MIT hardware logic.
 inline bool BuildCopyRequestImage(const ImageInput& in,
-	const ImageBuffers& cpu, ImageOutput& out)
+	const ImageBuffers& cpu, ImageOutput& out, bool initializeStatus = true)
 {
-	if (!BuildRequestImage(in,cpu,out)) return false;
+	if (!BuildRequestImage(in,cpu,out,initializeStatus)) return false;
 	// Insert 3-dword BLIT_CCTL LRI + 10-dword copy + alignment NOOP between
 	// nonce stores and the existing ordered flush/completion/preemption tail.
 	memmove(cpu.ring+22,cpu.ring+8,18*sizeof(uint32_t));

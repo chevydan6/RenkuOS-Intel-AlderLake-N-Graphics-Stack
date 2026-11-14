@@ -45,6 +45,8 @@ int main()
 		assert(actual.offset == expected[i].offset && actual.value == expected[i].value);
 	}
 	assert(engine.LastReport().stage == NativeGpu::BcsEngine::Published);
+	assert(engine.Rearm(f.Io(), 20000));
+	assert(engine.Publish(f.Io(), descriptor));
 	// A failed posting write may already have reached hardware. Keep the
 	// publication ledger; the caller must retain all backing and wake ownership.
 	Fixture failed; failed.failLoad = true;
@@ -54,5 +56,6 @@ int main()
 	assert(uncertain.LastReport().loadAttempted);
 	assert(uncertain.LastReport().error == NativeGpu::BcsEngine::WriteFailed);
 	assert(!uncertain.Publish(failed.Io(), descriptor));
+	assert(!uncertain.Rearm(failed.Io(), 20000));
 	puts("BCS init/ELSQ smoke: PASS (simulated IO, not GPU execution)");
 }

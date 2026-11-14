@@ -1,6 +1,30 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Latest checkpoint: repeated copies in one boot
+
+The one-attempt-per-boot restriction described by execution005 below is superseded.
+Seven sequenced GPU copies now pass in one boot, including CSB wrap and reuse,
+with one request in flight and polling. See
+[implementation, retirement contract and native evidence](experimental/native-gpu/evidence/native-repeat-003/README.md).
+
+Device reset/cache/TLB/engine initialization and backing allocation run once.
+Success requires current-tag CSB activation/switch-away, current ordered sequence,
+nonce/complement, all1024 copied words, CPU visibility and idle/error/owner checks,
+then successful forcewake release and final owner/DMA checks. Only that complete
+path reopens admission. The same context/ring/HWSP/PPGTT/data backing is reused.
+Failures retain memory and block all further submissions until reboot.
+
+Current installed owner SHA256:
+`79b4a82f60a1dbe8302b21eab3899f1a9753435bda691449a7972890cc9b0261`.
+Bridge is unchanged from execution005. Native source/build/client is
+`/boot/home/native-repeat-003`; `build/gpu_copy_sample` can be invoked again
+without reboot after a success. Resident-code replacement still requires reboot.
+The seven requests have retired successfully; app_server remains PID127, thirteen
+original display/observer component hashes match, and the physical lease is released.
+There is no general buffer deallocation, interrupt scheduling or reset recovery
+in this milestone. The remainder of this file preserves historical checkpoints.
+
 ## Start here: the owner changed the development strategy
 
 The owner explicitly chose **native adaptation**, allowing changes to integration
