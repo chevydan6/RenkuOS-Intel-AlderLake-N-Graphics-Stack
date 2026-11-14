@@ -45,11 +45,11 @@ public:
 	BcsEngine() : fReport() {}
 	const Report& LastReport() const { return fReport; }
 	bool Initialize(const IO& io, uint32_t identity, uint32_t revision,
-		uint64_t statusGgtt, uint64_t deadline)
+		uint64_t statusGgtt, uint64_t deadline, uint32_t initialCsb = 11)
 	{
 		if (fReport.stage != Empty) return false;
 		if (!Valid(io) || identity != 0x46d18086 || revision != 0
-			|| (statusGgtt & 4095) || statusGgtt > (1ULL << 32) - 4096)
+			|| (statusGgtt & 4095) || statusGgtt > (1ULL << 32) - 4096 || initialCsb >= 12)
 			return Fail(InvalidInput);
 		fReport.stage = Initializing;
 		fReport.start = fReport.previous = io.now(io.context);
@@ -62,9 +62,10 @@ public:
 		if (!Read(io, 0x2209c, value)) return false; // RING_MI_MODE idle.
 		if (!(value & 0x200)) return Fail(UnexpectedRegister);
 		if (!Visible(io)) return false;
-		// First CSB cursor reset; HWSP memory was separately initialized to11.
-		if (!Store(io, 0x223a0, 0xffff0b0b) || !Read(io, 0x223a0, value)) return false;
-		if ((value & 0xffff) != 0xb0b) return Fail(UnexpectedRegister);
+		// First CSB cursor reset; HWSP memory must use this same initial index.
+		const uint32_t cursor = initialCsb | (initialCsb << 8);
+		if (!Store(io, 0x223a0, 0xffff0000 | cursor) || !Read(io, 0x223a0, value)) return false;
+		if ((value & 0xffff) != cursor) return Fail(UnexpectedRegister);
 		// HWSTAM then Gen11+ disable-legacy-mode, retaining reset's prefetch
 		// disable bit. Clear STOP_RING only with the engine in execlists mode.
 		if (!Store(io, 0x22098, UINT32_MAX)
@@ -76,9 +77,9 @@ public:
 		// Polling owner has no IRQ integration. Unlike Linux's interrupt path,
 		// keep engine error interrupts masked; errors must be polled by owner.
 		if (!Store(io, 0x220b4, UINT32_MAX) || !Visible(io)
-			|| !Store(io, 0x223a0, 0xffff0b0b)
+			|| !Store(io, 0x223a0, 0xffff0000 | cursor)
 			|| !Read(io, 0x223a0, value)) return false;
-		if ((value & 0xffff) != 0xb0b) return Fail(UnexpectedRegister);
+		if ((value & 0xffff) != cursor) return Fail(UnexpectedRegister);
 		fReport.stage = Initialized;
 		return true;
 	}

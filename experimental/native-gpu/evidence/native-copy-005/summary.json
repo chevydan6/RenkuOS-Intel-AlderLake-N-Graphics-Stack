@@ -1,0 +1,22 @@
+{
+  "gpu_copy_verified": true,
+  "native_exit": 0,
+  "device": "8086:46d1",
+  "revision": 0,
+  "bytes_copied": 4096,
+  "words_matched": 1024,
+  "nonce": "032d377f",
+  "complement": "fcd2c880",
+  "sequence": 1,
+  "source_hash": "2bb2fdc5",
+  "destination_hash": "2bb2fdc5",
+  "csb_activation": "03ff800000008019",
+  "csb_completion": "0000800003ff8018",
+  "forcewake_group_status": 0,
+  "forcewake_group_stage": 6,
+  "error_register": 0,
+  "fault_register": 0,
+  "retained_until_reboot": true,
+  "single_attempt_per_boot": true,
+  "archive_sha256": "569bc2751afb82ac8eb4c32b25ddf82ce1cebe6deafad636e787353411d78780"
+}

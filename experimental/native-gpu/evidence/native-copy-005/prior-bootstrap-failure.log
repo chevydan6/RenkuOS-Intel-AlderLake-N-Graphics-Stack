@@ -1,0 +1,7 @@
+native_copy version=1 ioctl=-1 status=-1 stage=5 identity=46d18086 revision=0
+mapping=0 dma=0 tables=0 bootstrap=0 group=-1 reset=-1 engine=-1 csb=-1 pages=10 retained=1
+nonce=0468e21b observed=00000000 complement=00000000 sequence=1 observed_sequence=0 load=0 tail=0
+copy_words=1024 matched=0 source_hash=00000000 destination_hash=00000000 CSB=0000000000000000/0000000000000000
+bootstrap=6/0 group=0/4 reset=0/0 engine=0/0 csb_error=0 safety=0/0/0 mode=00000000 EIR=00000000 fault=00000000
+GPU 4KiB copy sample: NOT PROVEN
+Request buffers remain owned until reboot for this first execution prototype.

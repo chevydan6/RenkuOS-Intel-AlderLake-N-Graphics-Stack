@@ -1,0 +1,13 @@
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_bcs_inventory_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_bcs_reset_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_dmar_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_extreme: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_forcewake_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_group_handshake_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_gt_ack_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_media_fuse_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_pci_owner_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_ppgtt_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_ppgtt_reserved_bridge: OK
+/boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_vtd_bridge: OK
+/boot/system/non-packaged/add-ons/accelerants/intel_extreme.accelerant: OK

@@ -27,7 +27,7 @@ static inline bool intel_n100_initialize_hwsp(void* page, size_t bytes)
 // Bounded, one-shot reader for two events from a fresh single-request CSB.
 // Backend accesses owned coherent HWSP memory, NOT MMIO. Every callback must
 // itself return boundedly. No allocation, publication, cleanup or DMA release.
-// External serialization, reset/initial pointer=11, fresh tags, exclusive engine
+// External serialization, matching reset/initial cursor, fresh tags, exclusive engine
 // ownership and absence of an unseen full FIFO revolution are caller obligations.
 class IntelN100CsbReader {
 public:
@@ -47,21 +47,22 @@ public:
 		Phase phase;
 		Error error;
 		uint32_t polls, tailReads, entryReads, barriers, safetyChecks;
-		uint32_t tail, slot, highestAvailable;
+		uint32_t tail, slot, highestAvailable, initialTail;
 		uint64_t entry, start, previous, deadline, elapsed;
 		IntelN100ContextStatus::Report events;
 	};
 	IntelN100CsbReader() : fReport(), fEvents() {}
 	const Report& LastReport() const { return fReport; }
 	bool Run(const Io& io, uint64_t generation, uint32_t tag,
-		uint64_t budgetUs, uint32_t pollLimit)
+		uint64_t budgetUs, uint32_t pollLimit, uint32_t initialTail = 11)
 	{
 		if (fReport.phase != Idle) return false; // Preserve the completed attempt.
 		if (!io.now || !io.safe || !io.read32 || !io.read64 || !io.acquire
 			|| !io.relax || !budgetUs || budgetUs > 250000 || !pollLimit
-			|| pollLimit > 65536 || !fEvents.Arm(generation, tag))
+			|| pollLimit > 65536 || initialTail >= kN100CsbEntries || !fEvents.Arm(generation, tag))
 			return Fail(InvalidInput);
 		fReport.events = fEvents.LastReport();
+		fReport.initialTail = initialTail;
 		fReport.phase = Polling;
 		fReport.start = fReport.previous = io.now(io.context);
 		if (fReport.start == UINT64_MAX || fReport.start > UINT64_MAX - budgetUs)
@@ -78,7 +79,7 @@ public:
 				if (!Check(io)) return false;
 			}
 			while (fReport.events.accepted < available) {
-				fReport.slot = fReport.events.accepted;
+				fReport.slot = (fReport.initialTail + 1 + fReport.events.accepted) % kN100CsbEntries;
 				fReport.entry = UINT64_MAX;
 				if (!Check(io)) return false;
 				fReport.entryReads++;
@@ -137,10 +138,12 @@ private:
 	}
 	bool Available(uint32_t& available)
 	{
-		// Initial slot11 -> slot0 -> slot1; no wrap/reuse in this experiment.
-		if (fReport.tail == 11) available = 0;
-		else if (fReport.tail <= 1) available = fReport.tail + 1;
-		else return Fail(UnexpectedTail);
+		// Exactly two fresh events after the explicitly initialized last-written
+		// cursor. Default11 keeps existing callers' slot0/1 behavior; the native
+		// N100 owner can explicitly initialize cursor0 and use slots1/2.
+		if (fReport.tail >= kN100CsbEntries) return Fail(UnexpectedTail);
+		available = (fReport.tail + kN100CsbEntries - fReport.initialTail) % kN100CsbEntries;
+		if (available > 2) return Fail(UnexpectedTail);
 		if (available < fReport.highestAvailable) return Fail(TailRegression);
 		fReport.highestAvailable = available;
 		return true;

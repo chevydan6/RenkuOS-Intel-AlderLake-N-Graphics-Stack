@@ -1,0 +1,9 @@
+native_copy version=1 ioctl=0 status=0 stage=14 identity=46d18086 revision=0
+mapping=0 dma=0 tables=0 bootstrap=0 group=0 reset=0 engine=0 csb=0 pages=10 retained=1
+nonce=032d377f observed=032d377f complement=fcd2c880 sequence=1 observed_sequence=1 load=1 tail=152
+copy_words=1024 matched=1024 source_hash=2bb2fdc5 destination_hash=2bb2fdc5 CSB=03ff800000008019/0000800003ff8018
+bootstrap=6/0 group=6/0 reset=11/0 engine=4/0 csb_error=0 safety=0/3/3 mode=00000200 EIR=00000000 fault=00000000
+PCI result=0 command=0407/0407 status=0010/0010 PM=0000/0000 group_domain=3 reads=50 writes=8
+CSB tail=00000002 raw=ffffffffffffffff/03ff800000008019/0000800003ff8018/ffffffffffffffff
+GPU 4KiB copy sample: PASS
+Request buffers remain owned until reboot for this first execution prototype.
