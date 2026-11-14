@@ -65,3 +65,15 @@ The physical N100's original `api_probe` and four triangle shapes were run
 again after the VM test and returned the same pass lines and hashes above.
 This validates the current physical stack, but the new compiler-backed build
 has not run on the physical GPU.
+
+## Read-only filesystem diagnosis
+
+The physical boot volume is BFS on `/dev/disk/usb/0/0/1`. `df -h /boot`
+reported 4.0 GiB free. A subsequent `checkfs --check-only /boot` completed
+after checking 118,968 nodes. It reported `size (inode = 4455), invalid
+b+tree` and `configure-2.log (inode = 1579760), could not be opened`.
+Its final allocation summary was zero blocks unallocated, already set, or
+freeable. The command returned status 0 despite those diagnostics, so that
+status is not evidence of a clean filesystem. This read-only scan did not
+attempt a repair. The exact cause of the read-only mount is still unproven;
+the reported metadata errors warrant preserving the volume before repair.
