@@ -1,0 +1,28 @@
+; SPDX-License-Identifier: MIT
+; Probe a fragment color that varies with the pixel's X coordinate.
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %coord %out_color
+OpExecutionMode %main OriginUpperLeft
+OpDecorate %coord BuiltIn FragCoord
+OpDecorate %out_color Location 0
+%void = OpTypeVoid
+%fn = OpTypeFunction %void
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%ptr_input_v4 = OpTypePointer Input %v4float
+%ptr_output_v4 = OpTypePointer Output %v4float
+%zero = OpConstant %float 0
+%one = OpConstant %float 1
+%scale = OpConstant %float 0.015625
+%coord = OpVariable %ptr_input_v4 Input
+%out_color = OpVariable %ptr_output_v4 Output
+%main = OpFunction %void None %fn
+%entry = OpLabel
+%xyzw = OpLoad %v4float %coord
+%x = OpCompositeExtract %float %xyzw 0
+%red = OpFMul %float %x %scale
+%color = OpCompositeConstruct %v4float %red %zero %zero %one
+OpStore %out_color %color
+OpReturn
+OpFunctionEnd

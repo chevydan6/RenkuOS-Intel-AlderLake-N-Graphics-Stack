@@ -1,0 +1,2 @@
+{"compile_status":0,"error":"","vertex_bytes":128,"fragment_bytes":336,"fragment_grf":128,"fragment_scratch":0,"fragment_relocs":0,"dispatch8":1,"dispatch16":1,"dispatch32":0,"offset16":192,"offset32":0,"grf_start8":4,"grf_start16":6}
+bdc1cd20b6a63214273d2cf40ee0f6a21a798a332d7424f0c23e9729d1b4dea2  /boot/home/native-fragcoord-046/fragcoord-red.fs.bin
