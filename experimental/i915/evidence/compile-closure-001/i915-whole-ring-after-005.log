@@ -1,0 +1,140 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: bfbc7e0d346585ec3357ff9422f1269dc56a1772133d678858994bf494e8328e
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -DRENKU_NATIVE -I/home/dan/projects/renku-source/headers -I/home/dan/projects/renku-source/headers/os -I/home/dan/projects/renku-source/headers/os/support -I/home/dan/projects/renku-source/headers/os/kernel -I/home/dan/projects/renku-source/headers/os/storage -I/home/dan/projects/renku-source/headers/os/drivers -I/home/dan/projects/renku-source/headers/posix -I/home/dan/projects/i915-native-validation/experimental/i915/include -I/home/dan/projects/i915-native-validation/experimental/i915/upstream -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915 -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gem -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gt -I/home/dan/projects/linux-v6.6/include -I/home/dan/projects/linux-v6.6/include/uapi -fmax-errors=12 -c /home/dan/projects/i915-native-validation/experimental/i915/upstream/gt/intel_ring.c -o /home/dan/projects/i915-native-validation/experimental/i915/build/complete-gt-intel_ring.c.o
+In file included from /home/dan/projects/linux-v6.6/include/linux/local_lock_internal.h:6,
+                 from /home/dan/projects/linux-v6.6/include/linux/local_lock.h:5,
+                 from /home/dan/projects/linux-v6.6/include/linux/radix-tree.h:22,
+                 from /home/dan/projects/linux-v6.6/include/linux/idr.h:15,
+                 from /home/dan/projects/linux-v6.6/include/drm/drm_file.h:35,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gem/i915_gem_object.h:11,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/upstream/gt/intel_ring.c:8:
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:50:41: error: ‘PER_CPU_BASE_SECTION’ undeclared here (not in a function); did you mean ‘PER_CPU_FIRST_SECTION’?
+   50 |         __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))     \
+      |                                         ^~~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:101:16: note: in expansion of macro ‘__PCPU_ATTRS’
+  101 |         extern __PCPU_ATTRS(sec) __typeof__(type) name
+      |                ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:112:9: note: in expansion of macro ‘DECLARE_PER_CPU_SECTION’
+  112 |         DECLARE_PER_CPU_SECTION(type, name, "")
+      |         ^~~~~~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:34:1: note: in expansion of macro ‘DECLARE_PER_CPU’
+   34 | DECLARE_PER_CPU(struct radix_tree_preload, radix_tree_preloads);
+      | ^~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:112:45: error: expected ‘)’ before string constant
+  112 |         DECLARE_PER_CPU_SECTION(type, name, "")
+      |                                             ^~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:50:62: note: in definition of macro ‘__PCPU_ATTRS’
+   50 |         __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))     \
+      |                                                              ^~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:112:9: note: in expansion of macro ‘DECLARE_PER_CPU_SECTION’
+  112 |         DECLARE_PER_CPU_SECTION(type, name, "")
+      |         ^~~~~~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:34:1: note: in expansion of macro ‘DECLARE_PER_CPU’
+   34 | DECLARE_PER_CPU(struct radix_tree_preload, radix_tree_preloads);
+      | ^~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:50:66: error: expected identifier or ‘(’ before ‘)’ token
+   50 |         __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))     \
+      |                                                                  ^
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:101:16: note: in expansion of macro ‘__PCPU_ATTRS’
+  101 |         extern __PCPU_ATTRS(sec) __typeof__(type) name
+      |                ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:112:9: note: in expansion of macro ‘DECLARE_PER_CPU_SECTION’
+  112 |         DECLARE_PER_CPU_SECTION(type, name, "")
+      |         ^~~~~~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:34:1: note: in expansion of macro ‘DECLARE_PER_CPU’
+   34 | DECLARE_PER_CPU(struct radix_tree_preload, radix_tree_preloads);
+      | ^~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h: In function ‘radix_tree_preload_end’:
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:260:23: error: ‘radix_tree_preloads’ undeclared (first use in this function); did you mean ‘radix_tree_preload’?
+  260 |         local_unlock(&radix_tree_preloads.lock);
+      |                       ^~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:219:54: note: in definition of macro ‘__verify_pcpu_ptr’
+  219 |         const void __percpu *__vpp_verify = (typeof((ptr) + 0))NULL;    \
+      |                                                      ^~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:252:27: note: in expansion of macro ‘raw_cpu_ptr’
+  252 | #define this_cpu_ptr(ptr) raw_cpu_ptr(ptr)
+      |                           ^~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock_internal.h:85:36: note: in expansion of macro ‘this_cpu_ptr’
+   85 |                 local_lock_release(this_cpu_ptr(lock));         \
+      |                                    ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock.h:37:41: note: in expansion of macro ‘__local_unlock’
+   37 | #define local_unlock(lock)              __local_unlock(lock)
+      |                                         ^~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:260:9: note: in expansion of macro ‘local_unlock’
+  260 |         local_unlock(&radix_tree_preloads.lock);
+      |         ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:260:23: note: each undeclared identifier is reported only once for each function it appears in
+  260 |         local_unlock(&radix_tree_preloads.lock);
+      |                       ^~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:219:54: note: in definition of macro ‘__verify_pcpu_ptr’
+  219 |         const void __percpu *__vpp_verify = (typeof((ptr) + 0))NULL;    \
+      |                                                      ^~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:252:27: note: in expansion of macro ‘raw_cpu_ptr’
+  252 | #define this_cpu_ptr(ptr) raw_cpu_ptr(ptr)
+      |                           ^~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock_internal.h:85:36: note: in expansion of macro ‘this_cpu_ptr’
+   85 |                 local_lock_release(this_cpu_ptr(lock));         \
+      |                                    ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock.h:37:41: note: in expansion of macro ‘__local_unlock’
+   37 | #define local_unlock(lock)              __local_unlock(lock)
+      |                                         ^~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:260:9: note: in expansion of macro ‘local_unlock’
+  260 |         local_unlock(&radix_tree_preloads.lock);
+      |         ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:242:9: error: implicit declaration of function ‘arch_raw_cpu_ptr’; did you mean ‘raw_cpu_ptr’? [-Werror=implicit-function-declaration]
+  242 |         arch_raw_cpu_ptr(ptr);                                          \
+      |         ^~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:252:27: note: in expansion of macro ‘raw_cpu_ptr’
+  252 | #define this_cpu_ptr(ptr) raw_cpu_ptr(ptr)
+      |                           ^~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock_internal.h:85:36: note: in expansion of macro ‘this_cpu_ptr’
+   85 |                 local_lock_release(this_cpu_ptr(lock));         \
+      |                                    ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock.h:37:41: note: in expansion of macro ‘__local_unlock’
+   37 | #define local_unlock(lock)              __local_unlock(lock)
+      |                                         ^~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/radix-tree.h:260:9: note: in expansion of macro ‘local_unlock’
+  260 |         local_unlock(&radix_tree_preloads.lock);
+      |         ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/idr.h: In function ‘idr_preload_end’:
+/home/dan/projects/linux-v6.6/include/linux/idr.h:174:23: error: ‘radix_tree_preloads’ undeclared (first use in this function); did you mean ‘radix_tree_preload’?
+  174 |         local_unlock(&radix_tree_preloads.lock);
+      |                       ^~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:219:54: note: in definition of macro ‘__verify_pcpu_ptr’
+  219 |         const void __percpu *__vpp_verify = (typeof((ptr) + 0))NULL;    \
+      |                                                      ^~~
+/home/dan/projects/linux-v6.6/include/linux/percpu-defs.h:252:27: note: in expansion of macro ‘raw_cpu_ptr’
+  252 | #define this_cpu_ptr(ptr) raw_cpu_ptr(ptr)
+      |                           ^~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock_internal.h:85:36: note: in expansion of macro ‘this_cpu_ptr’
+   85 |                 local_lock_release(this_cpu_ptr(lock));         \
+      |                                    ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/local_lock.h:37:41: note: in expansion of macro ‘__local_unlock’
+   37 | #define local_unlock(lock)              __local_unlock(lock)
+      |                                         ^~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/idr.h:174:9: note: in expansion of macro ‘local_unlock’
+  174 |         local_unlock(&radix_tree_preloads.lock);
+      |         ^~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/drm/drm_file.h: At top level:
+/home/dan/projects/linux-v6.6/include/drm/drm_file.h:423:21: error: ‘struct inode’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  423 | int drm_open(struct inode *inode, struct file *filp);
+      |                     ^~~~~
+/home/dan/projects/linux-v6.6/include/drm/drm_file.h:427:24: error: ‘struct inode’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  427 | int drm_release(struct inode *inode, struct file *filp);
+      |                        ^~~~~
+/home/dan/projects/linux-v6.6/include/drm/drm_file.h:428:33: error: ‘struct inode’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  428 | int drm_release_noglobal(struct inode *inode, struct file *filp);
+      |                                 ^~~~~
+/home/dan/projects/linux-v6.6/include/drm/drm_file.h:429:45: error: ‘struct poll_table_struct’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  429 | __poll_t drm_poll(struct file *filp, struct poll_table_struct *wait);
+      |                                             ^~~~~~~~~~~~~~~~~
+In file included from /home/dan/projects/linux-v6.6/include/linux/io-mapping.h:12,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/intel_memory_region.h:11,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gem/i915_gem_object.h:15:
+/home/dan/projects/linux-v6.6/include/linux/io.h:14:10: fatal error: asm/page.h: No such file or directory
+   14 | #include <asm/page.h>
+      |          ^~~~~~~~~~~~
+cc1: all warnings being treated as errors
+compilation terminated.
+
+compiler exit: 1

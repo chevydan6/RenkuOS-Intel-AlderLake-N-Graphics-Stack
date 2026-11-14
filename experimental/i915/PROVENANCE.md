@@ -458,3 +458,15 @@ Complete `gem/i915_gem_shmem.c` is preserved unchanged for actual whole-source p
 
 Ported-from: Linux v6.6 ffc253263a1375a65fa6c9f62a893e9767fbebfa drivers/gpu/drm/i915/gem/i915_gem_shmem.c
 Ported-from-license: MIT
+
+## Timer and ratelimit interface imports
+
+Ported-from: Linux/v6.6/include/linux/timer.h
+Ported-from-license: GPL-2.0
+
+Ported-from: Linux/v6.6/include/linux/ratelimit.h
+Ported-from-license: GPL-2.0
+
+Complete headers remain byte-exact, with the original notices. The wrapper
+namespaces Linux timer entry points away from native/POSIX APIs. Timer
+delivery and cancellation remain unresolved pending their actual native backend.

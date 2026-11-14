@@ -1,0 +1,78 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 8f4679ab718d709354e153f8717bf8153f37fda2a9b1bdfd7defcdfd4481cba6
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -DRENKU_NATIVE -I/home/dan/projects/renku-source/headers -I/home/dan/projects/renku-source/headers/os -I/home/dan/projects/renku-source/headers/os/support -I/home/dan/projects/renku-source/headers/os/kernel -I/home/dan/projects/renku-source/headers/os/storage -I/home/dan/projects/renku-source/headers/os/drivers -I/home/dan/projects/renku-source/headers/posix -I/home/dan/projects/i915-native-validation/experimental/i915/include -I/home/dan/projects/i915-native-validation/experimental/i915/upstream -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915 -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gem -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gt -I/home/dan/projects/linux-v6.6/include -I/home/dan/projects/linux-v6.6/include/uapi -fmax-errors=12 -c /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_gtt.c -o /home/dan/projects/i915-native-validation/experimental/i915/build/complete-gem-i915_gem_gtt.c.o
+In file included from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/i915_active_types.h:12,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/display/intel_frontbuffer.h:31,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_gtt.c:18:
+/home/dan/projects/linux-v6.6/include/linux/llist.h: In function ‘llist_del_all’:
+/home/dan/projects/linux-v6.6/include/linux/llist.h:239:16: error: implicit declaration of function ‘xchg’ [-Werror=implicit-function-declaration]
+  239 |         return xchg(&head->first, NULL);
+      |                ^~~~
+/home/dan/projects/linux-v6.6/include/linux/llist.h:239:16: error: returning ‘int’ from a function with return type ‘struct llist_node *’ makes pointer from integer without a cast [-Werror=int-conversion]
+  239 |         return xchg(&head->first, NULL);
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/dan/projects/linux-v6.6/include/linux/workqueue.h:9,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/i915_active_types.h:16:
+/home/dan/projects/linux-v6.6/include/linux/timer.h: At top level:
+/home/dan/projects/linux-v6.6/include/linux/timer.h:182:13: error: conflicting types for ‘add_timer’; have ‘void(struct timer_list *)’
+  182 | extern void add_timer(struct timer_list *timer);
+      |             ^~~~~~~~~
+In file included from /home/dan/projects/i915-native-validation/experimental/i915/include/kpi_base.h:15,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/include/linux/slab.h:3,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_gtt.c:7:
+/home/dan/projects/renku-source/headers/os/drivers/KernelExport.h:175:25: note: previous declaration of ‘add_timer’ with type ‘status_t(timer *, int32 (*)(timer *), bigtime_t,  int32)’ {aka ‘int(timer *, int (*)(timer *), long int,  int)’}
+  175 | extern status_t         add_timer(timer *t, timer_hook hook, bigtime_t period,
+      |                         ^~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/timer.h:186:12: error: conflicting types for ‘timer_delete’; have ‘int(struct timer_list *)’
+  186 | extern int timer_delete(struct timer_list *timer);
+      |            ^~~~~~~~~~~~
+In file included from /home/dan/projects/renku-source/headers/posix/sys/types.h:130,
+                 from /home/dan/projects/renku-source/headers/posix/string.h:10,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/include/kpi_base.h:9:
+/home/dan/projects/renku-source/headers/posix/time.h:111:17: note: previous declaration of ‘timer_delete’ with type ‘int(struct __timer_t *)’
+  111 | int             timer_delete(timer_t timerID);
+      |                 ^~~~~~~~~~~~
+In file included from /home/dan/projects/linux-v6.6/include/linux/notifier.h:15,
+                 from /home/dan/projects/linux-v6.6/include/linux/pm_qos.h:16,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/i915_drv.h:35,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gt/intel_gt.h:9,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_gtt.c:19:
+/home/dan/projects/linux-v6.6/include/linux/rwsem.h: In function ‘rwsem_is_locked’:
+/home/dan/projects/linux-v6.6/include/linux/rwsem.h:72:16: error: implicit declaration of function ‘atomic_long_read’; did you mean ‘atomic_read’? [-Werror=implicit-function-declaration]
+   72 |         return atomic_long_read(&sem->count) != 0;
+      |                ^~~~~~~~~~~~~~~~
+      |                atomic_read
+In file included from /home/dan/projects/linux-v6.6/include/linux/notifier.h:16:
+/home/dan/projects/linux-v6.6/include/linux/srcu.h: At top level:
+/home/dan/projects/linux-v6.6/include/linux/srcu.h:51:2: error: #error "Unknown SRCU implementation specified to kernel configuration"
+   51 | #error "Unknown SRCU implementation specified to kernel configuration"
+      |  ^~~~~
+/home/dan/projects/linux-v6.6/include/linux/srcu.h: In function ‘srcu_read_lock_nmisafe’:
+/home/dan/projects/linux-v6.6/include/linux/srcu.h:232:9: error: implicit declaration of function ‘rcu_lock_acquire’; did you mean ‘srcu_lock_acquire’? [-Werror=implicit-function-declaration]
+  232 |         rcu_lock_acquire(&ssp->dep_map);
+      |         ^~~~~~~~~~~~~~~~
+      |         srcu_lock_acquire
+/home/dan/projects/linux-v6.6/include/linux/srcu.h:232:30: error: invalid use of undefined type ‘struct srcu_struct’
+  232 |         rcu_lock_acquire(&ssp->dep_map);
+      |                              ^~
+/home/dan/projects/linux-v6.6/include/linux/srcu.h: At top level:
+/home/dan/projects/linux-v6.6/include/linux/srcu.h:237:22: error: expected ‘;’ before ‘int’
+  237 | static inline notrace int
+      |                      ^~~~
+      |                      ;
+/home/dan/projects/linux-v6.6/include/linux/srcu.h: In function ‘srcu_read_unlock_nmisafe’:
+/home/dan/projects/linux-v6.6/include/linux/srcu.h:303:9: error: implicit declaration of function ‘rcu_lock_release’; did you mean ‘srcu_lock_release’? [-Werror=implicit-function-declaration]
+  303 |         rcu_lock_release(&ssp->dep_map);
+      |         ^~~~~~~~~~~~~~~~
+      |         srcu_lock_release
+/home/dan/projects/linux-v6.6/include/linux/srcu.h:303:30: error: invalid use of undefined type ‘struct srcu_struct’
+  303 |         rcu_lock_release(&ssp->dep_map);
+      |                              ^~
+/home/dan/projects/linux-v6.6/include/linux/srcu.h: At top level:
+/home/dan/projects/linux-v6.6/include/linux/srcu.h:308:22: error: expected ‘;’ before ‘void’
+  308 | static inline notrace void
+      |                      ^~~~~
+      |                      ;
+compilation terminated due to -fmax-errors=12.
+
+compiler exit: 1

@@ -40,6 +40,10 @@ bool get_page_unless_zero(struct page *);
 void get_page(struct page *);
 void put_page(struct page *);
 unsigned int page_count(const struct page *);
+/* Driver-facing signatures; native dirty propagation/atomic ownership is still
+ * required before callers can link these operations. */
+bool set_page_dirty(struct page *);
+bool folio_mark_dirty(struct folio *);
 void __free_pages(struct page *, unsigned int);
 #define __free_page(p) __free_pages((p), 0)
 struct page *virt_to_page(const void *);

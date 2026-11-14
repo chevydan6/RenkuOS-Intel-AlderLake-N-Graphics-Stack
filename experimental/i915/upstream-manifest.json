@@ -708,6 +708,18 @@
       "linuxPath": "drivers/gpu/drm/i915/gem/i915_gem_shmem.c",
       "gitBlob": "73a4a4eb29e08689fdac30acd3a88739f3205a12",
       "sha256": "9b2258ef7a62aa4a5276e3c1836dde33d3deb2049b9665cb224d19704243efd0"
+    },
+    {
+      "path": "linux/timer.h",
+      "linuxPath": "include/linux/timer.h",
+      "gitBlob": "9162f275819a780def8efeb98cc4b553e1c44d28",
+      "sha256": "607f510ec8b0627ab13ce284b7d930c82341e9ea99ab54cda4e1e148eacc8aaf"
+    },
+    {
+      "path": "linux/ratelimit.h",
+      "linuxPath": "include/linux/ratelimit.h",
+      "gitBlob": "b17e0cd0a30cfb9fc15c23bad511ef82007f7414",
+      "sha256": "5ae053b31e2925090f16138d2fa5722a974d8cfe1fbf00839de6c97a4601c340"
     }
   ]
 }

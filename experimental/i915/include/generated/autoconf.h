@@ -16,5 +16,7 @@
 #define CONFIG_X86_INTERNODE_CACHE_SHIFT 6
 #define CONFIG_HZ 1000
 #define CONFIG_PRINTK 1
+/* Normal 64-slot XArray chunks; independent of native VM/page flag layouts. */
+#define CONFIG_BASE_SMALL 0
 #define __EXPORTED_HEADERS__ 1
 #endif

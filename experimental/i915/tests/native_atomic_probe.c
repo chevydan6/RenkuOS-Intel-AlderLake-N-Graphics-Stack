@@ -27,6 +27,9 @@ int renku_native_atomic_probe(void)
 	atomic_long_t stamp = ATOMIC_LONG_INIT(LONG_MAX);
 	if (atomic_long_inc_return_relaxed(&stamp) != LONG_MIN) return __LINE__;
 	if (atomic_long_inc_return_relaxed(&stamp) != LONG_MIN + 1) return __LINE__;
+	if (atomic_long_read(&stamp) != LONG_MIN + 1) return __LINE__;
+	int *pointer = &v.counter;
+	if (xchg(&pointer, NULL) != &v.counter || pointer != NULL) return __LINE__;
 	if (EINVAL != 22 || EDEADLK != 35 || ENOSPC != 28) return __LINE__;
 	if ((int)B_BUFFER_OVERFLOW != (int)native_overflow || (int)B_TOO_MANY_ARGS != (int)native_args ||
 		(int)B_FILE_TOO_LARGE != (int)native_file_size || (int)B_RESULT_NOT_REPRESENTABLE != (int)native_range ||

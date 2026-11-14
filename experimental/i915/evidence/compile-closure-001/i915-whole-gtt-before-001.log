@@ -1,0 +1,84 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 8f4679ab718d709354e153f8717bf8153f37fda2a9b1bdfd7defcdfd4481cba6
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -DRENKU_NATIVE -I/home/dan/projects/renku-source/headers -I/home/dan/projects/renku-source/headers/os -I/home/dan/projects/renku-source/headers/os/support -I/home/dan/projects/renku-source/headers/os/kernel -I/home/dan/projects/renku-source/headers/os/storage -I/home/dan/projects/renku-source/headers/os/drivers -I/home/dan/projects/renku-source/headers/posix -I/home/dan/projects/i915-native-validation/experimental/i915/include -I/home/dan/projects/i915-native-validation/experimental/i915/upstream -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915 -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gem -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gt -I/home/dan/projects/linux-v6.6/include -I/home/dan/projects/linux-v6.6/include/uapi -fmax-errors=12 -c /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_gtt.c -o /home/dan/projects/i915-native-validation/experimental/i915/build/complete-gem-i915_gem_gtt.c.o
+In file included from /home/dan/projects/linux-v6.6/include/linux/xarray.h:19,
+                 from /home/dan/projects/linux-v6.6/include/linux/radix-tree.h:21,
+                 from /home/dan/projects/linux-v6.6/include/linux/idr.h:15,
+                 from /home/dan/projects/linux-v6.6/include/linux/kernfs.h:12,
+                 from /home/dan/projects/linux-v6.6/include/linux/sysfs.h:16,
+                 from /home/dan/projects/linux-v6.6/include/linux/kobject.h:20,
+                 from /home/dan/projects/linux-v6.6/include/linux/energy_model.h:7,
+                 from /home/dan/projects/linux-v6.6/include/linux/device.h:16,
+                 from /home/dan/projects/linux-v6.6/include/linux/node.h:18,
+                 from /home/dan/projects/linux-v6.6/include/linux/cpu.h:17,
+                 from /home/dan/projects/linux-v6.6/include/linux/stop_machine.h:5,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_gtt.c:13:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h: In function ‘mmgrab’:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:36:9: error: implicit declaration of function ‘atomic_inc’; did you mean ‘atomic_and’? [-Werror=implicit-function-declaration]
+   36 |         atomic_inc(&mm->mm_count);
+      |         ^~~~~~~~~~
+      |         atomic_and
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:36:23: error: invalid use of undefined type ‘struct mm_struct’
+   36 |         atomic_inc(&mm->mm_count);
+      |                       ^~
+In file included from /home/dan/projects/i915-native-validation/experimental/i915/include/linux/slab.h:3,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_gtt.c:7:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h: In function ‘mmdrop’:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:53:22: error: implicit declaration of function ‘atomic_dec_and_test’; did you mean ‘atomic_get_and_set’? [-Werror=implicit-function-declaration]
+   53 |         if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+      |                      ^~~~~~~~~~~~~~~~~~~
+/home/dan/projects/i915-native-validation/experimental/i915/include/kpi_base.h:45:41: note: in definition of macro ‘unlikely’
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:53:45: error: invalid use of undefined type ‘struct mm_struct’
+   53 |         if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+      |                                             ^~
+/home/dan/projects/i915-native-validation/experimental/i915/include/kpi_base.h:45:41: note: in definition of macro ‘unlikely’
+   45 | #define unlikely(x) __builtin_expect(!!(x), 0)
+      |                                         ^
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h: In function ‘mmget’:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:132:23: error: invalid use of undefined type ‘struct mm_struct’
+  132 |         atomic_inc(&mm->mm_users);
+      |                       ^~
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h: In function ‘mmget_not_zero’:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:137:16: error: implicit declaration of function ‘atomic_inc_not_zero’; did you mean ‘min_not_zero’? [-Werror=implicit-function-declaration]
+  137 |         return atomic_inc_not_zero(&mm->mm_users);
+      |                ^~~~~~~~~~~~~~~~~~~
+      |                min_not_zero
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:137:39: error: invalid use of undefined type ‘struct mm_struct’
+  137 |         return atomic_inc_not_zero(&mm->mm_users);
+      |                                       ^~
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h: At top level:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:199:49: error: ‘struct rlimit’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+  199 |                                          struct rlimit *rlim_stack) {}
+      |                                                 ^~~~~~
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h: In function ‘in_vfork’:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:222:18: error: ‘struct task_struct’ has no member named ‘vfork_done’
+  222 |         ret = tsk->vfork_done &&
+      |                  ^~
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:223:44: error: ‘struct task_struct’ has no member named ‘real_parent’
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                                            ^~
+/home/dan/projects/i915-native-validation/experimental/i915/include/kpi_base.h:51:46: note: in definition of macro ‘smp_load_acquire’
+   51 | #define smp_load_acquire(p) __atomic_load_n((p), __ATOMIC_ACQUIRE)
+      |                                              ^
+/home/dan/projects/i915-native-validation/experimental/i915/include/linux/rcupdate.h:23:28: note: in expansion of macro ‘rcu_dereference_check’
+   23 | #define rcu_dereference(p) rcu_dereference_check(p, false)
+      |                            ^~~~~~~~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:223:25: note: in expansion of macro ‘rcu_dereference’
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                         ^~~~~~~~~~~~~~~
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:223:71: error: ‘struct task_struct’ has no member named ‘mm’; did you mean ‘comm’?
+  223 |                         rcu_dereference(tsk->real_parent)->mm == tsk->mm;
+      |                                                                       ^~
+      |                                                                       comm
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h: In function ‘current_gfp_context’:
+/home/dan/projects/linux-v6.6/include/linux/sched/mm.h:237:48: error: ‘struct task_struct’ has no member named ‘flags’
+  237 |         unsigned int pflags = READ_ONCE(current->flags);
+      |                                                ^~
+/home/dan/projects/i915-native-validation/experimental/i915/include/kpi_base.h:48:40: note: in definition of macro ‘READ_ONCE’
+   48 | #define READ_ONCE(x) __atomic_load_n(&(x), __ATOMIC_RELAXED)
+      |                                        ^
+compilation terminated due to -fmax-errors=12.
+
+compiler exit: 1

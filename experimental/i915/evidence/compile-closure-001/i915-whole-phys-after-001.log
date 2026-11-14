@@ -1,0 +1,13 @@
+Linux source: ffc253263a1375a65fa6c9f62a893e9767fbebfa
+source_sha256: 71b594d0a3254c48cf05878d70f806bcbd11ff6650b43c1932d3ee242ab90cd2
+gcc -std=gnu11 -O2 -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fno-stack-protector -mno-red-zone -fno-tree-vectorize -mgeneral-regs-only -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/13/include -DRENKU_NATIVE -I/home/dan/projects/renku-source/headers -I/home/dan/projects/renku-source/headers/os -I/home/dan/projects/renku-source/headers/os/support -I/home/dan/projects/renku-source/headers/os/kernel -I/home/dan/projects/renku-source/headers/os/storage -I/home/dan/projects/renku-source/headers/os/drivers -I/home/dan/projects/renku-source/headers/posix -I/home/dan/projects/i915-native-validation/experimental/i915/include -I/home/dan/projects/i915-native-validation/experimental/i915/upstream -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915 -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gem -I/home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gt -I/home/dan/projects/linux-v6.6/include -I/home/dan/projects/linux-v6.6/include/uapi -fmax-errors=12 -c /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_phys.c -o /home/dan/projects/i915-native-validation/experimental/i915/build/complete-gem-i915_gem_phys.c.o
+In file included from /home/dan/projects/linux-v6.6/include/linux/pm_qos.h:15,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/i915_drv.h:35,
+                 from /home/dan/projects/linux-v6.6/drivers/gpu/drm/i915/gt/intel_gt.h:9,
+                 from /home/dan/projects/i915-native-validation/experimental/i915/upstream/gem/i915_gem_phys.c:13:
+/home/dan/projects/linux-v6.6/include/linux/plist.h:80:10: fatal error: asm/bug.h: No such file or directory
+   80 | #include <asm/bug.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+
+compiler exit: 1

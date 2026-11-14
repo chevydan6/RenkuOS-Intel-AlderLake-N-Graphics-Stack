@@ -58,6 +58,12 @@ static inline long atomic_long_inc_return_relaxed(atomic_long_t *v)
 #endif
 	return (long)((uint64_t)previous + 1);
 }
+static inline long atomic_long_read(const atomic_long_t *v)
+{
+	return (long)__atomic_load_n(&v->counter, __ATOMIC_RELAXED);
+}
+/* Typed scalar/pointer exchange used by the original lockless-list helpers. */
+#define xchg(pointer, value) __atomic_exchange_n((pointer), (value), __ATOMIC_SEQ_CST)
 /* RenkuOS's pointer-based atomic_set name must remain intact above. */
 #define atomic_set renku_linux_atomic_set
 #define atomic_read renku_linux_atomic_read

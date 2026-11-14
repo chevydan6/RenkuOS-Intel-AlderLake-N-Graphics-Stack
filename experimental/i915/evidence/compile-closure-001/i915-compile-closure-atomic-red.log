@@ -1,0 +1,15 @@
+/home/dan/projects/i915-native-validation/experimental/i915/tests/native_atomic_probe.c: In function ‘renku_native_atomic_probe’:
+/home/dan/projects/i915-native-validation/experimental/i915/tests/native_atomic_probe.c:30:13: error: implicit declaration of function ‘atomic_long_read’; did you mean ‘atomic_read’? [-Werror=implicit-function-declaration]
+   30 |         if (atomic_long_read(&stamp) != LONG_MIN + 1) return __LINE__;
+      |             ^~~~~~~~~~~~~~~~
+      |             atomic_read
+/home/dan/projects/i915-native-validation/experimental/i915/tests/native_atomic_probe.c:30:38: error: comparison is always true due to limited range of data type [-Werror=type-limits]
+   30 |         if (atomic_long_read(&stamp) != LONG_MIN + 1) return __LINE__;
+      |                                      ^~
+/home/dan/projects/i915-native-validation/experimental/i915/tests/native_atomic_probe.c:32:13: error: implicit declaration of function ‘xchg’ [-Werror=implicit-function-declaration]
+   32 |         if (xchg(&pointer, NULL) != &v.counter || pointer != NULL) return __LINE__;
+      |             ^~~~
+/home/dan/projects/i915-native-validation/experimental/i915/tests/native_atomic_probe.c:32:34: error: comparison between pointer and integer [-Werror]
+   32 |         if (xchg(&pointer, NULL) != &v.counter || pointer != NULL) return __LINE__;
+      |                                  ^~
+cc1: all warnings being treated as errors
