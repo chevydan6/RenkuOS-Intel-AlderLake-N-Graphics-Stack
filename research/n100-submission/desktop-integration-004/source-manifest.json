@@ -1,0 +1,111 @@
+{
+  "repository": "RenkuOS/Source",
+  "commit": "4799bb5a188c4bb6bbef967287640cc21a061a0d",
+  "files": [
+    {
+      "path": "src/servers/app/drawing/interface/local/AccelerantHWInterface.cpp",
+      "git_blob": "6b122d67ef172e8461c7445cbc9ba0c43ce36aa6",
+      "sha256": "d6894b4ff360e18fba210b1f93d531faf952f3f18a490e15c4c47e792f179d72"
+    },
+    {
+      "path": "src/servers/app/drawing/interface/local/AccelerantHWInterface.h",
+      "git_blob": "7717b03f8eca043bf535bfabc48b6c2a2f40e92b",
+      "sha256": "0bd95bd7e846dc7fe4364b97cd1f6571cfc6cb845034386095efe1a5e7e3be6e"
+    },
+    {
+      "path": "src/servers/app/drawing/HWInterface.cpp",
+      "git_blob": "35b431f8c0dc20b53d8a8edddf492787a46eaa4a",
+      "sha256": "a009bed9ce075b23113b800af541a0b49ba9e9079105528dfabe43f9c9b8b77c"
+    },
+    {
+      "path": "src/servers/app/drawing/HWInterface.h",
+      "git_blob": "65992d56edc0c23cef381622212e06f06a0d5aab",
+      "sha256": "c27654ec0f79e0dab5d5f4285a695de355c4eacbe8a40aad9b664a2be72d745c"
+    },
+    {
+      "path": "src/servers/app/drawing/DrawingEngine.cpp",
+      "git_blob": "7dc13d58c6b668c6bf6b01588467d6d7483638dc",
+      "sha256": "d85376929c88781cb87c1a43e112b11e387d23e3bb8f5edf722d40e8a9ada20f"
+    },
+    {
+      "path": "src/servers/app/drawing/MallocBuffer.cpp",
+      "git_blob": "f72ef26bd9c092232ff28d58c4aec7e92b0eaa7e",
+      "sha256": "c705344ecb096ada967e2b769c1f200b1e66fb02da67a95cd7c00b701adebb51"
+    },
+    {
+      "path": "src/servers/app/RenderingBuffer.h",
+      "git_blob": "766db056a52d871093c14503565135bcf21a444f",
+      "sha256": "5b2f2716bbefae7f45ce1b291de7b59580e34a5dc62f67b79de41c6d91d20c08"
+    },
+    {
+      "path": "src/servers/app/Window.cpp",
+      "git_blob": "3689dfdca3f6ea8a8a011b3fedb119561a5c934b",
+      "sha256": "bdbb5e55aeda19988daa58a5b4d29e16c248a0c17b1f265566cc40b94fd69d5d"
+    },
+    {
+      "path": "src/servers/app/BitmapManager.cpp",
+      "git_blob": "aac0aed0ef8d3f672dfdf3aa0514ca2da36960b4",
+      "sha256": "0ce4c1af905b23f8390513c40453da2d820be85d6a3a33fd7240dc9f0f91e02c"
+    },
+    {
+      "path": "src/servers/app/DirectWindowInfo.cpp",
+      "git_blob": "88c2ada8b925d3e1440ce64990f58d97b7c664af",
+      "sha256": "470de267b2b6c6ec6f971dfd19fe756ab4c786262bf9421a864b7fe81b7067fa"
+    },
+    {
+      "path": "src/servers/app/ServerWindow.cpp",
+      "git_blob": "fd3f262b5ad68a8370d49d8574e71057514f09be",
+      "sha256": "f285a388f69301e4d4f163a5c12a912a5490e37eded926cebdd7f193d3d0a477"
+    },
+    {
+      "path": "src/servers/app/VirtualScreen.cpp",
+      "git_blob": "0aa82307c588d3397979ba49d1b27bb082682654",
+      "sha256": "6766ef3eafda1009b5350ab67b24d0ab8a48ca13e1aae24c51d1b21825dc3c55"
+    },
+    {
+      "path": "src/add-ons/accelerants/intel_extreme/hooks.cpp",
+      "git_blob": "ddbcfde3add74fc310f37c2abbd36bbc033b948b",
+      "sha256": "fa65fac2e6552eec9d8677530bf8b919d2c543a4f1c113c4712273da2bc38477"
+    },
+    {
+      "path": "src/add-ons/accelerants/intel_extreme/engine.cpp",
+      "git_blob": "39a6240a1ad3220d2f190d10645e357dad70c064",
+      "sha256": "9c0197c39fdb0a2cf522a9c9639149126ed750c10f7393fa0a8898380217528c"
+    },
+    {
+      "path": "src/add-ons/accelerants/intel_extreme/commands.h",
+      "git_blob": "b783156fe9a298af8127fd015a04f3b85116bfa4",
+      "sha256": "45344eac4a24af31e64c012efbdbea25b562fd85e1cecbaffeccc3e6eb671597"
+    },
+    {
+      "path": "src/add-ons/accelerants/intel_extreme/memory.cpp",
+      "git_blob": "731b972b72fb867569e076b71bc6381cdd0381cc",
+      "sha256": "f7cee894f7c588977b66006c79773b0b2f35edc11b2a1c06850c69ca797801be"
+    },
+    {
+      "path": "src/add-ons/accelerants/intel_extreme/mode.cpp",
+      "git_blob": "86d364a43f80061bb4c68767c09942b541ad0f00",
+      "sha256": "86f693000b76aa070f91f56191a0f3e271bbf45966e8565a51e7f72a95511ada"
+    },
+    {
+      "path": "headers/os/add-ons/graphics/Accelerant.h",
+      "git_blob": "1d9e72d325c3c17d73aba342fcfb2ebb47065847",
+      "sha256": "108b5023307be77ad63d40eb504d977b55ba2f1cb08a805cf454b7eb413b34d3"
+    },
+    {
+      "path": "src/kits/game/WindowScreen.cpp",
+      "git_blob": "0cf407ed183c0766dc5201f047f046169e5a8f9b",
+      "sha256": "567729583865f51ee41ce6bfaa040c052ac96444ccf3437021ceb747b8098dd9"
+    },
+    {
+      "path": "src/servers/app/drawing/interface/local/AccelerantBuffer.cpp",
+      "git_blob": "f0d68f1ecacf3123af2db7a95bb5bff88aff0ec9",
+      "sha256": "4f78e5b72a5c52bdf6814a2e73a6c5300ffecc037e086d021424ab4e5c55fd8b"
+    },
+    {
+      "path": "src/servers/app/drawing/Painter/Painter.cpp",
+      "git_blob": "be3bbe45790edba81cc14212b3c1d71478363bc9",
+      "sha256": "7cc278460f436fdd77f935ca6b8773b6e0892958eea35c3fa637803db49373f5"
+    }
+  ]
+}

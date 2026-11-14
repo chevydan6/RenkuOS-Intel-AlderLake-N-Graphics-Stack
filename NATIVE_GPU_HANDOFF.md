@@ -1,6 +1,28 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Desktop integration investigation and recommendation
+
+[Source investigation and integration decision](research/n100-submission/DESKTOP-INTEGRATION-INVESTIGATION.md)
+traces the pinned RenkuOS `4799bb5` path. Normal local-backend drawing targets a
+malloc-backed RGBA buffer; damaged rows are copied to the front buffer by CPU.
+The local app_server backend does not consume legacy screen-blit hooks, although
+BWindowScreen does. Implementing that hook alone is not desktop acceleration.
+
+Keep CPU presentation enabled. The next narrow integration target is batched
+presentation from the existing CPU back buffer through persistent GPU staging
+to an explicitly leased scanout destination, without CPU destination readback.
+Larger owned buffers, batching, visibility/retirement and cursor/mode/direct-client
+ordering are required. First measure actual CPU-to-scanout presentation and
+representative larger/batched private copies; the current <=4 KiB warm-memory
+benchmark does not establish that crossover. A general GPU offscreen/bitmap
+interface is broader follow-on work, not the first required integration.
+
+The report records 21 inspected source blob hashes and identifies concrete
+entry points and missing contracts. This was read-only investigation: no desktop,
+accelerant or kernel code was changed and no new hardware trial was performed.
+Installed binaries and the latest native benchmark checkpoint remain unchanged.
+
 ## Latest checkpoint: native demonstration and CPU/GPU benchmark
 
 A native BeAPI window now displays a32×32 source tile, verified BCS GPU readback,
