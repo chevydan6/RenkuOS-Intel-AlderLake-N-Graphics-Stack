@@ -949,3 +949,26 @@ writeback/truncate, unevictability and user mappings remain unresolved. Physical
 shmem GEM still stop at Linux VM bounds and asm/page.h via their swap.h include;
 GTT/ring still require process-mm/task services. Full driver compilation, GPU DMA
 and command submission/retirement remain unfinished.
+
+
+## 2026-11-14: native pinned-page state bridge
+
+Candidate a3d17e11 (tree e0990e57) adds a sleepable internal C ABI for real native
+modified/accessed flags under the page cache lock, with previous-state reporting.
+A retained writable pin protects physical identity. This is a prerequisite for
+Linux atomic setters; those setters and dirty/writeback semantics remain absent.
+
+Native version11 passes four57807-check completion/memory runs and four650-check
+VMA runs:233828 checks, zero functional failures, actual unload,7118 source hash
+checks before/after,13 unchanged production hashes and app_server127. Independent
+native-field tests reject omitted-dirty and omitted-accessed writes with7 and4
+failures respectively and clean unloads; restored source passes. Host57729 plus
+controls,100 header cases and target-header C compilation pass;118 imports remain
+byte-exact. Independent review found no material issues; both minor suggestions
+were incorporated. See experimental/i915/evidence/physical-page-state-001.
+
+Next implement managed Linux page dirty/accessed ownership, ordering, newly-dirty
+return semantics and native propagation before unpin. Arbitrary GFP/reclaim,
+writeback/truncate, unevictability, user mappings and process-mm/task integration
+remain. All four full-original compiler attempts still fail at genuine Linux VM
+or process dependencies. Full driver compilation and GPU execution are unfinished.

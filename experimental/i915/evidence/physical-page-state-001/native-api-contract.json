@@ -1,0 +1,50 @@
+{
+  "revision": "4799bb5a188c4bb6bbef967287640cc21a061a0d",
+  "files": [
+    {
+      "source": "headers/private/kernel/vm/vm_types.h",
+      "gitBlob": "f9452689d194ece1c265daabfd6c954f8dd25fd8",
+      "sha256": "b530647e58691878e53940a4acb933ef433be87d7a2af0e1b373046c3f6683d6",
+      "installedSDK_SHA256": "b530647e58691878e53940a4acb933ef433be87d7a2af0e1b373046c3f6683d6",
+      "installedMatchesPinned": true
+    },
+    {
+      "source": "headers/private/kernel/vm/vm_page.h",
+      "gitBlob": "8f7d474ec81937ffe8c012df8afce1578e25ee23",
+      "sha256": "ba99bcf7cce2f880fa51b473cc085cfcc2b437f57284c88f486e121d7ae6ecc8",
+      "installedSDK_SHA256": "ba99bcf7cce2f880fa51b473cc085cfcc2b437f57284c88f486e121d7ae6ecc8",
+      "installedMatchesPinned": true
+    },
+    {
+      "source": "headers/private/kernel/vm/VMCache.h",
+      "gitBlob": "141b9dbc4fed7066b17899e610ae1640411d83b2",
+      "sha256": "a70a0b3dda1bccdaabe2be1f08fec511534fff2f0eb0ccb281b4655fa6340ba4",
+      "installedSDK_SHA256": "a70a0b3dda1bccdaabe2be1f08fec511534fff2f0eb0ccb281b4655fa6340ba4",
+      "installedMatchesPinned": true
+    },
+    {
+      "source": "headers/private/kernel/vm/vm_priv.h",
+      "gitBlob": "54b7c9e4ea7462a77ae03a41198ff04cd1098511",
+      "sha256": "03affadf47f632d91f4395bc4d157e1ae64ea94606f159f35a380ad9ee06a652",
+      "installedSDK_SHA256": "03affadf47f632d91f4395bc4d157e1ae64ea94606f159f35a380ad9ee06a652",
+      "installedMatchesPinned": true
+    },
+    {
+      "source": "src/system/kernel/vm/vm.cpp",
+      "gitBlob": "b9bfb0c44ae33f69abdf5274131df545b8ccafc2",
+      "sha256": "dec556cf6beab908275718dfd386dab9d96ea1f70e3525a721086c2a6b0d5340"
+    },
+    {
+      "source": "src/system/kernel/vm/VMCache.cpp",
+      "gitBlob": "686822486e025e0a108d1e5fb5c6c5c500db197f",
+      "sha256": "15de17e12565ed7becba03e8dc7044ff3cd54930be0722311552d56cc6e4280b"
+    },
+    {
+      "source": "src/system/kernel/vm/vm_page.cpp",
+      "gitBlob": "bad07dbe318d11360442050abf878ac8277a4b58",
+      "sha256": "4dd29a8330f9ecd0f0d900935146b46ea676d2f6d178f37ae55d9553d8d49f9e"
+    }
+  ],
+  "contract": "Caller-held writable pin protects vm_lookup_page; vm_cache_acquire_locked_page_cache locks and references actual page cache; read/OR native modified/accessed fields under that lock; ReleaseRefAndUnlock balances lock/reference. Test-only vm_clear_map_flags clears both mapping and software flags of private diagnostic backing.",
+  "linuxWritebackOrAtomicSetterClaim": false
+}

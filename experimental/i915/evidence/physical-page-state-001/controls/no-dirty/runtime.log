@@ -1,0 +1,16 @@
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+build/i915_linux_completion_test.driver: OK
+build/linux_completion_probe: OK
+evidence=ORIGINAL_COMPLETION_SWAIT_NATIVE_CPU gpu_submission=false
+run=0 checks=57727 failures=7 first_line=33 phases=0 waiters=0
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+page_allocations=7 page_frees=7 page_workers=2 page_iterations=512
+store_allocations=1 store_frees=1 store_workers=2 store_iterations=256
+shmem_allocations=2 shmem_frees=2 shmem_workers=2 shmem_iterations=512
+KERN: I915_LINUX_COMPLETION_INIT status=0
+KERN: I915_LINUX_COMPLETION_UNINIT status=0
+LINUX_COMPLETION_NATIVE_TEST_EXIT=1 results=validation/completion.BsZ0BT

@@ -557,3 +557,14 @@ Reproduce focused host validation:
 ```sh
 python3 experimental/i915/tests/run-shmem-host-tests.py --output NEW_DIRECTORY
 ```
+
+
+## Version11: native pinned-page state
+
+The128-byte report now includes native-only dirty/accessed bridge checks. Actual
+vm_page fields are inspected independently after clearing private diagnostic
+backing. Tests verify prior values, invalid-input preservation and two gated,
+joined native workers. The production primitive requires sleepable context and
+a retained writable native pin; it is not a Linux atomic setter, writeback or
+hardware-PTE synchronization implementation. Final native evidence and both
+omitted-write controls are in ../evidence/physical-page-state-001.

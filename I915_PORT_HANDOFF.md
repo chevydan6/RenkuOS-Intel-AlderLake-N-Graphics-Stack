@@ -1,7 +1,24 @@
 <!-- SPDX-License-Identifier: MIT -->
 # i915 port handoff — 2026-11-14
 
-## Latest continuation: native shmem ownership validated
+## Latest continuation: native dirty/accessed bridge validated
+
+Candidate a3d17e11de83ec034c669bac88deb9651a658de1 adds a sleepable internal
+operation on writable-pinned native pages, updating actual modified/accessed
+fields under the real cache lock and reporting previous software flags.
+Version11 (128-byte report) passes233828 checks: four57807-check completion/memory
+runs plus four650-check VMA runs, zero functional failures. Both omitted-write
+controls fail as intended; all diagnostics unload,7118 source hashes and13
+production hashes pass, app_server127 remains. See
+[physical-page-state-001](experimental/i915/evidence/physical-page-state-001/README.md).
+
+Linux atomic setters and dirty/writeback semantics remain unresolved. Continue
+managed-page ownership/ordering, newly-dirty results and propagation before unpin,
+then GFP/reclaim, writeback/truncate and user mappings. Process-mm/task and whole
+source VM layout dependencies remain. The original full driver still fails all
+four compiler attempts; no GPU command execution is demonstrated.
+
+## Previous continuation: native shmem ownership validated
 
 Source candidate015f1632c04212a6c6f713c5a458e361edaf72d8 adds scoped Linux-facing
 file/inode/address_space lifetime and shmem setup/read APIs over real native

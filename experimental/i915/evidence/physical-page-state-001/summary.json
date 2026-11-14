@@ -1,0 +1,67 @@
+{
+  "sourceCommit": "a3d17e11de83ec034c669bac88deb9651a658de1",
+  "sourceTree": "e0990e5771112758adddc2a6cd86900aefbbe941",
+  "sessionDateUTC": "2026-11-14",
+  "nativeClock": "2026-10-01 (incorrect; unchanged)",
+  "environment": "physical Intel N100, hrev60072+518, native GCC/G++13.3",
+  "nativeCppBuildPassed": true,
+  "reportVersion": 11,
+  "reportBytes": 128,
+  "completionRuns": 4,
+  "completionChecksPerRun": 57807,
+  "vmaRuns": 4,
+  "vmaChecksPerRun": 650,
+  "totalChecks": 233828,
+  "functionalFailures": 0,
+  "nativeStateWorkersPerRun": 2,
+  "nativeStateUpdatesPerRun": 512,
+  "mutationControls": [
+    {
+      "name": "no-dirty",
+      "runtimeExit": 1,
+      "functionalFailures": 7,
+      "firstLine": 33,
+      "cleanUnload": true
+    },
+    {
+      "name": "no-accessed",
+      "runtimeExit": 1,
+      "functionalFailures": 4,
+      "firstLine": 36,
+      "cleanUnload": true
+    }
+  ],
+  "sourceChecks": {
+    "initial-final-source-check.log": {
+      "files": 7118,
+      "sha256": "5a4cc33e4bfd256c3da93abcf1e01fcf62dd1b5cc789522c9ed857ab41f71e77",
+      "failures": 0
+    },
+    "final-source-check.log": {
+      "files": 7118,
+      "sha256": "5a4cc33e4bfd256c3da93abcf1e01fcf62dd1b5cc789522c9ed857ab41f71e77",
+      "failures": 0
+    },
+    "final-components-check.log": {
+      "files": 13,
+      "sha256": "4ab44c6a1e425583b35be48735e694ff3f085760314af772ce3659b080f0f06d",
+      "failures": 0
+    }
+  },
+  "productionComponentsChecked": 13,
+  "appServerPIDBefore": 127,
+  "appServerPIDAfter": 127,
+  "wholeSourceCompilerExits": {
+    "intel_ring": 1,
+    "i915_gem_phys": 1,
+    "i915_gem_gtt": 1,
+    "i915_gem_shmem": 1
+  },
+  "fullI915DriverCompiled": false,
+  "gpuExecutionDemonstrated": false,
+  "linuxAtomicPageSettersImplemented": false,
+  "hostRegressionChecks": 57729,
+  "firstRepeatedHeaderCases": 100,
+  "linuxImportsVerifiedUnchanged": 118,
+  "privateEvidenceArchiveSHA256": "434d80832808c0539a927e828f875939c7d6be5aeba0cf81cec58d7931b90e93"
+}
