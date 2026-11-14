@@ -83,18 +83,18 @@ width/offsets, GRF starts, VUE/URB layout, inputs/barycentrics, scratch and relo
 Files: owner generation/integration, new render engine/profile headers and
 `render/OWNERSHIP.md`. Add only the narrow handoff needed after source audit.
 
-- [ ] Trace matching native display source and all primary-ring writers; record
+- [x] Trace matching native display source and all primary-ring writers; record
   an enforceable exclusion contract before reset. The matching native ALD display profile already skips legacy ring allocation,
   setup/teardown and producer hooks; use that audited profile, not upstream
   callsites alone, to define private admission.
-- [ ] Classify engine-local/shared GT stores and synchronize shared changes.
-- [ ] Implement a bounded admission check that rejects missing/stale ownership;
+- [x] Classify engine-local/shared GT stores and synchronize shared changes.
+- [x] Implement a bounded admission check that rejects missing/stale ownership;
   verify rejection without publishing GPU work.
-- [ ] Allocate distinct RCS context/ring/HWSP/result and PPGTT resource backing
+- [x] Allocate distinct RCS context/ring/HWSP/result and PPGTT resource backing
   through the existing GART/native page owner, with explicit size/layout ledger.
-- [ ] Adapt N100 render reset/init, topology/RPCS, workarounds and default-context
+- [x] Adapt N100 render reset/init, topology/RPCS, workarounds and default-context
   bootstrap from pinned Intel sources, retaining bounded fail-stop lifetime.
-- [ ] Compile/export-link, acquire physical lease and prove one RCS command
+- [x] Compile/export-link, acquire physical lease and prove one RCS command
   streamer request with ordered result/CSB/idle/error evidence. Preserve display
   postchecks. Mark this as command-streamer proof, not shader drawing.
 
@@ -103,15 +103,15 @@ Files: owner generation/integration, new render engine/profile headers and
 Files: `render/RcsDrawImage.h`, focused image fixture, native render API/client,
 `NativeExecution.inc` integration or a focused included RCS implementation file.
 
-- [ ] Define a bounded non-overlapping resource layout for command/state/code,
+- [x] Define a bounded non-overlapping resource layout for command/state/code,
   vertices, render target and results, using the compiled artifacts from Task2.
-- [ ] Add a failing image fixture pinning alignment/bounds, VS/FS packet fields,
+- [x] Add a failing image fixture pinning alignment/bounds, VS/FS packet fields,
   TRILIST, vec4 positions, viewport/clip/SF/SBE/URB and target setup.
-- [ ] Implement kernel-built draw packets with Mesa/IGT hardware logic; do not
+- [x] Implement kernel-built draw packets with Mesa/IGT hardware logic; do not
   reuse the IGT disabled-VS RECTLIST assumptions.
-- [ ] Implement Intel RCS PIPE_CONTROL flush/invalidate/breadcrumb completion;
+- [x] Implement Intel RCS PIPE_CONTROL flush/invalidate/breadcrumb completion;
   check lifetime and CPU visibility before exposing output.
-- [ ] Execute one native triangle, verify expected interior/exterior/padding
+- [x] Execute one native triangle, verify expected interior/exterior/padding
   pixels, current RCS sequence/CSB and zero errors. Save exact source/binary/
   shader identities and native logs. A clear or CPU image is not acceptance.
 
@@ -120,13 +120,13 @@ Files: `render/RcsDrawImage.h`, focused image fixture, native render API/client,
 Files: native render client, window producer integration, lifecycle integration,
 focused native evidence and `NATIVE_GPU_HANDOFF.md`.
 
-- [ ] Repeated changing-input draws reuse only retired backing; preserve separate
+- [x] Repeated changing-input draws reuse only retired backing; preserve separate
   BCS state and integrate both engines with quiesce/resume/client teardown.
-- [ ] Check one controlled uncertain completion: block/recover safely, retain
+- [x] Check one controlled uncertain completion: block/recover safely, retain
   referenced memory, never present a failed request as successful output.
-- [ ] Present completed GPU snapshots through synchronized existing window path,
+- [x] Present completed GPU snapshots through synchronized existing window path,
   with independent CPU fallback on failure.
-- [ ] Verify working BCS copies, display/app_server and lease postchecks; obtain
+- [x] Verify working BCS copies, display/app_server and lease postchecks; obtain
   final independent review, commit evidence and report actual limitations.
 
 ## Mesa follow-on
@@ -149,3 +149,10 @@ active for any remaining user-requested Mesa integration.
 
 - Task2 complete: real Mesa Intel compiler emits VS176bytes/FS112bytes; clean recipe, repeated byte-identical artifacts and focused checker regressions pass. Review fixed invalid VUE/SIMD-offset acceptance, scoped re-review clean.
 - Task3 audit correction: matching native display sources already exclude ALD legacy ring writers; no display patch inferred. CPU ownership policy and hardware operation profile are subcomponents, not hardware admission proof.
+
+- Tasks3–5 complete: native RCS bootstrap, real compiled shaders, repeated draws,
+  window presentation, quiesce/resume and bounded uncertain-completion checks are
+  recorded in experimental/native-gpu/evidence/native-rcs-003..005. The final boot
+  completed2078requests with0failures. PCI interrupt-status root cause was traced
+  and narrowly fixed; final independent review clean. Lease released after final
+  display/driver/hash postchecks. Iris/Mesa is the separate follow-on phase.

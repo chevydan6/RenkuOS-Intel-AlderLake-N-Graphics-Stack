@@ -1,0 +1,6 @@
+buffer_copy ioctl=0 status=0 sequence=11 observed=11 words=85 matched=85 stage=14 EIR=00000000 fault=00000000
+buffer_copy ioctl=0 status=0 sequence=12 observed=12 words=85 matched=85 stage=14 EIR=00000000 fault=00000000
+buffer_copy ioctl=0 status=0 sequence=13 observed=13 words=85 matched=85 stage=14 EIR=00000000 fault=00000000
+Owned-buffer rectangular GPU copy: PASS (17x5, pitches80/96, padding preserved)
+version=1 state=1 clients=1 sequence=13 last_status=0 generation=1 completed=13 failed=0
+total_us=2659 cache_us=1400 cache_calls=3 wait_us=120 polls=1 sleeps=0 submit_us=609 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0

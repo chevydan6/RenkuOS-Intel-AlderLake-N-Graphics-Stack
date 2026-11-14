@@ -1,6 +1,70 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Native RCS shader rendering foundation
+
+The approved native RCS design is implemented in `experimental/native-gpu/NativeRender.inc`.
+Intel context/init, topology and workarounds remain source-derived. Mesa 26.1.8's
+Intel compiler produces the actual vertex and fragment shader binaries; generated
+Gen12 packets draw a triangle into an owned 32×32 B8G8R8A8 target. Four vertex
+variants exercise changing inputs. This runs outside Gallium/OpenGL; Iris follows
+as a separate backend phase.
+
+[Native shader/window evidence](experimental/native-gpu/evidence/native-rcs-003/README.md)
+records actual N100 draws, 654 checked pixels per draw, matching sequence/nonce
+and class-0 CSB switch-away, CPU visibility, idle/error checks and normal power
+release. `build/render_window` presents validated GPU snapshots through BBitmap
+and app_server, with a bounded worker handoff and independent CPU fallback.
+
+RCS owns separate context/ring/HWSP/target/page-table backing. One common lifecycle
+gate serializes BCS and RCS, including shared GT configuration. Retirement gates
+reuse; uncertain requests retain memory and stop later submissions. Backing is a
+bounded boot-retained pool. Driver quiesce/resume resets RCS and invalidates its
+saved default; a fresh explicit bootstrap is required before another draw.
+
+The existing N100 display-only source profile already excludes legacy ring
+writers. A narrow private graphics-driver callback acknowledges the actual display
+lease/generation. The accelerant and display programming are unchanged; no OS
+kernel or ACPI changes are included. The loader prefers the graphics driver at
+`/boot/home/config/non-packaged/add-ons/kernel/drivers/bin/intel_extreme`, reached
+through its existing `dev/graphics` symlink; updating only the system copy is
+insufficient. See [handoff preparation](experimental/native-gpu/render/driver-handoff/README.md).
+
+An extended run exposed strict initial PCI snapshot equality treating volatile
+interrupt-status bit 3 as immutable. [The complete diagnostic trace and boundary
+checks](experimental/native-gpu/evidence/native-rcs-004/README.md) identify the
+exact 0x10→0x18 transition before GPU publication. RCS now normalizes only that
+bit during both full captures, preserving all-ones rejection and every other
+field/bit check. No retry or PCI writes are added; BCS admission is unchanged.
+
+[Corrected build and final acceptance](experimental/native-gpu/evidence/native-rcs-005/README.md):
+18 focused fixtures and native build/export link passed. RCS/BCS quiesce/resume,
+explicit rebootstrap, bounded missing-completion handling with zeroed output,
+Lost admission rejection and reboot recovery passed. The final boot completed
+2,078 requests without failure, including 1,800 window frames and another 266
+frames before close-while-producing. Both windows joined their workers; later
+BCS copies and an RCS draw passed. Final state is Ready at sequence 2078,
+app_server PID127, all 12 unaffected baseline hashes match, and the physical
+lease is released.
+
+Native bundle: `/boot/home/native-rcs-owner-005`; run
+`build/render_window --frames 120`. Owner SHA256:
+`b5e15f1aebfdaf46ee41e7d1ace683d7e10227e671208cd5f70257a8ce92183c`.
+Bridge SHA256:
+`7149dedbec26c504ebc4f314de5d49d779fa311b78b1bc563affd0bcd541eb3a`.
+The preferred graphics driver SHA256 is
+`74ab6275cbfbe0f49bf4996d7310ebcdfb279e2bb9b86a3c251cf94507f98929`.
+The controlled timeout hides observation of valid work; it does not prove recovery
+from a physically hung engine or actual OS suspend/wake.
+
+The public render API accepts only PROBE, BOOTSTRAP and four fixed DRAW variants;
+there is no arbitrary user shader, GPU address or command upload. Presentation is
+CPU readback, not zero-copy scanout or GPU desktop composition. Whole-machine
+cache flushing and the observed VT-d-translation-disabled direct-DMA restriction
+remain. No hardware OpenGL/Vulkan or broad application compatibility is claimed.
+
+The older checkpoints below document the BCS foundation and earlier decisions.
+
 ## Latest checkpoint: driver lifecycle and bounded BCS recovery
 
 The user chose driver work first, tested quiesce/resume boundaries, and explicitly

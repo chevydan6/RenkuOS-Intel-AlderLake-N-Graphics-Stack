@@ -1,0 +1,2 @@
+version=1 state=1 clients=1 sequence=5 last_status=0 generation=2 completed=5 failed=0
+total_us=2645 cache_us=1397 cache_calls=3 wait_us=120 polls=1 sleeps=0 submit_us=609 queue_us=0 recovery_stage=0 recovery_error=0 reset_rounds=0

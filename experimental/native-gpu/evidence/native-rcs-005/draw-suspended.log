@@ -1,0 +1,8 @@
+native_render version=1 mode=3 ioctl=-1 status=-2147442676 stage=0 refusal=0
+identity=00000000 revision=0 known_profile=0 owner_granted=1 retained=0
+slice=00000000 DSS=00000000 EU_disable=00000000 media_disable=00000000 mirror_fuse3=00000000 RPCS=00000000
+ring_ctl=00000000 mode=00000000 EL=00000000/00000000 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=0/0 group_detail=0/0 safety=0
+state_flags=7 cursor=4 checked=0 matched=0 target_hash=00000000 interior=0,0 exterior=0,0 CSB=0000000000000000/0000000000000000
+nonce=00000000/00000000 complement=00000000 sequence=0/0 tail=0 reset=0/0 engine=0/0 csb=0
+RCS fixed-pipeline shader draw: NOT PROVEN

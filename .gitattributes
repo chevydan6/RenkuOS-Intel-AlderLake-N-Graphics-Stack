@@ -7,3 +7,6 @@ experimental/native-gpu/render/compiler/artifacts/*.nir whitespace=-blank-at-eof
 
 # Preserve the exact generated Intel draw image and its manifest hash.
 experimental/native-gpu/render/draw/RcsDrawGenerated.h whitespace=-blank-at-eol
+
+# Preserve captured native ps output verbatim.
+experimental/native-gpu/evidence/native-rcs-005/final-app-server.log whitespace=-blank-at-eol

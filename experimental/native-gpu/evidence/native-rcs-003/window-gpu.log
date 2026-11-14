@@ -1,0 +1,16 @@
+presented frame=1 mode=RCS-shader sequence=14 variant=0 job_us=9316 bitmap_stride=128 snapshot_hash=c041354d
+presented frame=2 mode=RCS-shader sequence=15 variant=1 job_us=5334 bitmap_stride=128 snapshot_hash=375eacbd
+presented frame=3 mode=RCS-shader sequence=16 variant=2 job_us=5332 bitmap_stride=128 snapshot_hash=5e8427ad
+presented frame=4 mode=RCS-shader sequence=17 variant=3 job_us=5307 bitmap_stride=128 snapshot_hash=7bd2e19d
+presented frame=5 mode=RCS-shader sequence=18 variant=0 job_us=5313 bitmap_stride=128 snapshot_hash=c041354d
+presented frame=6 mode=RCS-shader sequence=19 variant=1 job_us=5271 bitmap_stride=128 snapshot_hash=375eacbd
+presented frame=7 mode=RCS-shader sequence=20 variant=2 job_us=5290 bitmap_stride=128 snapshot_hash=5e8427ad
+presented frame=8 mode=RCS-shader sequence=21 variant=3 job_us=5292 bitmap_stride=128 snapshot_hash=7bd2e19d
+presented frame=9 mode=RCS-shader sequence=22 variant=0 job_us=5285 bitmap_stride=128 snapshot_hash=c041354d
+presented frame=10 mode=RCS-shader sequence=23 variant=1 job_us=5346 bitmap_stride=128 snapshot_hash=375eacbd
+presented frame=11 mode=RCS-shader sequence=24 variant=2 job_us=5267 bitmap_stride=128 snapshot_hash=5e8427ad
+presented frame=12 mode=RCS-shader sequence=25 variant=3 job_us=5278 bitmap_stride=128 snapshot_hash=7bd2e19d
+worker stopped produced=12 gpu=12 cpu=0 last_gpu_sequence=25 gpu_enabled=1
+window frames=12 gpu=12 cpu=0 complete
+window closed; worker joined
+window destroyed; worker joined
