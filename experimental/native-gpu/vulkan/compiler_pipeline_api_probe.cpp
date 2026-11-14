@@ -3,6 +3,7 @@
 #include "NativeVulkan.cpp"
 #include "RgbSpirvFixture.h"
 #include <stdio.h>
+#include <vector>
 
 int main()
 {
@@ -57,6 +58,19 @@ int main()
  VkPipeline pipeline=VK_NULL_HANDLE;
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
   !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 1;
+ std::vector<uint32_t> namedVertex(std::begin(RenkuKnownSpirv::Vertex),
+  std::end(RenkuKnownSpirv::Vertex));
+ namedVertex.insert(namedVertex.begin()+17,
+  {0x00040005u,1u,0x72746e65u,0x00000079u}); // OpName %main "entry"
+ create.pCode=namedVertex.data();create.codeSize=namedVertex.size()*4;
+ if(vkCreateShaderModule(&device,&create,nullptr,&checked)!=VK_SUCCESS || !checked)
+  return 12;
+ vkDestroyShaderModule(&device,checked,nullptr);
+ vs.code=namedVertex.data();vs.bytes=namedVertex.size()*4;
+ if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
+  !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 13;
+ vs.code=const_cast<uint32_t*>(RenkuKnownSpirv::Vertex);
+ vs.bytes=sizeof(RenkuKnownSpirv::Vertex);
  fs.code=const_cast<uint32_t*>(RenkuKnownSpirv::FragmentHalf);
  fs.bytes=sizeof(RenkuKnownSpirv::FragmentHalf);
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)

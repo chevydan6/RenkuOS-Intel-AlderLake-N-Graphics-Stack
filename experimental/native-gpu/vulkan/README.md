@@ -96,7 +96,8 @@ runs four CPU/API probes and compiles a hardware triangle probe. The original
 `build-native.sh` remains a known-good N100 regression path.
 
 The alternate pipeline compiles Vulkan 1.0 SPIR-V during
-`vkCreateGraphicsPipelines`, requires the exact vertex program, and uploads a
+`vkCreateGraphicsPipelines`, requires the exact owner-approved vertex machine
+program, and uploads a
 fragment program only when its 208-byte machine code matches the bounded N100
 constant-RGB instruction template. The native owner independently validates
 that template, including paired red, green, and blue immediates and the entire
@@ -104,6 +105,10 @@ zero-padded shader page. Red and blue are bounded to `[0, 1]`; green is bounded
 to `[0, 1)`. Other machine code and pipeline states are rejected.
 The compiler-backed build validates modules for Vulkan
 1.0 with SPIRV-Tools at `vkCreateShaderModule`, before pipeline creation. The
+vertex SPIR-V bytes may differ when the compiler emits that same machine
+program; an added `OpName` module passed the VM gate and the physical N100 on
+all four triangle shapes. [Named vertex evidence](../evidence/native-vulkan-named-vertex-026/README.md)
+records the exact trace and image hashes. The
 API probe rejects a semantically malformed module at that call, reaches owner
 allocation with accepted distinct-RGB code, and rejects a 1.0-green fragment
 that changes other machine instructions. The physical N100 passed 160 repeated

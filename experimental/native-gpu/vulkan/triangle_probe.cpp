@@ -21,7 +21,8 @@ int main(int argc,char** argv)
  if((argc<2 || argc>5) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
   || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
    && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
-   && strcmp(argv[2],"rgb")) || (argc==5 && strcmp(argv[4],"batch")))return 40;
+   && strcmp(argv[2],"rgb")) || (argc==5 && strcmp(argv[4],"batch")
+   && strcmp(argv[4],"named")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  bool half=argc>=3 && !strcmp(argv[2],"half");
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
@@ -29,7 +30,8 @@ int main(int argc,char** argv)
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
  char* repeatEnd=nullptr;
  unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
- bool batch=argc==5;
+ bool batch=argc==5 && !strcmp(argv[4],"batch");
+ bool named=argc==5 && !strcmp(argv[4],"named");
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || (batch && repeats!=2))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
@@ -41,6 +43,13 @@ int main(int argc,char** argv)
  auto rgbCode=rgb?RgbSpirvFixture(0x3f000000,0x3f400000,0x3e800000,true):
   std::vector<uint32_t>{};
  REQUIRE(!rgb || !rgbCode.empty(),51);
+ std::vector<uint32_t> namedVertex;
+ if(named){
+  namedVertex.assign(std::begin(RenkuKnownSpirv::Vertex),
+   std::end(RenkuKnownSpirv::Vertex));
+  namedVertex.insert(namedVertex.begin()+17,
+   {0x00040005u,1u,0x72746e65u,0x00000079u}); // OpName %main "entry"
+ }
  VkApplicationInfo app={};app.sType=VK_STRUCTURE_TYPE_APPLICATION_INFO;
  app.apiVersion=VK_API_VERSION_1_0;
  VkInstanceCreateInfo instanceInfo={};instanceInfo.sType=VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -61,7 +70,8 @@ int main(int argc,char** argv)
  REQUIRE(queue,4);
 
  VkShaderModuleCreateInfo moduleInfo={};moduleInfo.sType=VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
- moduleInfo.pCode=RenkuKnownSpirv::Vertex;moduleInfo.codeSize=sizeof(RenkuKnownSpirv::Vertex);
+ moduleInfo.pCode=named?namedVertex.data():RenkuKnownSpirv::Vertex;
+ moduleInfo.codeSize=named?namedVertex.size()*4:sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
  moduleInfo.pCode=rgb?rgbCode.data():(green75 || green90)?alternateCode:

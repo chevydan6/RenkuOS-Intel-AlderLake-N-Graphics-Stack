@@ -758,14 +758,17 @@ static bool KnownGraphicsPipeline(VkDevice device,const VkGraphicsPipelineCreate
   || !p.pRasterizationState || !p.pMultisampleState || !p.pColorBlendState)
   return false;
 #ifdef RENKU_VULKAN_USE_INTEL_COMPILER
+ bool knownVertex=KnownStage(device,p.pStages[0],VK_SHADER_STAGE_VERTEX_BIT,
+  nullptr,0);
  bool knownFragment=KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
   nullptr,0);
 #else
+ bool knownVertex=KnownStage(device,p.pStages[0],VK_SHADER_STAGE_VERTEX_BIT,
+  RenkuKnownSpirv::Vertex,sizeof(RenkuKnownSpirv::Vertex));
  bool knownFragment=KnownStage(device,p.pStages[1],VK_SHADER_STAGE_FRAGMENT_BIT,
   RenkuKnownSpirv::Fragment,sizeof(RenkuKnownSpirv::Fragment));
 #endif
- if(!KnownStage(device,p.pStages[0],VK_SHADER_STAGE_VERTEX_BIT,
-   RenkuKnownSpirv::Vertex,sizeof(RenkuKnownSpirv::Vertex)) || !knownFragment)return false;
+ if(!knownVertex || !knownFragment)return false;
  const auto& in=*p.pVertexInputState;
  if(in.sType!=VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
   || in.pNext || in.flags || in.vertexBindingDescriptionCount!=1

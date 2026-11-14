@@ -7,15 +7,14 @@
 #include <string.h>
 
 // Compile Vulkan 1.0 SPIR-V, then admit only the fixed N100 constant-RGB
-// instruction shape validated by the native owner. The vertex stage remains
-// the exact fixture.
+// instruction shape validated by the native owner. The vertex stage must
+// compile to the exact owner-approved machine code.
 static bool CompileKnownFragment(const uint32_t* vertex,size_t vertexBytes,
  const uint32_t* fragment,size_t fragmentBytes,void* output,size_t capacity)
 {
- if(!vertex || !fragment || !output || vertexBytes!=sizeof(RenkuKnownSpirv::Vertex)
+ if(!vertex || !fragment || !output || !vertexBytes || (vertexBytes&3)
   || !fragmentBytes || (fragmentBytes&3)
-  || capacity<sizeof(NativeGpu::RcsDrawData::Fs)
-  || memcmp(vertex,RenkuKnownSpirv::Vertex,vertexBytes))return false;
+  || capacity<sizeof(NativeGpu::RcsDrawData::Fs))return false;
  uint8_t vs[sizeof(NativeGpu::RcsDrawData::Vs)]={};
  uint8_t fs[sizeof(NativeGpu::RcsDrawData::Fs)]={};
  RenkuIntelCompilePair pair={};pair.abi_version=RENKU_INTEL_COMPILER_ABI;
