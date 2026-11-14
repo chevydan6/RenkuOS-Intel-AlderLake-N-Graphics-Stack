@@ -16,7 +16,8 @@ fixture and a fixed N100 pipeline and command shape. General shader execution,
 resource formats, command streams,
 semaphores, presentation, and broad Vulkan compatibility remain open. Basic
 host fences now support creation, status, reset, wait, and signaling after a
-successful synchronous queue submission; they have only been tested in the VM.
+successful synchronous queue submission. A physical N100 triangle probe now
+tests fence state before submission, after GPU completion, and after reset.
 `vkResetCommandPool` now returns allocated command buffers to the initial
 state for reuse; that path has also only been tested in the VM.
 Pools created with `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` also
@@ -106,7 +107,9 @@ and [validator VM evidence](../evidence/native-intel-validator-007/README.md)
 record earlier compiler checkpoints. The [recovery checkpoint](../evidence/native-ramfs-unmount-008/README.md)
 records the repaired physical boot volume.
 The [fence checkpoint](../evidence/native-vulkan-fence-009/README.md) records
-the VM fence tests; hardware execution with a fence remains pending.
+the VM fence tests, and the
+[hardware fence checkpoint](../evidence/native-vulkan-fence-hardware-018/README.md)
+records 64 exact N100 draws submitted with fences.
 The [command reset checkpoint](../evidence/native-vulkan-command-reset-010/README.md)
 records pool reset, and [checkpoint 011](../evidence/native-vulkan-command-reset-011/README.md)
 records individual and implicit reset in the VM.

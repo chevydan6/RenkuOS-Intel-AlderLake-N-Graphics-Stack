@@ -219,10 +219,16 @@ int main(int argc,char** argv)
  vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
  vkCmdEndRenderPass(command);
  REQUIRE(vkEndCommandBuffer(command)==VK_SUCCESS,25);
+ VkFenceCreateInfo fenceInfo={};fenceInfo.sType=VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+ VkFence fence=VK_NULL_HANDLE;
+ REQUIRE(vkCreateFence(device,&fenceInfo,nullptr,&fence)==VK_SUCCESS && fence,47);
+ REQUIRE(vkGetFenceStatus(device,fence)==VK_NOT_READY
+  && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_TIMEOUT,48);
  VkSubmitInfo submit={};submit.sType=VK_STRUCTURE_TYPE_SUBMIT_INFO;
  submit.commandBufferCount=1;submit.pCommandBuffers=&command;
- REQUIRE(vkQueueSubmit(queue,1,&submit,VK_NULL_HANDLE)==VK_SUCCESS,26);
- REQUIRE(vkQueueWaitIdle(queue)==VK_SUCCESS,27);
+ REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
+ REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
+  && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
 
  mapped=nullptr;
  REQUIRE(vkMapMemory(device,imageMemory,0,4096,0,&mapped)==VK_SUCCESS && mapped,28);
@@ -251,6 +257,10 @@ int main(int argc,char** argv)
 
  vkFreeCommandBuffers(device,pool,1,&command);
  vkDestroyCommandPool(device,pool,nullptr);
+ REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
+  && vkGetFenceStatus(device,fence)==VK_NOT_READY
+  && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_TIMEOUT,49);
+ vkDestroyFence(device,fence,nullptr);
  vkDestroyPipeline(device,pipeline,nullptr);
  vkDestroyPipelineLayout(device,layout,nullptr);
  vkDestroyFramebuffer(device,framebuffer,nullptr);

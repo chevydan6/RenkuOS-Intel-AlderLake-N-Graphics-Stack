@@ -215,3 +215,10 @@ green triangles across four vertex shapes passed 128 repeat draws with exact
 image hashes, ordered completion, and no GPU faults. See
 `evidence/native-vulkan-green-range-017/`. General SPIR-V and other pipeline
 states remain unsupported.
+
+The triangle application now submits with a Vulkan fence. On the physical
+N100, 64 repeat draws verified unsignaled status before submission, signaled
+status after the completed owner draw, and unsignaled status after reset,
+alongside exact image hashes and ordered GPU completion. See
+`evidence/native-vulkan-fence-hardware-018/`. Submission is still synchronous,
+so asynchronous queueing and broader synchronization remain open.
