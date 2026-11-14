@@ -112,3 +112,10 @@ that duplicates canonical owner content. The scope and complete manifest are
 in `evidence/native-closure-001/`. This is a current native RCS input baseline,
 not a Vulkan closure or model-token count. Mesa ANV's selected host compile
 inputs above remain a separate, much larger measurement.
+
+An isolated Mesa 26.3.0 Intel compiler harness now builds and deterministically
+emits VS/FS machine code from direct NIR. Its five artifacts and corruption
+checks are recorded in `render/compiler/mesa-26.3.0/`. The new code has not yet
+been run by the N100; the installed RCS draw still uses the preserved 26.1.8
+shader image. This compiler experiment also does not implement Vulkan SPIR-V
+ingestion or native RenkuOS userspace compilation.
