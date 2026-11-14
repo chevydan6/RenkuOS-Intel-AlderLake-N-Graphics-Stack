@@ -1,0 +1,27 @@
+{
+  "mesa_version": "26.3.0",
+  "target": "src/intel/compiler/brw/librenku_intel_compiler.so",
+  "linked_objects": 352,
+  "included_files": 878,
+  "file_counts": {
+    "external": 294,
+    "generated": 49,
+    "mesa": 533,
+    "project_runtime": 2
+  },
+  "source_bytes": {
+    "external": 5038335,
+    "generated": 62392205,
+    "mesa": 14025279,
+    "project_runtime": 9048
+  },
+  "runtime_libraries": [
+    "libSPIRV-Tools-shared.so",
+    "libstdc++.so.6",
+    "libgcc_s.so.1",
+    "libroot.so"
+  ],
+  "binary_bytes": 14613128,
+  "note": "Haiku link and include closure; counts full source/header files. Excludes build-only generators and is not a minimal port.",
+  "runtime_override": true
+}
