@@ -1,0 +1,2 @@
+exit=-6
+test: /home/dan/projects/i915-native-validation/experimental/i915/tests/shmem_ownership_test.c:58: StoreOwners: Assertion `__atomic_load_n(&released, __ATOMIC_ACQUIRE) == 1' failed.

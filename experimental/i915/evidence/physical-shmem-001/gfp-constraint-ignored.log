@@ -1,0 +1,2 @@
+exit=-6
+test: /home/dan/projects/i915-native-validation/experimental/i915/tests/shmem_ownership_test.c:129: ShmemFiles: Assertion `PTR_ERR(shmem_read_mapping_page(mapping, 0)) == -EOPNOTSUPP' failed.

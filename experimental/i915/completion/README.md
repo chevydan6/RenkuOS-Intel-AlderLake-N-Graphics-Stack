@@ -527,3 +527,33 @@ implementation. Size-changing truncate, dirty/accessed/writeback operations,
 Linux GFP/reclaim constraints, userspace mappings and file/mapping lifetimes
 remain unfinished. Complete original i915 files still do not compile, and no
 GPU work has run. All118 unchanged Linux imports remain hash verified.
+
+
+## Native shmem ownership checkpoint
+
+The version10 provider adds real native-backed file/inode/address_space ownership
+and shmem setup/read wrappers. Original Linux imports remain unchanged. Final file
+close retains native backing and metadata through outstanding folios/in-flight pins;
+the joined worker deletes the area and frees metadata after final unpin. Native
+VM_NORESERVE uses actual overcommit/no-commit flags. Explicit store destruction
+retains its synchronous unique-owner contract; final store put uses worker cleanup.
+
+Focused ASan/UBSan lifetime tests and six mutations, 57729 integrated host checks,
+100 header combinations and target-header C compilation pass. Four physical N100
+runs of57786 checks plus four650-check VMA runs total233744 checks, zero failures
+and actual diagnostic unload. The report is version10,128 bytes; each run expects
+two shmem file creates/frees, two shmem workers and512 iterations. See
+../evidence/physical-shmem-001 for exact native logs, source and binary hashes,
+independent review and limitations.
+
+Only ordinary sleepable GFP_KERNEL reads are supported. Other policies and atomic
+contexts fail explicitly with EOPNOTSUPP. This does not satisfy the actual i915
+HIGHUSER/reclaim/retry policy yet. Dirty/accessed, truncate/writeback, unevictability,
+user mappings and full Linux file/cache services remain unresolved. Full original
+GEM/ring builds and GPU execution are still unfinished.
+
+Reproduce focused host validation:
+
+```sh
+python3 experimental/i915/tests/run-shmem-host-tests.py --output NEW_DIRECTORY
+```

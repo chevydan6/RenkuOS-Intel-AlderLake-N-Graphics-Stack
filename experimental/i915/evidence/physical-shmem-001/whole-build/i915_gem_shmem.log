@@ -1,0 +1,11 @@
+In file included from reference/include/linux/page-flags-layout.h:6,
+                 from reference/include/linux/mmzone.h:20,
+                 from reference/include/linux/swap.h:7,
+                 from upstream/gem/i915_gem_shmem.c:9:
+include/generated/bounds.h:6:2: error: #error Linux VM generated bounds are not supplied by the native lockref adapter
+    6 | #error Linux VM generated bounds are not supplied by the native lockref adapter
+      |  ^~~~~
+reference/include/linux/mmzone.h:25:10: fatal error: asm/page.h: No such file or directory
+   25 | #include <asm/page.h>
+      |          ^~~~~~~~~~~~
+compilation terminated.

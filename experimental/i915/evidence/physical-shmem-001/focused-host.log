@@ -1,0 +1,2 @@
+exit=0
+PASS owned backing survives final close, queued unpin and delete failure; callbacks retire once

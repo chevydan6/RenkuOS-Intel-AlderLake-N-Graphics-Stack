@@ -330,3 +330,27 @@ internal store. No reclaim/swap-pressure, GPU DMA, submission or retirement is
 established. Continue genuine file/address_space/shmem integration and original
 whole-source closure; do not manufacture VM bounds or successful missing APIs.
 
+
+
+## 2026-11-14: native shmem file ownership
+
+Candidate015f1632 connects real pageable backing to scoped Linux file/inode/
+address_space objects and shmem setup/read APIs. Final fput retains area and
+metadata through outstanding folios and in-flight pins; joined-worker deletion
+and callback retirement complete final cleanup. Native no-reserve flags are
+forwarded and observed. Unsupported GFP/atomic policies fail explicitly.
+
+Focused ASan/UBSan tests reject six lifetime/policy mutations; the combined host
+suite passes57729 checks,100 header cases pass and all118 imports stay unchanged.
+Independent read-only review found no material defects. Native GCC/G++13.3 then
+passed four57786-check runs plus four650-check VMA runs:233744 total checks, zero
+failures, actual unload, matching13 production hashes and preserved app_server127.
+See experimental/i915/evidence/physical-shmem-001 for hashes, source revision,
+clock caveat, native logs and full-source compiler failures.
+
+This is scoped ownership, not complete shmem/GEM. Current i915 HIGHUSER/reclaim/
+retry masks still need real native allocation-policy support. Dirty/accessed,
+writeback/truncate, unevictability and user mappings remain unresolved. Physical/
+shmem GEM still stop at Linux VM bounds and asm/page.h via their swap.h include;
+GTT/ring still require process-mm/task services. Full driver compilation, GPU DMA
+and command submission/retirement remain unfinished.

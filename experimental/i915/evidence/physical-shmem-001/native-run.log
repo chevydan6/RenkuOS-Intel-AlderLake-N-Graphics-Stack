@@ -1,0 +1,303 @@
+SHMEM_INITIAL_HASH_CHECK=0
+source_commit=015f1632c04212a6c6f713c5a458e361edaf72d8 report_version=10 report_bytes=128
++ set -euo pipefail
+++ uname -s
++ test Haiku = Haiku
+++ uname -m
++ test x86_64 = x86_64
++ mkdir -p build
++ gcc --version
++ uname -a
++ flags=(-std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system)
++ objects=()
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename build/bitmap_equal_slice
++ object=build/bitmap_equal_slice.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c build/bitmap_equal_slice.c -o build/bitmap_equal_slice.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename upstream/lib/find_bit
++ object=build/find_bit.o
++ extra=()
++ case "$source" in
++ extra=(-Wno-error=maybe-uninitialized)
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -Wno-error=maybe-uninitialized -c upstream/lib/find_bit.c -o build/find_bit.o
+In file included from include/linux/bitops.h:4,
+                 from include/kpi_base.h:90,
+                 from include/linux/bitops.h:2,
+                 from upstream/lib/find_bit.c:15:
+In function 'fns',
+    inlined from '__find_nth_bit' at upstream/lib/find_bit.c:140:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:140:16: note: in expansion of macro 'FIND_NTH_BIT'
+  140 |         return FIND_NTH_BIT(addr[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function 'fns',
+    inlined from '__find_nth_and_bit' at upstream/lib/find_bit.c:147:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_and_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:147:16: note: in expansion of macro 'FIND_NTH_BIT'
+  147 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function 'fns',
+    inlined from '__find_nth_andnot_bit' at upstream/lib/find_bit.c:154:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_andnot_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:154:16: note: in expansion of macro 'FIND_NTH_BIT'
+  154 |         return FIND_NTH_BIT(addr1[idx] & ~addr2[idx], size, n);
+      |                ^~~~~~~~~~~~
+In function 'fns',
+    inlined from '__find_nth_and_andnot_bit' at upstream/lib/find_bit.c:163:9:
+include/linux/../../upstream/linux/bitops.h:259:16: warning: 'tmp' may be used uninitialized [-Wmaybe-uninitialized]
+  259 |         while (word) {
+      |                ^~~~
+upstream/lib/find_bit.c: In function '__find_nth_and_andnot_bit':
+upstream/lib/find_bit.c:73:56: note: 'tmp' was declared here
+   73 |         unsigned long sz = (size), nr = (num), idx, w, tmp;                     \
+      |                                                        ^~~
+upstream/lib/find_bit.c:163:16: note: in expansion of macro 'FIND_NTH_BIT'
+  163 |         return FIND_NTH_BIT(addr1[idx] & addr2[idx] & ~addr3[idx], size, n);
+      |                ^~~~~~~~~~~~
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename upstream/lib/hweight
++ object=build/hweight.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c upstream/lib/hweight.c -o build/hweight.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename upstream/lib/lockref
++ object=build/lockref.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c upstream/lib/lockref.c -o build/lockref.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename upstream/lib/refcount
++ object=build/refcount.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c upstream/lib/refcount.c -o build/refcount.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename upstream/kernel/sched/completion
++ object=build/completion.o
++ extra=()
++ case "$source" in
++ extra=(-include include/completion_port.h)
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -include include/completion_port.h -c upstream/kernel/sched/completion.c -o build/completion.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename upstream/kernel/sched/swait
++ object=build/swait.o
++ extra=()
++ case "$source" in
++ extra=(-include include/completion_port.h)
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -include include/completion_port.h -c upstream/kernel/sched/swait.c -o build/swait.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/cpumask_state
++ object=build/cpumask_state.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/cpumask_state.c -o build/cpumask_state.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_cpumask
++ object=build/native_cpumask.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_cpumask.c -o build/native_cpumask.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/completion_sched
++ object=build/completion_sched.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/completion_sched.c -o build/completion_sched.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/task_identity
++ object=build/task_identity.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/task_identity.c -o build/task_identity.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/time
++ object=build/time.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/time.c -o build/time.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_locks
++ object=build/native_locks.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_locks.c -o build/native_locks.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_irq_scopes
++ object=build/native_irq_scopes.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_irq_scopes.c -o build/native_irq_scopes.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_rwlocks
++ object=build/native_rwlocks.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_rwlocks.c -o build/native_rwlocks.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_preempt
++ object=build/native_preempt.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_preempt.c -o build/native_preempt.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_rcu
++ object=build/native_rcu.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_rcu.c -o build/native_rcu.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_alloc
++ object=build/native_alloc.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_alloc.c -o build/native_alloc.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_pages
++ object=build/native_pages.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_pages.c -o build/native_pages.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_shmem
++ object=build/native_shmem.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_shmem.c -o build/native_shmem.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/printk_bridge
++ object=build/printk_bridge.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/printk_bridge.c -o build/printk_bridge.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename src/native_diagnostics
++ object=build/native_diagnostics.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c src/native_diagnostics.c -o build/native_diagnostics.o
++ objects+=("$object")
++ for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c
+++ basename completion/native_test
++ object=build/native_test.o
++ extra=()
++ case "$source" in
++ gcc -std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion -I/boot/system/develop/headers/private/system -c completion/native_test.c -o build/native_test.o
++ objects+=("$object")
++ private=/boot/system/develop/headers/private
++ cxxflags=(-std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -Inative-config -I"$private" -I"$private/kernel" -I"$private/system" -I"$private/shared" -I"$private/kernel/arch/x86" -I"$private/system/arch/x86_64" -I"$private/kernel/boot/platform/bios_ia32" -Iinclude)
++ g++ -std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone -D_KERNEL_MODE=1 -Inative-config -I/boot/system/develop/headers/private -I/boot/system/develop/headers/private/kernel -I/boot/system/develop/headers/private/system -I/boot/system/develop/headers/private/shared -I/boot/system/develop/headers/private/kernel/arch/x86 -I/boot/system/develop/headers/private/system/arch/x86_64 -I/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32 -Iinclude -c src/native_page_bridge.cpp -o build/native_page_bridge.o
++ objects+=(build/native_page_bridge.o)
++ g++ -shared -nostdlib -Wl,--no-undefined -Wl,-z,max-page-size=0x1000 -o build/i915_linux_completion_test.driver build/bitmap_equal_slice.o build/find_bit.o build/hweight.o build/lockref.o build/refcount.o build/completion.o build/swait.o build/cpumask_state.o build/native_cpumask.o build/completion_sched.o build/task_identity.o build/time.o build/native_locks.o build/native_irq_scopes.o build/native_rwlocks.o build/native_preempt.o build/native_rcu.o build/native_alloc.o build/native_pages.o build/native_shmem.o build/printk_bridge.o build/native_diagnostics.o build/native_test.o build/native_page_bridge.o -L/boot/system/develop/lib -l:_KERNEL_ /boot/system/develop/lib/haiku_version_glue.o
++ gcc -O2 -Wall -Wextra -Werror -pthread -Icompletion completion/native_client.c -o build/linux_completion_probe
++ nm -u build/i915_linux_completion_test.driver
++ sha256sum build/i915_linux_completion_test.driver build/linux_completion_probe
++ echo 'Native original completion/swait build passed'
+Native original completion/swait build passed
+SHMEM_NATIVE_BUILD=0
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+build/i915_linux_completion_test.driver: OK
+build/linux_completion_probe: OK
+evidence=ORIGINAL_COMPLETION_SWAIT_NATIVE_CPU gpu_submission=false
+run=0 checks=57786 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+page_allocations=7 page_frees=7 page_workers=2 page_iterations=512
+store_allocations=1 store_frees=1 store_workers=2 store_iterations=256
+shmem_allocations=2 shmem_frees=2 shmem_workers=2 shmem_iterations=512
+run=1 checks=57786 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+page_allocations=7 page_frees=7 page_workers=2 page_iterations=512
+store_allocations=1 store_frees=1 store_workers=2 store_iterations=256
+shmem_allocations=2 shmem_frees=2 shmem_workers=2 shmem_iterations=512
+run=2 checks=57786 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+page_allocations=7 page_frees=7 page_workers=2 page_iterations=512
+store_allocations=1 store_frees=1 store_workers=2 store_iterations=256
+shmem_allocations=2 shmem_frees=2 shmem_workers=2 shmem_iterations=512
+run=3 checks=57786 failures=0 first_line=0 phases=12 waiters=24
+cpu_count=4 online=4 online_mask=0xf
+bit_workers=2 bit_iterations=8000
+rcu_workers=2 rcu_frees=1
+lockref_workers=2 lockref_iterations=8000
+seq_workers=2 seq_writes=4000 seq_reads=4000 seq_forced_retries=1
+page_allocations=7 page_frees=7 page_workers=2 page_iterations=512
+store_allocations=1 store_frees=1 store_workers=2 store_iterations=256
+shmem_allocations=2 shmem_frees=2 shmem_workers=2 shmem_iterations=512
+mode=interruptible result=-512 signal_seen=1 queued_after=0 failed=0
+mode=killable-ordinary-signal result=1949 signal_seen=1 queued_after=0 failed=0
+KERN: I915_LINUX_COMPLETION_INIT status=0
+KERN: I915_LINUX_COMPLETION_UNINIT status=0
+LINUX_COMPLETION_NATIVE_TEST_EXIT=0 results=validation/completion.wiBUxr
+Haiku shredder R1~beta6+development hrev60072+518 Nov  3 2026 12:29 x86_64 x86_64 Haiku
+build/i915_linux_vma_test.driver: OK
+build/linux_vma_probe: OK
+evidence=WHOLE_DRM_VMA_NATIVE_CPU_TEST gpu_submission=false
+run=0 checks=650 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+run=1 checks=650 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+run=2 checks=650 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+run=3 checks=650 failures=0 first_line=0 iterations=12000 concurrent_readers=2 worker_errors=0
+KERN: I915_LINUX_VMA_INIT status=0
+KERN: I915_LINUX_VMA_UNINIT status=0
+LINUX_VMA_NATIVE_TEST_EXIT=0 results=validation/vma.RB7tPV
+NATIVE_WHOLE_SOURCE gem/i915_gem_gtt.c compiler_exit=1
+NATIVE_WHOLE_SOURCE gem/i915_gem_phys.c compiler_exit=1
+NATIVE_WHOLE_SOURCE gem/i915_gem_shmem.c compiler_exit=1
+NATIVE_WHOLE_SOURCE gt/intel_ring.c compiler_exit=1
+SHMEM_WHOLE_EXIT=1
+SHMEM_FINAL_HASH_CHECK=0
+SHMEM_RUN_FINISHED
+SHMEM_RUN_EXIT=0

@@ -1,0 +1,13 @@
+7f2eb4d966147e0dbe5fa7f66544d73fd6d007c7eb553e872d6ff8be262ea982  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_bcs_inventory_bridge
+2d37e02f4e87c87ad046b257b00a43dd7f7e2bcc95853d765b20d0234475eb21  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_bcs_reset_bridge
+3b91e34c20efb6691a7d7491f9956259cb7bfbeff2c61a9da75547c000d86ae9  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_dmar_bridge
+ed7cab91d74c1fe6a1cd68b75e5bf4ced544885f10a567a3384895c90911eabd  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_extreme
+41b3142fb4fba16c22ada4dbd4a2abacdd1622f90e1e4a22a83a24041a6db593  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_forcewake_bridge
+5ce038b6c5974d23ce196b7459b75a38c5f5dd0951af58892c7f5b15145eec3f  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_group_handshake_bridge
+79d3dc8c9d60fbeb74a98b756289b52a13138de034cafdb9691249bc70b3ddd0  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_gt_ack_bridge
+cb16a3b3b894f02b21bb304d07a0ea65dddeffdba59ba32eafe8fb9751bfbf8e  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_media_fuse_bridge
+137c702ff8ba87dae9e4f4753c8269937728975a3f834419ec966580034949f9  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_pci_owner_bridge
+11c3fd00759f87def3d608b2971c76dfba91ae328ab649754156f83c89683f3e  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_ppgtt_bridge
+7a7cc92fd263deaf9acb0292a47097bcb856c36c36d3dbba8f5cadf2b3de9451  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_ppgtt_reserved_bridge
+55c5f0e61426e9dd10361b9a71f8564f213fd1e8b4151ce5ef100b8c5b33bdbd  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_vtd_bridge
+24c533310ab7f3597e7343270bb8897193e5735d31eb5d39cb3d9cc32bbd3a8d  /boot/system/non-packaged/add-ons/accelerants/intel_extreme.accelerant

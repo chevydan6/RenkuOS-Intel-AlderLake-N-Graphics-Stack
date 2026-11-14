@@ -1,0 +1,2 @@
+exit=-6
+test: /home/dan/projects/i915-native-validation/experimental/i915/tests/page_bridge_host.c:71: renku_vm_page_run_delete: Assertion `!runs[id].pins[i]' failed.

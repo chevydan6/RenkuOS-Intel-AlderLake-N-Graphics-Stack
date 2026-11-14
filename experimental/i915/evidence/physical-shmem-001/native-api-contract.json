@@ -1,0 +1,22 @@
+{
+  "revision": "4799bb5a188c4bb6bbef967287640cc21a061a0d",
+  "files": [
+    {
+      "source": "src/system/kernel/vm/vm.cpp",
+      "gitBlob": "b9bfb0c44ae33f69abdf5274131df545b8ccafc2",
+      "sha256": "dec556cf6beab908275718dfd386dab9d96ea1f70e3525a721086c2a6b0d5340"
+    },
+    {
+      "source": "headers/private/kernel/vm/vm.h",
+      "gitBlob": "ec4c7308d8bab4727577e0885ff7d6ebfd5687bb",
+      "sha256": "be3bd52e2839f7b1325016d0e7bfff91db2b7932ac4d297d2440d91fe192bc5e"
+    },
+    {
+      "source": "headers/private/system/vm_defs.h",
+      "gitBlob": "9fc89773cee6b6bd64c33013313e977af4c330c4",
+      "sha256": "1b62cb5034713c4746ed8a3244b8675c4aeb387a8bdf96d226aa02ca69fe08c7"
+    }
+  ],
+  "contract": "create_area_etc B_NO_LOCK; noreserve passes B_OVERCOMMITTING_AREA and CREATE_AREA_DONT_COMMIT_MEMORY; writable lock_memory_etc pins and matching unlock_memory_etc; native source and actual SDK layouts used",
+  "pressureOrSwapClaim": false
+}

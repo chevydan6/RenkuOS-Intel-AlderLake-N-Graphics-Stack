@@ -1,0 +1,26 @@
+[
+  {
+    "name": "close-ignores-pins",
+    "exit": -6
+  },
+  {
+    "name": "close-ignores-inflight",
+    "exit": -6
+  },
+  {
+    "name": "noreserve-lost",
+    "exit": -6
+  },
+  {
+    "name": "callback-twice",
+    "exit": -6
+  },
+  {
+    "name": "file-reference-lost",
+    "exit": -6
+  },
+  {
+    "name": "gfp-constraint-ignored",
+    "exit": -6
+  }
+]

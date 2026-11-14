@@ -1,7 +1,25 @@
 <!-- SPDX-License-Identifier: MIT -->
 # i915 port handoff — 2026-11-14
 
-## Latest continuation: native store validation complete
+## Latest continuation: native shmem ownership validated
+
+Source candidate015f1632c04212a6c6f713c5a458e361edaf72d8 adds scoped Linux-facing
+file/inode/address_space lifetime and shmem setup/read APIs over real native
+backing. Native version10 (128-byte report) passes233744 checks: four57786-check
+completion/memory runs and four650-check VMA regressions, zero functional failures.
+All7116 source checks, diagnostic unloads and production component postchecks
+pass. See [physical-shmem-001](experimental/i915/evidence/physical-shmem-001/README.md).
+
+Only ordinary sleepable GFP_KERNEL reads work at this checkpoint. Current i915
+HIGHUSER/reclaim/retry policies, dirty/accessed, writeback/truncate, unevictability
+and user mappings need real native implementations. The complete original driver
+still does not compile, and no GPU command execution is demonstrated. Continue
+those services and the process-mm/task dependency closure; do not fabricate Linux
+VM bounds or successful missing operations. The prior checkpoints below are
+historical and are superseded where this continuation supplies newer evidence.
+
+
+## Previous continuation: native store validation complete
 
 The access blocker and pending native C++/folio/store validation described below
 were resolved on November 14. The unchanged version 9 candidate passed 200,824
@@ -199,13 +217,13 @@ can perform the same authorized access/transfer actions.
 
    Verify diagnostic removal/unload and unchanged original graphics/media state.
 
-## Work after native memory validation
+## Remaining shmem and process-memory work
 
-Connect store ownership to real Linux `struct file`/`address_space` and shmem APIs.
-The internal provider is not yet wired into `shmem_file_setup` or i915 GEM. Required
-work includes GFP/reclaim constraints, pin/unpin lifetimes, dirty/accessed state,
-writeback, truncate, user mappings and file/mapping ownership. Do not supply
-successful no-ops for missing cache or reclaim behavior.
+Native-backed `shmem_file_setup`, scoped file/mapping ownership and folio reads
+are now implemented and physically validated. They are not yet a complete GEM
+backing path: required work includes actual i915 GFP/reclaim policies, dirty/
+accessed state, writeback, truncate and user mappings. Do not supply successful
+no-ops for missing cache or reclaim behavior.
 
 Complete physical/shmem GEM cross builds still reach
 `shmem_fs.h -> swap.h -> mmzone.h`, deliberately rejected generated VM bounds and
