@@ -5,6 +5,8 @@ pinned Mesa 26.3.0 archive. The resulting shader bytes passed the physical
 N100 RCS regression described in `../../../evidence/rcs-mesa263-shader-001/`.
 It is still a host compiler experiment, not a native Vulkan driver. The
 previous 26.1.8 artifacts remain available as the earlier known-good image.
+The `spirv/` proof assembles Vulkan SPIR-V modules and emits byte-identical
+machine code for the same VS and FS.
 
 The archive SHA-256 is
 `91d729aa68bb89e4ec857841300bbe922bcb3e52b1f97566ca83930d3b28343a`.

@@ -117,5 +117,11 @@ An isolated Mesa 26.3.0 Intel compiler harness builds and deterministically
 emits VS/FS machine code from direct NIR. Its five artifacts and corruption
 checks are recorded in `render/compiler/mesa-26.3.0/`. The regenerated command
 image passed 64 hardware draws in each of v1–v5, plus four final v5 draws;
-see `evidence/rcs-mesa263-shader-001/`. This compiler experiment does not
-implement Vulkan SPIR-V ingestion or native RenkuOS userspace compilation.
+see `evidence/rcs-mesa263-shader-001/`. The installed native driver still has
+no Vulkan SPIR-V ingestion or RenkuOS userspace compiler.
+
+A focused Mesa 26.3.0 host proof now ingests two validated Vulkan 1.2 SPIR-V
+modules, converts them to NIR, and emits VS/FS code byte-identical to the
+hardware-tested direct-NIR image; see `render/compiler/mesa-26.3.0/spirv/`.
+This establishes the first shader-compiler vertical slice. It does not yet
+provide a native RenkuOS compiler service or general Vulkan pipeline support.
