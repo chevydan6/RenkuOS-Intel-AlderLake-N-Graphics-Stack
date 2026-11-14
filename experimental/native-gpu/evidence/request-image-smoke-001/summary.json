@@ -1,0 +1,18 @@
+{
+  "sessionDateUTC": "2026-11-14",
+  "evidenceClass": "host-only focused request-image smoke",
+  "command": "g++ -std=c++17 -O2 -Wall -Wextra -Werror -Iworkstreams/gpu-next experimental/native-gpu/request_image_smoke.cpp -o /tmp/native-gpu-image-smoke && /tmp/native-gpu-image-smoke",
+  "hostSmokePassed": true,
+  "nativeKernelModuleCompiled": false,
+  "nativeKernelModuleInstalled": false,
+  "gpuSubmissionOccurred": false,
+  "acceleratedSampleDemonstrated": false,
+  "sourceSHA256": {
+    "PrepareModule.h": "e131a913f0ec84dd09daccb9e51db5eb4327cb198ed3aff10c00cc3d783695a0",
+    "PrepareReport.h": "5a5680327a650442f317f2a5f65974aa8b429423f44605809fe874c4acf30593",
+    "README.md": "187dbfbca0e2c60ca6bbad44f5f400d50735b342e565aa5980c8d66b5a53d586",
+    "RequestImage.h": "0110f2b9105fbd0b3a6eeb6da23d95d109c110c3b7aad10d0913f48a5585de58",
+    "prepare_module.cpp": "c7da8c3b978d3241f2d1829f8a523a93610bc4206514193f721a3ee66e9d9c25",
+    "request_image_smoke.cpp": "e2a2aca6629fd6fe37d2bf602a6675f16293a0155940ac547a69471f681cc20c"
+  }
+}

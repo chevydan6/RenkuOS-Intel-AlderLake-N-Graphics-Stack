@@ -1,6 +1,11 @@
 <!-- SPDX-License-Identifier: MIT -->
 # i915 port handoff — 2026-11-14
 
+> **Superseded strategy:** The owner abandoned the full Linux i915/LinuxKPI port
+> in favor of native adaptation retaining Intel's hardware logic and a real
+> GPU-accelerated RenkuOS sample. Continue from [NATIVE_GPU_HANDOFF.md](NATIVE_GPU_HANDOFF.md).
+> The source-closure tasks below are historical, not the active work order.
+
 ## Latest continuation: native dirty/accessed bridge validated
 
 Candidate a3d17e11de83ec034c669bac88deb9651a658de1 adds a sleepable internal
