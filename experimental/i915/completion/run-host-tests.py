@@ -46,7 +46,7 @@ objects = []
 def build():
     units = [copy, root/'upstream/kernel/sched/swait.c', root/'src/completion_sched.c',
              root/'src/task_identity.c', root/'src/printk_bridge.c', root/'src/time.c', root/'completion/host_backend.c',
-             root/'completion/host_test.c', root/'src/cpumask_state.c', equal_copy, find_copy, root/'upstream/lib/hweight.c', lockref_copy, pages_copy, root/'tests/page_bridge_host.c', root/'upstream/lib/refcount.c']
+             root/'completion/host_test.c', root/'src/cpumask_state.c', equal_copy, find_copy, root/'upstream/lib/hweight.c', lockref_copy, pages_copy, root/'src/native_shmem.c', root/'tests/page_bridge_host.c', root/'upstream/lib/refcount.c']
     log = ''
     for i, source in enumerate(units):
         obj = a.output/(str(i)+'.o')

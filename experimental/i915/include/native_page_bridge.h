@@ -3,6 +3,7 @@
 #define RENKU_NATIVE_PAGE_BRIDGE_H
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -14,6 +15,7 @@ int32_t renku_vm_page_run_delete(int32_t);
 /* Pageable anonymous backing. Pin before accessing; physical identity is valid
  * only until the matching unpin. Both pin and unpin require sleepable context. */
 int32_t renku_vm_page_store_create(size_t, void **);
+int32_t renku_vm_page_store_create_policy(size_t, bool noreserve, void **);
 int32_t renku_vm_page_store_pin(void *, uint64_t *);
 int32_t renku_vm_page_store_unpin(void *);
 struct renku_page_event *renku_vm_page_event_create(void);

@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 #include <Drivers.h>
+#include <vm_defs.h>
 #include "cases.h"
 #include <native_irq_scopes.h>
 #include <linux/rcupdate.h>

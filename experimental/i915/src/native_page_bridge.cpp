@@ -2,6 +2,7 @@
 // Keep actual native VM/C++ layouts out of the Linux compatibility namespace.
 #include <KernelExport.h>
 #include <vm/vm.h>
+#include <vm_defs.h>
 #include <stdlib.h>
 #include <string.h>
 #include <native_page_bridge.h>
@@ -37,13 +38,19 @@ extern "C" int32_t renku_vm_page_run_create(size_t size, void **cpu, uint64_t *p
 extern "C" int32_t renku_vm_page_run_delete(int32_t area) { return delete_area(area); }
 extern "C" int32_t renku_vm_page_store_create(size_t size, void **cpu)
 {
+	return renku_vm_page_store_create_policy(size, false, cpu);
+}
+extern "C" int32_t renku_vm_page_store_create_policy(size_t size, bool noreserve, void **cpu)
+{
 	if (!cpu || !size || (size & (B_PAGE_SIZE - 1)) || !interrupts_enabled())
 		return B_BAD_VALUE;
 	virtual_address_restrictions virtualRestrictions = {};
 	virtualRestrictions.address_specification = B_ANY_KERNEL_ADDRESS;
 	physical_address_restrictions physicalRestrictions = {};
 	return create_area_etc(B_SYSTEM_TEAM, "i915 Linux pageable store", size,
-		B_NO_LOCK, B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA, 0, 0,
+		B_NO_LOCK, B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA
+			| (noreserve ? B_OVERCOMMITTING_AREA : 0),
+		noreserve ? CREATE_AREA_DONT_COMMIT_MEMORY : 0, 0,
 		&virtualRestrictions, &physicalRestrictions, cpu);
 }
 extern "C" int32_t renku_vm_page_store_pin(void *cpu, uint64_t *physical)

@@ -23,7 +23,8 @@ headers = ['linux/bitops.h', 'linux/bits.h', 'linux/bitmap.h', 'linux/types.h',
            'linux/kdev_t.h', 'uapi/linux/kdev_t.h', 'linux/gfp.h', 'linux/gfp_types.h', 'linux/lockref.h',
            'linux/seqlock.h', 'linux/kcsan-checks.h', 'asm/processor.h',
            'asm/barrier.h', 'linux/compiler.h', 'linux/mm.h', 'linux/highmem.h',
-           'linux/uaccess.h', 'native_pages.h', 'native_page_bridge.h', 'linux/page-flags.h', 'linux/pagevec.h']
+           'linux/uaccess.h', 'native_pages.h', 'native_page_bridge.h', 'linux/page-flags.h', 'linux/pagevec.h',
+           'linux/fs.h', 'linux/file.h', 'linux/shmem_fs.h']
 manifest = json.loads((root/'build/target/manifest.json').read_text())
 native = manifest['objects'][0]['command']
 native = native[:native.index('-MMD')]

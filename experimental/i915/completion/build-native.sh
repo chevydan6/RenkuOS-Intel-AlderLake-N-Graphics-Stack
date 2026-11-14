@@ -9,10 +9,11 @@ uname -a > build/kernel.txt
 flags=(-std=gnu11 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter
  -Wno-sign-compare -fno-strict-overflow -ffreestanding -fno-builtin -fPIC
  -fno-stack-protector -fno-tree-vectorize -mgeneral-regs-only -mno-red-zone
- -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion)
+ -D_KERNEL_MODE=1 -DRENKU_NATIVE -Iinclude -Iupstream -Icompletion
+ -I/boot/system/develop/headers/private/system)
 objects=()
 for source in build/bitmap_equal_slice.c upstream/lib/find_bit.c upstream/lib/hweight.c upstream/lib/lockref.c upstream/lib/refcount.c upstream/kernel/sched/completion.c upstream/kernel/sched/swait.c \
- src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c; do
+ src/cpumask_state.c src/native_cpumask.c src/completion_sched.c src/task_identity.c src/time.c src/native_locks.c src/native_irq_scopes.c src/native_rwlocks.c src/native_preempt.c src/native_rcu.c src/native_alloc.c src/native_pages.c src/native_shmem.c src/printk_bridge.c src/native_diagnostics.c completion/native_test.c; do
  object="build/$(basename "${source%.c}").o"
  extra=()
  case "$source" in upstream/lib/find_bit.c) extra=(-Wno-error=maybe-uninitialized);; upstream/kernel/*) extra=(-include include/completion_port.h);; esac

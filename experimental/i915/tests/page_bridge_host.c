@@ -13,7 +13,7 @@
 struct renku_page_event { sem_t sem; };
 struct renku_page_worker { pthread_t thread; int32_t (*entry)(void *); void *cookie; int32_t result; };
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-static struct { void *base; size_t size; bool store; unsigned *pins, *generation; } runs[32];
+static struct { void *base; size_t size; bool store, noreserve; unsigned *pins, *generation; } runs[32];
 static unsigned fail_create, fail_event, fail_worker, hold_delete;
 static unsigned fail_pin, fail_store_delete, hold_pin, pin_entered, hold_unpin;
 static _Thread_local unsigned faults;
@@ -38,6 +38,12 @@ unsigned renku_test_page_live_count(void)
 {
 	assert(!pthread_mutex_lock(&lock)); unsigned count = 0;
 	for (unsigned i = 0; i < 32; i++) count += runs[i].base != NULL;
+	assert(!pthread_mutex_unlock(&lock)); return count;
+}
+unsigned renku_test_store_noreserve_count(void)
+{
+	assert(!pthread_mutex_lock(&lock)); unsigned count = 0;
+	for (unsigned i = 0; i < 32; i++) count += runs[i].base && runs[i].noreserve;
 	assert(!pthread_mutex_unlock(&lock)); return count;
 }
 int32_t renku_vm_page_run_create(size_t size, void **cpu, uint64_t *physical)
@@ -70,6 +76,10 @@ int32_t renku_vm_page_run_delete(int32_t id)
 }
 int32_t renku_vm_page_store_create(size_t size, void **cpu)
 {
+	return renku_vm_page_store_create_policy(size, false, cpu);
+}
+int32_t renku_vm_page_store_create_policy(size_t size, bool noreserve, void **cpu)
+{
 	if (__atomic_exchange_n(&fail_create, 0, __ATOMIC_ACQ_REL) || size > 0x10000000) return -1;
 	assert(size && !(size & 4095));
 	void *base = NULL;
@@ -81,6 +91,7 @@ int32_t renku_vm_page_store_create(size_t size, void **cpu)
 	assert(!pthread_mutex_lock(&lock));
 	for (unsigned i = 0; i < 32; i++) if (!runs[i].base) {
 		runs[i].base = base; runs[i].size = size; runs[i].store = true;
+		runs[i].noreserve = noreserve;
 		runs[i].pins = pins; runs[i].generation = generation; *cpu = base;
 		assert(!pthread_mutex_unlock(&lock)); return (int32_t)i;
 	}

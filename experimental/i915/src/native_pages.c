@@ -13,7 +13,12 @@ struct renku_page_store {
 	size_t count;
 	int32_t area;
 	unsigned pins, in_flight;
+	refcount_t references;
+	bool closing, queued;
+	void (*released)(void *);
+	void *cookie;
 	struct renku_page_store *next;
+	struct renku_page_store *release_next;
 };
 struct page_run {
 	struct page *pages;
@@ -30,11 +35,21 @@ struct page_run {
 static DEFINE_SPINLOCK(sLock);
 static struct page_run *sRuns, *sQueue, **sQueueTail = &sQueue;
 static struct renku_page_store *sStores;
+static struct renku_page_store *sClosed, **sClosedTail = &sClosed;
 static struct renku_page_event *sEvent;
 static struct renku_page_worker *sWorker;
 static unsigned sPending;
 static bool sReady, sStop;
 static void Invalid(const char *why) { panic("i915 pages: %s", why); __builtin_trap(); }
+/* sLock held. Closing contributes one pending operation until native deletion
+ * AND the owner's metadata callback complete, including retries. */
+static bool QueueClosedStore(struct renku_page_store *store)
+{
+	if (!store->closing || store->pins || store->in_flight || store->queued) return false;
+	store->queued = true; store->release_next = NULL;
+	*sClosedTail = store; sClosedTail = &store->release_next;
+	return true;
+}
 static struct page_run *Find(const struct page *page, size_t *index)
 {
 	uintptr_t address = (uintptr_t)page;
@@ -58,8 +73,37 @@ static int32_t Releaser(void *unused)
 			sQueue = run->next;
 			if (!sQueue) sQueueTail = &sQueue;
 		}
+		struct renku_page_store *closed = run ? NULL : sClosed;
+		if (closed) {
+			sClosed = closed->release_next;
+			if (!sClosed) sClosedTail = &sClosed;
+			closed->queued = false;
+		}
 		bool stop = sStop;
 		spin_unlock(&sLock);
+		if (closed) {
+			if (renku_vm_page_run_delete(closed->area) != 0) {
+				/* Retain ownership and the pending operation. A permanent native
+				 * failure makes drain time out and keeps module shutdown busy. */
+				renku_vm_page_pause();
+				spin_lock(&sLock); bool queued = QueueClosedStore(closed); spin_unlock(&sLock);
+				if (!queued) Invalid("closed store retry lost ownership");
+				renku_vm_page_event_signal(sEvent);
+				continue;
+			}
+			spin_lock(&sLock);
+			struct renku_page_store **slot = &sStores;
+			while (*slot && *slot != closed) slot = &(*slot)->next;
+			if (!*slot) Invalid("closed store missing from registry");
+			*slot = closed->next;
+			spin_unlock(&sLock);
+			void (*released)(void *) = closed->released;
+			void *cookie = closed->cookie;
+			free(closed);
+			if (released) released(cookie);
+			spin_lock(&sLock); sPending--; spin_unlock(&sLock);
+			continue;
+		}
 		if (!run) { if (stop) return 0; else continue; }
 		struct renku_page_store *store = run->store;
 		if (store) {
@@ -67,15 +111,18 @@ static int32_t Releaser(void *unused)
 		} else if (renku_vm_page_run_delete(run->area) != 0) Invalid("native area deletion failed");
 		free(run->pages); free(run);
 		spin_lock(&sLock);
-		if (store) store->pins--;
+		bool queued = false;
+		if (store) { store->pins--; queued = QueueClosedStore(store); }
 		sPending--;
 		spin_unlock(&sLock);
+		if (queued) renku_vm_page_event_signal(sEvent);
 	}
 }
 int renku_linux_pages_init(void)
 {
 	if (sReady || sWorker || !preemptible()) return -EBUSY;
 	sRuns = sQueue = NULL; sStores = NULL; sQueueTail = &sQueue; sPending = 0; sStop = false;
+	sClosed = NULL; sClosedTail = &sClosed;
 	sEvent = renku_vm_page_event_create();
 	if (!sEvent) return -ENOMEM;
 	sWorker = renku_vm_page_worker_start(Releaser, NULL);
@@ -215,14 +262,41 @@ static struct page_run *FindStorePage(struct renku_page_store *store, unsigned l
 }
 struct renku_page_store *renku_linux_page_store_create(size_t size)
 {
+	return renku_linux_page_store_create_owned(size, false, NULL, NULL);
+}
+struct renku_page_store *renku_linux_page_store_create_owned(size_t size, bool noreserve,
+	void (*released)(void *), void *cookie)
+{
 	if (!sReady || !preemptible() || !size || (size & (PAGE_SIZE - 1))) return NULL;
 	struct renku_page_store *store = calloc(1, sizeof(*store));
 	if (!store) return NULL;
-	store->area = renku_vm_page_store_create(size, &store->base);
+	store->area = renku_vm_page_store_create_policy(size, noreserve, &store->base);
 	if (store->area < 0) { free(store); return NULL; }
 	store->count = size >> PAGE_SHIFT;
+	refcount_set(&store->references, 1); store->released = released; store->cookie = cookie;
 	spin_lock(&sLock); store->next = sStores; sStores = store; spin_unlock(&sLock);
 	return store;
+}
+bool renku_linux_page_store_get(struct renku_page_store *wanted)
+{
+	spin_lock(&sLock);
+	struct renku_page_store *store = FindStore(wanted);
+	bool got = store && !store->closing && refcount_inc_not_zero(&store->references);
+	spin_unlock(&sLock); return got;
+}
+void renku_linux_page_store_put(struct renku_page_store *wanted)
+{
+	spin_lock(&sLock);
+	struct renku_page_store *store = FindStore(wanted);
+	if (!store || store->closing) Invalid("put of unowned store");
+	bool queued = false;
+	if (refcount_dec_and_test(&store->references)) {
+		store->closing = true;
+		if (sPending == UINT_MAX) Invalid("pending store count overflow");
+		sPending++; queued = QueueClosedStore(store);
+	}
+	spin_unlock(&sLock);
+	if (queued) renku_vm_page_event_signal(sEvent);
 }
 int renku_linux_page_store_destroy(struct renku_page_store *wanted)
 {
@@ -230,6 +304,7 @@ int renku_linux_page_store_destroy(struct renku_page_store *wanted)
 	spin_lock(&sLock);
 	struct renku_page_store *store = FindStore(wanted);
 	if (!store) { spin_unlock(&sLock); return -EINVAL; }
+	if (store->closing || refcount_read(&store->references) != 1) { spin_unlock(&sLock); return -EBUSY; }
 	if (store->pins || store->in_flight) { spin_unlock(&sLock); return -EBUSY; }
 	struct renku_page_store **slot = &sStores;
 	while (*slot != store) slot = &(*slot)->next;
@@ -239,7 +314,10 @@ int renku_linux_page_store_destroy(struct renku_page_store *wanted)
 		spin_lock(&sLock); store->next = sStores; sStores = store; spin_unlock(&sLock);
 		return -EIO;
 	}
+	void (*released)(void *) = store->released;
+	void *cookie = store->cookie;
 	free(store);
+	if (released) released(cookie);
 	return 0;
 }
 struct folio *renku_linux_page_store_read(struct renku_page_store *wanted, unsigned long index)
@@ -247,7 +325,7 @@ struct folio *renku_linux_page_store_read(struct renku_page_store *wanted, unsig
 	if (!sReady || !preemptible()) return NULL;
 	spin_lock(&sLock);
 	struct renku_page_store *store = FindStore(wanted);
-	if (!store || index >= store->count) { spin_unlock(&sLock); return NULL; }
+	if (!store || store->closing || index >= store->count) { spin_unlock(&sLock); return NULL; }
 	struct page_run *existing = FindStorePage(store, index);
 	if (existing) {
 		if (!refcount_inc_not_zero(&existing->references)) Invalid("dead store folio published");
@@ -285,7 +363,8 @@ struct folio *renku_linux_page_store_read(struct renku_page_store *wanted, unsig
 		if (existing && renku_vm_page_store_unpin(run->base) != 0) Invalid("duplicate store pin release failed");
 	}
 	if (!pinned || existing) { if (run) { free(run->pages); free(run); } }
-	spin_lock(&sLock); store->in_flight--; spin_unlock(&sLock);
+	spin_lock(&sLock); store->in_flight--; bool queued = QueueClosedStore(store); spin_unlock(&sLock);
+	if (queued) renku_vm_page_event_signal(sEvent);
 	return answer;
 }
 void renku_linux_pagefault_disable(void)

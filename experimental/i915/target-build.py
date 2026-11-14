@@ -40,7 +40,7 @@ for unit in ['build/intel_ring_slice.c', 'build/gen8_engine_slice.c', 'upstream/
              'upstream/lib/rbtree.c', 'upstream/lib/refcount.c', 'upstream/lib/lockref.c',
              'upstream/linux/ww_mutex.h',
              'build/bitmap_equal_slice.c', 'src/cpumask_state.c', 'src/native_cpumask.c', 'upstream/lib/hweight.c',
-             'src/native_locks.c', 'src/native_irq_scopes.c', 'src/native_preempt.c', 'src/native_rcu.c', 'src/native_pages.c',
+             'src/native_locks.c', 'src/native_irq_scopes.c', 'src/native_preempt.c', 'src/native_rcu.c', 'src/native_pages.c', 'src/native_shmem.c',
              'src/task_identity.c', 'src/time.c', 'src/printk_bridge.c', 'src/native_diagnostics.c']:
     obj = build / (Path(unit).stem + '.o')
     cmd = [a.cc, *flags, '-MMD', '-c', str(root / unit), '-o', str(obj)]
