@@ -3,15 +3,24 @@
 #define NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #include "RcsDrawImage.h"
 namespace NativeGpu {
-// Bounded first shader BO contract. Only the proven FS code is accepted; its
+// Bounded shader BO contract. Only two exact compiler-proven FS patterns are
+// accepted; the second pattern still needs N100 hardware validation. Their
 // owner-selected VA replaces two PS pointers and widens the instruction
 // window to cover the prebound resource arena. No arbitrary GPU code runs.
 class RcsPublicShader {
 public:
  static bool ValidateFragment(const uint32_t* words,unsigned dwords) {
   if(!words || dwords!=1024)return false;
+  const uint32_t green=words[7];
+  if(green!=0x3e800000 && green!=0x3f000000)return false;
   for(unsigned i=0;i<1024;i++)
-   if(words[i]!=(i<kFsDwords?RcsDrawData::Fs[i]:0))return false;
+   if(words[i]!=(i==7 || i==39?green:
+    i<kFsDwords?RcsDrawData::Fs[i]:0))return false;
+  return true;
+ }
+ static bool ExpectedPixel(const uint32_t* words,unsigned dwords,uint32_t& pixel) {
+  if(!ValidateFragment(words,dwords))return false;
+  pixel=words[7]==0x3f000000?0xffff8000:RcsDrawImage::RenderedPixel;
   return true;
  }
  static bool PatchBatch(uint32_t* words,unsigned dwords,uint64_t gpu) {
@@ -53,6 +62,8 @@ public:
 private:
  static constexpr unsigned kFsDwords=sizeof(RcsDrawData::Fs)/sizeof(uint32_t);
  static_assert(sizeof(RcsDrawData::Fs)==208,"Mesa 26.3.0 FS profile changed");
+ static_assert(RcsDrawData::Fs[7]==0x3e800000 && RcsDrawData::Fs[39]==0x3e800000,
+  "fragment green immediate offsets changed");
  static_assert(RcsDrawData::Batch[44]==0x8001 && RcsDrawData::Batch[239]==0x5000
   && RcsDrawData::Batch[248]==0x5080,"Mesa 26.3.0 batch layout changed");
  static bool ValidGpu(uint64_t gpu)

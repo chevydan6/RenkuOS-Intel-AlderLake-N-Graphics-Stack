@@ -44,7 +44,8 @@ public:
   return true;
  }
  struct Check {uint32_t checked,matched,hash,interior,exterior;};
- static bool Inspect(const volatile uint32_t* target,unsigned variant,Check& check) {
+ static bool Inspect(const volatile uint32_t* target,unsigned variant,Check& check,
+  uint32_t renderedPixel=RcsDrawImage::RenderedPixel) {
   if(!target || variant>=4)return false;
   Check r={0,0,2166136261u,0,0};
   r.interior=(RcsDrawImage::InteriorY(variant)<<16)|RcsDrawImage::InteriorX(variant);
@@ -59,7 +60,7 @@ public:
    bool clearEdge=diagonal<=-3 || diagonal>=3;
    if(!outer && !(central && clearEdge))continue;
    bool inside=variant<2?diagonal>0:diagonal<0;
-   uint32_t expected=!outer && inside?RcsDrawImage::RenderedPixel:RcsDrawImage::Poison;
+   uint32_t expected=!outer && inside?renderedPixel:RcsDrawImage::Poison;
    ++r.checked;r.matched+=observed==expected;
   }
   check=r;return r.checked && r.matched==r.checked;

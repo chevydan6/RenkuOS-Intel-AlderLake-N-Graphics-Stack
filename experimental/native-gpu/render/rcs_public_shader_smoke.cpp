@@ -9,6 +9,9 @@ int main() {
  memcpy(batch,NativeGpu::RcsDrawData::Batch,sizeof(NativeGpu::RcsDrawData::Batch));
  memcpy(shader,NativeGpu::RcsDrawData::Fs,sizeof(NativeGpu::RcsDrawData::Fs));
  if(!NativeGpu::RcsPublicShader::ValidateFragment(shader,1024))return 1;
+ uint32_t pixel=0;
+ if(!NativeGpu::RcsPublicShader::ExpectedPixel(shader,1024,pixel)
+  || pixel!=NativeGpu::RcsDrawImage::RenderedPixel)return 16;
  if(!NativeGpu::RcsPublicShader::PatchBatch(batch,1024,0x410000))return 2;
  if(batch[44]!=0x20001 || batch[239]!=0x10000 || batch[248]!=0x10080)return 3;
  if(!NativeGpu::RcsPublicShader::ValidateBatch(batch,1024,0x410000))return 4;
@@ -21,6 +24,14 @@ int main() {
  shader[1023]=1;
  if(NativeGpu::RcsPublicShader::ValidateFragment(shader,1024))return 7;
  shader[1023]=0;
+ shader[7]=0x3f000000;shader[39]=0x3f000000;
+ if(!NativeGpu::RcsPublicShader::ValidateFragment(shader,1024))return 14;
+ if(!NativeGpu::RcsPublicShader::ExpectedPixel(shader,1024,pixel)
+  || pixel!=0xffff8000)return 17;
+ shader[39]=0x3e800000;
+ if(NativeGpu::RcsPublicShader::ValidateFragment(shader,1024))return 15;
+ if(NativeGpu::RcsPublicShader::ExpectedPixel(shader,1024,pixel))return 18;
+ shader[7]=0x3e800000;
  uint32_t original[1024]={};
  memcpy(original,NativeGpu::RcsDrawData::Batch,sizeof(NativeGpu::RcsDrawData::Batch));
  uint32_t invalid[1024];memcpy(invalid,original,sizeof(invalid));
@@ -45,6 +56,6 @@ int main() {
  combined[0]^=1;
  if(NativeGpu::RcsPublicShader::PatchBatchWithVertex(combined,1024,0x411000,0x410000))
   return 13;
- puts("N100 public FS page and three-word bounded batch patch: PASS (CPU only)");
+ puts("N100 two exact public FS patterns and bounded batch patch: PASS (CPU only)");
  return 0;
 }

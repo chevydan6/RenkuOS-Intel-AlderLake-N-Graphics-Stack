@@ -35,6 +35,10 @@ int main()
   }
   R::Check check={};assert(R::Inspect(pixels,v,check));
   assert(check.checked>500 && check.checked==check.matched);
+  for(unsigned i=0;i<1024;i++)if(pixels[i]==D::RenderedPixel)pixels[i]=0xffff8000;
+  assert(R::Inspect(pixels,v,check,0xffff8000));
+  assert(!R::Inspect(pixels,v,check));
+  for(unsigned i=0;i<1024;i++)if(pixels[i]==0xffff8000)pixels[i]=D::RenderedPixel;
   unsigned inside=D::InteriorY(v)*32+D::InteriorX(v);pixels[inside]=D::Poison;
   assert(!R::Inspect(pixels,v,check));pixels[inside]=D::RenderedPixel;
   pixels[0]=D::RenderedPixel;assert(!R::Inspect(pixels,v,check));

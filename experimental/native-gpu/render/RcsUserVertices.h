@@ -40,7 +40,8 @@ public:
   return true;
  }
 
- static bool Inspect(const volatile uint32_t* target,const uint32_t* words,Check& check) {
+ static bool Inspect(const volatile uint32_t* target,const uint32_t* words,Check& check,
+  uint32_t renderedPixel=RcsDrawImage::RenderedPixel) {
   Coord points[3]={};
   if(!target || !Validate(words,points))return false;
   Check found={0,0,2166136261u,0,0};
@@ -50,7 +51,7 @@ public:
    found.hash=(found.hash^observed)*16777619u;
    int kind=Classify(points,x,y);
    if(kind<0)continue;
-   uint32_t expected=kind==1?RcsDrawImage::RenderedPixel:RcsDrawImage::Poison;
+   uint32_t expected=kind==1?renderedPixel:RcsDrawImage::Poison;
    found.checked++;found.matched+=observed==expected;
    if(kind==1 && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
    if(kind==0 && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}

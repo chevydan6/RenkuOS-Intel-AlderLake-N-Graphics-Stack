@@ -78,6 +78,7 @@ static uint32_t sRenderCursor;
 static bool sRenderHideCompletion;
 static uint32_t* sRenderData[8];
 static bool sRenderUserDraw;
+static uint32_t sRenderExpectedPixel=NativeGpu::RcsDrawImage::RenderedPixel;
 static bool sRenderResourceDraw,sRenderArenaDraw,sRenderPublicBatchDraw,sRenderPublicShaderDraw;
 static bool sRenderCombinedDraw,sRenderResourceReady;
 static uint64_t sRenderArenaGpu,sRenderPublicBatchGpu,sRenderPublicShaderGpu;
@@ -431,13 +432,15 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   if(sRenderUserDraw){
    NativeGpu::RcsUserVertices::Check check={};
    matched=NativeGpu::RcsUserVertices::Inspect(
-    sRenderData[NativeGpu::RcsDrawImage::Target],sRenderUserVertices,check);
+    sRenderData[NativeGpu::RcsDrawImage::Target],sRenderUserVertices,check,
+    sRenderExpectedPixel);
    r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
    r.interior_xy=check.interior;r.exterior_xy=check.exterior;
   }else{
    NativeGpu::RcsRequestReuse::Check check={};
    matched=NativeGpu::RcsRequestReuse::Inspect(
-    sRenderData[NativeGpu::RcsDrawImage::Target],r.variant,check);
+    sRenderData[NativeGpu::RcsDrawImage::Target],r.variant,check,
+    sRenderExpectedPixel);
    r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
    r.interior_xy=check.interior;r.exterior_xy=check.exterior;
   }
@@ -510,14 +513,15 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
 
  mutex_lock(&sLock);
  uint64_t arenaGpu=0,publicBatchGpu=0,publicShaderGpu=0;
+ uint32_t renderedPixel=NativeGpu::RcsDrawImage::RenderedPixel;
  if(publicShaderDraw || combinedDraw){
   if(!NativeResourceAllowedLocked()
    || !sRenderArena.Resolve(resourceSession,command->reserved,0,4096,publicShaderGpu)){
    mutex_unlock(&sLock);return output.status;
   }
   unsigned shaderPage=unsigned((publicShaderGpu-kRenderArenaGpu)/4096);
-  if(!NativeGpu::RcsPublicShader::ValidateFragment(
-   (const uint32_t*)sRenderArenaPages[shaderPage].cpu,1024)){
+  if(!NativeGpu::RcsPublicShader::ExpectedPixel(
+   (const uint32_t*)sRenderArenaPages[shaderPage].cpu,1024,renderedPixel)){
    mutex_unlock(&sLock);return output.status;
   }
  }
@@ -566,6 +570,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  sRenderPublicBatchDraw=publicBatchDraw;sRenderPublicBatchGpu=publicBatchGpu;
  sRenderPublicShaderDraw=publicShaderDraw || combinedDraw;
  sRenderPublicShaderGpu=publicShaderGpu;sRenderCombinedDraw=combinedDraw;
+ sRenderExpectedPixel=renderedPixel;
  if(userDraw || arenaDraw || publicBatchDraw || combinedDraw)
   memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
  sRenderReport=output;auto& r=sRenderReport;
