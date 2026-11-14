@@ -99,3 +99,10 @@ timings, and saves CSV plus both PPM images in its working directory. Omit
 `--show` for headless measurements. See the [measured results and boundaries](evidence/native-benchmark-003/README.md):
 484copies passed, but this prototype loses to CPU memcpy throughout its64-byte
 to4KiB range when staging, whole-machine cache maintenance and waiting are included.
+
+## Separate render-engine work
+
+The BCS foundation does not establish shader execution or hardware OpenGL/Vulkan.
+See the [render-engine phase and Mesa source-tree guide](../../research/n100-submission/MESA-RENDER-ENGINE-PHASE.md)
+for the additional context, compiler, resource, synchronization and presentation
+contracts, including versioned Iris/Haiku/ANV reference paths.

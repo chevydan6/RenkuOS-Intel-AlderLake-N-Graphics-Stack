@@ -1,0 +1,126 @@
+{
+  "releases": [
+    {
+      "version": "26.0.7",
+      "archive_sha256": "0c56bbcf1947e1a6a90ac09b129b0ca0cb52cc31145b94595e57c8804cf02496",
+      "release_notes": "https://docs.mesa3d.org/relnotes/26.0.7.html",
+      "files": [
+        {
+          "path": "docs/sourcetree.rst",
+          "sha256": "ccecbc2cc68089d480fd908d5cdee143fd1429a307d7d3b7361abb9468954b6b"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_screen.c",
+          "sha256": "7569d8c2b236da3004688a527a967269e00be8cd1fe3ac2688c1068110199334"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_context.c",
+          "sha256": "3a54d3659a8536ce15bf84d7559288ed8295b44b1b51cc8654a0b1fe595780da"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_program.c",
+          "sha256": "f73f916bcd8df28875a7b8282bd500e17c1772b3049766a3a2dae5c1d078c952"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_draw.c",
+          "sha256": "d98fdd30232abcd12b832550dc988fb4c905598d12c424099adce4095bbec3fd"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_state.c",
+          "sha256": "ac0cb43303bd8392db3da4df64cd757e1021bade9009825b791c6db42d9c9cc1"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_batch.c",
+          "sha256": "b57e29af9a890862a3a7e9a03dd0fc9e91b5a147e3382872451c6dd5670a4087"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_bufmgr.c",
+          "sha256": "4f710f652eee858c747363904b98a38335af590757c465630c711811b4a1db54"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_fence.c",
+          "sha256": "8f2349add07e1429aaa1f346d31cac9a55c6a98ae973ec202b1c59457e5f62f7"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_kmd_backend.h",
+          "sha256": "2a2b0daa4e3ee769104ca4b13fee683902c1a533d4756f68f179ff35345b7227"
+        },
+        {
+          "path": "src/gallium/drivers/iris/iris_kmd_backend.c",
+          "sha256": "0dd3b91a283e8f89da2dd596a416df2d5a3c1723f613bfdeddf53f25a2ab855e"
+        },
+        {
+          "path": "src/gallium/drivers/iris/i915/iris_batch.c",
+          "sha256": "2ffd69b77bbe0be0d20b6cbad67cbb9c1333d1b0b7f4a88acb9c38d5e3f856ae"
+        },
+        {
+          "path": "src/gallium/drivers/iris/i915/iris_kmd_backend.c",
+          "sha256": "bd6751eb5577bf76d4a2f82a7cb2828a483f2937e1face676a21a6cc26f9bc78"
+        },
+        {
+          "path": "src/gallium/drivers/iris/meson.build",
+          "sha256": "344c213d8d8dbd2e3d1feb26cb5172b5fae9420d0b2e34cb94a36e88734c504e"
+        },
+        {
+          "path": "src/intel/compiler/meson.build",
+          "sha256": "2faa850afccd7711aa5bea7a2757aa5be351c7caa8dc6c9738b9ac35d3034c9e"
+        },
+        {
+          "path": "src/gallium/frontends/hgl/hgl.c",
+          "sha256": "bfd5c6a157d959c4f71b0ab82b1b78077d71787be315175175e60b05638bbc98"
+        },
+        {
+          "path": "src/gallium/frontends/hgl/meson.build",
+          "sha256": "52e412367f74268faac660580bb83287b85b2c6f538ed59b5998885cbc0aaf64"
+        },
+        {
+          "path": "src/gallium/winsys/sw/hgl/hgl_sw_winsys.cpp",
+          "sha256": "2e5f1d4d732bad1c10c71e5201536208bdbec3a5fae074971aa467a624c40d0c"
+        },
+        {
+          "path": "src/egl/drivers/haiku/egl_haiku.cpp",
+          "sha256": "f2954e784119151ecfd8590f7a414be858d7a3ee25af4c90183dac8d8c9808b5"
+        },
+        {
+          "path": "src/intel/vulkan/anv_physical_device.c",
+          "sha256": "3c2e047dcbb66dc92401d8e46c292fe874d51842c7039dff06fc70e3ab01d6f6"
+        },
+        {
+          "path": "src/vulkan/wsi/meson.build",
+          "sha256": "fc12ba04ce1c99895945d7365cd18a431ada2ebb2b4f00dbab31fbe22b11c640"
+        }
+      ],
+      "archive_url": "https://archive.mesa3d.org/mesa-26.0.7.tar.xz",
+      "source_tag_url": "https://gitlab.freedesktop.org/mesa/mesa/-/tree/mesa-26.0.7"
+    },
+    {
+      "version": "22.0.5",
+      "archive_sha256": "5ee2dc06eff19e19b2867f12eb0db0905c9691c07974f6253f2f1443df4c7a35",
+      "release_notes": "https://docs.mesa3d.org/relnotes/22.0.5.html",
+      "files": [
+        {
+          "path": "src/hgl/GLView.cpp",
+          "sha256": "95d7be4346efc2bb395779b20aac118a35d0fcc1f7d7f1fdad066010035b39ce"
+        },
+        {
+          "path": "src/hgl/GLRenderer.cpp",
+          "sha256": "1dc57c98d531d12d4405affc5ff0b471114be9ca48f17652a5d03987c104c9af"
+        },
+        {
+          "path": "src/hgl/GLRendererRoster.cpp",
+          "sha256": "c5bbe50bf14f79b36be64f9822f93a44533c8a56957ef7cc235cd65b19cda7fe"
+        },
+        {
+          "path": "src/gallium/targets/haiku-softpipe/GalliumContext.cpp",
+          "sha256": "4d306b42b2c840f7f1aad23f4695f306a6cd352b863a06d281807df849358b13"
+        },
+        {
+          "path": "src/gallium/targets/haiku-softpipe/SoftwareRenderer.cpp",
+          "sha256": "6daa96c525f85fa7056d7164c658918e82351fd08a8cf9abc9ec4c0556cefd13"
+        }
+      ],
+      "archive_url": "https://archive.mesa3d.org/older-versions/22.x/mesa-22.0.5.tar.xz",
+      "source_tag_url": "https://gitlab.freedesktop.org/mesa/mesa/-/tree/mesa-22.0.5"
+    }
+  ]
+}

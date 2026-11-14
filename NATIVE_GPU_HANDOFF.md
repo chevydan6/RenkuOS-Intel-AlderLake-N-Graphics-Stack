@@ -1,6 +1,31 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Native Intel N100 GPU handoff — 2026-11-14
 
+## Separate render-engine phase: shaders, OpenGL and Vulkan
+
+The [Mesa source-tree guide and render-phase boundary](research/n100-submission/MESA-RENDER-ENGINE-PHASE.md)
+now records what carries forward from BCS and what remains render-specific:
+owned RCS contexts/state, actual topology/capabilities, Intel shader compilation,
+general buffer/GPU-VA interfaces, render/cache and cross-engine synchronization,
+and frontend/presentation integration. BCS context/status helpers are not generic
+RCS helpers. Preserve their working hardware logic while adding render support.
+
+Mesa Iris, compiler/ISL/genxml, Haiku hgl/EGL and ANV are reference/reuse targets,
+not ready-made native integrations. The guide uses checksum-verified Mesa 26.0.7
+for Iris and the modern Haiku software EGL path, and separately labels classic
+Mesa 22.0.5 BGLView/renderer-add-on references. The checked 26.0.7 Haiku EGL path
+constructs a software screen; it does not select Iris. Iris's KMD backend is
+only part of its DRM/OS dependency surface. Vulkan/ANV and native WSI need their
+own integration after shared native contracts exist.
+
+The first render proof should be a compiled shader draw to owned offscreen
+memory with verified output and completion, not a version string, clear or BCS
+copy. No Mesa build, shader compilation, RCS execution or hardware OpenGL/Vulkan
+was performed in this investigation. Native BCS binaries remain unchanged.
+The source guide includes two release archive checksums and 26 file hashes.
+Desktop presentation work can proceed independently; rendering is not its
+prerequisite and full LinuxKPI closure remains outside the active strategy.
+
 ## Desktop integration investigation and recommendation
 
 [Source investigation and integration decision](research/n100-submission/DESKTOP-INTEGRATION-INVESTIGATION.md)
