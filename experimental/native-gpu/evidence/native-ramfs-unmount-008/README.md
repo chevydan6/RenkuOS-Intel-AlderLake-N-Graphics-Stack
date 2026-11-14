@@ -96,3 +96,7 @@ after it transferred too slowly; its host file is marked `.partial.img.zst`.
 A direct read-only copy of the active NanoKVM image is in progress at
 `/home/dan/ai/backups/renkuos-n100/nanokvm-disk-2026-11-15.img`. That copy
 must be verified complete before it is treated as a recovery backup.
+The NanoKVM also mounts `/data` from `/dev/mmcblk0p3`, with about 111.4 GiB
+free. Inactive images can be preserved there to free root capacity while the
+active LUN stays at its handoff-required path. The live LUN path has not been
+changed.
