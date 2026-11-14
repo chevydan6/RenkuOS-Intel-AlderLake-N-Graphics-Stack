@@ -3,18 +3,41 @@
 #define NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #include "RcsDrawImage.h"
 #include "RcsDepthVertex.h"
+#include "RcsRotateVertex.h"
+#include "RcsUserVertices.h"
 namespace NativeGpu {
 // Bounded shader BO contract. Accept one 208-byte FS instruction template
 // with paired constant RGB immediates and zero padding. The owner-selected VA
 // replaces two PS pointers; other GPU instructions remain rejected.
 class RcsPublicShader {
 public:
- // Only the proven 192-byte depth-quarter vertex program and zero padding.
+ enum VertexProgram { InvalidVertex, DepthQuarter, RotateHalfturn };
+ // Both approved machine programs require zero padding through the full page.
+ static VertexProgram IdentifyVertexPage(const uint32_t* words,unsigned dwords) {
+  if(!words || dwords!=1024)return InvalidVertex;
+  bool depth=true,rotate=true;
+  for(unsigned i=0;i<1024;i++){
+   depth &= words[i]==(i<48?RcsDepthVertex::Words[i]:0);
+   rotate &= words[i]==(i<44?RcsRotateVertex::Words[i]:0);
+  }
+  return depth?DepthQuarter:rotate?RotateHalfturn:InvalidVertex;
+ }
  static bool ValidateVertexPage(const uint32_t* words,unsigned dwords) {
-  if(!words || dwords!=1024)return false;
-  for(unsigned i=0;i<1024;i++)
-   if(words[i]!=(i<48?RcsDepthVertex::Words[i]:0))return false;
-  return true;
+  return IdentifyVertexPage(words,dwords)!=InvalidVertex;
+ }
+ // Build the CPU reference geometry from admitted vertex inputs. Only the
+ // half-turn changes x/y; zero is canonicalized so grid validation still holds.
+ static bool ExpectedVertices(VertexProgram program,const uint32_t* input,
+  uint32_t* output) {
+  if(program==InvalidVertex || !input || !output
+   || !RcsUserVertices::Validate(input))return false;
+  memcpy(output,input,12*sizeof(uint32_t));
+  if(program==RotateHalfturn)
+   for(unsigned i=0;i<3;i++)for(unsigned j=0;j<2;j++){
+    uint32_t& bits=output[4*i+j];
+    if(bits)bits^=0x80000000;
+   }
+  return RcsUserVertices::Validate(output);
  }
  static bool ValidateFragment(const uint32_t* words,unsigned dwords) {
   if(!words || dwords!=1024)return false;
@@ -71,6 +94,7 @@ public:
  }
 private:
  static_assert(sizeof(RcsDepthVertex::Words)==192,"depth vertex program changed");
+ static_assert(sizeof(RcsRotateVertex::Words)==176,"rotate vertex program changed");
  static constexpr unsigned kFsDwords=sizeof(RcsDrawData::Fs)/sizeof(uint32_t);
  static_assert(sizeof(RcsDrawData::Fs)==208,"Mesa 26.3.0 FS profile changed");
  static_assert(RcsDrawData::Fs[3]==0x3f800000 && RcsDrawData::Fs[35]==0x3f800000

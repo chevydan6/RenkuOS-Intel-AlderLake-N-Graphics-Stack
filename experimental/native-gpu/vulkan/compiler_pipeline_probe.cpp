@@ -2,7 +2,9 @@
 #include "CompiledKnownShader.h"
 #include "RgbSpirvFixture.h"
 #include "DepthSpirvFixture.h"
+#include "RotateSpirvFixture.h"
 #include "../render/RcsDepthVertex.h"
+#include "../render/RcsRotateVertex.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -80,6 +82,14 @@ int main()
     &depthBytes,fragment,sizeof(fragment)))return 14;
  if(depthBytes!=sizeof(depthVertex)
   || memcmp(depthVertex,NativeGpu::RcsDepthVertex::Words,depthBytes))return 15;
- puts("compiler pipeline probe: accepted bounded RGB machine code; rejected changed instructions and invalid input");
+ uint8_t rotateVertex[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
+ size_t rotateBytes=0;
+ if(!CompileKnownPipeline(RenkuRotateSpirv::Vertex,
+    sizeof(RenkuRotateSpirv::Vertex),RenkuKnownSpirv::Fragment,
+    sizeof(RenkuKnownSpirv::Fragment),rotateVertex,sizeof(rotateVertex),
+    &rotateBytes,fragment,sizeof(fragment)))return 16;
+ if(rotateBytes!=sizeof(NativeGpu::RcsRotateVertex::Words)
+  || memcmp(rotateVertex,NativeGpu::RcsRotateVertex::Words,rotateBytes))return 17;
+ puts("compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input");
  return 0;
 }

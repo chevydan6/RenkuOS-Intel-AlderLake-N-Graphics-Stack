@@ -4,6 +4,7 @@
 #include "KnownSpirv.h"
 #include "RgbSpirvFixture.h"
 #include "DepthSpirvFixture.h"
+#include "RotateSpirvFixture.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +24,8 @@ int main(int argc,char** argv)
   || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
    && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
    && strcmp(argv[2],"rgb")) || (argc==5 && strcmp(argv[4],"batch")
-   && strcmp(argv[4],"named") && strcmp(argv[4],"depth")))return 40;
+   && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
+   && strcmp(argv[4],"rotate")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  bool half=argc>=3 && !strcmp(argv[2],"half");
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
@@ -34,6 +36,8 @@ int main(int argc,char** argv)
  bool batch=argc==5 && !strcmp(argv[4],"batch");
  bool named=argc==5 && !strcmp(argv[4],"named");
  bool depth=argc==5 && !strcmp(argv[4],"depth");
+ bool rotate=argc==5 && !strcmp(argv[4],"rotate");
+ if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || (batch && repeats!=2))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
@@ -72,9 +76,11 @@ int main(int argc,char** argv)
  REQUIRE(queue,4);
 
  VkShaderModuleCreateInfo moduleInfo={};moduleInfo.sType=VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
- moduleInfo.pCode=depth?RenkuDepthSpirv::Vertex:
+ moduleInfo.pCode=rotate?RenkuRotateSpirv::Vertex:
+  depth?RenkuDepthSpirv::Vertex:
   named?namedVertex.data():RenkuKnownSpirv::Vertex;
- moduleInfo.codeSize=depth?sizeof(RenkuDepthSpirv::Vertex):
+ moduleInfo.codeSize=rotate?sizeof(RenkuRotateSpirv::Vertex):
+  depth?sizeof(RenkuDepthSpirv::Vertex):
   named?namedVertex.size()*4:sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
@@ -285,6 +291,7 @@ int main(int argc,char** argv)
  uint32_t hash=2166136261u;
  const uint32_t* pixels=(const uint32_t*)mapped;
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
+ const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
  if(half || green75 || green90 || rgb){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
@@ -292,12 +299,15 @@ int main(int argc,char** argv)
   const uint32_t expectedGreen90[4]={0x979c9f2d,0x6a3fddc3,0x44297d05,0xd034dd45};
   const uint32_t expectedRgb[4]={0x6f2bc92d,0xa4e13743,0xce445d05,0xfffe3dc5};
   const unsigned interiorX[4]={20,16,16,16},interiorY[4]={10,16,16,16};
-  REQUIRE(pixels[interiorY[shape]*32+interiorX[shape]]
+  REQUIRE(pixels[interiorY[expectedShape]*32+interiorX[expectedShape]]
    ==(rgb?0xff80bf40:green90?0xffffe500:green75?0xffffbf00:0xffff8000)
    && pixels[0]==0x19537bad
-   && hash==(rgb?expectedRgb[shape]:green90?expectedGreen90[shape]:
-    green75?expectedGreen75[shape]:expectedHalf[shape]),30);
- }else REQUIRE(hash==expected[shape] && pixels[0]==0x19537bad,30);
+   && hash==(rgb?expectedRgb[expectedShape]:green90?expectedGreen90[expectedShape]:
+    green75?expectedGreen75[expectedShape]:expectedHalf[expectedShape]),30);
+ }else REQUIRE(hash==(rotate?0x77323fd5:expected[expectedShape])
+  && pixels[0]==0x19537bad
+  && (!rotate || (pixels[20*32+10]==0xffff4000
+   && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
  if(rgb)printf("Native Vulkan N100 RGB triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);

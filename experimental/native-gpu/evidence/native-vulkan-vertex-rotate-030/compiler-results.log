@@ -1,0 +1,3 @@
+result=0 error= vs_bytes=176 vs_scratch=0 vs_relocs=0 vs_grf=128 vs_grf_start=2 vs_urb_read=0 vs_urb_entry=1 vs_dispatch=3 fs_bytes=208
+2701c69fca3b305af0f1feea0c1c7fe750fc7c99861cf1fafe4f85d6ca8e0780  /boot/home/test-work/vertex-rotate-030/rotate-vs.bin
+b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b  /boot/home/test-work/vertex-rotate-030/rotate-fs.bin

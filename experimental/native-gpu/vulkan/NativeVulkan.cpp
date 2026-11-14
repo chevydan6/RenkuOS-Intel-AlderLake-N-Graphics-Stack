@@ -840,7 +840,7 @@ vkCreateGraphicsPipelines(VkDevice device,VkPipelineCache cache,uint32_t count,
     &compiledVsBytes,compiledFs,sizeof(compiledFs)))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  const void* fragmentCode=compiledFs;
- const bool customVertex=compiledVsBytes==sizeof(compiledVs);
+ const bool customVertex=compiledVsBytes!=sizeof(NativeGpu::RcsDrawData::Vs);
 #else
  const void* fragmentCode=NativeGpu::RcsDrawData::Fs;
  const bool customVertex=false;

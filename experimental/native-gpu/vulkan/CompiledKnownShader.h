@@ -4,11 +4,12 @@
 #include "KnownSpirv.h"
 #include "../render/RcsPublicShader.h"
 #include "../render/RcsDepthVertex.h"
+#include "../render/RcsRotateVertex.h"
 #include "../render/compiler/mesa-26.3.0/IntelSpirvRuntime.h"
 #include <string.h>
 
 // Compile Vulkan 1.0 SPIR-V, then admit only owner-approved N100 programs.
-// The owner uses version 7 for the original VS and version 8 for the depth VS.
+// The owner uses version 7 for the original VS and version 8 for approved VS BOs.
 static bool CompileKnownPipeline(const uint32_t* vertex,size_t vertexBytes,
  const uint32_t* fragment,size_t fragmentBytes,void* vertexCode,
  size_t vertexCapacity,size_t* vertexCodeBytes,void* fragmentCode,
@@ -37,7 +38,9 @@ static bool CompileKnownPipeline(const uint32_t* vertex,size_t vertexBytes,
   && !memcmp(vs,NativeGpu::RcsDrawData::Vs,pair.vertex.bytes);
  const bool depth=pair.vertex.bytes==sizeof(NativeGpu::RcsDepthVertex::Words)
   && !memcmp(vs,NativeGpu::RcsDepthVertex::Words,pair.vertex.bytes);
- if(!original && !depth)return false;
+ const bool rotated=pair.vertex.bytes==sizeof(NativeGpu::RcsRotateVertex::Words)
+  && !memcmp(vs,NativeGpu::RcsRotateVertex::Words,pair.vertex.bytes);
+ if(!original && !depth && !rotated)return false;
  uint32_t shaderPage[1024]={};
  memcpy(shaderPage,fs,sizeof(fs));
  if(!NativeGpu::RcsPublicShader::ValidateFragment(shaderPage,1024))return false;

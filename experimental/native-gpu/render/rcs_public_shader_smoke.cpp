@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "RcsPublicShader.h"
 #include "RcsDepthVertex.h"
+#include "RcsRotateVertex.h"
 #include "RcsResourceVertices.h"
 #include <stdio.h>
 #include <string.h>
@@ -107,6 +108,21 @@ int main() {
  if(NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1024))return 28;
  vertexPage[1023]=0;
  if(NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1023))return 29;
+ memset(vertexPage,0,sizeof(vertexPage));
+ memcpy(vertexPage,NativeGpu::RcsRotateVertex::Words,
+  sizeof(NativeGpu::RcsRotateVertex::Words));
+ auto program=NativeGpu::RcsPublicShader::IdentifyVertexPage(vertexPage,1024);
+ if(program!=NativeGpu::RcsPublicShader::RotateHalfturn)return 30;
+ uint32_t transformed[12]={};
+ if(!NativeGpu::RcsPublicShader::ExpectedVertices(program,vertices,transformed)
+  || transformed[0]!=0x3f400000 || transformed[1]!=0x3f400000
+  || transformed[4]!=0xbf400000 || transformed[5]!=0x3f400000
+  || transformed[8]!=0xbf400000 || transformed[9]!=0xbf400000)return 31;
+ vertexPage[43]^=1;
+ if(NativeGpu::RcsPublicShader::IdentifyVertexPage(vertexPage,1024)
+  !=NativeGpu::RcsPublicShader::InvalidVertex)return 32;
+ vertexPage[43]^=1;vertexPage[1023]=1;
+ if(NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1024))return 33;
  puts("N100 bounded FS/VS templates and batch patch: PASS (CPU only)");
  return 0;
 }

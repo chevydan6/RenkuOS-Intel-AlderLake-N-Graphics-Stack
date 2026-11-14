@@ -1,0 +1,31 @@
+; SPDX-License-Identifier: MIT
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Vertex %main "main" %in_pos %gl_PerVertex
+OpDecorate %in_pos Location 0
+OpMemberDecorate %per_vertex 0 BuiltIn Position
+OpDecorate %per_vertex Block
+%void = OpTypeVoid
+%fn = OpTypeFunction %void
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%per_vertex = OpTypeStruct %v4float
+%ptr_input_v4 = OpTypePointer Input %v4float
+%ptr_output_per_vertex = OpTypePointer Output %per_vertex
+%ptr_output_v4 = OpTypePointer Output %v4float
+%in_pos = OpVariable %ptr_input_v4 Input
+%gl_PerVertex = OpVariable %ptr_output_per_vertex Output
+%int = OpTypeInt 32 1
+%zero = OpConstant %int 0
+%main = OpFunction %void None %fn
+%start = OpLabel
+%pos = OpLoad %v4float %in_pos
+%negative = OpFNegate %v4float %pos
+%z = OpCompositeExtract %float %pos 2
+%w = OpCompositeExtract %float %pos 3
+%with_z = OpCompositeInsert %v4float %z %negative 2
+%rotated = OpCompositeInsert %v4float %w %with_z 3
+%out_pos = OpAccessChain %ptr_output_v4 %gl_PerVertex %zero
+OpStore %out_pos %rotated
+OpReturn
+OpFunctionEnd

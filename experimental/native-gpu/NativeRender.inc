@@ -91,6 +91,7 @@ static NativeGpu::ResourceArena sRenderArena(kRenderArenaGpu,kRenderArenaPages);
 static bool sRenderArenaReady;
 static bool NativeResourceAllowedLocked();
 static uint32_t sRenderUserVertices[12];
+static uint32_t sRenderExpectedVertices[12];
 static uint32_t sRenderSavedDefault[14*1024];
 static IntelN100PpgttTree sRenderTree;
 static NativeGpu::RcsEngine sRenderEngine;
@@ -435,7 +436,8 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   if(sRenderUserDraw){
    NativeGpu::RcsUserVertices::Check check={};
    matched=NativeGpu::RcsUserVertices::Inspect(
-    sRenderData[NativeGpu::RcsDrawImage::Target],sRenderUserVertices,check,
+    sRenderData[NativeGpu::RcsDrawImage::Target],
+    sRenderPublicVertexDraw?sRenderExpectedVertices:sRenderUserVertices,check,
     sRenderExpectedPixel);
    r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
    r.interior_xy=check.interior;r.exterior_xy=check.exterior;
@@ -499,6 +501,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  bool combinedDraw=(version==7 || publicVertexDraw) && mode==NATIVE_GPU_RENDER_DRAW;
  bool userDraw=(version==2 || resourceDraw) && mode==NATIVE_GPU_RENDER_DRAW;
  uint32_t userVertices[12]={};
+ uint32_t expectedVertices[12]={};
  if(userDraw)memcpy(userVertices,command->output,sizeof(userVertices));
  uint32_t vertexShaderHandle=0;
  if(publicVertexDraw)memcpy(&vertexShaderHandle,command->output,sizeof(vertexShaderHandle));
@@ -565,7 +568,9 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
   }
   unsigned page=unsigned((vertexShaderGpu-kRenderArenaGpu)/4096);
   vertexWords=(const uint32_t*)sRenderArenaPages[page].cpu;
-  if(!NativeGpu::RcsPublicShader::ValidateVertexPage(vertexWords,1024)){
+  auto program=NativeGpu::RcsPublicShader::IdentifyVertexPage(vertexWords,1024);
+  if(!NativeGpu::RcsPublicShader::ExpectedVertices(
+   program,userVertices,expectedVertices)){
    mutex_unlock(&sLock);return output.status;
   }
  }
@@ -596,6 +601,8 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  sRenderExpectedPixel=renderedPixel;
  if(userDraw || arenaDraw || publicBatchDraw || combinedDraw)
   memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
+ if(publicVertexDraw)
+  memcpy(sRenderExpectedVertices,expectedVertices,sizeof(expectedVertices));
  sRenderReport=output;auto& r=sRenderReport;
  if(mode!=NATIVE_GPU_RENDER_PROBE){
   ++sNativeSequence;if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
