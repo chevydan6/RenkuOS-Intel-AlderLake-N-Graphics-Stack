@@ -18,11 +18,15 @@ struct VkShaderModule_T;
 struct VkDeviceMemory_T;
 struct VkBuffer_T;
 struct VkImage_T;
+struct VkImageView_T;
+struct VkRenderPass_T;
+struct VkFramebuffer_T;
 struct VkQueue_T { VkDevice_T* device; };
 struct VkDevice_T {
  VkPhysicalDevice physical;int fd;VkQueue_T queue;
  VkShaderModule_T* shaders;VkDeviceMemory_T* memory;
- VkBuffer_T* buffers;VkImage_T* images;
+ VkBuffer_T* buffers;VkImage_T* images;VkImageView_T* views;
+ VkRenderPass_T* passes;VkFramebuffer_T* framebuffers;
 };
 struct VkShaderModule_T { VkDevice_T* device; VkShaderModule_T* next; size_t bytes; uint32_t* code; };
 struct VkDeviceMemory_T {
@@ -33,6 +37,12 @@ struct VkBuffer_T {
  VkDevice_T* device;VkBuffer_T* next;VkDeviceSize bytes;VkDeviceMemory memory;
 };
 struct VkImage_T { VkDevice_T* device;VkImage_T* next;VkDeviceMemory memory; };
+struct VkImageView_T { VkDevice_T* device;VkImageView_T* next;VkImage image; };
+struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next; };
+struct VkFramebuffer_T {
+ VkDevice_T* device;VkFramebuffer_T* next;
+ VkRenderPass pass;VkImageView view;
+};
 
 static bool ProbeN100(VkPhysicalDevice_T* physical)
 {
@@ -216,6 +226,18 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
   VkImage_T* next=device->images->next;
   free(device->images);device->images=next;
  }
+ while(device->views){
+  VkImageView_T* next=device->views->next;
+  free(device->views);device->views=next;
+ }
+ while(device->passes){
+  VkRenderPass_T* next=device->passes->next;
+  free(device->passes);device->passes=next;
+ }
+ while(device->framebuffers){
+  VkFramebuffer_T* next=device->framebuffers->next;
+  free(device->framebuffers);device->framebuffers=next;
+ }
  while(device->memory){
   VkDeviceMemory_T* next=device->memory->next;
   native_gpu_resource_command c={};c.version=1;
@@ -340,6 +362,105 @@ vkGetImageMemoryRequirements(VkDevice device,VkImage image,
  if(!device || !image || image->device!=device)return;
  requirements->size=4096;requirements->alignment=4096;
  requirements->memoryTypeBits=1;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateImageView(VkDevice device,const VkImageViewCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkImageView* view)
+{
+ if(view)*view=VK_NULL_HANDLE;
+ if(!device || !info || !view || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO
+  || !info->image || info->image->device!=device
+  || info->viewType!=VK_IMAGE_VIEW_TYPE_2D
+  || info->format!=VK_FORMAT_B8G8R8A8_UNORM
+  || info->components.r || info->components.g || info->components.b
+  || info->components.a
+  || info->subresourceRange.aspectMask!=VK_IMAGE_ASPECT_COLOR_BIT
+  || info->subresourceRange.baseMipLevel || info->subresourceRange.levelCount!=1
+  || info->subresourceRange.baseArrayLayer || info->subresourceRange.layerCount!=1)
+  return VK_ERROR_FORMAT_NOT_SUPPORTED;
+ VkImageView_T* value=(VkImageView_T*)calloc(1,sizeof(VkImageView_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->image=info->image;
+ value->next=device->views;device->views=value;*view=value;
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyImageView(VkDevice device,VkImageView view,const VkAllocationCallbacks*)
+{
+ if(!device || !view)return;
+ VkImageView_T** current=&device->views;
+ while(*current && *current!=view)current=&(*current)->next;
+ if(*current){*current=view->next;free(view);}
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateRenderPass(VkDevice device,const VkRenderPassCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkRenderPass* pass)
+{
+ if(pass)*pass=VK_NULL_HANDLE;
+ if(!device || !info || !pass || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO
+  || info->attachmentCount!=1 || !info->pAttachments
+  || info->subpassCount!=1 || !info->pSubpasses || info->dependencyCount)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ const VkAttachmentDescription& a=info->pAttachments[0];
+ const VkSubpassDescription& s=info->pSubpasses[0];
+ if(a.flags || a.format!=VK_FORMAT_B8G8R8A8_UNORM
+  || a.samples!=VK_SAMPLE_COUNT_1_BIT || a.loadOp!=VK_ATTACHMENT_LOAD_OP_DONT_CARE
+  || a.storeOp!=VK_ATTACHMENT_STORE_OP_STORE
+  || a.initialLayout!=VK_IMAGE_LAYOUT_UNDEFINED
+  || a.finalLayout!=VK_IMAGE_LAYOUT_GENERAL
+  || s.flags || s.pipelineBindPoint!=VK_PIPELINE_BIND_POINT_GRAPHICS
+  || s.inputAttachmentCount || s.colorAttachmentCount!=1
+  || !s.pColorAttachments || s.pColorAttachments[0].attachment!=0
+  || s.pColorAttachments[0].layout!=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+  || s.pResolveAttachments || s.pDepthStencilAttachment || s.preserveAttachmentCount)
+  return VK_ERROR_FEATURE_NOT_PRESENT;
+ VkRenderPass_T* value=(VkRenderPass_T*)calloc(1,sizeof(VkRenderPass_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->next=device->passes;device->passes=value;
+ *pass=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyRenderPass(VkDevice device,VkRenderPass pass,const VkAllocationCallbacks*)
+{
+ if(!device || !pass)return;
+ VkRenderPass_T** current=&device->passes;
+ while(*current && *current!=pass)current=&(*current)->next;
+ if(*current){*current=pass->next;free(pass);}
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateFramebuffer(VkDevice device,const VkFramebufferCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkFramebuffer* framebuffer)
+{
+ if(framebuffer)*framebuffer=VK_NULL_HANDLE;
+ if(!device || !info || !framebuffer || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO
+  || !info->renderPass || info->renderPass->device!=device
+  || info->attachmentCount!=1 || !info->pAttachments || !info->pAttachments[0]
+  || info->pAttachments[0]->device!=device || info->width!=32
+  || info->height!=32 || info->layers!=1)return VK_ERROR_INITIALIZATION_FAILED;
+ VkFramebuffer_T* value=(VkFramebuffer_T*)calloc(1,sizeof(VkFramebuffer_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->pass=info->renderPass;
+ value->view=info->pAttachments[0];
+ value->next=device->framebuffers;device->framebuffers=value;
+ *framebuffer=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyFramebuffer(VkDevice device,VkFramebuffer framebuffer,
+ const VkAllocationCallbacks*)
+{
+ if(!device || !framebuffer)return;
+ VkFramebuffer_T** current=&device->framebuffers;
+ while(*current && *current!=framebuffer)current=&(*current)->next;
+ if(*current){*current=framebuffer->next;free(framebuffer);}
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -484,6 +605,12 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkCreateImage);
  VK_PROC(vkDestroyImage);
  VK_PROC(vkGetImageMemoryRequirements);
+ VK_PROC(vkCreateImageView);
+ VK_PROC(vkDestroyImageView);
+ VK_PROC(vkCreateRenderPass);
+ VK_PROC(vkDestroyRenderPass);
+ VK_PROC(vkCreateFramebuffer);
+ VK_PROC(vkDestroyFramebuffer);
  VK_PROC(vkAllocateMemory);
  VK_PROC(vkFreeMemory);
  VK_PROC(vkBindBufferMemory);

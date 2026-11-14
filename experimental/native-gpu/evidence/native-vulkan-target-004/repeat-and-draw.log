@@ -1,0 +1,19 @@
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+rcs_public_shader ioctl=0 status=0 version=6 stage=12 sequence=6/6 variant=0 gpu=410000
+checked=654 matched=654 target_hash=28616d2d fault=00000000 engine=4/0 csb=0
+RCS public shader hardware draw: PASS

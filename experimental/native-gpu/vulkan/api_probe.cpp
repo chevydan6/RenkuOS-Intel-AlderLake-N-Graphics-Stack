@@ -119,6 +119,40 @@ int main()
  VkImage unsupportedImage=VK_NULL_HANDLE;
  if(vkCreateImage(device,&imageInfo,nullptr,&unsupportedImage)==VK_SUCCESS
   || unsupportedImage)return 30;
+ VkImageViewCreateInfo viewInfo={};viewInfo.sType=VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+ viewInfo.image=image;viewInfo.viewType=VK_IMAGE_VIEW_TYPE_2D;
+ viewInfo.format=VK_FORMAT_B8G8R8A8_UNORM;
+ viewInfo.subresourceRange.aspectMask=VK_IMAGE_ASPECT_COLOR_BIT;
+ viewInfo.subresourceRange.levelCount=1;viewInfo.subresourceRange.layerCount=1;
+ VkImageView view=VK_NULL_HANDLE;
+ if(vkCreateImageView(device,&viewInfo,nullptr,&view)!=VK_SUCCESS || !view)return 31;
+ VkAttachmentDescription attachment={};attachment.format=VK_FORMAT_B8G8R8A8_UNORM;
+ attachment.samples=VK_SAMPLE_COUNT_1_BIT;attachment.loadOp=VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+ attachment.storeOp=VK_ATTACHMENT_STORE_OP_STORE;
+ attachment.initialLayout=VK_IMAGE_LAYOUT_UNDEFINED;
+ attachment.finalLayout=VK_IMAGE_LAYOUT_GENERAL;
+ VkAttachmentReference color={};color.attachment=0;
+ color.layout=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+ VkSubpassDescription subpass={};subpass.pipelineBindPoint=VK_PIPELINE_BIND_POINT_GRAPHICS;
+ subpass.colorAttachmentCount=1;subpass.pColorAttachments=&color;
+ VkRenderPassCreateInfo passInfo={};passInfo.sType=VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+ passInfo.attachmentCount=1;passInfo.pAttachments=&attachment;
+ passInfo.subpassCount=1;passInfo.pSubpasses=&subpass;
+ VkRenderPass pass=VK_NULL_HANDLE;
+ if(vkCreateRenderPass(device,&passInfo,nullptr,&pass)!=VK_SUCCESS || !pass)return 32;
+ VkFramebufferCreateInfo fbInfo={};fbInfo.sType=VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+ fbInfo.renderPass=pass;fbInfo.attachmentCount=1;fbInfo.pAttachments=&view;
+ fbInfo.width=32;fbInfo.height=32;fbInfo.layers=1;
+ VkFramebuffer framebuffer=VK_NULL_HANDLE;
+ if(vkCreateFramebuffer(device,&fbInfo,nullptr,&framebuffer)!=VK_SUCCESS
+  || !framebuffer)return 33;
+ fbInfo.width=33;
+ VkFramebuffer invalidFramebuffer=VK_NULL_HANDLE;
+ if(vkCreateFramebuffer(device,&fbInfo,nullptr,&invalidFramebuffer)==VK_SUCCESS
+  || invalidFramebuffer)return 34;
+ vkDestroyFramebuffer(device,framebuffer,nullptr);
+ vkDestroyRenderPass(device,pass,nullptr);
+ vkDestroyImageView(device,view,nullptr);
  vkDestroyImage(device,image,nullptr);
  vkFreeMemory(device,imageMemory,nullptr);
  vkDestroyShaderModule(device,fs,nullptr);

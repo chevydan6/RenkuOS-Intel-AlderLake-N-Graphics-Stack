@@ -52,6 +52,8 @@ buffer. [Memory checkpoint evidence](../evidence/native-vulkan-memory-002/README
 records physical repetitions, binary hashes, and direct compile inputs.
 The [image checkpoint](../evidence/native-vulkan-image-003/README.md) verifies
 the fixed output-image allocation and binding path.
+The [render-target checkpoint](../evidence/native-vulkan-target-004/README.md)
+verifies the image-view, render-pass, and framebuffer chain for that shape.
 
 `KnownSpirv.h` is generated from the validated Vulkan 1.2 assembly fixtures
 in `../render/compiler/mesa-26.3.0/spirv/` using `generate-known-spirv.py` and

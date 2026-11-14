@@ -167,3 +167,10 @@ object sessions and the v6 hardware draw passed; see
 `evidence/native-vulkan-image-003/`. The image does not yet receive rendered
 pixels through Vulkan; render-pass, pipeline, command, queue, and readback
 semantics remain to be implemented.
+
+The native Vulkan library now also owns a fixed image view, one-color render
+pass, and 32×32 framebuffer. Sixteen physical object-chain probes and the v6
+draw control passed; see `evidence/native-vulkan-target-004/`. The next
+missing link is a graphics pipeline and recorded command sequence that
+validates the known SPIR-V fixtures and submits the bounded owner draw into
+the framebuffer's bound image.
