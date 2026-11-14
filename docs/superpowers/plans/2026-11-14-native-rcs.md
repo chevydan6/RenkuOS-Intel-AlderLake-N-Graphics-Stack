@@ -48,14 +48,14 @@ input contains identity/revision, distinct context/ring GGTT ranges, PML4,
 ring size/tail and caller-validated RPCS. Output is a64KiB fresh context including
 14 hardware pages, one indirect WA page and one terminating per-context page.
 
-- [ ] Write a failing fixture checking exact decoded Linux v6.6 RCS LRI table,
+- [x] Write a failing fixture checking exact decoded Linux v6.6 RCS LRI table,
   mode/ring/PML4/RPCS value slots, BBE at0xb9,29-dword WA padded to128bytes,
   RCS AUX0x4208, context-relative timestamp/CMD_BUF_CCTL/GPR0 restores.
-- [ ] Implement the constructor using pinned source logic and MIT attribution;
+- [x] Implement the constructor using pinned source logic and MIT attribution;
   validate shape/ranges before writes. State explicitly that it grants no
   ownership, topology validity, DMA or hardware submission permission.
-- [ ] Run focused valid/invalid construction checks and review independently.
-- [ ] Commit this independently testable CPU-only component.
+- [x] Run focused valid/invalid construction checks and review independently.
+- [x] Commit this independently testable CPU-only component.
 
 ## Task2: reproducible Intel shader compiler
 
@@ -143,3 +143,5 @@ active for any remaining user-requested Mesa integration.
   shared-GT and legacy-ring exclusion are explicit pre-publication gates.
 - Mesa26.1.8 archive hash matches official release notes. IGT reference pinned to
  31ec677ca24e7ed86e35f367f40a29d3d9f51c06. No RCS hardware changes yet.
+
+- Task1 implemented and independently reviewed: exact pinned register/WA image and strict C++11 fixture pass; CPU construction only. No RCS hardware operation.
