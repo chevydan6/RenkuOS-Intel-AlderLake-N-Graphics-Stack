@@ -24,6 +24,9 @@ int main()
  uint32_t batch[6]={};R::BatchStart(batch);
  assert(batch[0]==0x04000001 && batch[1]==0x18800101 && !(batch[1]&(1U<<22)));
  assert(batch[2]==0x400000 && batch[3]==0 && batch[4]==0x04000000 && batch[5]==0);
+ R::BatchStart(batch,0x412000);
+ assert(batch[0]==0x04000001 && batch[1]==0x18800101);
+ assert(batch[2]==0x412000 && batch[3]==0 && batch[4]==0x04000000 && batch[5]==0);
  for(unsigned v=0;v<4;v++){
   for(unsigned y=0;y<32;y++)for(unsigned x=0;x<32;x++){
    int d=(v&1)?int(x+y)-31:int(x)-int(y);

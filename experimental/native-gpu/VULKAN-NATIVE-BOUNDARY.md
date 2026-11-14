@@ -96,3 +96,11 @@ page is zeroed in v4, establishing that the GPU read the public BO. This
 closes the first create/write/address/submit/readback vertical slice, but the
 submission is still a kernel-selected RCS batch. General Vulkan commands,
 fences, shader compilation, and presentation remain unimplemented.
+
+Version 5 now submits a public command BO through the same native owner. The
+owner verifies every 4 KiB batch dword against a known-safe RCS draw image,
+allows only an owner-resolved vertex BO address, and points MI_BATCH_BUFFER_START
+at the public BO. Sixty-four N100 hardware draws and all v1–v4 64-draw
+controls passed; see `evidence/rcs-public-batch-001/`. This proves a bounded
+userspace command-buffer path. It does not satisfy ANV's general command
+submission, sync, or VM-binding contract.

@@ -1,0 +1,65 @@
+{
+  "client": "/boot/home/native-rcs-resource-012/build/gpu_render_buffer",
+  "owner": "/boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner",
+  "host": "renkuos-n100",
+  "resource": false,
+  "public_buffer": false,
+  "public_batch": true,
+  "rounds": 1,
+  "shapes": [
+    [
+      [
+        4,
+        4,
+        28,
+        4,
+        28,
+        28
+      ],
+      777,
+      "28616d2d"
+    ],
+    [
+      [
+        5,
+        5,
+        27,
+        5,
+        16,
+        27
+      ],
+      758,
+      "d40eb9c3"
+    ],
+    [
+      [
+        4,
+        24,
+        16,
+        4,
+        28,
+        24
+      ],
+      766,
+      "e24aed05"
+    ],
+    [
+      [
+        8,
+        8,
+        24,
+        8,
+        16,
+        24
+      ],
+      760,
+      "984ae945"
+    ]
+  ],
+  "start_unix_ns": 1794661341852319662,
+  "client_sha256": "13a54d1611243222ed63147e21cab9194178bca28f74054b58a5e7daf54e5dcf",
+  "owner_sha256": "6d6abe0a6492a7e27f0a2c2d8046895319ab683b7678b521912697f9e0e08099",
+  "end_unix_ns": 1794661343156349418,
+  "final_sequence": 326,
+  "draws_passed": 4
+}

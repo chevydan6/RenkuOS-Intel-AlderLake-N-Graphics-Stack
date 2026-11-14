@@ -9,6 +9,7 @@
 #include "render/RcsRequestReuse.h"
 #include "render/RcsUserVertices.h"
 #include "render/RcsResourceVertices.h"
+#include "render/RcsValidatedBatch.h"
 #include "render/RcsCompletionObservation.h"
 #include "render/RcsPciAdmission.h"
 #include "NativeResourceArena.h"
@@ -76,8 +77,8 @@ static uint32_t sRenderCursor;
 static bool sRenderHideCompletion;
 static uint32_t* sRenderData[8];
 static bool sRenderUserDraw;
-static bool sRenderResourceDraw,sRenderArenaDraw,sRenderResourceReady;
-static uint64_t sRenderArenaGpu;
+static bool sRenderResourceDraw,sRenderArenaDraw,sRenderPublicBatchDraw,sRenderResourceReady;
+static uint64_t sRenderArenaGpu,sRenderPublicBatchGpu;
 static IntelN100PpgttTree::Page sRenderResourcePage;
 static constexpr uint64_t kRenderArenaGpu=0x410000;
 static constexpr unsigned kRenderArenaPages=16;
@@ -319,7 +320,8 @@ static bool NativeRenderBuild(uint32_t nonce,uint32_t sequence,uint32_t& tail,bo
   ring[n++]=0x02800100; // preparser_disable(false)
  };
  barrier();
- if(draw){NativeGpu::RcsRequestReuse::BatchStart(ring+n);n+=6;}
+ if(draw){NativeGpu::RcsRequestReuse::BatchStart(ring+n,
+  sRenderPublicBatchDraw?uint32_t(sRenderPublicBatchGpu):0x400000);n+=6;}
  else {
   ring[n++]=0x11000000|(2*sRenderProfile.contextCount-1);
   for(unsigned i=0;i<sRenderProfile.contextCount;i++){
@@ -363,13 +365,19 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  if(!NativeCachePolicy(data))return false;
  }
  sRenderRetired=false;
- if(draw && !(sRenderArenaDraw
+ if(draw && !(sRenderPublicBatchDraw
+  ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
+  : sRenderArenaDraw
   ? NativeGpu::RcsResourceVertices::BuildAt(sRenderData,sRenderUserVertices,sRenderArenaGpu)
   : sRenderResourceDraw
   ? NativeGpu::RcsResourceVertices::Build(sRenderData,(uint32_t*)sRenderResourcePage.cpu,sRenderUserVertices)
   : sRenderUserDraw
    ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
    : NativeGpu::RcsDrawImage::Build(sRenderData,r.variant)))return false;
+ if(draw && sRenderPublicBatchDraw){
+  memset(sRenderData[NativeGpu::RcsDrawImage::Batch],0,4096);
+  memset(sRenderData[NativeGpu::RcsDrawImage::Vertices],0,4096);
+ }
  r.stage=8;
  if(!NativeRenderBuild(r.nonce,r.sequence,r.ring_tail,draw) || !NativeVisible(data))return false;
  uint32_t tag=1+(r.sequence-1)%0x7fe;uint64_t descriptor=0;
@@ -466,6 +474,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  uint32_t version=command->version,mode=command->mode,variant=command->variant;
  bool resourceDraw=version==3 && mode==NATIVE_GPU_RENDER_DRAW;
  bool arenaDraw=version==4 && mode==NATIVE_GPU_RENDER_DRAW;
+ bool publicBatchDraw=version==5 && mode==NATIVE_GPU_RENDER_DRAW;
  bool userDraw=(version==2 || resourceDraw) && mode==NATIVE_GPU_RENDER_DRAW;
  uint32_t userVertices[12]={};
  if(userDraw)memcpy(userVertices,command->output,sizeof(userVertices));
@@ -473,7 +482,8 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
   && ((version==1 && ((mode==NATIVE_GPU_RENDER_DRAW && variant<4)
     || ((mode==NATIVE_GPU_RENDER_PROBE || mode==NATIVE_GPU_RENDER_BOOTSTRAP) && variant==0)))
    || (userDraw && variant==0 && NativeGpu::RcsUserVertices::Validate(userVertices))))
-  || (arenaDraw && variant==0 && command->reserved!=0 && resourceSession!=0);
+  || (arenaDraw && variant==0 && command->reserved!=0 && resourceSession!=0)
+  || (publicBatchDraw && variant!=0 && command->reserved!=0 && resourceSession!=0);
  // The bridge stages on the heap; the owner never retains that pointer.
  command->report={};memset(command->output,0,sizeof(command->output));
  auto& output=command->report;output.version=version;output.mode=mode;output.variant=variant;
@@ -481,18 +491,28 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
  if(!valid)return output.status;
 
  mutex_lock(&sLock);
- uint64_t arenaGpu=0;
- if(arenaDraw){
+ uint64_t arenaGpu=0,publicBatchGpu=0;
+ if(arenaDraw || publicBatchDraw){
   if(!NativeResourceAllowedLocked()){
    output.status=B_DEV_NOT_READY;mutex_unlock(&sLock);return output.status;
   }
-  if(!sRenderArena.Resolve(resourceSession,command->reserved,0,sizeof(userVertices),arenaGpu)){
+  uint32_t vertexHandle=publicBatchDraw?variant:command->reserved;
+  if(!sRenderArena.Resolve(resourceSession,vertexHandle,0,sizeof(userVertices),arenaGpu)){
    mutex_unlock(&sLock);return output.status;
   }
   unsigned page=unsigned((arenaGpu-kRenderArenaGpu)/4096);
   memcpy(userVertices,sRenderArenaPages[page].cpu,sizeof(userVertices));
   if(!NativeGpu::RcsUserVertices::Validate(userVertices)){
    mutex_unlock(&sLock);return output.status;
+  }
+  if(publicBatchDraw){
+   if(!sRenderArena.Resolve(resourceSession,command->reserved,0,4096,publicBatchGpu)
+    || publicBatchGpu==arenaGpu){mutex_unlock(&sLock);return output.status;}
+   unsigned batchPage=unsigned((publicBatchGpu-kRenderArenaGpu)/4096);
+   if(!NativeGpu::RcsValidatedBatch::Validate(
+    (const uint32_t*)sRenderArenaPages[batchPage].cpu,1024,uint32_t(arenaGpu))){
+    mutex_unlock(&sLock);return output.status;
+   }
   }
  }
  NativeRenderSnapshotLocked(output);
@@ -511,10 +531,12 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,uint64_t
   output.status=admission==NativeGpu::RequestLifecycle::Busy?B_BUSY:B_DEV_NOT_READY;
   return output.status;
  }
- sRenderUserDraw=userDraw || arenaDraw;
+ sRenderUserDraw=userDraw || arenaDraw || publicBatchDraw;
  sRenderResourceDraw=resourceDraw;
  sRenderArenaDraw=arenaDraw;sRenderArenaGpu=arenaGpu;
- if(userDraw || arenaDraw)memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
+ sRenderPublicBatchDraw=publicBatchDraw;sRenderPublicBatchGpu=publicBatchGpu;
+ if(userDraw || arenaDraw || publicBatchDraw)
+  memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
  sRenderReport=output;auto& r=sRenderReport;
  if(mode!=NATIVE_GPU_RENDER_PROBE){
   ++sNativeSequence;if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
@@ -602,7 +624,8 @@ static status_t RunNativeRender(native_gpu_render_command* command)
 {return RunNativeRenderOwned(command,0);}
 static status_t NativeResourceDraw(uint64_t session,native_gpu_render_command* command)
 {
- if(!command || command->version!=4 || command->mode!=NATIVE_GPU_RENDER_DRAW)return B_BAD_VALUE;
+ if(!command || (command->version!=4 && command->version!=5)
+  || command->mode!=NATIVE_GPU_RENDER_DRAW)return B_BAD_VALUE;
  return RunNativeRenderOwned(command,session);
 }
 // Administrative resume is serialized by Suspended + TransitionBusy. It owns

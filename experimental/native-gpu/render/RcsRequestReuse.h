@@ -27,11 +27,11 @@ public:
   regs[0x31]=uint32_t(root>>32);regs[0x33]=uint32_t(root);regs[0x43]=rpcs;
   return true;
  }
- static void BatchStart(uint32_t* words) {
+ static void BatchStart(uint32_t* words,uint32_t batchGpu=0x400000) {
   // gen8_engine_cs.c gen8_emit_bb_start, normal preemptible/nonsecure PPGTT.
   // First-level start returns to ring after MI_BATCH_BUFFER_END; bit22 (second
   // level) is deliberately absent. Disable arbitration again at ring return.
-  const uint32_t packet[]={0x04000001,0x18800101,0x400000,0,0x04000000,0};
+  const uint32_t packet[]={0x04000001,0x18800101,batchGpu,0,0x04000000,0};
   memcpy(words,packet,sizeof(packet));
  }
  static bool PoisonNext(uint32_t* status,uint32_t cursor) {

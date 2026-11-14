@@ -101,6 +101,9 @@ access and dependencies, return a fence/sequence, and expose wait/error state.
 Preserve resource residency until completion or recovery.
 
 - [ ] Reject forbidden packets and out-of-range relocations in CPU tests.
+- [x] Prove one exact-template, owner-validated public command BO on N100:
+  64 v5 draws, four invalid batch/handle rejections, and preserved v1–v4
+  controls. General packet validation and fences remain open.
 - [ ] Validate command execution, wait, readback, timeout, and recovery on N100.
 - [ ] Map the resulting ABI to ANV's create/map/bind/queue hooks and measure
   the selected native build closure before claiming a Vulkan triangle.

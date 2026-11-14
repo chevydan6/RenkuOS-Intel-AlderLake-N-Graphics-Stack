@@ -23,12 +23,14 @@ def run(*args):
     return subprocess.run(args, text=True, capture_output=True, timeout=20)
 
 
-def parse(output, resource=False, public_buffer=False):
+def parse(output, resource=False, public_buffer=False, public_batch=False):
     kind = "resource" if resource else "user"
-    version = 4 if public_buffer else 3 if resource else 2
-    success = ("RCS public buffer hardware draw: PASS" if public_buffer else
+    version = 5 if public_batch else 4 if public_buffer else 3 if resource else 2
+    success = ("RCS public batch hardware draw: PASS" if public_batch else
+               "RCS public buffer hardware draw: PASS" if public_buffer else
                f"RCS {kind} vertex hardware draw: PASS")
-    prefix = "rcs_public_buffer" if public_buffer else f"rcs_{kind}_vertices"
+    prefix = ("rcs_public_batch" if public_batch else "rcs_public_buffer" if public_buffer
+              else f"rcs_{kind}_vertices")
     if success not in output:
         raise ValueError("client did not confirm the hardware draw")
     status = re.search(
@@ -58,15 +60,17 @@ def main():
     parser.add_argument("--client", default=CLIENT)
     parser.add_argument("--resource", action="store_true")
     parser.add_argument("--public-buffer", action="store_true")
+    parser.add_argument("--public-batch", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if not 1 <= args.rounds <= 1000:
         parser.error("--rounds must be 1..1000")
-    if args.resource and args.public_buffer:
-        parser.error("--resource and --public-buffer are mutually exclusive")
+    if sum((args.resource,args.public_buffer,args.public_batch))>1:
+        parser.error("select at most one draw mode")
     args.output.mkdir(parents=True, exist_ok=False)
     meta = {"client": args.client, "owner": OWNER, "host": args.host,
             "resource": args.resource, "public_buffer": args.public_buffer,
+            "public_batch": args.public_batch,
             "rounds": args.rounds, "shapes": SHAPES,
             "start_unix_ns": time.time_ns()}
     for label, path in (("client_sha256", args.client), ("owner_sha256", OWNER)):
@@ -81,7 +85,8 @@ def main():
         for round_index in range(args.rounds):
             for shape_index, (coords, expected_pixels, expected_hash) in enumerate(SHAPES):
                 result = run("ssh", args.host, args.client,
-                             *(("--resource",) if args.resource else ()),
+                             *(("--resource",) if args.resource else
+                               ("--batch",) if args.public_batch else ()),
                              *(str(x) for x in coords))
                 raw.write(f"round={round_index} shape={shape_index} exit={result.returncode}\n")
                 raw.write(result.stdout + result.stderr + "\n")
@@ -89,7 +94,8 @@ def main():
                 try:
                     if result.returncode:
                         raise ValueError(f"client exited {result.returncode}")
-                    record = parse(result.stdout, args.resource, args.public_buffer)
+                    record = parse(result.stdout, args.resource, args.public_buffer,
+                                   args.public_batch)
                     if record["checked_pixels"] != expected_pixels:
                         raise ValueError("checked pixel count changed")
                     if record["target_hash"] != expected_hash:
@@ -107,7 +113,8 @@ def main():
     meta["final_sequence"] = last_sequence
     meta["draws_passed"] = args.rounds * len(SHAPES)
     (args.output / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")
-    label = "public-buffer" if args.public_buffer else "separate-page" if args.resource else "user-vertex"
+    label = ("public-batch" if args.public_batch else "public-buffer" if args.public_buffer
+             else "separate-page" if args.resource else "user-vertex")
     print(f"PASS {meta['draws_passed']} physical N100 {label} draws; "
           f"final sequence {last_sequence}")
     return 0

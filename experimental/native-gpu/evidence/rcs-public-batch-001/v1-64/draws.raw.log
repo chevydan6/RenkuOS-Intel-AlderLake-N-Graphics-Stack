@@ -1,0 +1,639 @@
+round=0 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000418001/0041800003ff8000
+nonce=048a2a93/048a2a93 complement=fb75d56c sequence=131/131 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=0 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000420001/0042000003ff8000
+nonce=048d768d/048d768d complement=fb728972 sequence=132/132 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=0 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000428001/0042800003ff8000
+nonce=0490d491/0490d491 complement=fb6f2b6e sequence=133/133 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=0 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000430001/0043000003ff8000
+nonce=049433b9/049433b9 complement=fb6bcc46 sequence=134/134 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=1 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000438001/0043800003ff8000
+nonce=04979b63/04979b63 complement=fb68649c sequence=135/135 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=1 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000440001/0044000003ff8000
+nonce=049ae50f/049ae50f complement=fb651af0 sequence=136/136 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=1 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000448001/0044800003ff8000
+nonce=049e407d/049e407d complement=fb61bf82 sequence=137/137 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=1 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000450001/0045000003ff8000
+nonce=04a17e09/04a17e09 complement=fb5e81f6 sequence=138/138 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=2 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000458001/0045800003ff8000
+nonce=04a4f8ff/04a4f8ff complement=fb5b0700 sequence=139/139 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=2 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000460001/0046000003ff8000
+nonce=04a88239/04a88239 complement=fb577dc6 sequence=140/140 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=2 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000468001/0046800003ff8000
+nonce=04abfcbf/04abfcbf complement=fb540340 sequence=141/141 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=2 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000470001/0047000003ff8000
+nonce=04af30fb/04af30fb complement=fb50cf04 sequence=142/142 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=3 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000478001/0047800003ff8000
+nonce=04b294f3/04b294f3 complement=fb4d6b0c sequence=143/143 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=3 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000480001/0048000003ff8000
+nonce=04b5d701/04b5d701 complement=fb4a28fe sequence=144/144 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=3 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000488001/0048800003ff8000
+nonce=04b919fd/04b919fd complement=fb46e602 sequence=145/145 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=3 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000490001/0049000003ff8000
+nonce=04bc8ab1/04bc8ab1 complement=fb43754e sequence=146/146 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=4 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000498001/0049800003ff8000
+nonce=04bfe5d9/04bfe5d9 complement=fb401a26 sequence=147/147 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=4 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff8000004a0001/004a000003ff8000
+nonce=04c3548d/04c3548d complement=fb3cab72 sequence=148/148 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=4 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff8000004a8001/004a800003ff8000
+nonce=04c69537/04c69537 complement=fb396ac8 sequence=149/149 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=4 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff8000004b0001/004b000003ff8000
+nonce=04c9fe01/04c9fe01 complement=fb3601fe sequence=150/150 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=5 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff8000004b8001/004b800003ff8000
+nonce=04cd467b/04cd467b complement=fb32b984 sequence=151/151 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=5 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff8000004c0001/004c000003ff8000
+nonce=04d0aa25/04d0aa25 complement=fb2f55da sequence=152/152 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=5 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff8000004c8001/004c800003ff8000
+nonce=04d40b09/04d40b09 complement=fb2bf4f6 sequence=153/153 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=5 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff8000004d0001/004d000003ff8000
+nonce=04d77e81/04d77e81 complement=fb28817e sequence=154/154 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=6 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff8000004d8001/004d800003ff8000
+nonce=04dacf8f/04dacf8f complement=fb253070 sequence=155/155 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=6 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff8000004e0001/004e000003ff8000
+nonce=04de52d7/04de52d7 complement=fb21ad28 sequence=156/156 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=6 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff8000004e8001/004e800003ff8000
+nonce=04e18d7d/04e18d7d complement=fb1e7282 sequence=157/157 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=6 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff8000004f0001/004f000003ff8000
+nonce=04e4b577/04e4b577 complement=fb1b4a88 sequence=158/158 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=7 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff8000004f8001/004f800003ff8000
+nonce=04e808f5/04e808f5 complement=fb17f70a sequence=159/159 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=7 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000500001/0050000003ff8000
+nonce=04eb36b9/04eb36b9 complement=fb14c946 sequence=160/160 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=7 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000508001/0050800003ff8000
+nonce=04eea1b5/04eea1b5 complement=fb115e4a sequence=161/161 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=7 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000510001/0051000003ff8000
+nonce=04f1f7b1/04f1f7b1 complement=fb0e084e sequence=162/162 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=8 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000518001/0051800003ff8000
+nonce=04f55fcd/04f55fcd complement=fb0aa032 sequence=163/163 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=8 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000520001/0052000003ff8000
+nonce=04f8ad4f/04f8ad4f complement=fb0752b0 sequence=164/164 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=8 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000528001/0052800003ff8000
+nonce=04fc1289/04fc1289 complement=fb03ed76 sequence=165/165 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=8 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000530001/0053000003ff8000
+nonce=04ff41fd/04ff41fd complement=fb00be02 sequence=166/166 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=9 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000538001/0053800003ff8000
+nonce=05028825/05028825 complement=fafd77da sequence=167/167 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=9 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000540001/0054000003ff8000
+nonce=0505d6b3/0505d6b3 complement=fafa294c sequence=168/168 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=9 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000548001/0054800003ff8000
+nonce=05093c05/05093c05 complement=faf6c3fa sequence=169/169 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=9 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000550001/0055000003ff8000
+nonce=050c9b91/050c9b91 complement=faf3646e sequence=170/170 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=10 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000558001/0055800003ff8000
+nonce=050ff877/050ff877 complement=faf00788 sequence=171/171 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=10 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000560001/0056000003ff8000
+nonce=05136fe9/05136fe9 complement=faec9016 sequence=172/172 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=10 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000568001/0056800003ff8000
+nonce=0516b9c7/0516b9c7 complement=fae94638 sequence=173/173 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=10 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000570001/0057000003ff8000
+nonce=0519e907/0519e907 complement=fae616f8 sequence=174/174 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=11 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000578001/0057800003ff8000
+nonce=051d7ec1/051d7ec1 complement=fae2813e sequence=175/175 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=11 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000580001/0058000003ff8000
+nonce=0520d2e7/0520d2e7 complement=fadf2d18 sequence=176/176 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=11 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000588001/0058800003ff8000
+nonce=052439d1/052439d1 complement=fadbc62e sequence=177/177 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=11 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000590001/0059000003ff8000
+nonce=0527c5b9/0527c5b9 complement=fad83a46 sequence=178/178 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=12 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff800000598001/0059800003ff8000
+nonce=052b1609/052b1609 complement=fad4e9f6 sequence=179/179 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=12 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff8000005a0001/005a000003ff8000
+nonce=052e4847/052e4847 complement=fad1b7b8 sequence=180/180 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=12 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff8000005a8001/005a800003ff8000
+nonce=0531abef/0531abef complement=face5410 sequence=181/181 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=12 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff8000005b0001/005b000003ff8000
+nonce=0535020f/0535020f complement=facafdf0 sequence=182/182 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=13 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff8000005b8001/005b800003ff8000
+nonce=0538559b/0538559b complement=fac7aa64 sequence=183/183 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=13 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff8000005c0001/005c000003ff8000
+nonce=053bad65/053bad65 complement=fac4529a sequence=184/184 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=13 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff8000005c8001/005c800003ff8000
+nonce=053ef809/053ef809 complement=fac107f6 sequence=185/185 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=13 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff8000005d0001/005d000003ff8000
+nonce=0542703d/0542703d complement=fabd8fc2 sequence=186/186 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=14 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff8000005d8001/005d800003ff8000
+nonce=0545c73d/0545c73d complement=faba38c2 sequence=187/187 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=14 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff8000005e0001/005e000003ff8000
+nonce=05494cbb/05494cbb complement=fab6b344 sequence=188/188 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=14 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=6 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff8000005e8001/005e800003ff8000
+nonce=054c8d3b/054c8d3b complement=fab372c4 sequence=189/189 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=14 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=8 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff8000005f0001/005f000003ff8000
+nonce=054ffed3/054ffed3 complement=fab0012c sequence=190/190 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=15 variant=0 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=10 checked=654 matched=654 target_hash=28616d2d interior=20,10 exterior=11,21 CSB=03ff8000005f8001/005f800003ff8000
+nonce=055384c9/055384c9 complement=faac7b36 sequence=191/191 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=15 variant=1 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=0 checked=654 matched=654 target_hash=814e0c35 interior=20,20 exterior=11,11 CSB=03ff800000600001/0060000003ff8000
+nonce=0556c05b/0556c05b complement=faa93fa4 sequence=192/192 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=15 variant=2 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=2 checked=654 matched=654 target_hash=77323fd5 interior=10,20 exterior=21,11 CSB=03ff800000608001/0060800003ff8000
+nonce=055a3c1b/055a3c1b complement=faa5c3e4 sequence=193/193 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS
+
+round=15 variant=3 exit=0
+native_render version=1 mode=3 ioctl=0 status=0 stage=12 refusal=0
+identity=46d18086 revision=0 known_profile=1 owner_granted=1 retained=1
+slice=00000001 DSS=00000003 EU_disable=00000088 media_disable=000e00fe mirror_fuse3=000000f0 RPCS=80041000
+ring_ctl=00000000 mode=00000200 EL=00000000/00018001 EIR=00000000 ESR=00000000 fault=00000000
+mapping=0 dma=0 bootstrap=0 group=0 pci_error=0 forcewake=6/0 group_detail=6/0 safety=0
+state_flags=7 cursor=4 checked=654 matched=654 target_hash=d8b0a07d interior=10,10 exterior=21,21 CSB=03ff800000610001/0061000003ff8000
+nonce=055d8abb/055d8abb complement=faa27544 sequence=194/194 tail=224 reset=0/0 engine=4/0 csb=0
+RCS fixed-pipeline shader draw: PASS

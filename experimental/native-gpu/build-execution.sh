@@ -52,6 +52,7 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_resource_sample.cpp -o build/gp
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_resource_copyout_smoke.cpp -o build/gpu_resource_copyout_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_buffer.cpp -o build/gpu_render_buffer
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_buffer_invalid.cpp -o build/gpu_render_buffer_invalid
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_batch_invalid.cpp -o build/gpu_render_batch_invalid
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_smoke.cpp -o build/resource_smoke
 ./build/resource_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_arena_smoke.cpp -o build/resource_arena_smoke
@@ -61,7 +62,7 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_command_smoke.cpp -o build
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. ppgtt_bind_smoke.cpp -o build/ppgtt_bind_smoke
 ./build/ppgtt_bind_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. render_window.cpp -lbe -o build/render_window
-for smoke in protocol_smoke.cpp render/rcs_hardware_smoke.cpp render/rcs_ownership_smoke.cpp render/rcs_context_smoke.cpp render/rcs_engine_smoke.cpp render/rcs_recovery_smoke.cpp render/rcs_reuse_smoke.cpp render/rcs_draw_smoke.cpp render/rcs_user_vertices_smoke.cpp render/rcs_resource_vertices_smoke.cpp render/rcs_presentation_smoke.cpp render/rcs_timeout_smoke.cpp render/rcs_pci_admission_smoke.cpp; do
+for smoke in protocol_smoke.cpp render/rcs_hardware_smoke.cpp render/rcs_ownership_smoke.cpp render/rcs_context_smoke.cpp render/rcs_engine_smoke.cpp render/rcs_recovery_smoke.cpp render/rcs_reuse_smoke.cpp render/rcs_draw_smoke.cpp render/rcs_user_vertices_smoke.cpp render/rcs_resource_vertices_smoke.cpp render/rcs_validated_batch_smoke.cpp render/rcs_presentation_smoke.cpp render/rcs_timeout_smoke.cpp render/rcs_pci_admission_smoke.cpp; do
  if test -f "$smoke"; then
   target="build/$(basename "${smoke%.cpp}")"
   g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. -I"$graphics/intel_extreme" "$smoke" -o "$target"

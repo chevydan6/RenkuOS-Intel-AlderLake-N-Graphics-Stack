@@ -43,6 +43,9 @@ struct native_gpu_render_command {
  // on return the full array is the rendered 32x32 BGRA image, as in version 1.
  // Version 3 uses a separate owner-allocated GPU vertex page. No user GPU
  // address, command word, shader or surface state is accepted.
+ // Version 4: reserved is a file-local vertex BO handle. Version 5: variant
+ // is a vertex BO handle and reserved is a batch BO handle. The owner validates
+ // every batch dword against one known-safe template before GPU submission.
  uint8_t output[4096];
 };
 static_assert(sizeof(native_gpu_render_report)==240,"render report ABI");
