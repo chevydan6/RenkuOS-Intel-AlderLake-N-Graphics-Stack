@@ -1009,13 +1009,23 @@ vkAllocateCommandBuffers(VkDevice device,const VkCommandBufferAllocateInfo* info
  if(!device || !info || !commands || info->pNext
   || info->sType!=VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
   || !info->commandPool || info->commandPool->device!=device
-  || info->level!=VK_COMMAND_BUFFER_LEVEL_PRIMARY || info->commandBufferCount!=1)
+  || info->level!=VK_COMMAND_BUFFER_LEVEL_PRIMARY || !info->commandBufferCount)
   return VK_ERROR_FEATURE_NOT_PRESENT;
- VkCommandBuffer_T* value=(VkCommandBuffer_T*)calloc(1,sizeof(VkCommandBuffer_T));
- if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
- value->device=device;value->pool=info->commandPool;
- value->next=info->commandPool->commands;info->commandPool->commands=value;
- commands[0]=value;return VK_SUCCESS;
+ for(uint32_t i=0;i<info->commandBufferCount;i++){
+  VkCommandBuffer_T* value=(VkCommandBuffer_T*)calloc(1,sizeof(VkCommandBuffer_T));
+  if(!value){
+   for(uint32_t j=0;j<i;j++){
+    VkCommandBuffer_T* allocated=info->commandPool->commands;
+    info->commandPool->commands=allocated->next;free(allocated);
+    commands[j]=VK_NULL_HANDLE;
+   }
+   return VK_ERROR_OUT_OF_HOST_MEMORY;
+  }
+  value->device=device;value->pool=info->commandPool;
+  value->next=info->commandPool->commands;info->commandPool->commands=value;
+  commands[i]=value;
+ }
+ return VK_SUCCESS;
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL

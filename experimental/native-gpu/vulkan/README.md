@@ -39,6 +39,10 @@ pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build t
 one-shot app with `build-vulkan-window.sh` using `RENKU_VULKAN_HEADERS` and
 `RENKU_VULKAN_LIB_DIR`; `--close-after-ms 3000` bounds its hardware run. This
 readback presenter does not implement Vulkan WSI or swapchains.
+The [command-buffer allocation checkpoint](../evidence/native-vulkan-cmdbatch-034/README.md)
+verifies one API allocation returning two independently recorded command
+buffers, then submits both on the N100. Allocation rolls back all new buffers
+if host allocation fails.
 The [batch checkpoint](../evidence/native-vulkan-batch-025/README.md) records
 the exact output hashes and hardware trace.
 `vkResetCommandPool` now returns allocated command buffers to the initial

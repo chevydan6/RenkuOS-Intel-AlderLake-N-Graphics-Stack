@@ -271,9 +271,11 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateCommandPool(device,&poolInfo,nullptr,&pool)==VK_SUCCESS,22);
  VkCommandBufferAllocateInfo commandInfo={};commandInfo.sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
  commandInfo.commandPool=pool;commandInfo.level=VK_COMMAND_BUFFER_LEVEL_PRIMARY;
- commandInfo.commandBufferCount=1;
- VkCommandBuffer command=VK_NULL_HANDLE;
- REQUIRE(vkAllocateCommandBuffers(device,&commandInfo,&command)==VK_SUCCESS,23);
+ commandInfo.commandBufferCount=(batch || dual)?2:1;
+ VkCommandBuffer commands[2]={VK_NULL_HANDLE,VK_NULL_HANDLE};
+ REQUIRE(vkAllocateCommandBuffers(device,&commandInfo,commands)==VK_SUCCESS
+  && commands[0] && (!(batch || dual) || (commands[1] && commands[1]!=commands[0])),23);
+ VkCommandBuffer command=commands[0];
  VkCommandBufferBeginInfo begin={};begin.sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
  REQUIRE(vkBeginCommandBuffer(command,&begin)==VK_SUCCESS,24);
  VkRenderPassBeginInfo render={};render.sType=VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -293,9 +295,8 @@ int main(int argc,char** argv)
   vkCmdEndRenderPass(command);
  }
  REQUIRE(vkEndCommandBuffer(command)==VK_SUCCESS,25);
- VkCommandBuffer second=VK_NULL_HANDLE;
+ VkCommandBuffer second=commands[1];
  if(batch || dual){
-  REQUIRE(vkAllocateCommandBuffers(device,&commandInfo,&second)==VK_SUCCESS,52);
   REQUIRE(vkBeginCommandBuffer(second,&begin)==VK_SUCCESS,53);
   vkCmdBeginRenderPass(second,&render,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(second,VK_PIPELINE_BIND_POINT_GRAPHICS,

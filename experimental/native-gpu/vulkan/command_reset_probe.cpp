@@ -85,6 +85,15 @@ int main()
   || command->draws || command->drawCount || command->drawCapacity)return 19;
  if(vkBeginCommandBuffer(command,&begin)!=VK_SUCCESS)return 20;
  vkDestroyCommandPool(&device,pool,nullptr);
- puts("Vulkan command reset: pool, explicit buffer, and implicit begin reuse");
+ create.flags=0;
+ if(vkCreateCommandPool(&device,&create,nullptr,&pool)!=VK_SUCCESS)return 21;
+ allocation.commandPool=pool;allocation.commandBufferCount=2;
+ VkCommandBuffer pair[2]={VK_NULL_HANDLE,VK_NULL_HANDLE};
+ if(vkAllocateCommandBuffers(&device,&allocation,pair)!=VK_SUCCESS
+  || !pair[0] || !pair[1] || pair[0]==pair[1])return 22;
+ vkFreeCommandBuffers(&device,pool,1,pair);
+ if(pool->commands!=pair[1] || pair[1]->pool!=pool)return 23;
+ vkDestroyCommandPool(&device,pool,nullptr);
+ puts("Vulkan command reset and two-buffer allocation: PASS");
  return 0;
 }
