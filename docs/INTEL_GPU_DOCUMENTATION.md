@@ -1,7 +1,20 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Intel N100 GPU documentation inventory — 2026-11-14
 
-## What is actually available in this workspace
+## Development decision
+
+A standalone N100-specific GPU PRM is not required to proceed. Use the applicable
+Intel Xe-LP architecture manuals and the actual ADL-N paths in Intel/open-source
+drivers, then validate the native implementation on the target. Track specific
+unresolved fields when they affect the current operation; do not make acquiring
+a separate N100 manual an execution gate. The owner explicitly clarified this.
+
+The expanded [N100 GPU research](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/research/n100-submission/N100-UHD-GRAPHICS-RESEARCH.md),
+[i915 map](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/research/n100-submission/INTEL-DOCUMENTATION-I915-MAP.md) and
+[Tiger Lake comparison](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/research/n100-submission/TIGER-LAKE-PRM-COMPARISON.md)
+provide the references for continued work.
+
+## Historical local inventory
 
 There is **no complete Intel N100 graphics manual set cached locally**. The PDF
 inventory of the local project/download locations found zero PDFs. Existing

@@ -144,12 +144,10 @@ owner/ABI must retain the complete request until retirement or established reset
 ## Next work, in order
 
 Intel documentation inventory: [docs/INTEL_GPU_DOCUMENTATION.md](docs/INTEL_GPU_DOCUMENTATION.md).
-There is no complete cached Intel N100 GPU manual set: the local PDF search found
-zero PDFs. The repository's existing detailed research is source-pinned i915/native
-implementation evidence. Official Intel public PRM/platform datasheet links were
-located, but related-platform manuals must not be treated as N100-specific without
-checking applicability. Preserve this gap and cross-check the fields needed by the
-native execution path; do not claim all Intel documentation is already present.
+Use the N100 research map, the applicable Intel Xe-LP manuals and the N100
+paths in pinned open-source drivers. A standalone N100 GPU programming manual
+is **not a prerequisite** and must not block native development. Check concrete
+platform differences as they arise; do not restart broad documentation searches.
 
 1. Native preparation is complete for this checkpoint: build/export-link and one
    bridge/client call passed. Continue with execution integration below; do not
@@ -239,3 +237,25 @@ New documentation-only commits5ae4a83 andc02b93e are preserved on the native bra
 and [N100 UHD architecture/capabilities](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/research/n100-submission/N100-UHD-GRAPHICS-RESEARCH.md).
 Use those exact links/sections for the remaining execution integration instead
 of restarting broad research. They are documentation findings, not hardware tests.
+
+The research agent also added a [Tiger Lake PRM / i915 submission comparison](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/research/n100-submission/TIGER-LAKE-PRM-COMPARISON.md).
+Check its platform-applicability notes when wiring the remaining engine path.
+
+## BCS engine setup/publication checkpoint
+
+BcsEngine.h now adapts pinned Linux v6.6 reset_csb_pointers,
+enable_execlists, write_desc and execlists_submit_ports into a fixed N100 BCS0
+native helper. It programs the engine HWSP and CSB cursors, selects Gen12
+execlists mode, clears STOP_RING, clears unused ELSQ port1 and writes port0
+low/high before LOAD. Polling leaves engine error interrupts masked. The ledger
+records any engine store and an attempted LOAD before calling the backend.
+It grants no cleanup permission and does not implement DMA/cache admission or
+retirement. The retained execution owner must supply those prerequisites.
+
+The actual RenkuOS kernel SDK compile and one native simulated-IO smoke passed.
+No GPU register stores or GPU work were performed by this check. Evidence:
+[BCS engine build](https://github.com/chevydan6/haiku-intel-gpu/blob/codex/i915-native-adaptation/experimental/native-gpu/evidence/bcs-engine-001/README.md).
+Native source/build: /boot/home/native-bcs-engine-001. Its physical lease was
+released after the build. The next implementation task remains connecting the
+owned request and this helper inside the retained owner, with actual device/DMA
+admission and completion/retirement; then run the nonce proof and copy sample.
