@@ -37,8 +37,9 @@ def main():
     args = parser.parse_args()
     depfiles = sorted(args.deps.glob("*.d"))
     names = {p.name for p in depfiles}
-    if names not in ({"libvulkan.d", "api_probe.d"},
-                     {"libvulkan.d", "api_probe.d", "triangle_probe.d"}):
+    required = {"libvulkan.d", "api_probe.d"}
+    optional = {"triangle_probe.d", "fence_probe.d", "command_reset_probe.d"}
+    if not required.issubset(names) or not names.issubset(required | optional):
         raise ValueError("expected library and probe GCC depfiles")
     paths = sorted({p for dep in depfiles for p in paths_from_depfile(dep)})
     if args.bundle + "/render/draw/RcsDrawGenerated.h" in paths:
