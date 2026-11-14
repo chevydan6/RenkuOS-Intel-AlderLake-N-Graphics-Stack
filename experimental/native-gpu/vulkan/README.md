@@ -92,15 +92,18 @@ runs four CPU/API probes and compiles a hardware triangle probe. The original
 The alternate pipeline compiles Vulkan 1.0 SPIR-V during
 `vkCreateGraphicsPipelines`, requires the exact vertex program, and uploads a
 fragment program only when its 208-byte machine code matches the bounded N100
-constant-green instruction template. The native owner independently validates
-that template and the two equal green immediates below `1.0`. Other machine
-code and pipeline states are rejected.
+constant-RGB instruction template. The native owner independently validates
+that template, including paired red, green, and blue immediates and the entire
+zero-padded shader page. Red and blue are bounded to `[0, 1]`; green is bounded
+to `[0, 1)`. Other machine code and pipeline states are rejected.
 The compiler-backed build validates modules for Vulkan
 1.0 with SPIRV-Tools at `vkCreateShaderModule`, before pipeline creation. The
 API probe rejects a semantically malformed module at that call, reaches owner
-allocation with accepted constant-green code, and rejects a 1.0 fragment that
-changes other machine instructions. The physical N100 passed 128 repeated
-triangle draws with four green values and four shapes.
+allocation with accepted distinct-RGB code, and rejects a 1.0-green fragment
+that changes other machine instructions. The physical N100 passed 160 repeated
+triangle draws with five colors and four shapes.
+[Physical RGB evidence](../evidence/native-color-compiler-spike-021/README.md)
+records the compiler matrix, exact hashes, and GPU traces.
 [Physical bounded-shader evidence](../evidence/native-vulkan-green-range-017/README.md)
 records the hashes and GPU trace. [Pipeline VM evidence](../evidence/native-vulkan-compiler-pipeline-006/README.md)
 and [validator VM evidence](../evidence/native-intel-validator-007/README.md)

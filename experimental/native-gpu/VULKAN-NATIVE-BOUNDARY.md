@@ -237,3 +237,14 @@ sampled PCI configuration reads most often, followed by forcewake ACK reads;
 the profiler missed roughly one quarter of expected ticks. See
 `evidence/native-vulkan-steady-profile-020/`. No kernel safety checks were
 removed based on these measurements.
+
+The pinned Mesa compiler can also emit the same 208-byte N100 fragment
+instruction sequence for independent red, green, and blue constants. The
+native owner now validates the paired immediate words and exact remaining
+instructions; the compiler-backed Vulkan path admits only programs that pass
+that check. A distinct RGB triangle (red 0.5, green 0.75, blue 0.25) passed on
+the N100, followed by 64 reused-command draws and 160 cross-color regression
+draws with exact image hashes and no reported GPU faults. See
+`evidence/native-color-compiler-spike-021/`. Compiler outputs with all three
+channels equal, or green at 1.0, changed other instructions and remain outside
+this template.

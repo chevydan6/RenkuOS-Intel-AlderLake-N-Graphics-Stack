@@ -6,8 +6,9 @@
 #include "../render/compiler/mesa-26.3.0/IntelSpirvRuntime.h"
 #include <string.h>
 
-// Compile Vulkan 1.0 SPIR-V, then admit only the fixed N100 shader shape
-// validated by the native owner. The vertex stage remains the exact fixture.
+// Compile Vulkan 1.0 SPIR-V, then admit only the fixed N100 constant-RGB
+// instruction shape validated by the native owner. The vertex stage remains
+// the exact fixture.
 static bool CompileKnownFragment(const uint32_t* vertex,size_t vertexBytes,
  const uint32_t* fragment,size_t fragmentBytes,void* output,size_t capacity)
 {

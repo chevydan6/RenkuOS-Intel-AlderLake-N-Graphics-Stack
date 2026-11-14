@@ -2,6 +2,7 @@
 // One bounded Vulkan triangle through the native N100 owner and image BO.
 #include <vulkan/vulkan.h>
 #include "KnownSpirv.h"
+#include "RgbSpirvFixture.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,11 +20,13 @@ int main(int argc,char** argv)
 {
  if((argc<2 || argc>4) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
   || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
-   && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")))return 40;
+   && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
+   && strcmp(argv[2],"rgb")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  bool half=argc>=3 && !strcmp(argv[2],"half");
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
+ bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
  char* repeatEnd=nullptr;
  unsigned long repeats=argc==4?strtoul(argv[3],&repeatEnd,10):1;
  if(!repeats || repeats>64 || (argc==4 && (!repeatEnd || *repeatEnd)))return 40;
@@ -33,6 +36,9 @@ int main(int argc,char** argv)
  for(uint32_t& word:alternateCode)
   if(word==0x3e800000){word=green90?0x3f666666:0x3f400000;alternateChanged=true;break;}
  REQUIRE(alternateChanged,46);
+ auto rgbCode=rgb?RgbSpirvFixture(0x3f000000,0x3f400000,0x3e800000,true):
+  std::vector<uint32_t>{};
+ REQUIRE(!rgb || !rgbCode.empty(),51);
  VkApplicationInfo app={};app.sType=VK_STRUCTURE_TYPE_APPLICATION_INFO;
  app.apiVersion=VK_API_VERSION_1_0;
  VkInstanceCreateInfo instanceInfo={};instanceInfo.sType=VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -56,9 +62,10 @@ int main(int argc,char** argv)
  moduleInfo.pCode=RenkuKnownSpirv::Vertex;moduleInfo.codeSize=sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
- moduleInfo.pCode=(green75 || green90)?alternateCode:
+ moduleInfo.pCode=rgb?rgbCode.data():(green75 || green90)?alternateCode:
   half?RenkuKnownSpirv::FragmentHalf:RenkuKnownSpirv::Fragment;
- moduleInfo.codeSize=half?sizeof(RenkuKnownSpirv::FragmentHalf):sizeof(RenkuKnownSpirv::Fragment);
+ moduleInfo.codeSize=rgb?rgbCode.size()*4:
+  half?sizeof(RenkuKnownSpirv::FragmentHalf):sizeof(RenkuKnownSpirv::Fragment);
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -246,19 +253,21 @@ int main(int argc,char** argv)
  const uint32_t* pixels=(const uint32_t*)mapped;
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(half || green75 || green90){
+ if(half || green75 || green90 || rgb){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
   const uint32_t expectedGreen75[4]={0x28e87f2d,0xa6f78dc3,0xcef9f105,0xabd7c545};
   const uint32_t expectedGreen90[4]={0x979c9f2d,0x6a3fddc3,0x44297d05,0xd034dd45};
+  const uint32_t expectedRgb[4]={0x6f2bc92d,0xa4e13743,0xce445d05,0xfffe3dc5};
   const unsigned interiorX[4]={20,16,16,16},interiorY[4]={10,16,16,16};
   REQUIRE(pixels[interiorY[shape]*32+interiorX[shape]]
-   ==(green90?0xffffe500:green75?0xffffbf00:0xffff8000)
+   ==(rgb?0xff80bf40:green90?0xffffe500:green75?0xffffbf00:0xffff8000)
    && pixels[0]==0x19537bad
-   && hash==(green90?expectedGreen90[shape]:
+   && hash==(rgb?expectedRgb[shape]:green90?expectedGreen90[shape]:
     green75?expectedGreen75[shape]:expectedHalf[shape]),30);
  }else REQUIRE(hash==expected[shape] && pixels[0]==0x19537bad,30);
  vkUnmapMemory(device,imageMemory);
- if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ if(rgb)printf("Native Vulkan N100 RGB triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ else if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green75)printf("Native Vulkan N100 0.75-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);

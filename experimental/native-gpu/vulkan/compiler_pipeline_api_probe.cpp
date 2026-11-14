@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Exercise pipeline preflight without a GPU; fd=-1 makes owner allocation fail.
 #include "NativeVulkan.cpp"
+#include "RgbSpirvFixture.h"
 #include <stdio.h>
 
 int main()
@@ -60,6 +61,15 @@ int main()
  fs.bytes=sizeof(RenkuKnownSpirv::FragmentHalf);
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
   !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 6;
+ auto rgb=RgbSpirvFixture(0x3f000000,0x3f400000,0x3e800000,true);
+ if(rgb.empty())return 9;
+ create.pCode=rgb.data();create.codeSize=rgb.size()*4;
+ if(vkCreateShaderModule(&device,&create,nullptr,&checked)!=VK_SUCCESS || !checked)
+  return 10;
+ vkDestroyShaderModule(&device,checked,nullptr);
+ fs.code=rgb.data();fs.bytes=rgb.size()*4;
+ if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
+  !=VK_ERROR_OUT_OF_DEVICE_MEMORY || pipeline)return 11;
  fs.code=const_cast<uint32_t*>(RenkuKnownSpirv::Fragment);
  fs.bytes=sizeof(RenkuKnownSpirv::Fragment);
  uint32_t altered[sizeof(RenkuKnownSpirv::Fragment)/4];
@@ -75,6 +85,6 @@ int main()
   if(altered[i]==0x3f400000){altered[i]=0x3f800000;break;}
  if(vkCreateGraphicsPipelines(&device,VK_NULL_HANDLE,1,&info,nullptr,&pipeline)
   !=VK_ERROR_FEATURE_NOT_PRESENT || pipeline)return 8;
- puts("Vulkan API probe: accepted bounded constant-green pipeline; rejected 1.0 pipeline");
+ puts("Vulkan API probe: accepted bounded RGB pipeline; rejected 1.0 green pipeline");
  return 0;
 }

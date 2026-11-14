@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "CompiledKnownShader.h"
+#include "RgbSpirvFixture.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -46,6 +47,29 @@ int main()
  if(CompileKnownFragment(RenkuKnownSpirv::Vertex,
     sizeof(RenkuKnownSpirv::Vertex),RenkuKnownSpirv::Fragment,
     sizeof(RenkuKnownSpirv::Fragment),fragment,1))return 4;
- puts("compiler pipeline probe: accepted exact constant-green code shape; rejected changed instructions and invalid input");
+ struct RgbCase {uint32_t red,green,blue;bool splitAlpha,accepted;};
+ const RgbCase rgb[]={
+  {0x3f800000,0x3e800000,0x3f000000,false,true},
+  {0x3f800000,0x3e800000,0x3f800000,false,true},
+  {0x3f000000,0x3e800000,0x00000000,true,true},
+  {0x3f000000,0x3f400000,0x3e800000,true,true},
+  {0x3f000000,0x3f000000,0x3f000000,true,false}};
+ for(const auto& c:rgb){
+  auto code=RgbSpirvFixture(c.red,c.green,c.blue,c.splitAlpha);
+  if(code.empty())return 11;
+  bool compiled=CompileKnownFragment(RenkuKnownSpirv::Vertex,
+   sizeof(RenkuKnownSpirv::Vertex),code.data(),code.size()*4,
+   fragment,sizeof(fragment));
+  if(compiled!=c.accepted)return 12;
+  if(compiled){
+   uint32_t expected[sizeof(NativeGpu::RcsDrawData::Fs)/4];
+   memcpy(expected,NativeGpu::RcsDrawData::Fs,sizeof(expected));
+   expected[3]=expected[35]=c.red;
+   expected[7]=expected[39]=c.green;
+   expected[11]=expected[43]=c.blue;
+   if(memcmp(fragment,expected,sizeof(expected)))return 13;
+  }
+ }
+ puts("compiler pipeline probe: accepted bounded RGB machine code; rejected changed instructions and invalid input");
  return 0;
 }
