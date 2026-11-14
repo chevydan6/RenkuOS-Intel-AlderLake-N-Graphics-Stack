@@ -6,6 +6,7 @@
 #include <string.h>
 #include "ExecutionModule.h"
 #include "RenderModule.h"
+#include "ResourceModule.h"
 #include "OwnedBuffers.h"
 int32 api_version=B_CUR_DRIVER_API_VERSION;
 struct Session {
@@ -17,6 +18,9 @@ struct Session {
  native_gpu_copy command;
  native_gpu_render_module* renderModule;
  native_gpu_render_command render;
+ native_gpu_resource_module* resourceModule;
+ uint64_t resourceSession;
+ native_gpu_resource_command resource;
 };
 static status_t Open(const char*,uint32,void** cookie)
 {
@@ -27,6 +31,9 @@ static status_t Open(const char*,uint32,void** cookie)
  if(status!=B_OK){mutex_destroy(&s->lock);free(s);return status;}
  status=get_module(NATIVE_GPU_RENDER_MODULE,(module_info**)&s->renderModule);
  if(status!=B_OK){put_module(NATIVE_GPU_EXECUTION_MODULE);mutex_destroy(&s->lock);free(s);return status;}
+ status=get_module(NATIVE_GPU_RESOURCE_MODULE,(module_info**)&s->resourceModule);
+ if(status!=B_OK){put_module(NATIVE_GPU_RENDER_MODULE);put_module(NATIVE_GPU_EXECUTION_MODULE);
+  mutex_destroy(&s->lock);free(s);return status;}
  s->module->session_opened();
  *cookie=s;return B_OK;
 }
@@ -41,7 +48,9 @@ static status_t Free(void* cookie)
  // These are CPU-only staging allocations: no DMA address or resident owner
  // points here, including after failure. The GPU backing stays in the owner.
  Session* s=(Session*)cookie;
+ if(s->resourceSession)s->resourceModule->close(s->resourceSession);
  s->module->session_closed();
+ put_module(NATIVE_GPU_RESOURCE_MODULE);
  put_module(NATIVE_GPU_RENDER_MODULE);
  put_module(NATIVE_GPU_EXECUTION_MODULE);
  mutex_destroy(&s->lock);free(s);return B_OK;
@@ -49,6 +58,31 @@ static status_t Free(void* cookie)
 static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t bytes)
 {
  if(s.closing)return B_DEV_NOT_READY;
+ if(operation==NATIVE_GPU_RESOURCE_IOCTL){
+  if(bytes!=sizeof(s.resource))return B_BAD_VALUE;
+  status_t status=user_memcpy(&s.resource,buffer,bytes);if(status!=B_OK)return status;
+  auto& c=s.resource;
+  if(!NativeGpuResourceValid(c))return B_BAD_VALUE;
+  if(!s.resourceSession){
+   status=s.resourceModule->open(&s.resourceSession);
+   if(status!=B_OK)return status;
+  }
+  if(c.action==NATIVE_GPU_RESOURCE_CREATE)
+   status=s.resourceModule->create(s.resourceSession,c.size,&c.handle,&c.gpu,&c.size);
+  else if(c.action==NATIVE_GPU_RESOURCE_DESTROY)
+   status=s.resourceModule->destroy(s.resourceSession,c.handle);
+  else {
+   if(c.action==NATIVE_GPU_RESOURCE_READ)memset(c.data,0,sizeof(c.data));
+   status=s.resourceModule->transfer(s.resourceSession,c.action==NATIVE_GPU_RESOURCE_WRITE,
+    c.handle,c.offset,c.data,c.bytes);
+  }
+  if(status!=B_OK)return status;
+  if(c.action!=NATIVE_GPU_RESOURCE_READ)memset(c.data,0,sizeof(c.data));
+  status_t copied=user_memcpy(buffer,&c,bytes);
+  if(copied!=B_OK && c.action==NATIVE_GPU_RESOURCE_CREATE)
+   s.resourceModule->destroy(s.resourceSession,c.handle);
+  return copied;
+ }
  if(operation==NATIVE_GPU_RENDER_IOCTL){
   if(bytes!=sizeof(s.render))return B_BAD_VALUE;
   status_t status=user_memcpy(&s.render,buffer,bytes);if(status!=B_OK)return status;

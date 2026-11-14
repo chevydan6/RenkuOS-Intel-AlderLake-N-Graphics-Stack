@@ -1,0 +1,2 @@
+native RCS resource open refused arena=1 retired=1 default=1 init=1 lifecycle=1 blocked=0 owner=1 dma=1
+KERN: native RCS resource open refused arena=1 retired=1 default=1 init=1 lifecycle=1 blocked=0 owner=1 dma=1

@@ -11,6 +11,8 @@
 #include "render/RcsResourceVertices.h"
 #include "render/RcsCompletionObservation.h"
 #include "render/RcsPciAdmission.h"
+#include "NativeResourceArena.h"
+#include "ResourceModule.h"
 static native_gpu_render_report sRenderReport;
 // This grant is reachable only through the private graphics-driver module ABI.
 static NativeGpu::RcsOwnership sRenderOwnership;
@@ -76,6 +78,11 @@ static uint32_t* sRenderData[8];
 static bool sRenderUserDraw;
 static bool sRenderResourceDraw,sRenderResourceReady;
 static IntelN100PpgttTree::Page sRenderResourcePage;
+static constexpr uint64_t kRenderArenaGpu=0x410000;
+static constexpr unsigned kRenderArenaPages=16;
+static IntelN100PpgttTree::Page sRenderArenaPages[kRenderArenaPages];
+static NativeGpu::ResourceArena sRenderArena(kRenderArenaGpu,kRenderArenaPages);
+static bool sRenderArenaReady;
 static uint32_t sRenderUserVertices[12];
 static uint32_t sRenderSavedDefault[14*1024];
 static IntelN100PpgttTree sRenderTree;
@@ -128,6 +135,21 @@ static bool NativeRenderAllocate()
  if(NativeAllocate(NULL,sRenderResourcePage)
   && sRenderTree.BindPages(NativeGpu::RcsResourceVertices::VertexGpu,&sRenderResourcePage,1,3))
   sRenderResourceReady=true;
+ bool arenaAllocated=true;
+ unsigned arenaCount=0;
+ for(;arenaCount<kRenderArenaPages;arenaCount++)
+  if(!NativeAllocate(NULL,sRenderArenaPages[arenaCount])){arenaAllocated=false;break;}
+ bool arenaBound=arenaAllocated
+  && sRenderTree.BindPages(kRenderArenaGpu,sRenderArenaPages,kRenderArenaPages,3);
+ if(arenaBound)
+ {
+  // Kernel add-ons do not reliably run C++ global constructors. Construct
+  // this nonzero-initialized ledger explicitly before any resource session.
+  new (&sRenderArena) NativeGpu::ResourceArena(kRenderArenaGpu,kRenderArenaPages);
+  sRenderArenaReady=true;
+ }
+ else dprintf("native RCS resource pool unavailable allocated=%u bind_attempted=%u\n",
+  arenaCount,uint32_t(arenaAllocated));
  sRenderReady=true;return true;
 }
 static bool NativeRenderOffset(uint32_t offset)
@@ -547,6 +569,7 @@ static status_t RunNativeRender(native_gpu_render_command* command)
   sRenderDefaultValid=retired;sRenderRetired=retired;
  }
  if(retired){sObservationPhase=ObservationIdle;sObservationLease=0;
+  if(mode!=NATIVE_GPU_RENDER_PROBE)sRenderArena.RetireOrphans(true);
   r.stage=mode==NATIVE_GPU_RENDER_PROBE?6:12;r.status=r.known_profile?B_OK:B_NOT_SUPPORTED;}
  else{sObservationPhase=ObservationUnknown;sObservationBlocked=true;}
  NativeRenderSnapshotLocked(r);output=r;
@@ -617,6 +640,7 @@ static bool NativeRenderResumeHardware()
  if(retired)retired=NativeRenderOwnerLocked(true);
  sNativeGroupReusable=retired;
  if(retired){
+  sRenderArena.RetireOrphans(true);
   // Only reset-quiescence + normal release permits rebuilding software ledgers.
   // Keep the whole GGTT/PPGTT pool; a new explicit bootstrap recreates defaults.
   sNativeRenderInitialized=false;sRenderDefaultValid=false;sRenderRetired=false;
@@ -628,6 +652,77 @@ static bool NativeRenderResumeHardware()
  NativeRenderSnapshotLocked(sRenderReport);
  mutex_unlock(&sLock);return retired;
 }
+static bool NativeResourceAllowedLocked()
+{
+ return sRenderArenaReady && sRenderRetired && sRenderDefaultValid
+  && sNativeRenderInitialized && sNativeLifecycle.Current()==NativeGpu::RequestLifecycle::Ready
+  && !sObservationBlocked && NativeRenderOwnerLocked() && NativeDmaStillDirect();
+}
+static status_t NativeResourceOpen(uint64_t* session)
+{
+ if(!session)return B_BAD_VALUE;
+ mutex_lock(&sLock);
+ bool ok=NativeResourceAllowedLocked() && sRenderArena.Open(*session);
+ if(!ok)dprintf("native RCS resource open refused arena=%u retired=%u default=%u init=%u lifecycle=%u blocked=%u owner=%u dma=%u\n",
+  uint32_t(sRenderArenaReady),uint32_t(sRenderRetired),uint32_t(sRenderDefaultValid),
+  uint32_t(sNativeRenderInitialized),uint32_t(sNativeLifecycle.Current()),
+  uint32_t(sObservationBlocked),uint32_t(NativeRenderOwnerLocked()),uint32_t(NativeDmaStillDirect()));
+ mutex_unlock(&sLock);return ok?B_OK:B_DEV_NOT_READY;
+}
+static status_t NativeResourceClose(uint64_t session)
+{
+ mutex_lock(&sLock);
+ bool retired=NativeResourceAllowedLocked();
+ bool ok=sRenderArena.Close(session,retired);
+ mutex_unlock(&sLock);return ok?B_OK:B_BAD_VALUE;
+}
+static status_t NativeResourceCreate(uint64_t session,uint64_t bytes,uint32_t* handle,
+ uint64_t* gpu,uint64_t* actual)
+{
+ if(!handle || !gpu || !actual)return B_BAD_VALUE;
+ mutex_lock(&sLock);
+ bool allowed=NativeResourceAllowedLocked();
+ bool ok=allowed && sRenderArena.Create(session,bytes,*handle,*gpu,*actual);
+ if(ok){
+  unsigned first=unsigned((*gpu-kRenderArenaGpu)/4096),count=unsigned(*actual/4096);
+  for(unsigned i=0;i<count;i++)memset(sRenderArenaPages[first+i].cpu,0,4096);
+ }
+ mutex_unlock(&sLock);return ok?B_OK:allowed?B_BAD_VALUE:B_DEV_NOT_READY;
+}
+static status_t NativeResourceTransfer(uint64_t session,bool write,uint32_t handle,
+ uint64_t offset,uint8_t* bytes,uint32_t count)
+{
+ if(!bytes || !count || count>4096)return B_BAD_VALUE;
+ mutex_lock(&sLock);
+ uint64_t gpu=0;
+ bool allowed=NativeResourceAllowedLocked();
+ bool ok=allowed && sRenderArena.Resolve(session,handle,offset,count,gpu);
+ if(ok && !write)ok=NativeVisible(NULL);
+ if(ok){
+  unsigned copied=0;
+  while(copied<count){
+   uint64_t relative=gpu-kRenderArenaGpu;
+   unsigned page=unsigned(relative/4096),within=unsigned(relative&4095);
+   unsigned chunk=count-copied<4096-within?count-copied:4096-within;
+   uint8_t* cpu=(uint8_t*)sRenderArenaPages[page].cpu+within;
+   if(write)memcpy(cpu,bytes+copied,chunk);
+   else memcpy(bytes+copied,cpu,chunk);
+   gpu+=chunk;copied+=chunk;
+  }
+ }
+ mutex_unlock(&sLock);return ok?B_OK:allowed?B_BAD_VALUE:B_DEV_NOT_READY;
+}
+static status_t NativeResourceDestroy(uint64_t session,uint32_t handle)
+{
+ mutex_lock(&sLock);
+ bool allowed=NativeResourceAllowedLocked();
+ bool ok=allowed && sRenderArena.Destroy(session,handle,true);
+ mutex_unlock(&sLock);return ok?B_OK:allowed?B_BAD_VALUE:B_DEV_NOT_READY;
+}
 static native_gpu_render_module sNativeRenderModule={
  {NATIVE_GPU_RENDER_MODULE,B_KEEP_LOADED,ObservationOperations},RunNativeRender,NativeRcsAcknowledgeDisplay
+};
+static native_gpu_resource_module sNativeResourceModule={
+ {NATIVE_GPU_RESOURCE_MODULE,B_KEEP_LOADED,ObservationOperations},NativeResourceOpen,
+ NativeResourceClose,NativeResourceCreate,NativeResourceTransfer,NativeResourceDestroy
 };

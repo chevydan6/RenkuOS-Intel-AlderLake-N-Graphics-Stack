@@ -48,8 +48,14 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. recovery_smoke.cpp -o build/recover
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_sample.cpp -o build/gpu_render_sample
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_vertices.cpp -o build/gpu_render_vertices
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_render_invalid_vertices.cpp -o build/gpu_render_invalid_vertices
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_resource_sample.cpp -o build/gpu_resource_sample
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. gpu_resource_copyout_smoke.cpp -o build/gpu_resource_copyout_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_smoke.cpp -o build/resource_smoke
 ./build/resource_smoke
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_arena_smoke.cpp -o build/resource_arena_smoke
+./build/resource_arena_smoke
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. resource_command_smoke.cpp -o build/resource_command_smoke
+./build/resource_command_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. ppgtt_bind_smoke.cpp -o build/ppgtt_bind_smoke
 ./build/ppgtt_bind_smoke
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -I. render_window.cpp -lbe -o build/render_window

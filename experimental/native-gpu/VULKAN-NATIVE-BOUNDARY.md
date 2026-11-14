@@ -77,5 +77,13 @@ The next checkpoint adds file-local resource handle/VA policy, prepublication
 PPGTT binding, and one physical owner-backed vertex page. Version 3 rendered
 64 N100 triangles from that page with pixel hashes identical to v2. The v1 and
 v2 64-draw controls also passed; see `evidence/rcs-resource-vertices-001/`.
-The owner-backed buffer ioctl, dynamic allocation and binding, general RCS
-submission, fences, and ANV adapter are still to be implemented.
+At that checkpoint, the owner-backed buffer ioctl, dynamic allocation and
+binding, general RCS submission, fences, and ANV adapter remained unfinished.
+
+The next native increment installed a 16-page prebound resource pool and a
+file-local create/read/write/destroy ioctl. Sixty-four resource sessions and
+all three 64-draw RCS controls passed on physical N100 hardware; see
+`evidence/rcs-resource-ioctl-001/`. Public buffer objects are not yet used by
+an RCS draw. The next vertical slice must patch a validated vertex-buffer
+address from one such object and prove pixels and completion. The 16-page
+pool avoids post-publication PTE changes but is not a general Vulkan VM.

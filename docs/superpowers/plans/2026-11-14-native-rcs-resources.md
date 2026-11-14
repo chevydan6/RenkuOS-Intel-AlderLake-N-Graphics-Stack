@@ -72,6 +72,9 @@ No post-publication PTE mutation until a tested invalidation path exists.
   vertical slice, not the general resource ioctl below.
 - [ ] Test transactional allocation, map validation, per-file ownership,
   timeout retention, and cleanup before implementation.
+- [x] Install a prebound 16-page arena and file-local native resource ioctl;
+  verify 64 create/read/write/destroy sessions on N100 and all 64-draw RCS
+  controls. The public BO is not yet used by GPU execution.
 - [ ] Implement the owner/bridge path and compile on RenkuOS without installing.
 - [ ] Re-run v1/v2 regression before installing the isolated candidate.
 
