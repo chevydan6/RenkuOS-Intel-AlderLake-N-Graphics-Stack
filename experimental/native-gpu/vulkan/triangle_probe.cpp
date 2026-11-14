@@ -18,18 +18,20 @@ static_assert(RenkuKnownSpirv::Vertex[1]==0x00010000
 
 int main(int argc,char** argv)
 {
- if((argc<2 || argc>4) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
+ if((argc<2 || argc>5) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
   || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
    && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
-   && strcmp(argv[2],"rgb")))return 40;
+   && strcmp(argv[2],"rgb")) || (argc==5 && strcmp(argv[4],"batch")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  bool half=argc>=3 && !strcmp(argv[2],"half");
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
  char* repeatEnd=nullptr;
- unsigned long repeats=argc==4?strtoul(argv[3],&repeatEnd,10):1;
- if(!repeats || repeats>64 || (argc==4 && (!repeatEnd || *repeatEnd)))return 40;
+ unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
+ bool batch=argc==5;
+ if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
+  || (batch && repeats!=2))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
  memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
  bool alternateChanged=false;
@@ -230,6 +232,17 @@ int main(int argc,char** argv)
  vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
  vkCmdEndRenderPass(command);
  REQUIRE(vkEndCommandBuffer(command)==VK_SUCCESS,25);
+ VkCommandBuffer second=VK_NULL_HANDLE;
+ if(batch){
+  REQUIRE(vkAllocateCommandBuffers(device,&commandInfo,&second)==VK_SUCCESS,52);
+  REQUIRE(vkBeginCommandBuffer(second,&begin)==VK_SUCCESS,53);
+  vkCmdBeginRenderPass(second,&render,VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBindPipeline(second,VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline);
+  vkCmdBindVertexBuffers(second,0,1,&vertex,&offset);
+  vkCmdDraw(second,3,1,0,0);
+  vkCmdEndRenderPass(second);
+  REQUIRE(vkEndCommandBuffer(second)==VK_SUCCESS,54);
+ }
  VkFenceCreateInfo fenceInfo={};fenceInfo.sType=VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
  VkFence fence=VK_NULL_HANDLE;
  REQUIRE(vkCreateFence(device,&fenceInfo,nullptr,&fence)==VK_SUCCESS && fence,47);
@@ -237,7 +250,13 @@ int main(int argc,char** argv)
   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_TIMEOUT,48);
  VkSubmitInfo submit={};submit.sType=VK_STRUCTURE_TYPE_SUBMIT_INFO;
  submit.commandBufferCount=1;submit.pCommandBuffers=&command;
- for(unsigned i=0;i<repeats;i++){
+ if(batch){
+  VkSubmitInfo submits[2]={submit,submit};
+  submits[1].pCommandBuffers=&second;
+  REQUIRE(vkQueueSubmit(queue,2,submits,fence)==VK_SUCCESS,55);
+  REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
+   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
+ }else for(unsigned i=0;i<repeats;i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
   REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
@@ -272,7 +291,8 @@ int main(int argc,char** argv)
  else if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
 
- vkFreeCommandBuffers(device,pool,1,&command);
+ if(batch){VkCommandBuffer both[2]={command,second};vkFreeCommandBuffers(device,pool,2,both);}
+ else vkFreeCommandBuffers(device,pool,1,&command);
  vkDestroyCommandPool(device,pool,nullptr);
  REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
   && vkGetFenceStatus(device,fence)==VK_NOT_READY

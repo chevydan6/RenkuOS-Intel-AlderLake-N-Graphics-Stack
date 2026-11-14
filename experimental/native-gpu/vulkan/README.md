@@ -18,6 +18,12 @@ semaphores, presentation, and broad Vulkan compatibility remain open. Basic
 host fences now support creation, status, reset, wait, and signaling after a
 successful synchronous queue submission. A physical N100 triangle probe now
 tests fence state before submission, after GPU completion, and after reset.
+The compiler-backed path accepts multiple submit records and command buffers
+without semaphores; it validates the full call before executing commands in
+order and signals the fence after the final successful draw. A two-submit call
+and the original single-submit path passed on all four triangle shapes.
+The [batch checkpoint](../evidence/native-vulkan-batch-025/README.md) records
+the exact output hashes and hardware trace.
 `vkResetCommandPool` now returns allocated command buffers to the initial
 state for reuse; that path has also only been tested in the VM.
 Pools created with `VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT` also

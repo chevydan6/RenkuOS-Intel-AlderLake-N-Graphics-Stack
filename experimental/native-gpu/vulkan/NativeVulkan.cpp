@@ -1055,20 +1055,28 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   if(fence)__atomic_store_n(&fence->signaled,true,__ATOMIC_RELEASE);
   return VK_SUCCESS;
  }
- if(count!=1 || !submits)
+ if(!submits)
   return VK_ERROR_FEATURE_NOT_PRESENT;
- const VkSubmitInfo& submit=submits[0];
- if(submit.sType!=VK_STRUCTURE_TYPE_SUBMIT_INFO || submit.pNext
-  || submit.waitSemaphoreCount || submit.signalSemaphoreCount
-  || submit.commandBufferCount!=1 || !submit.pCommandBuffers)
-  return VK_ERROR_FEATURE_NOT_PRESENT;
- VkCommandBuffer command=submit.pCommandBuffers[0];
- if(!command || command->device!=queue->device || !command->complete
-  || !command->framebuffer || !command->pipeline || !command->vertex
-  || !command->vertex->memory || !command->framebuffer->view
-  || !command->framebuffer->view->image
-  || !command->framebuffer->view->image->memory)return VK_ERROR_INITIALIZATION_FAILED;
  VkDevice device=queue->device;
+ for(uint32_t i=0;i<count;i++){
+  const VkSubmitInfo& submit=submits[i];
+  if(submit.sType!=VK_STRUCTURE_TYPE_SUBMIT_INFO || submit.pNext
+   || submit.waitSemaphoreCount || submit.signalSemaphoreCount
+   || (submit.commandBufferCount && !submit.pCommandBuffers))
+   return VK_ERROR_FEATURE_NOT_PRESENT;
+  for(uint32_t j=0;j<submit.commandBufferCount;j++){
+   VkCommandBuffer command=submit.pCommandBuffers[j];
+   if(!command || command->device!=device || !command->complete
+    || !command->framebuffer || !command->pipeline || !command->vertex
+    || !command->vertex->memory || !command->framebuffer->view
+    || !command->framebuffer->view->image
+    || !command->framebuffer->view->image->memory)
+    return VK_ERROR_INITIALIZATION_FAILED;
+  }
+ }
+ for(uint32_t i=0;i<count;i++){
+ for(uint32_t j=0;j<submits[i].commandBufferCount;j++){
+ VkCommandBuffer command=submits[i].pCommandBuffers[j];
  native_gpu_render_command draw={};draw.version=7;draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=command->vertex->memory->handle;
  draw.reserved=command->pipeline->shaderHandle;
@@ -1110,6 +1118,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   (long long)(renderDone-submitStart),(long long)(writeDone-writeStart),
   (long long)(system_time()-submitStart));
  if(!valid || writeStatus!=0)return VK_ERROR_DEVICE_LOST;
+ }
+ }
  if(fence)__atomic_store_n(&fence->signaled,true,__ATOMIC_RELEASE);
  return VK_SUCCESS;
 }
