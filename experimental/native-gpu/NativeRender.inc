@@ -7,6 +7,7 @@
 #include "render/RcsEngine.h"
 #include "render/RcsRecovery.h"
 #include "render/RcsRequestReuse.h"
+#include "render/RcsUserVertices.h"
 #include "render/RcsCompletionObservation.h"
 #include "render/RcsPciAdmission.h"
 static native_gpu_render_report sRenderReport;
@@ -71,6 +72,8 @@ static bool sRenderReady,sRenderPageHold,sRenderPublished,sRenderDefaultValid,sR
 static uint32_t sRenderCursor;
 static bool sRenderHideCompletion;
 static uint32_t* sRenderData[8];
+static bool sRenderUserDraw;
+static uint32_t sRenderUserVertices[12];
 static uint32_t sRenderSavedDefault[14*1024];
 static IntelN100PpgttTree sRenderTree;
 static NativeGpu::RcsEngine sRenderEngine;
@@ -327,7 +330,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  if(!NativeCachePolicy(data))return false;
  }
  sRenderRetired=false;
- if(draw && !NativeGpu::RcsDrawImage::Build(sRenderData,r.variant))return false;
+ if(draw && !(sRenderUserDraw
+  ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
+  : NativeGpu::RcsDrawImage::Build(sRenderData,r.variant)))return false;
  r.stage=8;
  if(!NativeRenderBuild(r.nonce,r.sequence,r.ring_tail,draw) || !NativeVisible(data))return false;
  uint32_t tag=1+(r.sequence-1)%0x7fe;uint64_t descriptor=0;
@@ -361,10 +366,20 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  // Only switch-away + ordered breadcrumb + visibility + idle permits saving
  // the complete ppHWSP/register-image default. Keep both WA pages in place.
  if(draw){
-  NativeGpu::RcsRequestReuse::Check check={};
-  bool matched=NativeGpu::RcsRequestReuse::Inspect(sRenderData[NativeGpu::RcsDrawImage::Target],r.variant,check);
-  r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
-  r.interior_xy=check.interior;r.exterior_xy=check.exterior;
+  bool matched=false;
+  if(sRenderUserDraw){
+   NativeGpu::RcsUserVertices::Check check={};
+   matched=NativeGpu::RcsUserVertices::Inspect(
+    sRenderData[NativeGpu::RcsDrawImage::Target],sRenderUserVertices,check);
+   r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
+   r.interior_xy=check.interior;r.exterior_xy=check.exterior;
+  }else{
+   NativeGpu::RcsRequestReuse::Check check={};
+   matched=NativeGpu::RcsRequestReuse::Inspect(
+    sRenderData[NativeGpu::RcsDrawImage::Target],r.variant,check);
+   r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
+   r.interior_xy=check.interior;r.exterior_xy=check.exterior;
+  }
   if(!matched || !NativeRenderSafe(data))return false;
  }else memcpy(sRenderSavedDefault,(void*)sRenderBuffers[3].cpu_aperture,sizeof(sRenderSavedDefault));
  sRenderCursor=sRenderCsb.LastReport().tail;
@@ -409,12 +424,16 @@ static status_t RunNativeRender(native_gpu_render_command* command)
 {
  if(!command)return B_BAD_VALUE;
  uint32_t version=command->version,mode=command->mode,variant=command->variant;
- bool valid=version==1 && command->reserved==0
-  && ((mode==NATIVE_GPU_RENDER_DRAW && variant<4)
-   || ((mode==NATIVE_GPU_RENDER_PROBE || mode==NATIVE_GPU_RENDER_BOOTSTRAP) && variant==0));
+ bool userDraw=version==2 && mode==NATIVE_GPU_RENDER_DRAW;
+ uint32_t userVertices[12]={};
+ if(userDraw)memcpy(userVertices,command->output,sizeof(userVertices));
+ bool valid=command->reserved==0
+  && ((version==1 && ((mode==NATIVE_GPU_RENDER_DRAW && variant<4)
+    || ((mode==NATIVE_GPU_RENDER_PROBE || mode==NATIVE_GPU_RENDER_BOOTSTRAP) && variant==0)))
+   || (userDraw && variant==0 && NativeGpu::RcsUserVertices::Validate(userVertices)));
  // The bridge stages on the heap; the owner never retains that pointer.
  command->report={};memset(command->output,0,sizeof(command->output));
- auto& output=command->report;output.version=1;output.mode=mode;output.variant=variant;
+ auto& output=command->report;output.version=version;output.mode=mode;output.variant=variant;
  output.status=B_BAD_VALUE;
  if(!valid)return output.status;
 
@@ -434,6 +453,8 @@ static status_t RunNativeRender(native_gpu_render_command* command)
   output.status=admission==NativeGpu::RequestLifecycle::Busy?B_BUSY:B_DEV_NOT_READY;
   return output.status;
  }
+ sRenderUserDraw=userDraw;
+ if(userDraw)memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
  sRenderReport=output;auto& r=sRenderReport;
  if(mode!=NATIVE_GPU_RENDER_PROBE){
   ++sNativeSequence;if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
