@@ -6,9 +6,8 @@
 #include "../render/compiler/mesa-26.3.0/IntelSpirvRuntime.h"
 #include <string.h>
 
-// This bridge admits two exact Vulkan 1.0 fragment fixtures. Only the original
-// has N100 rendering proof; the half-green variant is compiler-proven and
-// awaits hardware testing with the matching native owner.
+// This bridge admits two exact Vulkan 1.0 fragment fixtures, both now proven
+// on the N100 with the matching native owner.
 static bool CompileKnownFragment(const uint32_t* vertex,size_t vertexBytes,
  const uint32_t* fragment,size_t fragmentBytes,void* output,size_t capacity)
 {

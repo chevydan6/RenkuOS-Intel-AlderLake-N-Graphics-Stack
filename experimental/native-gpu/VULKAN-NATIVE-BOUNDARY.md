@@ -197,3 +197,12 @@ the completed image. It supports only the known SPIR-V pair and fixed graphics
 state. General native shader compilation, Vulkan synchronization, additional
 formats and workloads, presentation, performance work, and conformance remain
 open.
+
+The compiler-backed pipeline and native owner now accept two exact fragment
+programs. The original and half-green shaders each passed 16 draws for four
+vertex shapes on the N100, with exact image hashes and an opt-in completion
+trace; see `evidence/native-vulkan-two-shaders-015/`. This does not yet accept
+general SPIR-V. A compiler-only matrix found that several constant-green
+shaders below `1.0` differ from the proven N100 program only at two immediate
+words; `1.0` also changes other instructions. See
+`evidence/native-constant-color-spike-016/` for the bounded next step.

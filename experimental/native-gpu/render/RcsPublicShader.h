@@ -3,9 +3,8 @@
 #define NATIVE_GPU_RCS_PUBLIC_SHADER_H
 #include "RcsDrawImage.h"
 namespace NativeGpu {
-// Bounded shader BO contract. Only two exact compiler-proven FS patterns are
-// accepted; the second pattern still needs N100 hardware validation. Their
-// owner-selected VA replaces two PS pointers and widens the instruction
+// Bounded shader BO contract. Only two exact compiler and N100-proven FS patterns
+// are accepted. The owner-selected VA replaces two PS pointers and widens the instruction
 // window to cover the prebound resource arena. No arbitrary GPU code runs.
 class RcsPublicShader {
 public:
