@@ -1,0 +1,3 @@
+Native Vulkan N100 probe: PASS vendor=8086 device=46d1 api=1.0 memory=65536
+combined ioctl=0 status=0 version=7 stage=12 sequence=71/71 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS

@@ -1,0 +1,6 @@
+        118974 nodes checked,
+	0 blocks not allocated,
+	0 blocks already set,
+	0 blocks could be freed
+	indirect block runs		295 (in 16 array blocks, 15.78 MiB)
+	double indirect block runs	0 (in 0 array blocks, 0 bytes)

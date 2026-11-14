@@ -93,10 +93,66 @@ of which failed write first. No NanoKVM media setting or file was changed.
 
 An initial read-only partition image through the guest USB path was stopped
 after it transferred too slowly; its host file is marked `.partial.img.zst`.
-A direct read-only copy of the active NanoKVM image is in progress at
-`/home/dan/ai/backups/renkuos-n100/nanokvm-disk-2026-11-15.img`. That copy
-must be verified complete before it is treated as a recovery backup.
-The NanoKVM also mounts `/data` from `/dev/mmcblk0p3`, with about 111.4 GiB
-free. Inactive images can be preserved there to free root capacity while the
-active LUN stays at its handoff-required path. The live LUN path has not been
+A direct read-only copy of the active NanoKVM image completed at
+`/home/dan/ai/backups/renkuos-n100/nanokvm-disk-2026-11-15.img`, with the
+expected logical size of 9,221,177,344 bytes. Its host SHA-256 is
+`92d939219817af21e4277dd825fde5ea54bdac2bb146864bfb71e0deada7826c`.
+The active NanoKVM source image produced the same SHA-256 after a complete
+read-only hash. The host copy is therefore a verified recovery backup for the
+source image as read on 2026-11-15.
+
+The NanoKVM also mounts `/data` from `/dev/mmcblk0p3` with about 111.4 GiB
+free, but that exFAT volume is mounted read-only. An inactive Fedora rescue
+ISO was copied to the host at
+`/home/dan/ai/backups/renkuos-n100/nanokvm-inactive/Fedora-rescue.iso`.
+Both copies had SHA-256
+`bd285201494dd0ba09b54d05ac707de1401668b8512a573edb5922dcf9d7067e`
+and size 1,217,329,152 bytes. After checking that the active LUN still
+named `/root/renku-gpu-test-004/disk.img`, the inactive ISO was removed
+under the shared physical-test lock. NanoKVM root then reported 833.7 MiB
+available (89% used). The active LUN path and media settings were not changed.
+
+## Offline repair rehearsal
+
+A separate host clone of the verified image was attached as a second USB disk
+to the disposable RenkuOS VM. Mounted read-only, it reproduced both physical
+`checkfs --check-only` errors. Running repair-mode `checkfs` against that
+read-only mount panicked **the disposable VM only** with
+`block_cache_make_writable: tried to make block writable on a read-only cache`.
+After restarting the VM, a fresh clone was mounted writable. Repair-mode
+`checkfs` completed with 118,974 nodes checked and 20,152 blocks that could be
+freed. A second `checkfs --check-only` reported 118,974 nodes checked, no
+invalid B+ tree or unreadable inode messages, and zero blocks that could be
+freed. The known-good native Vulkan and RCS bundle directories remained
+present. The repaired clone was unmounted and detached from the VM.
+
+The final detached repaired image SHA-256 is
+`6ea4bdd0092b4b3691ac59494c343b4289d2512f6a221687c0bbc8bb84fe06ce`.
+It differs from the original in 8,215 4 KiB blocks (33,648,640 bytes).
+An `rsync --inplace --no-whole-file --checksum` rehearsal on another host
+copy transferred 177,452,352 literal bytes and produced the exact repaired
+image SHA-256. The rehearsal copy was mounted read-only in the disposable VM
+after the repair clone's unmount flush; `checkfs --check-only` again checked
+118,974 nodes with no invalid inode messages and zero blocks to free. Its
+SHA-256 was unchanged after the read-only mount and unmount.
+
+With the physical N100 shut down and its Govee H5080 outlet confirmed off,
+the same `rsync` command updated the active NanoKVM image in place under the
+shared physical-test lease. It exited 0 after sending 177,356,328 literal
+bytes; the active LUN path remained unchanged, and NanoKVM root reported
+about 832.4 MiB free. A full post-transfer SHA-256 of the active image matched
+the detached repaired clone exactly:
+`6ea4bdd0092b4b3691ac59494c343b4289d2512f6a221687c0bbc8bb84fe06ce`.
+The LUN still named the same image with `ro=0` and `cdrom=0`.
+
+After the outlet was restored to on, the N100 booted the expected
+`hrev60072+518` kernel and mounted `/boot` writable (`QAM-P-W`). The installed
+Vulkan [API probe](postboot-controls.log) passed. Each of four known-good triangle shapes passed 16
+times, preserving full-image hashes `28616d2d`, `d40eb9c3`, `e24aed05`, and
+`984ae945` in the [64-draw log](postboot-triangle-64.log). The version 7 RCS public vertex/shader draw also passed again with
+sequence `71/71`, `777/777` matching pixels, hash `28616d2d`, and no GPU fault.
+The physical `checkfs --check-only` reported 118,974 nodes and no invalid
+inode messages. A first scan wrote its own output log onto `/boot` and
+reported 32 blocks that could be freed; a second scan with output captured on
+the host [reported zero such blocks](postboot-check-summary.log). No RenkuOS kernel source or binary was
 changed.
