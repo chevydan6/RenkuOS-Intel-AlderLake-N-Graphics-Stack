@@ -7,10 +7,11 @@ Active direction: native adaptation retaining Intel hardware logic. See
 RequestImage.h reuses the existing native Gen12 context/CSB/nonce helpers and
 adapts Linux v6.6's XCS completion sequence for a polling native request.
 prepare_module.cpp connects that image to the existing GGTT memory owner and
-the validated native page allocation bridge. It is a kernel-module prototype:
-native compilation, invocation and hardware execution remain pending.
+the validated native page allocation bridge. Native compilation/export linking
+and one physical preparation invocation now pass; GPU execution remains pending.
+See [native-prepare-001](evidence/native-prepare-001/README.md).
 
-The focused host request-image smoke passes. No engine publication occurs here;
+The focused host image smoke and one native preparation call pass. No engine publication occurs here;
 the mapping/v1 contract remains memory-only. Actual DMA admission, execution
 ownership, engine programming, completion/retirement and the accelerated sample
 remain to implement. Preserve their distinction when reporting progress.
