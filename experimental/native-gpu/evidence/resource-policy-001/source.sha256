@@ -1,0 +1,3 @@
+fc25498be0935f15232c099df1b51812a25313c75d6e0e0de08f2707e078dcd0  experimental/native-gpu/NativeResource.h
+6d36935a75eb91f49600e1239615628e2465b5e694b964b9c6f3172045262679  experimental/native-gpu/resource_smoke.cpp
+e71cfcc54bda8919cfaee4425dca8a8d23281de2dbaf94828956eb6baf8c02a8  experimental/native-gpu/build-execution.sh
