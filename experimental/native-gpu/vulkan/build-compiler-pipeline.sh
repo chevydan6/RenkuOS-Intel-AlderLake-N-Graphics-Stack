@@ -25,10 +25,18 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -DRENKU_VULKAN_USE_INTEL_COMPILER \
  -L"$RENKU_INTEL_COMPILER_LIB_DIR" -lrenku_intel_compiler \
  -Wl,-rpath,"$RENKU_INTEL_COMPILER_LIB_DIR" \
  -o "$here/build-compiler/compiler_pipeline_api_probe"
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -DRENKU_VULKAN_USE_INTEL_COMPILER \
+ -I"$RENKU_VULKAN_HEADERS" "$here/fence_probe.cpp" \
+ -L"$RENKU_INTEL_COMPILER_LIB_DIR" -lrenku_intel_compiler \
+ -Wl,-rpath,"$RENKU_INTEL_COMPILER_LIB_DIR" \
+ -o "$here/build-compiler/fence_probe"
 LIBRARY_PATH="$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/compiler_pipeline_probe"
 LIBRARY_PATH="$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/compiler_pipeline_api_probe"
+LIBRARY_PATH="$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
+ "$here/build-compiler/fence_probe"
 sha256sum "$here/build-compiler/libvulkan.so" \
  "$here/build-compiler/compiler_pipeline_probe" \
- "$here/build-compiler/compiler_pipeline_api_probe"
+ "$here/build-compiler/compiler_pipeline_api_probe" \
+ "$here/build-compiler/fence_probe"

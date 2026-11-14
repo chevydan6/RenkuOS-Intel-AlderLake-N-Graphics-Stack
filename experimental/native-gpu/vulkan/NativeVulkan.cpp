@@ -4,6 +4,7 @@
 #include "../ResourceCommand.h"
 #include "KnownSpirv.h"
 #include "../render/draw/RcsDrawGenerated.h"
+#include <OS.h>
 #ifdef RENKU_VULKAN_USE_INTEL_COMPILER
 #include "CompiledKnownShader.h"
 #endif
@@ -29,6 +30,7 @@ struct VkRenderPass_T;
 struct VkFramebuffer_T;
 struct VkPipelineLayout_T;
 struct VkPipeline_T;
+struct VkFence_T;
 struct VkCommandPool_T;
 struct VkQueue_T { VkDevice_T* device; };
 struct VkDevice_T {
@@ -37,6 +39,7 @@ struct VkDevice_T {
  VkBuffer_T* buffers;VkImage_T* images;VkImageView_T* views;
  VkRenderPass_T* passes;VkFramebuffer_T* framebuffers;
  VkPipelineLayout_T* layouts;VkPipeline_T* pipelines;VkCommandPool_T* pools;
+ VkFence_T* fences;
 };
 struct VkShaderModule_T { VkDevice_T* device; VkShaderModule_T* next; size_t bytes; uint32_t* code; };
 struct VkDeviceMemory_T {
@@ -57,6 +60,7 @@ struct VkPipelineLayout_T { VkDevice_T* device;VkPipelineLayout_T* next; };
 struct VkPipeline_T {
  VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;uint32_t shaderHandle;
 };
+struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
 struct VkCommandBuffer_T;
 struct VkCommandPool_T {
  VkDevice_T* device;VkCommandPool_T* next;VkCommandBuffer_T* commands;
@@ -289,6 +293,10 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
   ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c));
   free(device->memory->host);free(device->memory);device->memory=next;
  }
+ while(device->fences){
+  VkFence_T* next=device->fences->next;
+  free(device->fences);device->fences=next;
+ }
  close(device->fd);free(device);
 }
 
@@ -303,6 +311,70 @@ vkQueueWaitIdle(VkQueue queue)
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkDeviceWaitIdle(VkDevice device)
 {return device?VK_SUCCESS:VK_ERROR_DEVICE_LOST;}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateFence(VkDevice device,const VkFenceCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkFence* fence)
+{
+ if(fence)*fence=VK_NULL_HANDLE;
+ if(!device || !info || !fence || allocator || info->pNext
+  || info->sType!=VK_STRUCTURE_TYPE_FENCE_CREATE_INFO
+  || (info->flags&~VK_FENCE_CREATE_SIGNALED_BIT))return VK_ERROR_INITIALIZATION_FAILED;
+ VkFence_T* value=(VkFence_T*)calloc(1,sizeof(VkFence_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->signaled=bool(info->flags&VK_FENCE_CREATE_SIGNALED_BIT);
+ value->next=device->fences;device->fences=value;*fence=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroyFence(VkDevice device,VkFence fence,const VkAllocationCallbacks*)
+{
+ if(!device || !fence)return;
+ VkFence_T** current=&device->fences;
+ while(*current && *current!=fence)current=&(*current)->next;
+ if(*current){*current=fence->next;free(fence);}
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkGetFenceStatus(VkDevice device,VkFence fence)
+{
+ if(!device || !fence || fence->device!=device)return VK_ERROR_INITIALIZATION_FAILED;
+ return __atomic_load_n(&fence->signaled,__ATOMIC_ACQUIRE)?VK_SUCCESS:VK_NOT_READY;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkResetFences(VkDevice device,uint32_t count,const VkFence* fences)
+{
+ if(!device || !count || !fences)return VK_ERROR_INITIALIZATION_FAILED;
+ for(uint32_t i=0;i<count;i++)
+  if(!fences[i] || fences[i]->device!=device)return VK_ERROR_INITIALIZATION_FAILED;
+ for(uint32_t i=0;i<count;i++)
+  __atomic_store_n(&fences[i]->signaled,false,__ATOMIC_RELEASE);
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkWaitForFences(VkDevice device,uint32_t count,const VkFence* fences,
+ VkBool32 waitAll,uint64_t timeout)
+{
+ if(!device || !count || !fences)return VK_ERROR_INITIALIZATION_FAILED;
+ for(uint32_t i=0;i<count;i++)
+  if(!fences[i] || fences[i]->device!=device)return VK_ERROR_INITIALIZATION_FAILED;
+ const bigtime_t start=system_time();
+ for(;;){
+  uint32_t signaled=0;
+  for(uint32_t i=0;i<count;i++)
+   signaled+=__atomic_load_n(&fences[i]->signaled,__ATOMIC_ACQUIRE)?1:0;
+  if(waitAll?signaled==count:signaled!=0)return VK_SUCCESS;
+  if(!timeout)return VK_TIMEOUT;
+  const uint64_t elapsed=uint64_t(system_time()-start)*1000;
+  if(timeout!=UINT64_MAX && elapsed>=timeout)return VK_TIMEOUT;
+  const uint64_t remaining=timeout==UINT64_MAX?1000000:timeout-elapsed;
+  bigtime_t sleepUs=bigtime_t(remaining/1000+(remaining%1000!=0));
+  if(sleepUs>1000)sleepUs=1000;
+  snooze(sleepUs);
+ }
+}
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateShaderModule(VkDevice device,const VkShaderModuleCreateInfo* info,
@@ -937,7 +1009,14 @@ vkEndCommandBuffer(VkCommandBuffer command)
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence fence)
 {
- if(!queue || !queue->device || count!=1 || !submits || fence)
+ if(!queue || !queue->device || (fence && (fence->device!=queue->device
+  || __atomic_load_n(&fence->signaled,__ATOMIC_ACQUIRE))))
+  return VK_ERROR_INITIALIZATION_FAILED;
+ if(!count){
+  if(fence)__atomic_store_n(&fence->signaled,true,__ATOMIC_RELEASE);
+  return VK_SUCCESS;
+ }
+ if(count!=1 || !submits)
   return VK_ERROR_FEATURE_NOT_PRESENT;
  const VkSubmitInfo& submit=submits[0];
  if(submit.sType!=VK_STRUCTURE_TYPE_SUBMIT_INFO || submit.pNext
@@ -981,6 +1060,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  write.bytes=sizeof(draw.output);memcpy(write.data,draw.output,write.bytes);
  if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write))!=0)
   return VK_ERROR_DEVICE_LOST;
+ if(fence)__atomic_store_n(&fence->signaled,true,__ATOMIC_RELEASE);
  return VK_SUCCESS;
 }
 
@@ -994,6 +1074,11 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkGetDeviceQueue);
  VK_PROC(vkQueueWaitIdle);
  VK_PROC(vkDeviceWaitIdle);
+ VK_PROC(vkCreateFence);
+ VK_PROC(vkDestroyFence);
+ VK_PROC(vkGetFenceStatus);
+ VK_PROC(vkResetFences);
+ VK_PROC(vkWaitForFences);
  VK_PROC(vkCreateShaderModule);
  VK_PROC(vkDestroyShaderModule);
  VK_PROC(vkCreateBuffer);

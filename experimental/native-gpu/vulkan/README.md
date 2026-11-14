@@ -13,7 +13,9 @@ The library is intentionally kept in an isolated build bundle. Its reported
 Vulkan 1.0 version is an **experimental API target**, not a conformance claim.
 It accepts only the two SPIR-V fixtures and a fixed N100 pipeline and command
 shape. General shader compilation, resource formats, command streams,
-semaphores, fences, presentation, and broad Vulkan compatibility remain open.
+semaphores, presentation, and broad Vulkan compatibility remain open. Basic
+host fences now support creation, status, reset, wait, and signaling after a
+successful synchronous queue submission; they have only been tested in the VM.
 Unsupported instance extensions, device extensions, layers, and requested
 features are rejected.
 Device creation bootstraps the existing RCS owner. Vulkan memory allocation
@@ -94,3 +96,5 @@ the fixed-program path. [Pipeline VM evidence](../evidence/native-vulkan-compile
 and [validator VM evidence](../evidence/native-intel-validator-007/README.md)
 record those checkpoints. The [recovery checkpoint](../evidence/native-ramfs-unmount-008/README.md)
 records the current read-only physical boot volume and the restored VM probe.
+The [fence checkpoint](../evidence/native-vulkan-fence-009/README.md) records
+the VM fence tests; hardware execution with a fence remains pending.

@@ -21,4 +21,8 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -MMD -MF "$here/build/triangle_probe.d"
  "$here/triangle_probe.cpp" -L"$here/build" -lvulkan \
  -Wl,-rpath,"$here/build" -o "$here/build/triangle_probe"
 for shape in 0 1 2 3; do "$here/build/triangle_probe" "$shape"; done
-sha256sum "$here/build/libvulkan.so" "$here/build/api_probe" "$here/build/triangle_probe"
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -MMD -MF "$here/build/fence_probe.d" \
+ -I"$root/include" "$here/fence_probe.cpp" -o "$here/build/fence_probe"
+"$here/build/fence_probe"
+sha256sum "$here/build/libvulkan.so" "$here/build/api_probe" \
+ "$here/build/triangle_probe" "$here/build/fence_probe"
