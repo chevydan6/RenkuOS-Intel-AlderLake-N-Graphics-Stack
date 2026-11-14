@@ -61,7 +61,7 @@ public:
  }
 
  static bool Inspect64(uint32_t* const* pages,const uint32_t* words,Check& check,
-  uint32_t renderedPixel=RcsDrawImage::RenderedPixel) {
+  uint32_t renderedPixel=RcsDrawImage::RenderedPixel,bool fragcoordRed=false) {
   Coord points[3]={};
   if(!pages || !Validate(words,points))return false;
   for(unsigned p=6;p<10;p++)if(!pages[p])return false;
@@ -73,7 +73,13 @@ public:
    found.hash=(found.hash^observed)*16777619u;
    int kind=Classify(points,x,y,2);
    if(kind<0)continue;
-   found.matched+=observed==(kind?renderedPixel:RcsDrawImage::Poison);
+   // FragCoord.x is the pixel-center coordinate x+0.5. The shader divides
+   // by 64; UNORM8 rounding has no exact ties for these half-pixel inputs.
+   uint32_t red=((2*x+1)*255+64)/128;
+   uint32_t expected=kind
+    ?fragcoordRed?0xff000000u|(red<<16):renderedPixel
+    :RcsDrawImage::Poison;
+   found.matched+=observed==expected;
    found.checked++;
    if(kind==1 && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
    if(kind==0 && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}

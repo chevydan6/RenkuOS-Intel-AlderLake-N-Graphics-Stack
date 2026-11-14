@@ -117,7 +117,11 @@ int renku_intel_compile_vulkan_pair(const uint32_t* vertex,size_t vertex_words,
  const unsigned* vcode=brw_compile(compiler,&vparams);
  if(!vcode){status=RENKU_INTEL_COMPILE_FAILED;
   message=vparams.error_str?vparams.error_str:"vertex compile failed";goto done;}
+ // Match ANV's Vulkan fragment path: gl_FragCoord is at the pixel center
+ // for single-sample rendering, even when the hardware payload starts at
+ // integer pixel coordinates.
  brw_preprocess_nir(compiler,fs,&opts);
+ nir_lower_wpos_center(fs);
  nir_shader_gather_info(fs,nir_shader_get_entrypoint(fs));
  struct brw_fs_prog_data fp={0};
  struct brw_fs_prog_key fk={0};fk.nr_color_regions=1;fk.multisample_fbo=INTEL_NEVER;

@@ -62,6 +62,7 @@ struct VkPipelineLayout_T { VkDevice_T* device;VkPipelineLayout_T* next; };
 struct VkPipeline_T {
  VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;
  uint32_t shaderHandle,vertexShaderHandle,width;
+ bool fragcoordRed;
 };
 struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
 struct VkCommandBuffer_T;
@@ -869,14 +870,17 @@ static bool KnownGraphicsPipeline(VkDevice device,const VkGraphicsPipelineCreate
 static VkResult CreateGraphicsPipelineOne(VkDevice device,
  const VkGraphicsPipelineCreateInfo& info,VkPipeline* pipeline)
 {
+ size_t fragmentCodeBytes=sizeof(NativeGpu::RcsDrawData::Fs);
+ bool fragcoordRed=false;
 #ifdef RENKU_VULKAN_USE_INTEL_COMPILER
  uint8_t compiledVs[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
  size_t compiledVsBytes=0;
- uint8_t compiledFs[sizeof(NativeGpu::RcsDrawData::Fs)]={};
+ uint8_t compiledFs[sizeof(NativeGpu::RcsFragCoordRed::Words)]={};
  if(!CompileKnownPipeline(info.pStages[0].module->code,
     info.pStages[0].module->bytes,info.pStages[1].module->code,
     info.pStages[1].module->bytes,compiledVs,sizeof(compiledVs),
-    &compiledVsBytes,compiledFs,sizeof(compiledFs)))
+    &compiledVsBytes,compiledFs,sizeof(compiledFs),
+    &fragmentCodeBytes,&fragcoordRed))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  const void* fragmentCode=compiledFs;
  const bool customVertex=compiledVsBytes!=sizeof(NativeGpu::RcsDrawData::Vs);
@@ -884,6 +888,9 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
  const void* fragmentCode=NativeGpu::RcsDrawData::Fs;
  const bool customVertex=false;
 #endif
+ if(fragcoordRed && (customVertex
+  || info.pViewportState->pViewports[0].width!=64))
+  return VK_ERROR_FEATURE_NOT_PRESENT;
  VkPipeline_T* value=(VkPipeline_T*)calloc(1,sizeof(VkPipeline_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
  native_gpu_resource_command c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_CREATE;
@@ -893,7 +900,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
  }
  value->shaderHandle=c.handle;
  c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_WRITE;
- c.handle=value->shaderHandle;c.bytes=sizeof(NativeGpu::RcsDrawData::Fs);
+ c.handle=value->shaderHandle;c.bytes=fragmentCodeBytes;
  memcpy(c.data,fragmentCode,c.bytes);
  if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&c,sizeof(c))!=0){
   native_gpu_resource_command destroy={};destroy.version=1;
@@ -929,6 +936,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
  }
  value->device=device;value->pass=info.renderPass;
  value->width=uint32_t(info.pViewportState->pViewports[0].width);
+ value->fragcoordRed=fragcoordRed;
  value->next=device->pipelines;device->pipelines=value;
  *pipeline=value;return VK_SUCCESS;
 }
@@ -1234,7 +1242,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=large?(recorded.pipeline->vertexShaderHandle?11:10):
+ draw.version=large?(recorded.pipeline->fragcoordRed?12:
+  recorded.pipeline->vertexShaderHandle?11:10):
   recorded.pipeline->vertexShaderHandle?8:7;
  draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=recorded.vertex->memory->handle;
@@ -1246,6 +1255,20 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  int status=large
   ?ioctl(device->fd,NATIVE_GPU_RENDER_LARGE_IOCTL,&largeDraw,sizeof(largeDraw))
   :ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&smallDraw,sizeof(smallDraw));
+ if(large && draw.version==12){
+  const char* capture=getenv("RENKU_VK_CAPTURE_PIXELS");
+  if(capture){
+   FILE* file=fopen(capture,"wb");
+   size_t saved=0;int closed=-1;
+   if(file){
+    saved=fwrite(draw.output,1,sizeof(draw.output),file);
+    saved+=fwrite(largeDraw.extra,1,sizeof(largeDraw.extra),file);
+    closed=fclose(file);
+   }
+   fprintf(stderr,"{\"event\":\"vk_pixel_capture\",\"bytes\":%zu,"
+    "\"closed\":%d,\"ioctl\":%d}\n",saved,closed,status);
+  }
+ }
  const bigtime_t renderDone=device->trace?system_time():0;
  const auto& r=draw.report;
  uint32_t hash=2166136261u;

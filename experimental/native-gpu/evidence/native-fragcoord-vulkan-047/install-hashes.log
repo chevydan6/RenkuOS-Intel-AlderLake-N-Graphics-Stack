@@ -1,0 +1,4 @@
+78b6c535e51c0bec2e0696d7a39896e0b87d72c049673c94389aba8fa1273e82  /boot/home/native-fragcoord-047/rollback/intel_memory_owner
+c9e91bd684bfb24d44c7a34472cf345281b6e084c8dfa1bb6d5504fdda90395a  /boot/home/native-fragcoord-047/rollback/intel_native_execution_bridge
+4e592c713dc39b8701caacf7ee3e1a8d5bd0baf6aeae0410a9e70a0d250848f3  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+3600e64fd6e180a0df0546abab9b5631807136a9ae68ef04712fe8af4a69d16a  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_native_execution_bridge

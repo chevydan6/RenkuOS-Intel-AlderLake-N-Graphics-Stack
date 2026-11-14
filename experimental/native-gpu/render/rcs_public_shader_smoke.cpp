@@ -2,6 +2,7 @@
 #include "RcsPublicShader.h"
 #include "RcsDepthVertex.h"
 #include "RcsRotateVertex.h"
+#include "RcsFragCoordRed.h"
 #include "RcsResourceVertices.h"
 #include <stdio.h>
 #include <string.h>
@@ -123,6 +124,29 @@ int main() {
   !=NativeGpu::RcsPublicShader::InvalidVertex)return 32;
  vertexPage[43]^=1;vertexPage[1023]=1;
  if(NativeGpu::RcsPublicShader::ValidateVertexPage(vertexPage,1024))return 33;
+ alignas(4096) uint32_t gradientPage[1024]={};
+ memcpy(gradientPage,NativeGpu::RcsFragCoordRed::Words,
+  sizeof(NativeGpu::RcsFragCoordRed::Words));
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::FragCoordRed)return 34;
+ gradientPage[87]^=1;
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::InvalidFragment)return 35;
+ gradientPage[87]^=1;gradientPage[1023]=1;
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::InvalidFragment)return 36;
+ gradientPage[1023]=0;
+ alignas(4096) uint32_t largeStorage[NativeGpu::RcsDrawImage64::PageCount][1024]={};
+ uint32_t* largePages[NativeGpu::RcsDrawImage64::PageCount]={};
+ for(unsigned i=0;i<NativeGpu::RcsDrawImage64::PageCount;i++)
+  largePages[i]=largeStorage[i];
+ if(!NativeGpu::RcsDrawImage64::Build(largePages,0)
+  || !NativeGpu::RcsResourceVertices::PatchAddressOnly(largePages,0x410000)
+  || !NativeGpu::RcsPublicShader::PatchBatchWithVertex(largePages[0],1024,
+   0x411000,0x410000,true,NativeGpu::RcsPublicShader::FragCoordRed)
+  || largePages[0][244]!=0x1f800003
+  || largePages[0][245]!=0x00040006
+  || largePages[0][248]!=0x110c0)return 37;
  puts("N100 bounded FS/VS templates and batch patch: PASS (CPU only)");
  return 0;
 }

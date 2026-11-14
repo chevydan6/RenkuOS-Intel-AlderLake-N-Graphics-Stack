@@ -3,6 +3,7 @@
 #include "RgbSpirvFixture.h"
 #include "DepthSpirvFixture.h"
 #include "RotateSpirvFixture.h"
+#include "FragCoordSpirvFixture.h"
 #include "../render/RcsDepthVertex.h"
 #include "../render/RcsRotateVertex.h"
 #include <stdio.h>
@@ -90,6 +91,17 @@ int main()
     &rotateBytes,fragment,sizeof(fragment)))return 16;
  if(rotateBytes!=sizeof(NativeGpu::RcsRotateVertex::Words)
   || memcmp(rotateVertex,NativeGpu::RcsRotateVertex::Words,rotateBytes))return 17;
+ uint8_t gradientFs[sizeof(NativeGpu::RcsFragCoordRed::Words)]={};
+ uint8_t gradientVs[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
+ size_t gradientVsBytes=0,gradientFsBytes=0;
+ bool gradient=false;
+ if(!CompileKnownPipeline(RenkuKnownSpirv::Vertex,
+   sizeof(RenkuKnownSpirv::Vertex),RenkuFragCoordSpirv::Fragment,
+   sizeof(RenkuFragCoordSpirv::Fragment),gradientVs,sizeof(gradientVs),
+   &gradientVsBytes,gradientFs,sizeof(gradientFs),&gradientFsBytes,&gradient)
+  || !gradient || gradientFsBytes!=sizeof(gradientFs)
+  || memcmp(gradientFs,NativeGpu::RcsFragCoordRed::Words,
+   sizeof(gradientFs)))return 18;
  puts("compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input");
  return 0;
 }

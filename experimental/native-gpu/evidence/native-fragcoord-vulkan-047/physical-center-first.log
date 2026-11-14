@@ -1,0 +1,4 @@
+Native Vulkan N100 64x64 FragCoord-red triangle: PASS shape=0 hash=7b2f62f5 draws=1
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":12,"stage":12,"sequence":2,"observed":2,"draw_index":0,"draw_count":1,"vertex_bo":129,"shader_bo":132,"vertex_shader_bo":0,"image_bo":131,"checked":3476,"matched":3476,"pixel_hash":"7b2f62f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":12323,"write_ioctl_us":15,"submit_us":12344}
+probe_exit=0

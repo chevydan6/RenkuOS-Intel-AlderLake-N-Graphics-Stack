@@ -107,7 +107,8 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
  if(operation==NATIVE_GPU_RENDER_LARGE_IOCTL){
   if(bytes!=sizeof(s.large))return B_BAD_VALUE;
   status_t status=user_memcpy(&s.large,buffer,bytes);if(status!=B_OK)return status;
-  if((s.large.base.version==10 || s.large.base.version==11)
+  if((s.large.base.version==10 || s.large.base.version==11
+    || s.large.base.version==12)
    && !s.resourceSession){
    status=s.resourceModule->open(&s.resourceSession);
    if(status!=B_OK)return status;

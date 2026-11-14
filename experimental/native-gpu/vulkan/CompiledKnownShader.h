@@ -13,22 +13,24 @@
 static bool CompileKnownPipeline(const uint32_t* vertex,size_t vertexBytes,
  const uint32_t* fragment,size_t fragmentBytes,void* vertexCode,
  size_t vertexCapacity,size_t* vertexCodeBytes,void* fragmentCode,
- size_t fragmentCapacity)
+ size_t fragmentCapacity,size_t* fragmentCodeBytes=nullptr,
+ bool* fragcoordRed=nullptr)
 {
+ if(fragmentCodeBytes)*fragmentCodeBytes=0;
+ if(fragcoordRed)*fragcoordRed=false;
  if(!vertex || !fragment || !vertexCode || !vertexCodeBytes || !fragmentCode
   || !vertexBytes || (vertexBytes&3)
   || !fragmentBytes || (fragmentBytes&3)
   || vertexCapacity<sizeof(NativeGpu::RcsDepthVertex::Words)
   || fragmentCapacity<sizeof(NativeGpu::RcsDrawData::Fs))return false;
  uint8_t vs[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
- uint8_t fs[sizeof(NativeGpu::RcsDrawData::Fs)]={};
+ uint8_t fs[sizeof(NativeGpu::RcsFragCoordRed::Words)]={};
  RenkuIntelCompilePair pair={};pair.abi_version=RENKU_INTEL_COMPILER_ABI;
  pair.vertex.code=vs;pair.vertex.capacity=sizeof(vs);
  pair.fragment.code=fs;pair.fragment.capacity=sizeof(fs);
  char error[256]={};
  if(renku_intel_compile_vulkan_pair(vertex,vertexBytes/4,
    fragment,fragmentBytes/4,&pair,error,sizeof(error))!=RENKU_INTEL_COMPILE_OK
-  || pair.fragment.bytes!=sizeof(fs)
   || pair.vertex.total_scratch || pair.fragment.total_scratch
   || pair.vertex.num_relocs || pair.fragment.num_relocs
   || pair.vertex.grf_used!=128 || pair.vertex.dispatch_grf_start_reg!=2
@@ -42,11 +44,24 @@ static bool CompileKnownPipeline(const uint32_t* vertex,size_t vertexBytes,
   && !memcmp(vs,NativeGpu::RcsRotateVertex::Words,pair.vertex.bytes);
  if(!original && !depth && !rotated)return false;
  uint32_t shaderPage[1024]={};
- memcpy(shaderPage,fs,sizeof(fs));
- if(!NativeGpu::RcsPublicShader::ValidateFragment(shaderPage,1024))return false;
+ if(pair.fragment.bytes>sizeof(fs)
+  || pair.fragment.bytes>fragmentCapacity)return false;
+ memcpy(shaderPage,fs,pair.fragment.bytes);
+ auto program=NativeGpu::RcsPublicShader::IdentifyFragmentPage(shaderPage,1024);
+ const bool gradient=program==NativeGpu::RcsPublicShader::FragCoordRed;
+ if(program==NativeGpu::RcsPublicShader::InvalidFragment
+  || pair.fragment.grf_used!=128 || !pair.fragment.dispatch_8
+  || !pair.fragment.dispatch_16 || pair.fragment.dispatch_32
+  || pair.fragment.dispatch_grf_start_reg!=(gradient?4u:2u)
+  || pair.fragment.dispatch_grf_start_reg_16!=(gradient?6u:2u)
+  || pair.fragment.prog_offset_16!=(gradient?192u:128u)
+  || pair.fragment.prog_offset_32)return false;
  memcpy(vertexCode,vs,pair.vertex.bytes);
  *vertexCodeBytes=pair.vertex.bytes;
- memcpy(fragmentCode,fs,sizeof(fs));return true;
+ memcpy(fragmentCode,fs,pair.fragment.bytes);
+ if(fragmentCodeBytes)*fragmentCodeBytes=pair.fragment.bytes;
+ if(fragcoordRed)*fragcoordRed=gradient;
+ return true;
 }
 
 static inline bool CompileKnownFragment(const uint32_t* vertex,size_t vertexBytes,

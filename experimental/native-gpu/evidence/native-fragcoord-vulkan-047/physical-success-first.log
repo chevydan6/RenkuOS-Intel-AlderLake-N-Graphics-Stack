@@ -1,0 +1,4 @@
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":-1}
+{"event":"vk_queue_submit","ioctl":-1,"write_ioctl":-1,"version":12,"stage":10,"sequence":2,"observed":2,"draw_index":0,"draw_count":1,"vertex_bo":129,"shader_bo":132,"vertex_shader_bo":0,"image_bo":131,"checked":3476,"matched":2615,"pixel_hash":"344a62f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":12043,"write_ioctl_us":0,"submit_us":12048}
+Vulkan triangle failed at /boot/home/test-work/vulkan-fragcoord-047/vulkan/triangle_probe.cpp:351 (code 26)
+probe_exit=26

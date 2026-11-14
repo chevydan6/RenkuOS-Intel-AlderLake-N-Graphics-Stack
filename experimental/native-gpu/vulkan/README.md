@@ -122,13 +122,16 @@ runs four CPU/API probes and compiles a hardware triangle probe. The original
 `build-native.sh` remains a known-good N100 regression path.
 
 The alternate pipeline compiles Vulkan 1.0 SPIR-V during
-`vkCreateGraphicsPipelines`, requires the exact owner-approved vertex machine
-program, and uploads a
-fragment program only when its 208-byte machine code matches the bounded N100
-constant-RGB instruction template. The native owner independently validates
-that template, including paired red, green, and blue immediates and the entire
-zero-padded shader page. Red and blue are bounded to `[0, 1]`; green is bounded
-to `[0, 1)`. Other machine code and pipeline states are rejected.
+`vkCreateGraphicsPipelines`, requires an owner-approved vertex machine
+program, and uploads a fragment program only when its machine code matches an
+approved N100 profile. The constant-RGB profile has a 208-byte instruction
+template, independently checked by the owner across the full zero-padded
+shader page. Red and blue are bounded to `[0, 1]`; green is bounded to
+`[0, 1)`. The 64×64 FragCoord-red profile has one exact 352-byte program and
+uses Vulkan pixel-center coordinates. The owner verifies its completed image
+against a CPU reference. [Physical FragCoord evidence](../evidence/native-fragcoord-vulkan-047/README.md)
+records the failed first image, corrected compiler path, repeated N100 draws,
+and regression matrix. Other machine code and pipeline states are rejected.
 The compiler-backed build validates modules for Vulkan
 1.0 with SPIRV-Tools at `vkCreateShaderModule`, before pipeline creation. The
 vertex SPIR-V bytes may differ when the compiler emits that same machine

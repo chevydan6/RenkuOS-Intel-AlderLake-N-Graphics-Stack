@@ -5,6 +5,7 @@
 #include "RgbSpirvFixture.h"
 #include "DepthSpirvFixture.h"
 #include "RotateSpirvFixture.h"
+#include "FragCoordSpirvFixture.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +24,8 @@ int main(int argc,char** argv)
  if((argc<2 || argc>5) || argv[1][0]<'0' || argv[1][0]>'3' || argv[1][1]
   || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
    && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
-   && strcmp(argv[2],"rgb")) || (argc==5 && strcmp(argv[4],"batch")
+   && strcmp(argv[2],"rgb") && strcmp(argv[2],"fragcoord"))
+  || (argc==5 && strcmp(argv[4],"batch")
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")))return 40;
@@ -35,6 +37,7 @@ int main(int argc,char** argv)
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
+ bool fragcoord=argc>=3 && !strcmp(argv[2],"fragcoord");
  char* repeatEnd=nullptr;
  unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
  bool batch=argc==5 && !strcmp(argv[4],"batch");
@@ -47,6 +50,8 @@ int main(int argc,char** argv)
  bool twoPipelines=dual || multiPass;
  if(large && (half || green75 || green90 || named || twoPipelines
   || batch || (depth && shape!=0)))return 40;
+ if(fragcoord && (!large || shape!=0 || rotate || depth || twoPipelines
+  || batch || named || colorOnly))return 40;
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats!=2))return 40;
@@ -108,9 +113,11 @@ int main(int argc,char** argv)
   named?namedVertex.size()*4:sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
- moduleInfo.pCode=rgb?rgbCode.data():(green75 || green90)?alternateCode:
+ moduleInfo.pCode=fragcoord?RenkuFragCoordSpirv::Fragment:
+  rgb?rgbCode.data():(green75 || green90)?alternateCode:
   half?RenkuKnownSpirv::FragmentHalf:RenkuKnownSpirv::Fragment;
- moduleInfo.codeSize=rgb?rgbCode.size()*4:
+ moduleInfo.codeSize=fragcoord?sizeof(RenkuFragCoordSpirv::Fragment):
+  rgb?rgbCode.size()*4:
   half?sizeof(RenkuKnownSpirv::FragmentHalf):sizeof(RenkuKnownSpirv::Fragment);
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
 
@@ -360,9 +367,11 @@ int main(int argc,char** argv)
    0x8aaee2f5,0x9ca44bcd,0x23ba4705,0xb0d153c5};
   const uint32_t expectedLargeRgb[4]={
    0x7a1ac675,0xe178394d,0x49942685,0x9eff5945};
-  REQUIRE(hash==(rotate?0x7b48f3e5:
+  REQUIRE((fragcoord?(hash==0x7b2f62f5
+   && pixels[10*64+20]==0xff520000):
+   hash==(rotate?0x7b48f3e5:
    rgb?expectedLargeRgb[shape]:expectedLarge[shape])
-   && pixels[0]==0x19537bad,30);
+   ) && pixels[0]==0x19537bad,30);
  }else if(half || green75 || green90 || rgb || twoPipelines){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
   const uint32_t expectedGreen75[4]={0x28e87f2d,0xa6f78dc3,0xcef9f105,0xabd7c545};
@@ -380,7 +389,8 @@ int main(int argc,char** argv)
    && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
  if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
-  rotate?"rotated-vertex ":depth?"depth-vertex ":rgb?"RGB ":"",
+  fragcoord?"FragCoord-red ":rotate?"rotated-vertex ":
+  depth?"depth-vertex ":rgb?"RGB ":"",
   shape,hash,repeats);
  else if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(dual)printf("Native Vulkan N100 dual pipeline: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
