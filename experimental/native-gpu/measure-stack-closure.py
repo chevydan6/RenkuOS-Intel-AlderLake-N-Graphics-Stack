@@ -20,6 +20,8 @@ def compiler_category(path):
         return "compiler_project_runtime"
     if path.startswith("/boot/home/test-work/native-device-info-044/"):
         return "compiler_native_adaptation"
+    if path.startswith("/boot/home/test-work/native-common-045/"):
+        return "compiler_native_adaptation"
     return "compiler_sdk"
 
 
