@@ -1,0 +1,16 @@
+hrev60072+518 Nov  3 2026 12:29
+   Device No.: 3
+   Mounted at: /boot
+  Volume Name: "RenkuTest"
+  File System: bfs
+       Device: /dev/disk/usb/0/0/1
+        Flags: QAM-P-W
+     I/O Size:   64.0 KiB (65536 byte)
+   Block Size:    2.0 KiB (2048 byte)
+a00cbf15ae53c07b0f0f2214a60fd1cbe28c15b448e4e7fa992a5e7e208b7b42  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+3c627564f538d62e87342e3da6968b4843170ee14044e1bc2c6d1a916c22680f  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_native_execution_bridge
+f43c196dce2cb0404b75ce7601b48644b6d76a774503e8e250be1db92140108b  /boot/home/native-rcs-two-shaders-013/rollback/intel_memory_owner.pre-two-shader
+5079e911101181d922d1be6a9a91feb2856a8c7413b0ca172798e7964c8dce18  /boot/home/native-vulkan-two-shaders-014/lib/librenku_intel_compiler.so
+7b3800f1b5a55927ac5997a773469ccd14140e4efd30cd77fd0a471d14e8724d  /boot/home/native-vulkan-two-shaders-014/lib/libSPIRV-Tools-shared.so
+a2bb13cbc9ce446eb552ee148603244d82322c211c6b058cc3f70bd9bf8d9ed2  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/libvulkan.so
+72d20f60cf9b858ca51a3acd86e707a595b447084bba0ea1a3bf577a1fc038bf  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/triangle_probe

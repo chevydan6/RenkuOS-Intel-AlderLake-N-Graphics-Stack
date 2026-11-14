@@ -1,0 +1,6 @@
+combined ioctl=0 status=0 version=7 stage=12 sequence=223/223 pixels=777/777 hash=28616d2d fault=00000000
+RCS combined public vertex/shader draw: PASS
+Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d
+Native Vulkan N100 triangle: PASS shape=1 hash=d40eb9c3
+Native Vulkan N100 triangle: PASS shape=2 hash=e24aed05
+Native Vulkan N100 triangle: PASS shape=3 hash=984ae945

@@ -1,0 +1,1 @@
+{"event":"vk_queue_submit","ioctl":0,"version":7,"stage":12,"sequence":222,"observed":222,"vertex_bo":28289,"shader_bo":28164,"image_bo":28163,"checked":766,"matched":766,"pixel_hash":"48e0ed05","fault":0,"engine_stage":4,"csb_error":0}

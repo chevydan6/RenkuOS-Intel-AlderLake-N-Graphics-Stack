@@ -85,26 +85,24 @@ compiler-backed build. These fixtures do not imply arbitrary SPIR-V support.
 the native Mesa 26.3.0 Intel compiler library. Set `RENKU_VULKAN_HEADERS` to
 the extracted Khronos header directory and `RENKU_INTEL_COMPILER_LIB_DIR` to
 the directory containing `librenku_intel_compiler.so`. The script builds and
-runs four VM probes and compiles a hardware triangle probe. The original
-`build-native.sh` remains the physical N100
-regression path.
+runs four CPU/API probes and compiles a hardware triangle probe. The original
+`build-native.sh` remains a known-good N100 regression path.
 
 The alternate pipeline compiles either exact Vulkan 1.0 SPIR-V pair during
 `vkCreateGraphicsPipelines`, verifies the original against hardware-tested
-machine bytes and the half-green fragment against its compiler-proven bytes,
+machine bytes and the half-green fragment against its hardware-tested bytes,
 then uploads the compiled fragment program. Other shader pairs are rejected
-before compilation. The matching VM owner source admits exactly these two
-programs; the physical installed owner still admits the original only.
+before compilation. The physical owner now admits exactly these two programs.
 The compiler-backed build validates modules for Vulkan
 1.0 with SPIRV-Tools at `vkCreateShaderModule`, before pipeline creation. The
-VM probe rejects a semantically malformed module at that call, reaches owner
+API probe rejects a semantically malformed module at that call, reaches owner
 allocation with both accepted pairs, and rejects an altered pair before owner
-submission. It does not execute GPU work;
-physical N100 rendering still needs validation before this build can replace
-the fixed-program path. [Pipeline VM evidence](../evidence/native-vulkan-compiler-pipeline-006/README.md)
+submission. The physical N100 passed 128 repeated triangle draws with both
+fragments and four shapes. [Physical two-shader evidence](../evidence/native-vulkan-two-shaders-015/README.md)
+records the hashes and GPU trace. [Pipeline VM evidence](../evidence/native-vulkan-compiler-pipeline-006/README.md)
 and [validator VM evidence](../evidence/native-intel-validator-007/README.md)
-record those checkpoints. The [recovery checkpoint](../evidence/native-ramfs-unmount-008/README.md)
-records the current read-only physical boot volume and the restored VM probe.
+record earlier compiler checkpoints. The [recovery checkpoint](../evidence/native-ramfs-unmount-008/README.md)
+records the repaired physical boot volume.
 The [fence checkpoint](../evidence/native-vulkan-fence-009/README.md) records
 the VM fence tests; hardware execution with a fence remains pending.
 The [command reset checkpoint](../evidence/native-vulkan-command-reset-010/README.md)
@@ -112,4 +110,4 @@ records pool reset, and [checkpoint 011](../evidence/native-vulkan-command-reset
 records individual and implicit reset in the VM.
 The [two-shader owner checkpoint](../evidence/native-rcs-two-shaders-013/README.md)
 and [Vulkan checkpoint 014](../evidence/native-vulkan-two-shaders-014/README.md)
-record VM builds and the pending half-green hardware test.
+record the VM preflight that preceded the physical test.

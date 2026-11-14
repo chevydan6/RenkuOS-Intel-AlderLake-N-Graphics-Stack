@@ -224,9 +224,10 @@ int main(int argc,char** argv)
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
  if(half){
-  const unsigned interiorX[4]={20,20,10,10},interiorY[4]={10,20,20,10};
+  const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
+  const unsigned interiorX[4]={20,16,16,16},interiorY[4]={10,16,16,16};
   REQUIRE(pixels[interiorY[shape]*32+interiorX[shape]]==0xffff8000
-   && pixels[0]==0x19537bad && hash!=expected[shape],30);
+   && pixels[0]==0x19537bad && hash==expectedHalf[shape],30);
  }else REQUIRE(hash==expected[shape] && pixels[0]==0x19537bad,30);
  vkUnmapMemory(device,imageMemory);
  if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x\n",shape,hash);

@@ -1,0 +1,10 @@
+compiler pipeline probe: matched original and half-green machine code; rejected altered input and short buffer
+Vulkan API probe: validated both modules; compiled both pipelines; rejected altered pipeline
+Vulkan fence probe: timed wait; empty submit signal; reset; signaled creation; wait-any/all
+Vulkan command reset: pool, explicit buffer, and implicit begin reuse
+a2bb13cbc9ce446eb552ee148603244d82322c211c6b058cc3f70bd9bf8d9ed2  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/libvulkan.so
+4615eda46c006e9bcb74a6276bd248c75d3e64e4cc3b02f319c5981fa9943a36  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/compiler_pipeline_probe
+c17d248d4ba1669f5ebf60c9268d7fb36fd9d32fe7324cfc4c217eb2a55a3b60  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/compiler_pipeline_api_probe
+8a59c2b9ab84ca0c78e5c128a8cde7e7a2e5901e5aef24d0f343668304b9efb3  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/fence_probe
+496908330b40ceb6c0fbb09f4d023aea36a019ab69d60db996ba0b27efcd7701  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/command_reset_probe
+72d20f60cf9b858ca51a3acd86e707a595b447084bba0ea1a3bf577a1fc038bf  /boot/home/native-vulkan-two-shaders-014/vulkan/build-compiler/triangle_probe
