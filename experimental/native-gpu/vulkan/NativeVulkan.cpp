@@ -68,9 +68,10 @@ struct VkCommandPool_T {
  VkCommandPoolCreateFlags flags;
 };
 struct VkCommandBuffer_T {
+ struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
- VkBuffer boundVertex;VkBuffer vertex;
+ VkBuffer boundVertex;Draw* draws;size_t drawCount,drawCapacity;
  bool recording;bool inRenderPass;bool drawn;bool complete;bool invalid;
 };
 
@@ -288,7 +289,7 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
   VkCommandPool_T* next=device->pools->next;
   while(device->pools->commands){
    VkCommandBuffer_T* command=device->pools->commands;
-   device->pools->commands=command->next;free(command);
+   device->pools->commands=command->next;free(command->draws);free(command);
   }
   free(device->pools);device->pools=next;
  }
@@ -955,7 +956,7 @@ vkDestroyCommandPool(VkDevice device,VkCommandPool pool,const VkAllocationCallba
  if(!*current)return;
  while(pool->commands){
   VkCommandBuffer_T* next=pool->commands->next;
-  free(pool->commands);pool->commands=next;
+  free(pool->commands->draws);free(pool->commands);pool->commands=next;
  }
  *current=pool->next;free(pool);
 }
@@ -964,7 +965,7 @@ static void ResetCommandState(VkCommandBuffer_T* command)
 {
  command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
- command->vertex=VK_NULL_HANDLE;
+ command->drawCount=0;
  command->recording=false;command->inRenderPass=false;
  command->drawn=false;command->complete=false;command->invalid=false;
 }
@@ -975,8 +976,12 @@ vkResetCommandPool(VkDevice device,VkCommandPool pool,VkCommandPoolResetFlags fl
  if(!device || !pool || pool->device!=device
   || (flags&~VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT))
   return VK_ERROR_INITIALIZATION_FAILED;
- for(VkCommandBuffer_T* command=pool->commands;command;command=command->next)
+ for(VkCommandBuffer_T* command=pool->commands;command;command=command->next){
   ResetCommandState(command);
+  if(flags&VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT){
+   free(command->draws);command->draws=nullptr;command->drawCapacity=0;
+  }
+ }
  return VK_SUCCESS;
 }
 
@@ -988,7 +993,11 @@ vkResetCommandBuffer(VkCommandBuffer command,VkCommandBufferResetFlags flags)
   return VK_ERROR_INITIALIZATION_FAILED;
  if(!(command->pool->flags&VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT))
   return VK_ERROR_FEATURE_NOT_PRESENT;
- ResetCommandState(command);return VK_SUCCESS;
+ ResetCommandState(command);
+ if(flags&VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT){
+  free(command->draws);command->draws=nullptr;command->drawCapacity=0;
+ }
+ return VK_SUCCESS;
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -1017,7 +1026,8 @@ vkFreeCommandBuffers(VkDevice device,VkCommandPool pool,uint32_t count,
  for(uint32_t i=0;i<count;i++){
   VkCommandBuffer_T** current=&pool->commands;
   while(*current && *current!=commands[i])current=&(*current)->next;
-  if(*current){VkCommandBuffer_T* value=*current;*current=value->next;free(value);}
+  if(*current){VkCommandBuffer_T* value=*current;*current=value->next;
+   free(value->draws);free(value);}
  }
 }
 
@@ -1050,6 +1060,8 @@ vkCmdBeginRenderPass(VkCommandBuffer command,const VkRenderPassBeginInfo* info,
   command->invalid=true;return;
  }
  command->pass=info->renderPass;command->framebuffer=info->framebuffer;
+ command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+ command->drawn=false;
  command->inRenderPass=true;
 }
 
@@ -1087,7 +1099,19 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
  if(!command->recording || !command->inRenderPass || !command->pipeline
   || !command->boundVertex || command->drawn || vertices!=3 || instances!=1
   || firstVertex || firstInstance){command->invalid=true;return;}
- command->vertex=command->boundVertex;command->drawn=true;
+ if(command->drawCount==command->drawCapacity){
+  size_t next=command->drawCapacity?command->drawCapacity*2:4;
+  if(next<command->drawCapacity || next>SIZE_MAX/sizeof(VkCommandBuffer_T::Draw)){
+   command->invalid=true;return;
+  }
+  void* storage=realloc(command->draws,next*sizeof(VkCommandBuffer_T::Draw));
+  if(!storage){command->invalid=true;return;}
+  command->draws=(VkCommandBuffer_T::Draw*)storage;
+  command->drawCapacity=next;
+ }
+ command->draws[command->drawCount++]={command->framebuffer,
+  command->pipeline,command->boundVertex};
+ command->drawn=true;
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
@@ -1104,7 +1128,7 @@ extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkEndCommandBuffer(VkCommandBuffer command)
 {
  if(!command || !command->recording || command->inRenderPass
-  || !command->drawn || command->invalid)return VK_ERROR_INITIALIZATION_FAILED;
+  || !command->drawCount || command->invalid)return VK_ERROR_INITIALIZATION_FAILED;
  command->recording=false;command->complete=true;return VK_SUCCESS;
 }
 
@@ -1130,24 +1154,33 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   for(uint32_t j=0;j<submit.commandBufferCount;j++){
    VkCommandBuffer command=submit.pCommandBuffers[j];
    if(!command || command->device!=device || !command->complete
-    || !command->framebuffer || !command->pipeline || !command->vertex
-    || !command->vertex->memory || !command->framebuffer->view
-    || !command->framebuffer->view->image
-    || !command->framebuffer->view->image->memory)
+    || !command->drawCount || !command->draws)
     return VK_ERROR_INITIALIZATION_FAILED;
+   for(size_t k=0;k<command->drawCount;k++){
+    const auto& recorded=command->draws[k];
+    if(!recorded.framebuffer || recorded.framebuffer->device!=device
+     || !recorded.framebuffer->view || !recorded.framebuffer->view->image
+     || !recorded.framebuffer->view->image->memory
+     || !recorded.pipeline || recorded.pipeline->device!=device
+     || recorded.pipeline->pass!=recorded.framebuffer->pass
+     || !recorded.vertex || recorded.vertex->device!=device
+     || !recorded.vertex->memory)return VK_ERROR_INITIALIZATION_FAILED;
+   }
   }
  }
  for(uint32_t i=0;i<count;i++){
  for(uint32_t j=0;j<submits[i].commandBufferCount;j++){
  VkCommandBuffer command=submits[i].pCommandBuffers[j];
+ for(size_t k=0;k<command->drawCount;k++){
+ const auto& recorded=command->draws[k];
  native_gpu_render_command draw={};
- draw.version=command->pipeline->vertexShaderHandle?8:7;
+ draw.version=recorded.pipeline->vertexShaderHandle?8:7;
  draw.mode=NATIVE_GPU_RENDER_DRAW;
- draw.variant=command->vertex->memory->handle;
- draw.reserved=command->pipeline->shaderHandle;
+ draw.variant=recorded.vertex->memory->handle;
+ draw.reserved=recorded.pipeline->shaderHandle;
  if(draw.version==8)
-  memcpy(draw.output,&command->pipeline->vertexShaderHandle,
-   sizeof(command->pipeline->vertexShaderHandle));
+  memcpy(draw.output,&recorded.pipeline->vertexShaderHandle,
+   sizeof(recorded.pipeline->vertexShaderHandle));
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&draw,sizeof(draw));
  const bigtime_t renderDone=device->trace?system_time():0;
@@ -1167,7 +1200,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(valid){
   native_gpu_resource_command write={};write.version=1;
   write.action=NATIVE_GPU_RESOURCE_WRITE;
-  write.handle=command->framebuffer->view->image->memory->handle;
+  write.handle=recorded.framebuffer->view->image->memory->handle;
   write.bytes=sizeof(draw.output);memcpy(write.data,draw.output,write.bytes);
   if(device->trace)writeStart=system_time();
   writeStatus=ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write));
@@ -1176,17 +1209,20 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(device->trace)fprintf(stderr,
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
+  "\"draw_index\":%zu,\"draw_count\":%zu,"
   "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,"
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
   "\"render_ioctl_us\":%lld,\"write_ioctl_us\":%lld,\"submit_us\":%lld}\n",
   status,writeStatus,r.version,r.stage,r.sequence,r.observed_sequence,
-  draw.variant,draw.reserved,command->pipeline->vertexShaderHandle,
-  command->framebuffer->view->image->memory->handle,
+  k,command->drawCount,draw.variant,draw.reserved,
+  recorded.pipeline->vertexShaderHandle,
+  recorded.framebuffer->view->image->memory->handle,
   r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error,
   (long long)(renderDone-submitStart),(long long)(writeDone-writeStart),
   (long long)(system_time()-submitStart));
  if(!valid || writeStatus!=0)return VK_ERROR_DEVICE_LOST;
+ }
  }
  }
  if(fence)__atomic_store_n(&fence->signaled,true,__ATOMIC_RELEASE);

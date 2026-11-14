@@ -25,7 +25,8 @@ int main(int argc,char** argv)
    && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
    && strcmp(argv[2],"rgb")) || (argc==5 && strcmp(argv[4],"batch")
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
-   && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")))return 40;
+   && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
+   && strcmp(argv[4],"multipass")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  bool half=argc>=3 && !strcmp(argv[2],"half");
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
@@ -38,8 +39,11 @@ int main(int argc,char** argv)
  bool depth=argc==5 && !strcmp(argv[4],"depth");
  bool rotate=argc==5 && !strcmp(argv[4],"rotate");
  bool dual=argc==5 && !strcmp(argv[4],"dual");
+ bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
+ bool twoPipelines=dual || multiPass;
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
- if(dual && (shape!=0 || argc!=5 || strcmp(argv[2],"original") || repeats!=2))return 40;
+ if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
+  || repeats!=2))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || (batch && repeats!=2))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
@@ -231,30 +235,32 @@ int main(int argc,char** argv)
  VkShaderModule halfFs=VK_NULL_HANDLE;
  VkPipelineShaderStageCreateInfo secondStages[2]={stages[0],stages[1]};
  VkGraphicsPipelineCreateInfo pipelineInfos[2]={pipelineInfo,pipelineInfo};
- if(dual){
+ if(twoPipelines){
   moduleInfo.pCode=RenkuKnownSpirv::FragmentHalf;
   moduleInfo.codeSize=sizeof(RenkuKnownSpirv::FragmentHalf);
   REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&halfFs)==VK_SUCCESS,56);
   secondStages[1].module=halfFs;
   pipelineInfos[1].pStages=secondStages;
-  VkGraphicsPipelineCreateInfo overflow[17]={};
-  VkPipeline rolledBack[17]={};
-  for(unsigned i=0;i<17;i++)overflow[i]=pipelineInfo;
-  REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,17,
-   overflow,nullptr,rolledBack)==VK_ERROR_OUT_OF_DEVICE_MEMORY,57);
-  for(VkPipeline prior:rolledBack)REQUIRE(!prior,58);
-  VkPipeline filled[13]={};
-  REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,13,
-   overflow,nullptr,filled)==VK_SUCCESS,59);
-  for(VkPipeline prior:filled){
-   REQUIRE(prior,60);
-   vkDestroyPipeline(device,prior,nullptr);
+  if(dual){
+   VkGraphicsPipelineCreateInfo overflow[17]={};
+   VkPipeline rolledBack[17]={};
+   for(unsigned i=0;i<17;i++)overflow[i]=pipelineInfo;
+   REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,17,
+    overflow,nullptr,rolledBack)==VK_ERROR_OUT_OF_DEVICE_MEMORY,57);
+   for(VkPipeline prior:rolledBack)REQUIRE(!prior,58);
+   VkPipeline filled[13]={};
+   REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,13,
+    overflow,nullptr,filled)==VK_SUCCESS,59);
+   for(VkPipeline prior:filled){
+    REQUIRE(prior,60);
+    vkDestroyPipeline(device,prior,nullptr);
+   }
   }
  }
  VkPipeline pipelines[2]={VK_NULL_HANDLE,VK_NULL_HANDLE};
- REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,dual?2:1,
+ REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,twoPipelines?2:1,
    pipelineInfos,nullptr,pipelines)==VK_SUCCESS && pipelines[0]
-  && (!dual || pipelines[1]),21);
+  && (!twoPipelines || pipelines[1]),21);
  VkPipeline pipeline=pipelines[0],secondPipeline=pipelines[1];
  if(halfFs)vkDestroyShaderModule(device,halfFs,nullptr);
  vkDestroyShaderModule(device,fs,nullptr);vkDestroyShaderModule(device,vs,nullptr);
@@ -279,6 +285,13 @@ int main(int argc,char** argv)
  vkCmdDraw(command,3,1,0,0);
  vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
  vkCmdEndRenderPass(command);
+ if(multiPass){
+  vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,secondPipeline);
+  vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
+  vkCmdDraw(command,3,1,0,0);
+  vkCmdEndRenderPass(command);
+ }
  REQUIRE(vkEndCommandBuffer(command)==VK_SUCCESS,25);
  VkCommandBuffer second=VK_NULL_HANDLE;
  if(batch || dual){
@@ -305,7 +318,7 @@ int main(int argc,char** argv)
   REQUIRE(vkQueueSubmit(queue,2,submits,fence)==VK_SUCCESS,55);
   REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
    && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
- }else for(unsigned i=0;i<repeats;i++){
+ }else for(unsigned i=0;i<(multiPass?1:repeats);i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
   REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
@@ -322,7 +335,7 @@ int main(int argc,char** argv)
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(half || green75 || green90 || rgb || dual){
+ if(half || green75 || green90 || rgb || twoPipelines){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
   const uint32_t expectedGreen75[4]={0x28e87f2d,0xa6f78dc3,0xcef9f105,0xabd7c545};
   const uint32_t expectedGreen90[4]={0x979c9f2d,0x6a3fddc3,0x44297d05,0xd034dd45};
@@ -338,7 +351,8 @@ int main(int argc,char** argv)
   && (!rotate || (pixels[20*32+10]==0xffff4000
    && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
- if(dual)printf("Native Vulkan N100 dual pipeline: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ else if(dual)printf("Native Vulkan N100 dual pipeline: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(rgb)printf("Native Vulkan N100 RGB triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green75)printf("Native Vulkan N100 0.75-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);

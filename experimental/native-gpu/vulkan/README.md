@@ -27,6 +27,12 @@ their fixed state before allocation, and rolls back earlier pipelines if a
 later allocation fails. The [N100 dual-pipeline checkpoint](../evidence/native-vulkan-multipipeline-031/README.md)
 records two distinct fragment programs submitted in order, resource-exhaustion
 rollback, and the final pixel readback.
+Command buffers can now record multiple render-pass instances, each containing
+one bounded draw. Submission replays their captured framebuffer, pipeline, and
+vertex bindings in order and signals the fence after the last draw. The
+[multi-pass checkpoint](../evidence/native-vulkan-multipass-032/README.md)
+records two draws from one command buffer on the N100. Multiple draws within
+one render pass and attachment load/preservation semantics remain unsupported.
 The [batch checkpoint](../evidence/native-vulkan-batch-025/README.md) records
 the exact output hashes and hardware trace.
 `vkResetCommandPool` now returns allocated command buffers to the initial
@@ -40,7 +46,7 @@ creates an owner BO, and explicit flush/invalidate copies mapped staging data
 through the native resource ioctl. This memory type is host-visible and
 noncoherent. The native interface currently supports one 64 KiB heap,
 vertex-buffer usage, and one 32×32 linear BGRA color image shape. A synchronous
-`vkQueueSubmit` submits one owner-validated hardware triangle and copies the
+`vkQueueSubmit` submits each owner-validated hardware triangle and copies its
 completed pixels into the bound image BO. Set `RENKU_VK_TRACE=1` for a concise
 JSON submission report; normal draws skip the diagnostic print.
 
