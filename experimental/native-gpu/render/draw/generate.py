@@ -6,6 +6,7 @@ import argparse, json, shlex, subprocess, struct, hashlib
 p=argparse.ArgumentParser()
 p.add_argument('compiler_workspace',type=Path)
 p.add_argument('host_workspace',type=Path)
+p.add_argument('--dimension',type=int,choices=(32,64),default=32)
 a=p.parse_args()
 here=Path(__file__).resolve().parent
 root=a.compiler_workspace.resolve(); work=a.host_workspace.resolve(); work.mkdir(parents=True,exist_ok=True)
@@ -31,7 +32,8 @@ constants={'VS_URB_SIZE':vs['urb_entry_size'],'VS_READ_LENGTH':vs['urb_read_leng
 commands=json.loads((build/'compile_commands.json').read_text())
 entry=next(c for c in commands if c['file'].endswith('/native_rcs_shaders.c'))
 cmd=shlex.split(entry['command']); cmd=cmd[:cmd.index('-MD')]
-cmd += ['-I'+str(work),'-I'+str(build/'src/intel/genxml'),'-I'+str(src/'src/intel/genxml')]
+cmd += [f'-DRENKU_RENDER_DIM={a.dimension}','-I'+str(work),
+ '-I'+str(build/'src/intel/genxml'),'-I'+str(src/'src/intel/genxml')]
 objects=[]
 for name,path in [('emit',here/'emit.c'),('l3',src/'src/intel/common/intel_l3_config.c'),('urb',src/'src/intel/common/intel_urb_config.c')]:
  obj=work/(name+'.o');subprocess.run(cmd+['-o',str(obj),'-c',str(path)],cwd=build,check=True);objects.append(str(obj))
@@ -51,6 +53,7 @@ packed=packed.replace(b'#endif\n',shader.encode()+b'#endif\n')
 (work/'RcsDrawGenerated.h').write_bytes(packed)
 # Human review aid: command/state image bytes independent of C++ wrapper.
 manifest={'mesa_version':'26.3.0','mesa_archive_sha256':m['mesa_archive_sha256'],
+ 'render_dimension':a.dimension,
  'igt_commit':'31ec677ca24e7ed86e35f367f40a29d3d9f51c06','metadata_sha256':hashlib.sha256((artifacts/'metadata.json').read_bytes()).hexdigest(),
  'gen120_pack_sha256':hashlib.sha256((build/'src/intel/genxml/gen120_pack.h').read_bytes()).hexdigest(),
  'emit_sha256':hashlib.sha256((here/'emit.c').read_bytes()).hexdigest(),'generated_sha256':hashlib.sha256(packed).hexdigest(),

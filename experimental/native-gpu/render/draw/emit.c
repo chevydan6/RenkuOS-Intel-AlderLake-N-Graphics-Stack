@@ -2,6 +2,7 @@
  * Copyright (c) 2026 chevydan6
  * Packet setup adapted from Mesa 26.1.8 iris_state.c (Intel, MIT) and
  * IGT rendercopy_gen9.c 31ec677ca24e7ed86e35f367f40a29d3d9f51c06.
+ * Regenerated with Mesa 26.3.0 gen120_pack.
  * This is a HOST tool. Floating point and Mesa are never linked into kernel.
  */
 #include <assert.h>
@@ -15,6 +16,18 @@
 #define __gen_combine_address(data,loc,addr,delta) ((addr)+(delta))
 #include "gen120_pack.h"
 #include "metadata.h"
+#ifndef RENKU_RENDER_DIM
+#define RENKU_RENDER_DIM 32
+#endif
+#if RENKU_RENDER_DIM != 32 && RENKU_RENDER_DIM != 64
+#error "Only the 32 and 64 pixel packet layouts are modeled"
+#endif
+#define TARGET_HALF (RENKU_RENDER_DIM / 2)
+#define TARGET_MAX (RENKU_RENDER_DIM - 1)
+#define TARGET_PITCH (RENKU_RENDER_DIM * 4 - 1)
+#define TARGET_PAGES (RENKU_RENDER_DIM * RENKU_RENDER_DIM * 4 / 4096)
+#define POSTSYNC_ADDRESS (0x406000 + TARGET_PAGES * 4096)
+#define ADDRESS_SPACE_PAGES (7 + TARGET_PAGES)
 #define GFX12_3DSTATE_VERTEX_BUFFERS_length 1
 #define GFX12_3DSTATE_VERTEX_ELEMENTS_length 1
 static uint32_t image[3][1024];
@@ -25,7 +38,8 @@ static unsigned cursor;
 #define STATE(N,P,O,...) do {struct GFX12_##N s={__VA_ARGS__}; GFX12_##N##_pack(NULL,image[P]+(O)/4,&s);}while(0)
 static void array(const char* name,const uint32_t* p,unsigned n) {
  printf("static constexpr uint32_t %s[%u] = {\n",name,n);
- for(unsigned i=0;i<n;++i) printf("0x%08xU,%s",p[i],i%6==5?"\n":" ");
+ for(unsigned i=0;i<n;++i)
+  printf("0x%08xU,%s",p[i],i+1==n?"":i%6==5?"\n":" ");
  puts("\n};");
 }
 int main(void) {
@@ -38,26 +52,26 @@ int main(void) {
  intel_get_urb_config(&dev,l3,false,false,&urb,&constrained);
  fprintf(stderr,"ADL device limits: VS=%u PS/PSD=%u URB VS entries=%u start=%u size=%u deref=%u constrained=%u\n",dev.max_vs_threads,dev.max_threads_per_psd,urb.entries[0],urb.start[0],urb.size[0],urb.deref_block_size,constrained);
  // Dynamic page: viewport 0, CC viewport 64, blend header128 + RT132, CC192, scissor256.
- STATE(SF_CLIP_VIEWPORT,1,0,.ViewportMatrixElementm00=16,.ViewportMatrixElementm11=16,
- .ViewportMatrixElementm22=1,.ViewportMatrixElementm30=16,.ViewportMatrixElementm31=16,
+ STATE(SF_CLIP_VIEWPORT,1,0,.ViewportMatrixElementm00=TARGET_HALF,.ViewportMatrixElementm11=TARGET_HALF,
+ .ViewportMatrixElementm22=1,.ViewportMatrixElementm30=TARGET_HALF,.ViewportMatrixElementm31=TARGET_HALF,
  .XMinClipGuardband=-1,.XMaxClipGuardband=1,.YMinClipGuardband=-1,.YMaxClipGuardband=1,
- .XMinViewPort=0,.XMaxViewPort=31,.YMinViewPort=0,.YMaxViewPort=31);
+ .XMinViewPort=0,.XMaxViewPort=TARGET_MAX,.YMinViewPort=0,.YMaxViewPort=TARGET_MAX);
  STATE(CC_VIEWPORT,1,64,.MinimumDepth=0,.MaximumDepth=1);
  STATE(BLEND_STATE,1,128,0);
  STATE(BLEND_STATE_ENTRY,1,132,.SourceBlendFactor=BLENDFACTOR_ONE,.DestinationBlendFactor=BLENDFACTOR_ZERO,
  .SourceAlphaBlendFactor=BLENDFACTOR_ONE,.DestinationAlphaBlendFactor=BLENDFACTOR_ZERO,
  .PreBlendColorClampEnable=true,.PostBlendColorClampEnable=true);
  STATE(COLOR_CALC_STATE,1,192,0);
- STATE(SCISSOR_RECT,1,256,.ScissorRectangleXMax=31,.ScissorRectangleYMax=31);
+ STATE(SCISSOR_RECT,1,256,.ScissorRectangleXMax=TARGET_MAX,.ScissorRectangleYMax=TARGET_MAX);
  // Surface page: binding entry0 -> surface64. B8G8R8A8_UNORM linear, 128-byte pitch.
  image[2][0]=64;
  STATE(RENDER_SURFACE_STATE,2,64,.SurfaceType=SURFTYPE_2D,.SurfaceFormat=0xc0,.RenderCacheReadWriteMode=1,
- .SurfaceHorizontalAlignment=1,.SurfaceVerticalAlignment=1,.Width=31,.Height=31,
- .SurfacePitch=127,.MOCS=6,.SurfaceBaseAddress=0x406000,
+ .SurfaceHorizontalAlignment=1,.SurfaceVerticalAlignment=1,.Width=TARGET_MAX,.Height=TARGET_MAX,
+ .SurfacePitch=TARGET_PITCH,.MOCS=6,.SurfaceBaseAddress=0x406000,
  .ShaderChannelSelectRed=SCS_RED,.ShaderChannelSelectGreen=SCS_GREEN,
  .ShaderChannelSelectBlue=SCS_BLUE,.ShaderChannelSelectAlpha=SCS_ALPHA);
  EMIT(PIPE_CONTROL,.CommandStreamerStallEnable=true,.RenderTargetCacheFlushEnable=true,.DepthCacheFlushEnable=true,.DCFlushEnable=true,
- .PostSyncOperation=WriteImmediateData,.Address=0x407000);
+ .PostSyncOperation=WriteImmediateData,.Address=POSTSYNC_ADDRESS);
  EMIT(PIPELINE_SELECT,.PipelineSelection=_3D,.MaskBits=3);
  // iris_emit_l3_config: apply the device-selected L3 allocation.
  uint32_t l3word; struct GFX12_L3ALLOC l3s={0};
@@ -74,18 +88,18 @@ int main(void) {
  EMIT(3DSTATE_PUSH_CONSTANT_ALLOC_GS,);
  EMIT(3DSTATE_PUSH_CONSTANT_ALLOC_PS,);
  EMIT(PIPE_CONTROL,.CommandStreamerStallEnable=true,.RenderTargetCacheFlushEnable=true,.DepthCacheFlushEnable=true,.DCFlushEnable=true,
- .PostSyncOperation=WriteImmediateData,.Address=0x407000);
+ .PostSyncOperation=WriteImmediateData,.Address=POSTSYNC_ADDRESS);
  EMIT(STATE_BASE_ADDRESS,.GeneralStateMOCS=6,.IndirectObjectMOCS=6,.BindlessSurfaceStateMOCS=6,.BindlessSamplerStateMOCS=6,.GeneralStateBaseAddressModifyEnable=true,.GeneralStateBaseAddress=0x400000,
  .SurfaceStateBaseAddressModifyEnable=true,.SurfaceStateBaseAddress=0x402000,.SurfaceStateMOCS=6,
  .DynamicStateBaseAddressModifyEnable=true,.DynamicStateBaseAddress=0x401000,.DynamicStateMOCS=6,
  .IndirectObjectBaseAddressModifyEnable=true,.InstructionBaseAddressModifyEnable=true,
  .InstructionBaseAddress=0x400000,.InstructionMOCS=6,.StatelessDataPortAccessMOCS=6,
- .GeneralStateBufferSizeModifyEnable=true,.GeneralStateBufferSize=8,
+ .GeneralStateBufferSizeModifyEnable=true,.GeneralStateBufferSize=ADDRESS_SPACE_PAGES,
  .DynamicStateBufferSizeModifyEnable=true,.DynamicStateBufferSize=1,
- .IndirectObjectBufferSizeModifyEnable=true,.InstructionBuffersizeModifyEnable=true,.InstructionBufferSize=8);
+ .IndirectObjectBufferSizeModifyEnable=true,.InstructionBuffersizeModifyEnable=true,.InstructionBufferSize=ADDRESS_SPACE_PAGES);
  EMIT(PIPE_CONTROL,.CommandStreamerStallEnable=true,.StateCacheInvalidationEnable=true,
  .TextureCacheInvalidationEnable=true,.ConstantCacheInvalidationEnable=true,.InstructionCacheInvalidateEnable=true,
- .VFCacheInvalidationEnable=true,.PostSyncOperation=WriteImmediateData,.Address=0x407008);
+ .VFCacheInvalidationEnable=true,.PostSyncOperation=WriteImmediateData,.Address=POSTSYNC_ADDRESS+8);
  const struct GFX12_3DSTATE_URB_ALLOC_VS urb_header={GFX12_3DSTATE_URB_ALLOC_VS_header};
  for(unsigned i=0;i<4;++i) {
  EMIT(3DSTATE_URB_ALLOC_VS,._3DCommandSubOpcode=urb_header._3DCommandSubOpcode+i,
@@ -130,7 +144,7 @@ int main(void) {
  EMIT(3DSTATE_WM_DEPTH_STENCIL,);
  EMIT(3DSTATE_DEPTH_BUFFER,.SurfaceType=SURFTYPE_NULL,.SurfaceFormat=D32_FLOAT,.MOCS=6);
  EMIT(3DSTATE_HIER_DEPTH_BUFFER,.MOCS=6); EMIT(3DSTATE_STENCIL_BUFFER,.MOCS=6); EMIT(3DSTATE_CLEAR_PARAMS,);
- EMIT(3DSTATE_DRAWING_RECTANGLE,.ClippedDrawingRectangleXMax=31,.ClippedDrawingRectangleYMax=31);
+ EMIT(3DSTATE_DRAWING_RECTANGLE,.ClippedDrawingRectangleXMax=TARGET_MAX,.ClippedDrawingRectangleYMax=TARGET_MAX);
  EMIT(3DSTATE_VERTEX_BUFFERS,.DWordLength=3);
  STATE(VERTEX_BUFFER_STATE,0,cursor*4,.BufferPitch=16,.AddressModifyEnable=true,.MOCS=6,
  .BufferStartingAddress=0x403000,.BufferSize=48); cursor+=4;
@@ -143,7 +157,7 @@ int main(void) {
  EMIT(3DPRIMITIVE,.PrimitiveTopologyType=_3DPRIM_TRILIST,.VertexCountPerInstance=3,.InstanceCount=1);
  EMIT(PIPE_CONTROL,.CommandStreamerStallEnable=true,.RenderTargetCacheFlushEnable=true,.DCFlushEnable=true);
  EMIT(MI_BATCH_BUFFER_END,);
- puts("// SPDX-License-Identifier: MIT\n// Copyright (C) 2016 Intel Corporation; native adaptation 2026 chevydan6.\n// License: draw/LICENSE-MIT-Intel.txt\n// Generated by draw/generate.py with Mesa 26.1.8 gen120_pack; do not edit.\n#ifndef NATIVE_RCS_DRAW_GENERATED_H\n#define NATIVE_RCS_DRAW_GENERATED_H\n#include <stdint.h>\nnamespace NativeGpu { namespace RcsDrawData {");
+ puts("// SPDX-License-Identifier: MIT\n// Copyright (C) 2016 Intel Corporation; native adaptation 2026 chevydan6.\n// License: draw/LICENSE-MIT-Intel.txt\n// Generated by draw/generate.py with Mesa 26.3.0 gen120_pack; do not edit.\n#ifndef NATIVE_RCS_DRAW_GENERATED_H\n#define NATIVE_RCS_DRAW_GENERATED_H\n#include <stdint.h>\nnamespace NativeGpu { namespace RcsDrawData {");
  array("Batch",image[0],cursor); array("Dynamic",image[1],68); array("Surface",image[2],32);
  printf("static constexpr unsigned VsThreads=%u, PsThreadsPerPsd=%u, UrbVsEntries=%u;\n",dev.max_vs_threads,dev.max_threads_per_psd,urb.entries[0]);
  puts("} }\n#endif");

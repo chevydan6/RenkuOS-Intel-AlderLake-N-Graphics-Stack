@@ -29,6 +29,12 @@ python3 render/draw/generate.py \
  /home/dan/projects/native-rcs-compiler-263-final \
  /home/dan/projects/new-native-rcs-draw-263
 cmp render/draw/RcsDrawGenerated.h /home/dan/projects/new-native-rcs-draw-263/RcsDrawGenerated.h
+python3 render/draw/generate.py \
+ /home/dan/projects/native-rcs-compiler-263-final \
+ /home/dan/projects/new-native-rcs-draw-64 --dimension 64
+python3 render/draw/verify-dimensions.py \
+ render/draw/RcsDrawGenerated.h \
+ /home/dan/projects/new-native-rcs-draw-64/RcsDrawGenerated.h
 python3 render/draw/check_image.py /home/dan/projects/native-rcs-compiler-263-final/mesa-26.3.0
 python3 render/draw/test_rejections.py /home/dan/projects/native-rcs-compiler-263-final/mesa-26.3.0
 c++ -std=c++17 -Wall -Wextra -Werror -mgeneral-regs-only render/rcs_draw_smoke.cpp -o /tmp/rcs-draw-smoke
@@ -36,6 +42,12 @@ c++ -std=c++17 -Wall -Wextra -Werror -mgeneral-regs-only render/rcs_draw_smoke.c
 ```
 
 `generate.py` reads the verified compiler build configuration, generated `gen120_pack.h`, and compiler static libraries. It compiles the small emitter plus the upstream L3/URB helpers into a separate host workspace. It never modifies the compiler source/build/artifacts and does not maintain a Mesa fork. All Mesa dependencies and floating point are host-only; the committed generated words and integer wrapper have no Mesa runtime dependency. Regeneration must produce the identical committed header and manifest.
+
+`--dimension 64` is an offline packet-layout experiment. It moves the
+post-sync scratch beyond a four-page target and increases the state address
+range to eleven pages. The [dimension checkpoint](../../evidence/native-rcs-dimension-036/README.md)
+records the exact packet delta. The native owner and Vulkan ABI still use the
+eight-page, 32×32 layout; no 64×64 hardware submission is enabled.
 
 `check_image.py` decodes actual command words against Mesa's imported gen120 XML (independent of pack macros) and verifies real VS+FS dispatch, SIMD pointers, TRILIST, surface/resource addresses, disabled blend/depth/compression, and exact shader binary bytes. The C++ smoke verifies validation-before-write, poison, all four vertex variants, exact shader bytes and batch termination.
 

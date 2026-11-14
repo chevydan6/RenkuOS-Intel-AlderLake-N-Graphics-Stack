@@ -1,0 +1,29 @@
+{
+  "mesa_version": "26.3.0",
+  "mesa_archive_sha256": "91d729aa68bb89e4ec857841300bbe922bcb3e52b1f97566ca83930d3b28343a",
+  "render_dimension": 64,
+  "igt_commit": "31ec677ca24e7ed86e35f367f40a29d3d9f51c06",
+  "metadata_sha256": "62ba5668eeffb6a129ac6039df7e809cea65a892a4992158bb631b469b891291",
+  "gen120_pack_sha256": "dec725bc00ccb88fcdb8660fa540ef83352d509603c848af5b7b3025499dffb9",
+  "emit_sha256": "d4c6e45a0f36369ac11109b179216defde58963adf26f7bb000848080943a96b",
+  "generated_sha256": "e7355bb08c4bf05b63baab48df68e263fd69a3d50264b6a635296281d1300f3d",
+  "vs_sha256": "cf08637755fa472911ca133f49e64693b5d1f460f2963dd5ec5e44dbb3cdab58",
+  "fs_sha256": "b9f73778f45cfbd379a7f7d960fc047b5e75505231cc1356c718ff46b1b3e18b",
+  "constants": {
+    "VS_URB_SIZE": 1,
+    "VS_READ_LENGTH": 0,
+    "VS_GRF": 2,
+    "FS_GRF": 2,
+    "FS_GRF16": 2,
+    "FS_OFFSET16": 128
+  },
+  "upstream_sources_sha256": {
+    "src/intel/dev/intel_device_info.c": "dfb69cf8bfc6113bf758e13007d7e8ba2d9a20d2a4384e8c6da0be2d0b0fa468",
+    "src/intel/common/intel_l3_config.c": "834d1622fa4723ab3f9f70e87c91fc013eaa3d65de5ef2aa4b972cd4461343a5",
+    "src/intel/common/intel_urb_config.c": "fe5d99d520acf62b568e4f791581e74ac9d402e498b5f7a83222711cf5e98340",
+    "src/gallium/drivers/iris/iris_state.c": "60e26863b43e5858ce1dbdeb69312d336b572f360ae03f9dc4fd417a980f8fa2",
+    "src/intel/compiler/brw/brw_compiler.h": "fd751f86ccc114deb9db63e00d3ae50a4c205d13aac6a1efad9dc350b01b2c6c",
+    "src/intel/compiler/brw/brw_compile_fs.cpp": "662400b0b22a93c1d165ccbcf1d4f0026d191052f209fb0841d365d93a131518"
+  },
+  "device_library_sha256": "862bb2b3a88846e414e544aec307a5739097833ae029315749bac4f50d453e1d"
+}
