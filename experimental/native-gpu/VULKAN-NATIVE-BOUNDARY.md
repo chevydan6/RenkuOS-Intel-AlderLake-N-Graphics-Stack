@@ -222,3 +222,10 @@ status after the completed owner draw, and unsignaled status after reset,
 alongside exact image hashes and ordered GPU completion. See
 `evidence/native-vulkan-fence-hardware-018/`. Submission is still synchronous,
 so asynchronous queueing and broader synchronization remain open.
+
+The opt-in Vulkan submission trace now measures owner render ioctl, resource
+write ioctl, and total `vkQueueSubmit` wall time. On 128 exact N100 draws, the
+median synchronous render ioctl was 5,949 µs and total submit was 5,960 µs;
+see `evidence/native-vulkan-submit-timing-019/`. The render ioctl includes
+kernel work, GPU execution, completion polling, and validation, so it is not
+an isolated GPU execution measurement.

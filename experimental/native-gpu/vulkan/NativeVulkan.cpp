@@ -1072,33 +1072,44 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_command draw={};draw.version=7;draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=command->vertex->memory->handle;
  draw.reserved=command->pipeline->shaderHandle;
+ const bigtime_t submitStart=device->trace?system_time():0;
  int status=ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&draw,sizeof(draw));
+ const bigtime_t renderDone=device->trace?system_time():0;
  const auto& r=draw.report;
  uint32_t hash=2166136261u;
  const uint32_t* pixels=(const uint32_t*)draw.output;
  for(unsigned i=0;i<1024;i++)hash=(hash^pixels[i])*16777619u;
+ const bool valid=status==0 && !r.status && r.version==7
+  && r.stage==NATIVE_GPU_RENDER_STAGE_COMPLETE
+  && r.known_profile && r.owner_granted && r.sequence
+  && r.observed_sequence==r.sequence && r.nonce==r.observed_nonce
+  && r.observed_complement==~r.nonce && r.checked_pixels>=500
+  && r.matched_pixels==r.checked_pixels && hash==r.target_hash
+  && !r.fault && r.engine_stage==4 && !r.engine_error && !r.csb_error;
+ int writeStatus=-1;
+ bigtime_t writeStart=renderDone,writeDone=renderDone;
+ if(valid){
+  native_gpu_resource_command write={};write.version=1;
+  write.action=NATIVE_GPU_RESOURCE_WRITE;
+  write.handle=command->framebuffer->view->image->memory->handle;
+  write.bytes=sizeof(draw.output);memcpy(write.data,draw.output,write.bytes);
+  if(device->trace)writeStart=system_time();
+  writeStatus=ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write));
+  if(device->trace)writeDone=system_time();
+ }
  if(device->trace)fprintf(stderr,
-  "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"version\":%u,"
-  "\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
+  "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
+  "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
   "\"vertex_bo\":%u,\"shader_bo\":%u,\"image_bo\":%u,"
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
-  "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u}\n",
-  status,r.version,r.stage,r.sequence,r.observed_sequence,
+  "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
+  "\"render_ioctl_us\":%lld,\"write_ioctl_us\":%lld,\"submit_us\":%lld}\n",
+  status,writeStatus,r.version,r.stage,r.sequence,r.observed_sequence,
   draw.variant,draw.reserved,command->framebuffer->view->image->memory->handle,
-  r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error);
- if(status!=0 || r.status || r.version!=7 || r.stage!=NATIVE_GPU_RENDER_STAGE_COMPLETE
-  || !r.known_profile || !r.owner_granted || !r.sequence
-  || r.observed_sequence!=r.sequence || r.nonce!=r.observed_nonce
-  || r.observed_complement!=~r.nonce || r.checked_pixels<500
-  || r.matched_pixels!=r.checked_pixels || hash!=r.target_hash
-  || r.fault || r.engine_stage!=4 || r.engine_error || r.csb_error)
-  return VK_ERROR_DEVICE_LOST;
- native_gpu_resource_command write={};write.version=1;
- write.action=NATIVE_GPU_RESOURCE_WRITE;
- write.handle=command->framebuffer->view->image->memory->handle;
- write.bytes=sizeof(draw.output);memcpy(write.data,draw.output,write.bytes);
- if(ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write))!=0)
-  return VK_ERROR_DEVICE_LOST;
+  r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error,
+  (long long)(renderDone-submitStart),(long long)(writeDone-writeStart),
+  (long long)(system_time()-submitStart));
+ if(!valid || writeStatus!=0)return VK_ERROR_DEVICE_LOST;
  if(fence)__atomic_store_n(&fence->signaled,true,__ATOMIC_RELEASE);
  return VK_SUCCESS;
 }
