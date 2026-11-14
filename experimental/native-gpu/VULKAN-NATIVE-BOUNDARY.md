@@ -139,3 +139,12 @@ The installed v6 owner/bridge input inventory is now 141 files and 666,930
 bytes, up 3,460 bytes from v5; see `evidence/native-closure-v6-002/` for
 depfiles, per-file hashes, scope, and exclusions. It remains far narrower than
 the complete Vulkan stack and is not a model-token count.
+
+A direct-linked native `libvulkan.so` now compiles on RenkuOS with the pinned
+Khronos headers and enumerates the physical N100 through the existing probe
+ioctl. It also creates one graphics device/queue and owns shader-module
+objects for the two validated SPIR-V fixtures; see `vulkan/` and
+`evidence/native-vulkan-abi-001/`. This is a genuine native Vulkan ABI entry
+point, but it has not submitted a Vulkan draw or reached conformance. The
+remaining userspace gap is graphics-pipeline, memory, command-buffer, queue
+submission, readback, and presentation semantics over the native owner.
