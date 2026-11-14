@@ -1,5 +1,7 @@
 # RenkuOS Intel GPU development
 
+> **Active handoff — 2026-11-14:** Continue from [NATIVE_GPU_HANDOFF.md](NATIVE_GPU_HANDOFF.md). The owner abandoned the full Linux i915/LinuxKPI port in favor of native adaptation retaining Intel hardware logic and a real GPU-accelerated RenkuOS sample. New native code and prior work are preserved on the linked continuation/archive branches. See also the [Intel documentation inventory](docs/INTEL_GPU_DOCUMENTATION.md).
+
 > **Repository navigation:** Start with the [documentation index](docs/INDEX.md), [current evidence status](docs/CURRENT_STATUS.md), [native/experimental driver map](drivers/README.md), and [test/evidence map](tests/README.md). The cleanup branch is a staged reorganization; production source and hardware installation are unchanged.
 
 Astra High #2: private Intel N100 / Alder Lake-N graphics development for RenkuOS,
