@@ -24,5 +24,9 @@ for shape in 0 1 2 3; do "$here/build/triangle_probe" "$shape"; done
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -MMD -MF "$here/build/fence_probe.d" \
  -I"$root/include" "$here/fence_probe.cpp" -o "$here/build/fence_probe"
 "$here/build/fence_probe"
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -MMD -MF "$here/build/command_reset_probe.d" \
+ -I"$root/include" "$here/command_reset_probe.cpp" -o "$here/build/command_reset_probe"
+"$here/build/command_reset_probe"
 sha256sum "$here/build/libvulkan.so" "$here/build/api_probe" \
- "$here/build/triangle_probe" "$here/build/fence_probe"
+ "$here/build/triangle_probe" "$here/build/fence_probe" \
+ "$here/build/command_reset_probe"

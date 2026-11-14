@@ -16,6 +16,8 @@ shape. General shader compilation, resource formats, command streams,
 semaphores, presentation, and broad Vulkan compatibility remain open. Basic
 host fences now support creation, status, reset, wait, and signaling after a
 successful synchronous queue submission; they have only been tested in the VM.
+`vkResetCommandPool` now returns allocated command buffers to the initial
+state for reuse; that path has also only been tested in the VM.
 Unsupported instance extensions, device extensions, layers, and requested
 features are rejected.
 Device creation bootstraps the existing RCS owner. Vulkan memory allocation
@@ -98,3 +100,5 @@ record those checkpoints. The [recovery checkpoint](../evidence/native-ramfs-unm
 records the current read-only physical boot volume and the restored VM probe.
 The [fence checkpoint](../evidence/native-vulkan-fence-009/README.md) records
 the VM fence tests; hardware execution with a fence remains pending.
+The [command reset checkpoint](../evidence/native-vulkan-command-reset-010/README.md)
+records the VM command-buffer reuse test.

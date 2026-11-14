@@ -888,6 +888,22 @@ vkDestroyCommandPool(VkDevice device,VkCommandPool pool,const VkAllocationCallba
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkResetCommandPool(VkDevice device,VkCommandPool pool,VkCommandPoolResetFlags flags)
+{
+ if(!device || !pool || pool->device!=device
+  || (flags&~VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT))
+  return VK_ERROR_INITIALIZATION_FAILED;
+ for(VkCommandBuffer_T* command=pool->commands;command;command=command->next){
+  command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
+  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+  command->vertex=VK_NULL_HANDLE;
+  command->recording=false;command->inRenderPass=false;
+  command->drawn=false;command->complete=false;command->invalid=false;
+ }
+ return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkAllocateCommandBuffers(VkDevice device,const VkCommandBufferAllocateInfo* info,
  VkCommandBuffer* commands)
 {
@@ -1107,6 +1123,7 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkDestroyPipeline);
  VK_PROC(vkCreateCommandPool);
  VK_PROC(vkDestroyCommandPool);
+ VK_PROC(vkResetCommandPool);
  VK_PROC(vkAllocateCommandBuffers);
  VK_PROC(vkFreeCommandBuffers);
  VK_PROC(vkBeginCommandBuffer);
