@@ -58,11 +58,11 @@ def main():
     if len(sys.argv) not in (7, 8, 9):
         raise SystemExit("usage: link-native-compiler.py MESA_BUILD RUNTIME_C "
                          "NATIVE_DEVICE_INFO_C SPIRV_INCLUDE SPIRV_LIBRARY OUTDIR "
-                         "[NATIVE_COMMON_C [NATIVE_GLHEADER_ROOT]]")
+                         "[NATIVE_COMMON_C [NATIVE_HEADER_ROOT]]")
     build, runtime, device, spirv_include, spirv_library, output = (
         Path(arg).resolve() for arg in sys.argv[1:7])
     common = Path(sys.argv[7]).resolve() if len(sys.argv) >= 8 else None
-    glheader_root = Path(sys.argv[8]).resolve() if len(sys.argv) == 9 else None
+    header_root = Path(sys.argv[8]).resolve() if len(sys.argv) == 9 else None
     source = (build / "../mesa-26.3.0").resolve()
     if (source / "VERSION").read_text().strip() != "26.3.0":
         raise SystemExit("expected Mesa 26.3.0 source beside build")
@@ -71,15 +71,17 @@ def main():
         raise SystemExit("missing runtime, device-info, or SPIR-V library")
     if not (spirv_include / "spirv-tools/libspirv.h").is_file():
         raise SystemExit("missing SPIR-V Tools header")
-    if glheader_root is not None and not (glheader_root / "util/glheader.h").is_file():
+    if header_root is not None and not (header_root / "util/glheader.h").is_file():
         raise SystemExit("missing native util/glheader.h")
+    native_fourcc = (header_root / "drm-uapi/drm_fourcc.h"
+                     if header_root is not None else None)
     output.mkdir(parents=True, exist_ok=False)
     commands = json.loads((build / "compile_commands.json").read_text())
     runtime_object = output / "native_runtime.o"
     device_object = output / "native_device_info.o"
     compile_override(commands, build, "/native_runtime/intel_spirv_runtime.c",
                      runtime, runtime_object, ("-I" + str(spirv_include),),
-                     glheader_root)
+                     header_root)
     compile_override(commands, build, "/src/intel/dev/intel_device_info.c",
                      device, device_object)
     override_objects = {runtime_object, device_object}
@@ -124,25 +126,35 @@ def main():
     archive_objects = objects - set(map(str, override_objects))
     dependencies = object_dependencies(build, archive_objects)
     source_by_object = {entry["output"]: entry["file"] for entry in commands}
-    if glheader_root is not None:
-        original_header = source / "src/util/glheader.h"
+    if header_root is not None:
+        original_glheader = source / "src/util/glheader.h"
+        original_headers = {original_glheader}
+        glheader_affected = sum(original_glheader in dependencies[obj]
+                                for obj in archive_objects)
+        if native_fourcc.is_file():
+            original_fourcc = source / "include/drm-uapi/drm_fourcc.h"
+            original_headers.add(original_fourcc)
+            fourcc_affected = sum(original_fourcc in dependencies[obj]
+                                  for obj in archive_objects)
         affected = sorted(obj for obj in archive_objects
-                          if original_header in dependencies[obj])
+                          if dependencies[obj] & original_headers)
         if not affected:
-            raise RuntimeError("native glheader override selected no objects")
+            raise RuntimeError("native header override selected no objects")
         command_by_object = {entry["output"]: entry for entry in commands}
         for index, obj in enumerate(affected):
-            replacement = output / f"native_glheader_{index:03}.o"
+            replacement = output / f"native_header_{index:03}.o"
             compile_entry(command_by_object[obj], build, replacement,
-                          quote_root=glheader_root)
+                          quote_root=header_root)
             override_objects.add(replacement)
-        override_sources.add(glheader_root / "util/glheader.h")
+        override_sources.add(header_root / "util/glheader.h")
+        if native_fourcc.is_file():
+            override_sources.add(native_fourcc)
         subprocess.run(["c++", f"-Wl,-Map={link_map}", "-o", str(binary),
                         *map(str, sorted(override_objects)), *link_args,
                         str(spirv_library)], cwd=build, check=True)
         objects = selected_objects(link_map)
         if any(obj in objects for obj in affected):
-            raise RuntimeError("original GL-header object still selected")
+            raise RuntimeError("original header object still selected")
         if any("blake3_avx512" in obj or "blake3_dispatch.c.o" in obj
                for obj in objects):
             raise RuntimeError("unused original BLAKE3 objects remain selected")
@@ -164,8 +176,8 @@ def main():
     files = {(build / source_by_object[obj]).resolve() for obj in archive_objects}
     files.update(override_sources)
     files.update(p for paths in dependencies.values() for p in paths)
-    if glheader_root is not None and original_header in files:
-        raise RuntimeError("original broad GL header remains in closure")
+    if header_root is not None and files & original_headers:
+        raise RuntimeError("original broad header remains in closure")
     counts, sizes = Counter(), Counter()
     for path in files:
         if not path.is_file():
@@ -187,8 +199,12 @@ def main():
                   "i915_intel_device_info.c.o" in obj for obj in objects),
               "i915_engine_object_selected": any(
                   "i915_intel_engine.c.o" in obj for obj in objects)}
-    if glheader_root is not None:
-        report["native_glheader_objects"] = len(affected)
+    if header_root is not None:
+        report["native_header_objects"] = len(affected)
+        report["native_glheader_objects"] = glheader_affected
+        report["native_fourcc_override"] = native_fourcc.is_file()
+        if native_fourcc.is_file():
+            report["native_fourcc_objects"] = fourcc_affected
     (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
 

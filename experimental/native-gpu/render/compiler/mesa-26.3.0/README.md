@@ -62,3 +62,11 @@ in `prepare-haiku.py` still remains required.
 The [native validator checkpoint](../../../evidence/native-intel-validator-007/README.md)
 records package hashes, invalid-module rejection, unchanged machine code, and
 the new runtime library dependency.
+
+The [native format-header checkpoint](../../../evidence/native-fourcc-prune-090/README.md)
+uses `native-headers/drm-uapi/drm_fourcc.h` for the four modifier values
+needed by the selected compiler. `link-native-compiler.py` rebuilds affected
+objects with that header and the existing narrow GL header. The Haiku VM
+compiler and 262 physical N100 regression draws passed; the selected runtime
+source inventory fell by 169,701 bytes. The source root keeps a symlink to
+the existing GL override headers to avoid duplicating their canonical text.

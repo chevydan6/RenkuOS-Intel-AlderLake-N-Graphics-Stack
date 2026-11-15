@@ -112,6 +112,12 @@ rebuilds the owner and Vulkan dependencies after the version-21 preserving
 batch. Including the pinned host reproduction of SPIRV-Tools, it measures
 15,241,894 unique source bytes. This supersedes the intervening delta
 estimates; the complete Haiku build closure and model tokens remain unmeasured.
+The [native format-header checkpoint](../evidence/native-fourcc-prune-090/README.md)
+replaces the selected compiler's three Linux DRM UAPI headers with four
+verified modifier constants. The physical N100 passed 262 previous regression
+draws and six four-triangle image comparisons with the candidate compiler
+loaded. The measured selected runtime source inventory falls to 15,072,193
+bytes; the 3–5 MB target remains unmet.
 The [one-pass multidraw checkpoint](../evidence/native-multidraw-082/README.md)
 preserves the render target across two draws and verifies the complete 32x32
 and 64x64 images on the N100. Its initial path uses two blocking owner calls.
