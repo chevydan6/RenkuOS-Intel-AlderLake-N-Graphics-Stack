@@ -79,6 +79,9 @@ struct native_gpu_render_command {
 // uniform BO, builds binding-table entry 1, and verifies the rendered color.
 // Version 17 extends version 16 with a 16-byte-aligned uniform offset in
 // input output bytes 16..19. The owner resolves the exact 16-byte range.
+// Version 18 extends the direct-target request with a page-aligned image
+// offset in input output bytes 20..23. A nonzero uniform handle in bytes
+// 12..15 selects the version-17 UBO path; otherwise bytes 16..19 must be zero.
 // The v1-v8 4 KiB ABI remains unchanged.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {

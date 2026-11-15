@@ -42,6 +42,8 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
    && strcmp(argv[4],"memoryoffset")
+   && strcmp(argv[4],"imageoffset")
+   && strcmp(argv[4],"rotateimageoffset")
    && strcmp(argv[4],"rotateoffset") && strcmp(argv[4],"rotatepage")
    && strcmp(argv[4],"rotatefirst")
    && strcmp(argv[4],"depthoffset")))return 40;
@@ -76,7 +78,7 @@ int main(int argc,char** argv)
   || !strcmp(argv[4],"depthoffset"));
  bool rotate=argc==5 && (!strcmp(argv[4],"rotate")
   || !strcmp(argv[4],"rotateoffset") || !strcmp(argv[4],"rotatepage")
-  || !strcmp(argv[4],"rotatefirst"));
+  || !strcmp(argv[4],"rotatefirst") || !strcmp(argv[4],"rotateimageoffset"));
  bool dual=argc==5 && !strcmp(argv[4],"dual");
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
@@ -87,6 +89,8 @@ int main(int argc,char** argv)
  bool pageOffset=argc==5 && (!strcmp(argv[4],"pageoffset")
   || !strcmp(argv[4],"rotatepage"));
  bool vertexMemOffset=argc==5 && !strcmp(argv[4],"memoryoffset");
+ bool imageOffset=argc==5 && (!strcmp(argv[4],"imageoffset")
+  || !strcmp(argv[4],"rotateimageoffset"));
  bool selectedVertexRange=bindOffset || firstVertex || pageOffset;
  bool twoPipelines=dual || multiPass;
  if(large && (half || green75 || green90 || named || twoPipelines
@@ -101,9 +105,10 @@ int main(int argc,char** argv)
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(vertexMemOffset && (shape!=0 || repeats>8 || argc<3
   || strcmp(argv[2],"original")))return 40;
+ if(imageOffset && (shape!=0 || repeats!=2))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || ((batch || semaphoreBatch) && repeats!=2))return 40;
- if(ubo && (shape!=0 || repeats!=2 || argc==5))return 40;
+ if(ubo && (shape!=0 || repeats!=2 || (argc==5 && !imageOffset)))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
  memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
  bool alternateChanged=false;
@@ -281,10 +286,22 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateImage(device,&imageInfo,nullptr,&image)==VK_SUCCESS,13);
  vkGetImageMemoryRequirements(device,image,&requirement);
  REQUIRE(requirement.size==imageBytes && requirement.memoryTypeBits==1,14);
- allocation.allocationSize=requirement.size;
+ allocation.allocationSize=requirement.size+(imageOffset?4096:0);
  VkDeviceMemory imageMemory=VK_NULL_HANDLE;
  REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&imageMemory)==VK_SUCCESS,15);
- REQUIRE(vkBindImageMemory(device,image,imageMemory,0)==VK_SUCCESS,16);
+ REQUIRE(vkBindImageMemory(device,image,imageMemory,
+  imageOffset?4096:0)==VK_SUCCESS,16);
+ if(imageOffset){
+  void* guard=nullptr;
+  REQUIRE(vkMapMemory(device,imageMemory,0,4096,0,&guard)==VK_SUCCESS
+   && guard,73);
+  memset(guard,0xa5,4096);
+  VkMappedMemoryRange guardRange={};
+  guardRange.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+  guardRange.memory=imageMemory;guardRange.size=4096;
+  REQUIRE(vkFlushMappedMemoryRanges(device,1,&guardRange)==VK_SUCCESS,74);
+  vkUnmapMemory(device,imageMemory);
+ }
  VkImageViewCreateInfo viewInfo={};viewInfo.sType=VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
  viewInfo.image=image;viewInfo.viewType=VK_IMAGE_VIEW_TYPE_2D;
  viewInfo.format=VK_FORMAT_B8G8R8A8_UNORM;
@@ -529,8 +546,9 @@ int main(int argc,char** argv)
  }
 
  mapped=nullptr;
- REQUIRE(vkMapMemory(device,imageMemory,0,imageBytes,0,&mapped)==VK_SUCCESS && mapped,28);
- range.memory=imageMemory;range.size=imageBytes;
+ REQUIRE(vkMapMemory(device,imageMemory,imageOffset?4096:0,imageBytes,0,&mapped)
+  ==VK_SUCCESS && mapped,28);
+ range.memory=imageMemory;range.offset=imageOffset?4096:0;range.size=imageBytes;
  REQUIRE(vkInvalidateMappedMemoryRanges(device,1,&range)==VK_SUCCESS,29);
  uint32_t hash=2166136261u;
  const uint32_t* pixels=(const uint32_t*)mapped;
@@ -575,6 +593,17 @@ int main(int argc,char** argv)
   && (!rotate || (pixels[20*32+10]==0xffff4000
    && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
+ if(imageOffset){
+  void* guard=nullptr;
+  REQUIRE(vkMapMemory(device,imageMemory,0,4096,0,&guard)==VK_SUCCESS
+   && guard,75);
+  VkMappedMemoryRange guardRange={};
+  guardRange.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+  guardRange.memory=imageMemory;guardRange.size=4096;
+  REQUIRE(vkInvalidateMappedMemoryRanges(device,1,&guardRange)==VK_SUCCESS,76);
+  for(unsigned i=0;i<4096;i++)REQUIRE(((uint8_t*)guard)[i]==0xa5,77);
+  vkUnmapMemory(device,imageMemory);
+ }
  if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
   ubo?"UBO ":fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):
   rotate?"rotated-vertex ":

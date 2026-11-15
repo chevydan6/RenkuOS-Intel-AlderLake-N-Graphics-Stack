@@ -1,0 +1,4 @@
+compiler pipeline probe: bounded RGB, vertex, and UBO programs PASS
+c2ff7793581e093994313462421b72f64e0166ab2d2dc3358e18ce3a7a28700c  /boot/home/test-work/vulkan-ubo-075/candidate-imageoffset-079/libvulkan.so
+50776874fd5d73def386239ee198f992be71355cd9269fda36efc109b1458dc5  /boot/home/test-work/vulkan-ubo-075/candidate-imageoffset-079/triangle_probe
+beb10ec7454d857f5bbbed198183331bf0718e7e60f26360d76c1306052e3707  /boot/home/test-work/vulkan-ubo-075/candidate-imageoffset-079/compiler_pipeline_probe
