@@ -1,0 +1,7 @@
+N100 native GL-header compiler: PASS (39 cases, 124 draws)
+N100 binary semaphores: PASS (14 cases, 28 draws)
+Green gradient N100: PASS (4 cases, 16 draws)
+N100 resource arena: PASS (6 cases, 24 draws, 16 high-VA draws)
+N100 GL-extension prune: PASS (9 cases, 30 draws)
+N100 image offset: PASS size=64 profile=ubomemoffset variant=imageoffset direct=1 draws=2
+N100 memory offset: PASS size=64 profile=ubooffset direct=1 draws=2

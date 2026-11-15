@@ -1,0 +1,27 @@
+/boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/build-compiler/triangle_probe: \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/triangle_probe.cpp \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vulkan/vulkan.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vulkan/vk_platform.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vulkan/vulkan_core.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h264std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codecs_common.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h264std_encode.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h264std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h265std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h265std_encode.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h265std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h264std_decode.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_h265std_decode.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_av1std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_av1std_decode.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_av1std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_av1std_encode.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_vp9std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_vp9std_decode.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/include/vk_video/vulkan_video_codec_vp9std.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/KnownSpirv.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/RgbSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/DepthSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/RotateSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/FragCoordSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexsix-bundle-096/vulkan/UboSpirvFixture.h

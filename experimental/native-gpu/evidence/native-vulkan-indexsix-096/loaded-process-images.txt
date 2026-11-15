@@ -1,0 +1,2 @@
+/boot/home/native-indexsix-096/libvulkan.so
+/boot/home/native-xxhash-092/librenku_intel_compiler.so

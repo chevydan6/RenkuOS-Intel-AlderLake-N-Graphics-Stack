@@ -1,0 +1,17 @@
+N100 32 indexed count=1 iteration=0: PASS
+N100 32 indexed count=1 iteration=1: PASS
+N100 32 indexed count=1 iteration=2: PASS
+N100 32 indexed count=2 iteration=0: PASS
+N100 32 indexed count=2 iteration=1: PASS
+N100 32 indexed count=2 iteration=2: PASS
+N100 32 indexbad: rejected before draw
+N100 32 indexalias: rejected before draw
+N100 64 indexed count=1 iteration=0: PASS
+N100 64 indexed count=1 iteration=1: PASS
+N100 64 indexed count=1 iteration=2: PASS
+N100 64 indexed count=2 iteration=0: PASS
+N100 64 indexed count=2 iteration=1: PASS
+N100 64 indexed count=2 iteration=2: PASS
+N100 64 indexbad: rejected before draw
+N100 64 indexalias: rejected before draw
+N100 indexed without direct target: rejected before submit

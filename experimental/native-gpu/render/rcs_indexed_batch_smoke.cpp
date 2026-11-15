@@ -18,4 +18,12 @@ int main() {
   && batch[323]==0 && batch[324]==0x7a000004
   && batch[330]==0x05000000);
  assert(!NativeGpu::RcsIndexedBatch::Patch(batch,1024));
+ memset(batch,0,sizeof(batch));
+ memcpy(batch,NativeGpu::RcsDrawData::Batch,
+  sizeof(NativeGpu::RcsDrawData::Batch));
+ batch[294]=NativeGpu::RcsResourceRange::Base;
+ assert(!NativeGpu::RcsIndexedBatch::Patch(batch,1024,5));
+ assert(NativeGpu::RcsIndexedBatch::Patch(batch,1024,6));
+ assert(batch[313]==12 && batch[316]==6
+  && batch[314]==0x7b000808 && batch[315]==0x104);
 }

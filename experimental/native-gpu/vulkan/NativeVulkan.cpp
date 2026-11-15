@@ -95,7 +95,7 @@ struct VkCommandBuffer_T {
  struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;
   VkDescriptorSet descriptor;
   uint32_t vertexOffset;bool preserve;
-  VkBuffer index;uint32_t indexOffset;bool indexed;};
+  VkBuffer index;uint32_t indexOffset;bool indexed;uint32_t indexCount;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
  VkBuffer boundVertex;VkDeviceSize boundVertexOffset;
@@ -1446,7 +1446,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   command->draws[command->drawCount++]={command->framebuffer,
    command->pipeline,command->boundVertex,command->boundDescriptor,
    uint32_t(start+i*48),command->pass->load || command->drawn || i!=0,
-   VK_NULL_HANDLE,0,false};
+   VK_NULL_HANDLE,0,false,0};
  command->drawn=true;
 }
 
@@ -1461,7 +1461,9 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
   || !command->boundVertex || !command->boundIndex
   || command->pipeline->vertexShaderHandle
   || command->pipeline->uniformBuffer || command->pipeline->fragcoordGradient
-  || indexCount!=3 || instanceCount!=1 || vertexOffset || firstInstance){
+  || (indexCount!=3 && indexCount!=6) || instanceCount!=1
+  || vertexOffset || firstInstance
+  || (indexCount==6 && (command->pass->load || command->drawn))){
   command->invalid=true;return;
  }
  uint64_t vertexStart=command->boundVertexOffset;
@@ -1470,8 +1472,10 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
   || 64>command->boundVertex->bytes-vertexStart
   || (vertexStart&4095)>4096-64
   || indexStart>command->boundIndex->bytes
-  || 6>command->boundIndex->bytes-indexStart
-  || (indexStart&4095)>4096-6){command->invalid=true;return;}
+  || uint64_t(indexCount)*2>command->boundIndex->bytes-indexStart
+  || (indexStart&4095)>4096-indexCount*2){
+  command->invalid=true;return;
+ }
  vertexStart+=command->boundVertex->memoryOffset;
  indexStart+=command->boundIndex->memoryOffset;
  if(vertexStart>UINT32_MAX || indexStart>UINT32_MAX
@@ -1490,7 +1494,7 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
  draw={command->framebuffer,command->pipeline,command->boundVertex,
   command->boundDescriptor,uint32_t(vertexStart),
   command->pass->load || command->drawn,
-  command->boundIndex,uint32_t(indexStart),true};
+  command->boundIndex,uint32_t(indexStart),true,indexCount};
  command->drawn=true;
 }
 
@@ -1644,7 +1648,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=recorded.indexed?(recorded.preserve?23:22):
+ draw.version=recorded.indexed?(recorded.indexCount==6?24:
+  recorded.preserve?23:22):
   nativeBatch?(recorded.preserve?21:20):recorded.preserve?19:
   directTarget && recorded.framebuffer->view->image->memoryOffset?18:
   uniform?(uniformOffset?17:16):directTarget?15:recorded.vertexOffset
@@ -1658,7 +1663,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(draw.version==13 || draw.version==14 || draw.version==15
   || draw.version==16 || draw.version==17 || draw.version==18
   || draw.version==19 || draw.version==20 || draw.version==21
-  || draw.version==22 || draw.version==23)
+  || draw.version==22 || draw.version==23 || draw.version==24)
   memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
@@ -1669,7 +1674,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   sizeof(recorded.pipeline->vertexShaderHandle));
  if(draw.version==15 || draw.version==16 || draw.version==17
   || draw.version==18 || draw.version==19 || draw.version==20
-  || draw.version==21 || draw.version==22 || draw.version==23){
+  || draw.version==21 || draw.version==22 || draw.version==23
+  || draw.version==24){
   memcpy(draw.output+4,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
   memcpy(draw.output+8,&recorded.framebuffer->view->image->memory->handle,
@@ -1683,7 +1689,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   if(draw.version==18 || draw.version==19)memcpy(draw.output+20,
    &recorded.framebuffer->view->image->memoryOffset,
    sizeof(recorded.framebuffer->view->image->memoryOffset));
-  if(draw.version==22 || draw.version==23){
+  if(draw.version==22 || draw.version==23 || draw.version==24){
    memcpy(draw.output+24,&recorded.index->memory->handle,
     sizeof(recorded.index->memory->handle));
    memcpy(draw.output+28,&recorded.indexOffset,sizeof(recorded.indexOffset));
@@ -1742,7 +1748,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
   "\"draw_index\":%zu,\"draw_count\":%zu,\"gpu_draws\":%u,\"vertex_offset\":%u,\"direct_target\":%u,"
-  "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,\"image_offset\":%u,\"uniform_bo\":%u,\"uniform_offset\":%u,\"index_bo\":%u,\"index_offset\":%u,"
+  "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,\"image_offset\":%u,\"uniform_bo\":%u,\"uniform_offset\":%u,\"index_bo\":%u,\"index_offset\":%u,\"index_count\":%u,"
   "\"vertex_gpu_va\":\"%llx\",\"shader_gpu_va\":\"%llx\",\"image_gpu_va\":\"%llx\","
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
@@ -1757,6 +1763,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   uniformOffset,
   recorded.indexed?recorded.index->memory->handle:0,
   recorded.indexed?recorded.indexOffset:0,
+  recorded.indexed?recorded.indexCount:0,
   (unsigned long long)recorded.vertex->memory->gpu,
   (unsigned long long)recorded.pipeline->shaderGpu,
   (unsigned long long)recorded.framebuffer->view->image->memory->gpu,

@@ -5,14 +5,15 @@
 #include <string.h>
 
 namespace NativeGpu {
-// Fixed N100 indexed triangle: three 16-bit indices are copied by the owner
-// into its private vertex page. The public vertex BO still feeds the GPU.
+// Bounded N100 indexed triangles: three or six 16-bit indices are copied by
+// the owner into its private vertex page. The public vertex BO feeds the GPU.
 class RcsIndexedBatch {
 public:
  static constexpr uint32_t IndexGpu=RcsDrawImage::GpuBase
   +RcsDrawImage::Vertices*4096+256;
- static bool Patch(uint32_t* batch,unsigned dwords) {
-  if(!batch || dwords!=1024 || batch[292]!=0x78080003
+ static bool Patch(uint32_t* batch,unsigned dwords,unsigned indexCount=3) {
+  if(!batch || dwords!=1024 || (indexCount!=3 && indexCount!=6)
+   || batch[292]!=0x78080003
    || batch[293]!=0x00064010 || batch[296]!=0x30
    || batch[309]!=0x7b000005 || batch[310]!=4 || batch[311]!=3
    || batch[312]!=0 || batch[313]!=1 || batch[314]!=0
@@ -30,9 +31,10 @@ public:
   batch[310]=0x00000904; // WORD indices, MOCS 4, L3 bypass disabled.
   batch[311]=IndexGpu;
   batch[312]=0;
-  batch[313]=6;          // Three 16-bit indices.
+  batch[313]=indexCount*2;
   batch[314]=0x7b000808; // 10-dword 3DPRIMITIVE with extended parameters.
   batch[315]|=0x100;     // Vertex Access Type = RANDOM.
+  batch[316]=indexCount; // TRILIST vertices per instance.
   return true;
  }
 };

@@ -99,6 +99,9 @@ struct native_gpu_render_command {
 // into a private GPU page; the GPU fetches indices and vertices itself.
 // Version 23 uses the same indexed request and preserves existing image
 // pixels outside the selected triangle, including across render passes.
+// Version 24 uses the same fields for six 16-bit indices, producing two
+// triangles with one indexed GPU primitive. The owner validates both selected
+// triangles, stages 12 index bytes, and verifies the complete pair image.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {
  native_gpu_render_command base;
