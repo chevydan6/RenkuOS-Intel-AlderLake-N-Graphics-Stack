@@ -46,6 +46,10 @@ The [direct render-target checkpoint](../evidence/native-direct-target-053/READM
 records 178 physical regression draws after adding an owner-resolved image BO
 as the GPU render target. This is the default Vulkan path; set
 `RENKU_VK_DIRECT_TARGET=0` to use the earlier readback-and-write path.
+The [current source-closure inventory](../evidence/native-stack-current-054/README.md)
+counts 14,174,197 unique canonical runtime bytes across the selected compiler,
+owner, and Vulkan inputs. It tracks generated and SDK inputs separately; model
+token counts and some external dependencies remain unmeasured.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

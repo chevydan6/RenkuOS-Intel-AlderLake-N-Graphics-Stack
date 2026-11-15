@@ -18,10 +18,14 @@ def compiler_category(path):
         return "spirv_tools_header"
     if path.startswith("/boot/home/test-work/closure-current-022/src/"):
         return "compiler_project_runtime"
+    if path.startswith("/boot/home/test-work/native-fragcoord-runtime-048/"):
+        return "compiler_project_runtime"
     if path.startswith("/boot/home/test-work/native-device-info-044/"):
         return "compiler_native_adaptation"
     if path.startswith("/boot/home/test-work/native-common-045/"):
         return "compiler_native_adaptation"
+    if path.startswith("/boot/home/test-work/"):
+        raise ValueError("unclassified compiler project input: " + path)
     return "compiler_sdk"
 
 
