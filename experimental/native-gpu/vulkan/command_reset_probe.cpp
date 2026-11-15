@@ -104,10 +104,26 @@ int main()
  if(six.invalid || six.drawCount!=2 || six.draws[0].vertexOffset!=0
   || six.draws[1].vertexOffset!=48 || six.draws[0].preserve
   || !six.draws[1].preserve)return 24;
+ six.drawCount=0;six.invalid=false;six.drawn=false;vertex.bytes=144;
+ vkCmdDraw(&six,9,1,0,0);
+ if(six.invalid || six.drawCount!=3 || six.draws[0].vertexOffset!=0
+  || six.draws[1].vertexOffset!=48 || six.draws[2].vertexOffset!=96
+  || six.draws[0].preserve || !six.draws[1].preserve
+  || !six.draws[2].preserve)return 27;
+ six.drawCount=0;six.invalid=false;six.drawn=false;vertex.bytes=240;
+ vkCmdDraw(&six,15,1,0,0);
+ if(six.invalid || six.drawCount!=5 || six.drawCapacity<5
+  || six.draws[4].vertexOffset!=192 || !six.draws[4].preserve)return 29;
  six.drawCount=0;six.invalid=false;vertex.bytes=48;
  vkCmdDraw(&six,6,1,0,0);
  if(!six.invalid || six.drawCount)return 25;
- six.invalid=false;vertex.bytes=8192;six.boundVertexOffset=4096-48;
+ six.invalid=false;six.drawn=false;vertex.bytes=8192;
+ six.boundVertexOffset=4096-48;
+ vkCmdDraw(&six,6,1,0,0);
+ if(six.invalid || six.drawCount!=2
+  || six.draws[0].vertexOffset!=4096-48
+  || six.draws[1].vertexOffset!=4096)return 28;
+ six.drawCount=0;six.invalid=false;six.boundVertexOffset=4096-32;
  vkCmdDraw(&six,6,1,0,0);
  if(!six.invalid || six.drawCount)return 26;
  free(six.draws);

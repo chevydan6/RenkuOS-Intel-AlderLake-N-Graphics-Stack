@@ -1385,7 +1385,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
 {
  if(!command)return;
  if(!command->recording || !command->inRenderPass || !command->pipeline
-  || !command->boundVertex || (vertices!=3 && vertices!=6) || instances!=1
+  || !command->boundVertex || vertices<3 || vertices%3 || instances!=1
   || firstInstance){command->invalid=true;return;}
  if(command->pipeline->uniformBuffer && (!command->boundDescriptor
   || !command->boundDescriptor->valid
@@ -1393,14 +1393,15 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   command->invalid=true;return;
  }
  uint64_t start=command->boundVertexOffset+uint64_t(firstVertex)*16;
- const uint32_t vertexBytes=vertices*16;
+ const uint64_t vertexBytes=uint64_t(vertices)*16;
  if(start>UINT32_MAX || start>command->boundVertex->bytes
-  || vertexBytes>command->boundVertex->bytes-start
-  || (start&4095)>4096-vertexBytes){
+  || vertexBytes>command->boundVertex->bytes-start){
   command->invalid=true;return;
  }
- start+=command->boundVertex->memoryOffset;
  const size_t added=vertices/3;
+ for(size_t i=0;i<added;i++)
+  if(((start+i*48)&4095)>4096-48){command->invalid=true;return;}
+ start+=command->boundVertex->memoryOffset;
  if(command->drawCount>SIZE_MAX-added){command->invalid=true;return;}
  if(command->drawCount+added>command->drawCapacity){
   size_t next=command->drawCapacity?command->drawCapacity*2:4;
@@ -1557,6 +1558,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   && command->draws[k+1].pipeline==recorded.pipeline
   && command->draws[k+1].vertex==recorded.vertex
   && uint64_t(recorded.vertexOffset)+48==command->draws[k+1].vertexOffset
+  && (recorded.vertexOffset&4095)<=4096-96
   && batchEnabled;
  const uint32_t uniformOffset=uniform
   ?recorded.descriptor->buffer->memoryOffset+recorded.descriptor->bufferOffset:0;

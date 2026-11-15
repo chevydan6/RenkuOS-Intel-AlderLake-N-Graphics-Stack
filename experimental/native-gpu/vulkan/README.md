@@ -124,6 +124,11 @@ The [six-vertex draw checkpoint](../evidence/native-vulkan-draw6-086/README.md)
 extends that path to one `vkCmdDraw` call for two triangle-list primitives.
 Both target sizes matched the prior captured images byte for byte on the N100;
 the existing 262 hardware regression draws passed with the candidate library.
+The [multi-primitive draw checkpoint](../evidence/native-vulkan-draw9-087/README.md)
+accepts additional triangle-list primitives in one `vkCmdDraw`. Nine vertices
+in one call matched three established calls byte for byte at both target sizes.
+It also keeps a two-triangle batch within one vertex page; a pair split across
+pages falls back to two validated submissions.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
