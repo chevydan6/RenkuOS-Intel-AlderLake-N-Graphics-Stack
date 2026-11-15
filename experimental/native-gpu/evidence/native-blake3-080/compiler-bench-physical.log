@@ -1,0 +1,40 @@
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=151486 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=122497 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=153396 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=127224 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=125990 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=153953 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=125540 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=154677 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=124656 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=154299 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=125003 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=155322 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=125352 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=126059 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=154318 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=125897 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=153479 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=125313 checksum=48200
+compiler=/boot/home/native-ubo-076/librenku_intel_compiler.so
+iterations=100 elapsed_us=154002 checksum=48200
+compiler=/boot/home/native-blake3-080/librenku_intel_compiler.so
+iterations=100 elapsed_us=125518 checksum=48200

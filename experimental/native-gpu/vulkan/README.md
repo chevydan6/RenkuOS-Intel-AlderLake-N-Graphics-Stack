@@ -91,6 +91,16 @@ extends the same descriptor-backed fragment program to the larger render
 target. Two N100 draws matched 3,476/3,476 checked pixels each, and the final
 raw image was captured. The existing 222-draw regression matrix passed; the
 selected runtime source closure is 12,667,163 bytes.
+The [image-memory-offset checkpoint](../evidence/native-vulkan-image-offset-079/README.md)
+adds page-aligned nonzero `vkBindImageMemory` offsets. Twelve combinations
+passed 24 physical N100 draws, including direct and copy paths. Its selected
+runtime source closure is 12,664,657 bytes.
+The [N100 BLAKE3 compiler checkpoint](../evidence/native-blake3-080/README.md)
+removes the unselected AVX-512 assembly from Mesa's compiler link while
+retaining AVX2, SSE4.1, and SSE2. The isolated compiler and Vulkan bundle
+passed 222 regression draws plus 40 offset draws on the physical N100. The
+selected runtime source closure is now 12,502,676 bytes; model tokens and
+broader kernel/build inputs remain unmeasured.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

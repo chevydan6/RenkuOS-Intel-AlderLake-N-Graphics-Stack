@@ -1,0 +1,29 @@
+{
+  "mesa_version": "26.3.0",
+  "binary": "/boot/home/test-work/native-blake3-080/compiler-candidate/librenku_intel_compiler.so",
+  "binary_bytes": 14564992,
+  "linked_objects": 345,
+  "runtime_libraries": [
+    "libSPIRV-Tools-shared.so",
+    "libstdc++.so.6",
+    "libgcc_s.so.1",
+    "libroot.so"
+  ],
+  "included_files": 842,
+  "file_counts": {
+    "mesa": 497,
+    "external": 292,
+    "generated": 49,
+    "native_override": 4
+  },
+  "source_bytes": {
+    "mesa": 11890881,
+    "external": 5049619,
+    "generated": 62392205,
+    "native_override": 96098
+  },
+  "i915_drm_header_selected": false,
+  "i915_device_info_object_selected": false,
+  "i915_engine_object_selected": false,
+  "native_glheader_objects": 76
+}

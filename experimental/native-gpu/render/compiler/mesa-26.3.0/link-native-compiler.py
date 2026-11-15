@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Relink the pinned Mesa compiler with native PCI-ID-only device info."""
+"""Relink the pinned Mesa compiler with N100 native overrides."""
 import json
 from collections import Counter
 from pathlib import Path
@@ -90,6 +90,13 @@ def main():
                          common, common_object)
         override_objects.add(common_object)
         override_sources.add(common)
+    # Alder Lake-N has AVX2 but no AVX-512. Keep Mesa's dispatcher and its
+    # other CPU paths while allowing the unused AVX-512 assembly to leave the
+    # selected compiler link and source closure.
+    blake3_dispatch_object = output / "native_blake3_dispatch.o"
+    compile_override(commands, build, "/src/util/blake3/blake3_dispatch.c",
+                     None, blake3_dispatch_object, ("-DBLAKE3_NO_AVX512",))
+    override_objects.add(blake3_dispatch_object)
     graph = (build / "build.ninja").read_text()
     start = graph.index(f"build {TARGET}: cpp_LINKER ")
     block = graph[start:].split("\n\n", 1)[0]
@@ -110,6 +117,9 @@ def main():
     if any(f"LOAD {obj}" not in link_map.read_text()
            for obj in override_objects):
         raise RuntimeError("override objects not linked")
+    if any("blake3_avx512" in obj or "blake3_dispatch.c.o" in obj
+           for obj in objects):
+        raise RuntimeError("unused original BLAKE3 objects remain selected")
     objects.update(map(str, override_objects))
     archive_objects = objects - set(map(str, override_objects))
     dependencies = object_dependencies(build, archive_objects)
@@ -133,6 +143,9 @@ def main():
         objects = selected_objects(link_map)
         if any(obj in objects for obj in affected):
             raise RuntimeError("original GL-header object still selected")
+        if any("blake3_avx512" in obj or "blake3_dispatch.c.o" in obj
+               for obj in objects):
+            raise RuntimeError("unused original BLAKE3 objects remain selected")
         objects.update(map(str, override_objects))
         archive_objects = objects - set(map(str, override_objects))
         dependencies = object_dependencies(build, archive_objects)

@@ -1,0 +1,4 @@
+  NEEDED               librenku_intel_compiler.so
+  RPATH                /boot/home/native-blake3-080
+  NEEDED               libvulkan.so
+  RPATH                /boot/home/native-blake3-080

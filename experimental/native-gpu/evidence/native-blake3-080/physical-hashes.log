@@ -1,0 +1,6 @@
+9c13b776dab7739c27a5ec930c031a57a7dc846c9200e1f46107edd1be0a227d  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+6bbdc5916635ec420df771aaa96681b6cbb6dcc6d211dfa06f14063fa1f5da9d  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_native_execution_bridge
+2617d71d10a1bf62451a3d7b1ef7e11cc36a298ee98949ab2f79d612ed31991b  /boot/home/native-blake3-080/librenku_intel_compiler.so
+16e1f2669de13d162d35f3a675908581901b7b9ffead4c340d99842eb6c5f222  /boot/home/native-blake3-080/libvulkan.so
+48cb165ab1682b431c0f7a07492b15e80ad5b5dda870d2c35e9e0fd27b5aafe9  /boot/home/native-blake3-080/triangle_probe
+5415fd9cf07c64f47d8e60784451fbb75f0ab55fc803b3118594f81ce3a7bb2b  /boot/home/native-blake3-080/compiler_pipeline_probe
