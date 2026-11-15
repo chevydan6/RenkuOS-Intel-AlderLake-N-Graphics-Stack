@@ -432,7 +432,10 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
     sRenderTargetPages[p][i]=NativeGpu::RcsDrawImage::Poison;
  }
  r.stage=8;
- if(!NativeRenderBuild(r.nonce,r.sequence,r.ring_tail,draw) || !NativeVisible(data))return false;
+ // Publish() performs the visibility flush immediately before GPU submission.
+ // Rearm() only inspects state, so a draw needs no earlier full-cache flush.
+ if(!NativeRenderBuild(r.nonce,r.sequence,r.ring_tail,draw)
+  || (!draw && !NativeVisible(data)))return false;
  uint32_t tag=1+(r.sequence-1)%0x7fe;uint64_t descriptor=0;
  if(!intel_n100_rcs_descriptor(r.identity,uint8_t(r.revision),sRenderBuffers[3].ggtt_offset,tag,&descriptor))return false;
  NativeGpu::RcsEngine::IO engineIO={data,HandshakeTime,NativeRenderSafe,NativeRenderRawRead,NativeRenderRawWrite,NativeVisible};
@@ -738,6 +741,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  sRenderReport=output;auto& r=sRenderReport;
 #ifdef NATIVE_RENDER_PROFILE_TIMING
  sRenderTiming={};sRenderTiming.accepted=system_time();
+ sNativeRenderVisibleUs=0;sNativeRenderVisibleCalls=0;
 #endif
  if(mode!=NATIVE_GPU_RENDER_PROBE){
   ++sNativeSequence;if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
@@ -839,7 +843,8 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  if(version==15 && mode==NATIVE_GPU_RENDER_DRAW && r.status==B_OK)
   dprintf("native_rcs_timing seq=%u accepted_us=%lld forcewake_us=%lld "
    "group_before_work_us=%lld work_to_publish_us=%lld csb_wait_us=%lld "
-   "verify_us=%lld group_after_work_us=%lld finish_us=%lld total_us=%lld\n",
+   "verify_us=%lld group_after_work_us=%lld finish_us=%lld total_us=%lld "
+   "visible_us=%lld visible_calls=%u\n",
    r.sequence,(long long)(sRenderTiming.forcewakeStart-sRenderTiming.accepted),
    (long long)(sRenderTiming.forcewakeDone-sRenderTiming.forcewakeStart),
    (long long)(sRenderTiming.workStart-sRenderTiming.forcewakeDone),
@@ -848,7 +853,8 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
    (long long)(sRenderTiming.verified-sRenderTiming.csbDone),
    (long long)(sRenderTiming.groupDone-sRenderTiming.verified),
    (long long)(sRenderTiming.finished-sRenderTiming.groupDone),
-   (long long)(sRenderTiming.finished-sRenderTiming.accepted));
+   (long long)(sRenderTiming.finished-sRenderTiming.accepted),
+   (long long)sNativeRenderVisibleUs,sNativeRenderVisibleCalls);
 #endif
  mutex_unlock(&sLock);return r.status;
 }

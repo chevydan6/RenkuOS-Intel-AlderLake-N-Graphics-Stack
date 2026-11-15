@@ -29,6 +29,10 @@ static NativeGpu::RequestLifecycle sNativeLifecycle;
 static uint32_t sNativeClients;
 static status_t sNativeLastStatus=B_OK;
 static native_gpu_request_metrics sNativeMetrics, sNativeLastMetrics;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+static bigtime_t sNativeRenderVisibleUs;
+static uint32_t sNativeRenderVisibleCalls;
+#endif
 static bool sNativeRecovered,sNativeResetObserved,sNativeRebuild;
 static bool sNativeHideCompletion;
 static bool sNativeTestTimeout,sNativeTransitionBusy;
@@ -227,7 +231,11 @@ static bool NativeVisible(void*)
 	// completion this also invalidates CPU copies before checking BLT output.
 	bigtime_t start=system_time();
 	asm volatile("mfence; wbinvd; mfence" ::: "memory");
-	sNativeMetrics.cache_us+=system_time()-start;++sNativeMetrics.cache_calls;
+	bigtime_t elapsed=system_time()-start;
+	sNativeMetrics.cache_us+=elapsed;++sNativeMetrics.cache_calls;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+	if(sNativeRenderActive){sNativeRenderVisibleUs+=elapsed;++sNativeRenderVisibleCalls;}
+#endif
 	return true;
 }
 static bool NativeStoreChecked(void* data,uint32_t offset,uint32_t value)

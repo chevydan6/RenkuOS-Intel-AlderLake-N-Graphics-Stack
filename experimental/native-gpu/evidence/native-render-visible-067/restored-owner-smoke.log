@@ -1,0 +1,4 @@
+32 1 0 2 28616d2d PASS Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d draws=2
+32 0 0 2 28616d2d PASS Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d draws=2
+64 1 0 2 8aaee2f5 PASS Native Vulkan N100 64x64 triangle: PASS shape=0 hash=8aaee2f5 draws=2
+64 0 0 2 8aaee2f5 PASS Native Vulkan N100 64x64 triangle: PASS shape=0 hash=8aaee2f5 draws=2

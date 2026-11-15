@@ -1,0 +1,70 @@
+CASE 32 shape=0 profile=original repeats=2 variant=none rc=0 PASS
+CASE 32 shape=1 profile=original repeats=2 variant=none rc=0 PASS
+CASE 32 shape=2 profile=original repeats=2 variant=none rc=0 PASS
+CASE 32 shape=3 profile=original repeats=2 variant=none rc=0 PASS
+CASE 32 shape=0 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 32 shape=1 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 32 shape=2 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 32 shape=3 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=rotate rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=depth rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=offset rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=firstvertex rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=pageoffset rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=rotateoffset rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=rotatefirst rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=rotatepage rc=0 PASS
+CASE 32 shape=0 profile=original repeats=4 variant=depthoffset rc=0 PASS
+CASE 64 shape=0 profile=original repeats=2 variant=none rc=0 PASS
+CASE 64 shape=1 profile=original repeats=2 variant=none rc=0 PASS
+CASE 64 shape=2 profile=original repeats=2 variant=none rc=0 PASS
+CASE 64 shape=3 profile=original repeats=2 variant=none rc=0 PASS
+CASE 64 shape=0 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 64 shape=1 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 64 shape=2 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 64 shape=3 profile=rgb repeats=2 variant=none rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=rotate rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=depth rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=offset rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=firstvertex rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=pageoffset rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=rotateoffset rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=rotatefirst rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=rotatepage rc=0 PASS
+CASE 64 shape=0 profile=original repeats=4 variant=depthoffset rc=0 PASS
+CASE 64 shape=0 profile=fragcoord32 repeats=4 variant=none rc=0 PASS
+CASE 64 shape=0 profile=fragcoord repeats=4 variant=none rc=0 PASS
+CASE 64 shape=0 profile=fragcoord128 repeats=4 variant=none rc=0 PASS
+CASE 64 shape=0 profile=fragcoord128 repeats=4 variant=offset rc=0 PASS
+CASE 64 shape=0 profile=fragcoord128 repeats=4 variant=pageoffset rc=0 PASS
+N100 native GL-header compiler: PASS (39 cases, 124 draws)
+CASE 32 profile=half repeats=4 variant=none rc=0 PASS
+CASE 32 profile=green75 repeats=4 variant=none rc=0 PASS
+CASE 32 profile=green90 repeats=4 variant=none rc=0 PASS
+CASE 32 profile=original repeats=4 variant=named rc=0 PASS
+CASE 32 profile=original repeats=2 variant=batch rc=0 PASS
+CASE 32 profile=original repeats=2 variant=dual rc=0 PASS
+CASE 32 profile=original repeats=2 variant=multipass rc=0 PASS
+CASE 32 profile=original repeats=4 variant=coloronly rc=0 PASS
+CASE 64 profile=original repeats=4 variant=coloronly rc=0 PASS
+N100 GL-extension prune: PASS (9 cases, 30 draws)
+CASE profile=fragcoordgreen32 direct=1 rc=0 PASS
+CASE profile=fragcoordgreen direct=1 rc=0 PASS
+CASE profile=fragcoordgreen128 direct=1 rc=0 PASS
+CASE profile=fragcoordgreen direct=0 rc=0 PASS
+Green gradient N100: PASS (4 cases, 16 draws)
+CASE 32 shape=0 profile=original direct=1 rc=0 PASS
+CASE 32 shape=1 profile=original direct=1 rc=0 PASS
+CASE 32 shape=2 profile=original direct=1 rc=0 PASS
+CASE 32 shape=3 profile=original direct=1 rc=0 PASS
+CASE 64 shape=0 profile=original direct=1 rc=0 PASS
+CASE 64 shape=1 profile=original direct=1 rc=0 PASS
+CASE 64 shape=2 profile=original direct=1 rc=0 PASS
+CASE 64 shape=3 profile=original direct=1 rc=0 PASS
+CASE 32 shape=0 profile=rgb direct=1 rc=0 PASS
+CASE 64 shape=0 profile=rgb direct=1 rc=0 PASS
+CASE 64 shape=0 profile=fragcoord direct=1 rc=0 PASS
+CASE 64 shape=0 profile=fragcoordgreen direct=1 rc=0 PASS
+CASE 32 shape=0 profile=original direct=0 rc=0 PASS
+CASE 64 shape=0 profile=original direct=0 rc=0 PASS
+N100 binary semaphores: PASS (14 cases, 28 draws)

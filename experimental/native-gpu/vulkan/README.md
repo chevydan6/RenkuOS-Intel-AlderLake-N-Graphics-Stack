@@ -73,6 +73,13 @@ The [owner timing experiment](../evidence/native-render-timing-066/README.md)
 finds roughly 2.4 ms before command publication, 1.1 ms in the completion
 wait, and 0.7–0.8 ms in post-completion checks. Its instrumented owner was
 restored to the known-good installed binary after the hardware sample.
+The [full-cache flush measurement](../evidence/native-render-visible-067/README.md)
+found three flushes totaling roughly 1.5 ms per draw. The
+[optimized owner checkpoint](../evidence/native-render-flush-068/README.md)
+removes one redundant pre-publication flush and passes 974 draws with the
+installed normal owner. Median blocking submit time falls about 9–11% across
+the four measured 32×32/64×64 direct/fallback workloads. The selected source
+closure is 12,635,680 bytes.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

@@ -1,0 +1,108 @@
+{
+  "device": "Intel N100",
+  "bundle": "/boot/home/native-semaphore-064",
+  "draws_per_run": 64,
+  "runs_per_case": 3,
+  "cases": [
+    {
+      "size": 32,
+      "direct": true,
+      "draws": 192,
+      "measurements_us": {
+        "render_ioctl_us": {
+          "median": 4881.0,
+          "p95": 5020,
+          "min": 4615,
+          "max": 5117
+        },
+        "write_ioctl_us": {
+          "median": 0.0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "submit_us": {
+          "median": 4882.5,
+          "p95": 5022,
+          "min": 4617,
+          "max": 5119
+        }
+      }
+    },
+    {
+      "size": 32,
+      "direct": false,
+      "draws": 192,
+      "measurements_us": {
+        "render_ioctl_us": {
+          "median": 4848.5,
+          "p95": 4939,
+          "min": 4607,
+          "max": 5017
+        },
+        "write_ioctl_us": {
+          "median": 7.0,
+          "p95": 8,
+          "min": 5,
+          "max": 34
+        },
+        "submit_us": {
+          "median": 4858.0,
+          "p95": 4947,
+          "min": 4616,
+          "max": 5025
+        }
+      }
+    },
+    {
+      "size": 64,
+      "direct": true,
+      "draws": 192,
+      "measurements_us": {
+        "render_ioctl_us": {
+          "median": 4872.0,
+          "p95": 5620,
+          "min": 4643,
+          "max": 5734
+        },
+        "write_ioctl_us": {
+          "median": 0.0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "submit_us": {
+          "median": 4877.0,
+          "p95": 5625,
+          "min": 4648,
+          "max": 5739
+        }
+      }
+    },
+    {
+      "size": 64,
+      "direct": false,
+      "draws": 192,
+      "measurements_us": {
+        "render_ioctl_us": {
+          "median": 4776.0,
+          "p95": 4921,
+          "min": 4532,
+          "max": 5040
+        },
+        "write_ioctl_us": {
+          "median": 13.0,
+          "p95": 14,
+          "min": 11,
+          "max": 19
+        },
+        "submit_us": {
+          "median": 4795.0,
+          "p95": 4939,
+          "min": 4550,
+          "max": 5057
+        }
+      }
+    }
+  ]
+}
