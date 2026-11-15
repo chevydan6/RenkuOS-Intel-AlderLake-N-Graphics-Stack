@@ -61,7 +61,7 @@ struct VkImage_T {
  uint32_t width,memoryOffset;
 };
 struct VkImageView_T { VkDevice_T* device;VkImageView_T* next;VkImage image; };
-struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next;bool load; };
+struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next;bool load,clear; };
 struct VkFramebuffer_T {
  VkDevice_T* device;VkFramebuffer_T* next;
  VkRenderPass pass;VkImageView view;
@@ -95,13 +95,15 @@ struct VkCommandBuffer_T {
  struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;
   VkDescriptorSet descriptor;
   uint32_t vertexOffset;bool preserve;
-  VkBuffer index;uint32_t indexOffset;bool indexed;uint32_t indexCount;};
+  VkBuffer index;uint32_t indexOffset;bool indexed;uint32_t indexCount;
+  bool clear;uint32_t clearColor;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
  VkBuffer boundVertex;VkDeviceSize boundVertexOffset;
  VkBuffer boundIndex;VkDeviceSize boundIndexOffset;
  VkDescriptorSet boundDescriptor;
  Draw* draws;size_t drawCount,drawCapacity;
+ uint32_t clearColor;
  bool recording;bool inRenderPass;bool drawn;bool complete;bool invalid;
 };
 
@@ -659,6 +661,9 @@ vkCreateRenderPass(VkDevice device,const VkRenderPassCreateInfo* info,
   || a.samples!=VK_SAMPLE_COUNT_1_BIT
   || !((a.loadOp==VK_ATTACHMENT_LOAD_OP_DONT_CARE
    && a.initialLayout==VK_IMAGE_LAYOUT_UNDEFINED)
+   || (a.loadOp==VK_ATTACHMENT_LOAD_OP_CLEAR
+   && (a.initialLayout==VK_IMAGE_LAYOUT_UNDEFINED
+    || a.initialLayout==VK_IMAGE_LAYOUT_GENERAL))
    || (a.loadOp==VK_ATTACHMENT_LOAD_OP_LOAD
    && a.initialLayout==VK_IMAGE_LAYOUT_GENERAL))
   || a.storeOp!=VK_ATTACHMENT_STORE_OP_STORE
@@ -672,6 +677,7 @@ vkCreateRenderPass(VkDevice device,const VkRenderPassCreateInfo* info,
  VkRenderPass_T* value=(VkRenderPass_T*)calloc(1,sizeof(VkRenderPass_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
  value->device=device;value->load=a.loadOp==VK_ATTACHMENT_LOAD_OP_LOAD;
+ value->clear=a.loadOp==VK_ATTACHMENT_LOAD_OP_CLEAR;
  value->next=device->passes;device->passes=value;
  *pass=value;return VK_SUCCESS;
 }
@@ -1234,6 +1240,7 @@ static void ResetCommandState(VkCommandBuffer_T* command)
  command->boundIndex=VK_NULL_HANDLE;command->boundIndexOffset=0;
  command->boundDescriptor=VK_NULL_HANDLE;
  command->boundVertexOffset=0;
+ command->clearColor=0;
  command->drawCount=0;
  command->recording=false;command->inRenderPass=false;
  command->drawn=false;command->complete=false;command->invalid=false;
@@ -1336,8 +1343,20 @@ vkCmdBeginRenderPass(VkCommandBuffer command,const VkRenderPassBeginInfo* info,
   || info->renderArea.offset.x || info->renderArea.offset.y
   || info->renderArea.extent.width!=info->framebuffer->view->image->width
   || info->renderArea.extent.height!=info->renderArea.extent.width
-  || info->clearValueCount || contents!=VK_SUBPASS_CONTENTS_INLINE){
+  || info->clearValueCount!=(info->renderPass->clear?1u:0u)
+  || (info->renderPass->clear && !info->pClearValues)
+  || contents!=VK_SUBPASS_CONTENTS_INLINE){
   command->invalid=true;return;
+ }
+ if(info->renderPass->clear){
+  const float* rgba=info->pClearValues[0].color.float32;
+  auto unorm8=[](float value)->uint32_t {
+   if(!(value>0))return 0;
+   if(value>=1)return 255;
+   return uint32_t(value*255.0f+0.5f);
+  };
+  command->clearColor=(unorm8(rgba[3])<<24)|(unorm8(rgba[0])<<16)
+   |(unorm8(rgba[1])<<8)|unorm8(rgba[2]);
  }
  command->pass=info->renderPass;command->framebuffer=info->framebuffer;
  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
@@ -1445,8 +1464,10 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
  for(size_t i=0;i<added;i++)
   command->draws[command->drawCount++]={command->framebuffer,
    command->pipeline,command->boundVertex,command->boundDescriptor,
-   uint32_t(start+i*48),command->pass->load || command->drawn || i!=0,
-   VK_NULL_HANDLE,0,false,0};
+   uint32_t(start+i*48),command->pass->load || command->pass->clear
+    || command->drawn || i!=0,
+   VK_NULL_HANDLE,0,false,0,
+   command->pass->clear && !command->drawn && i==0,command->clearColor};
  command->drawn=true;
 }
 
@@ -1463,7 +1484,8 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
   || command->pipeline->uniformBuffer || command->pipeline->fragcoordGradient
   || (indexCount!=3 && indexCount!=6) || instanceCount!=1
   || vertexOffset || firstInstance
-  || (indexCount==6 && (command->pass->load || command->drawn))){
+  || (indexCount==6 && (command->pass->load || command->pass->clear
+   || command->drawn))){
   command->invalid=true;return;
  }
  uint64_t vertexStart=command->boundVertexOffset;
@@ -1493,8 +1515,9 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
  auto& draw=command->draws[command->drawCount++];
  draw={command->framebuffer,command->pipeline,command->boundVertex,
   command->boundDescriptor,uint32_t(vertexStart),
-  command->pass->load || command->drawn,
-  command->boundIndex,uint32_t(indexStart),true,indexCount};
+  command->pass->load || command->pass->clear || command->drawn,
+  command->boundIndex,uint32_t(indexStart),true,indexCount,
+  command->pass->clear && !command->drawn,command->clearColor};
  command->drawn=true;
 }
 
@@ -1564,6 +1587,34 @@ static VkResult ValidateSemaphoreSubmits(VkDevice device,uint32_t count,
   }
  }
  free(states);return result;
+}
+
+static VkResult ClearImage(VkDevice device,VkImage image,uint32_t color)
+{
+ const unsigned pages=image->width==64?4u:1u;
+ const bigtime_t start=device->trace?system_time():0;
+ for(unsigned page=0;page<pages;page++){
+  native_gpu_resource_command write={};
+  write.version=1;write.action=NATIVE_GPU_RESOURCE_WRITE;
+  write.handle=image->memory->handle;
+  write.offset=image->memoryOffset+uint64_t(page)*4096;
+  write.bytes=4096;
+  uint32_t* pixels=(uint32_t*)write.data;
+  for(unsigned i=0;i<1024;i++)pixels[i]=color;
+  int status=ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&write,sizeof(write));
+  if(status!=0){
+   if(device->trace)fprintf(stderr,
+    "{\"event\":\"vk_clear_write\",\"image_bo\":%u,\"page\":%u,"
+    "\"status\":%d,\"us\":%lld}\n",
+    image->memory->handle,page,status,(long long)(system_time()-start));
+   return VK_ERROR_DEVICE_LOST;
+  }
+ }
+ if(device->trace)fprintf(stderr,
+  "{\"event\":\"vk_clear_write\",\"image_bo\":%u,\"pages\":%u,"
+  "\"color\":\"%08x\",\"status\":0,\"us\":%lld}\n",
+  image->memory->handle,pages,color,(long long)(system_time()-start));
+ return VK_SUCCESS;
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -1694,6 +1745,11 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
     sizeof(recorded.index->memory->handle));
    memcpy(draw.output+28,&recorded.indexOffset,sizeof(recorded.indexOffset));
   }
+ }
+ if(recorded.clear){
+  VkResult clear=ClearImage(device,recorded.framebuffer->view->image,
+   recorded.clearColor);
+  if(clear!=VK_SUCCESS)return clear;
  }
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=large

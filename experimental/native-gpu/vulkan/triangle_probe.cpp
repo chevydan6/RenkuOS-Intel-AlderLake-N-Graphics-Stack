@@ -45,6 +45,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"indexpair") && strcmp(argv[4],"indexpairref")
    && strcmp(argv[4],"indexsix") && strcmp(argv[4],"indexsixbad")
    && strcmp(argv[4],"indexsixpage")
+   && strcmp(argv[4],"clearpass")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
    && strcmp(argv[4],"batchgpu")
@@ -101,6 +102,7 @@ int main(int argc,char** argv)
  bool indexPairReference=argc==5 && !strcmp(argv[4],"indexpairref");
  bool indexSixBad=argc==5 && !strcmp(argv[4],"indexsixbad");
  bool indexSixPage=argc==5 && !strcmp(argv[4],"indexsixpage");
+ bool clearPass=argc==5 && !strcmp(argv[4],"clearpass");
  bool indexSix=argc==5 && (!strcmp(argv[4],"indexsix")
   || indexSixBad || indexSixPage);
  bool indexed=argc==5 && (!strcmp(argv[4],"indexed") || indexBad
@@ -151,6 +153,8 @@ int main(int argc,char** argv)
  if((indexPair || indexPairReference) && (shape!=0 || repeats!=2
   || strcmp(argv[2],"original")))return 40;
  if(indexSix && (shape!=0 || repeats!=1
+  || strcmp(argv[2],"original")))return 40;
+ if(clearPass && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(vertexMemOffset && (shape!=0 || repeats>8 || argc<3
@@ -421,7 +425,8 @@ int main(int argc,char** argv)
  VkImageView view=VK_NULL_HANDLE;
  REQUIRE(vkCreateImageView(device,&viewInfo,nullptr,&view)==VK_SUCCESS,17);
  VkAttachmentDescription attachment={};attachment.format=VK_FORMAT_B8G8R8A8_UNORM;
- attachment.samples=VK_SAMPLE_COUNT_1_BIT;attachment.loadOp=VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+ attachment.samples=VK_SAMPLE_COUNT_1_BIT;
+ attachment.loadOp=clearPass?VK_ATTACHMENT_LOAD_OP_CLEAR:VK_ATTACHMENT_LOAD_OP_DONT_CARE;
  attachment.storeOp=VK_ATTACHMENT_STORE_OP_STORE;
  attachment.initialLayout=VK_IMAGE_LAYOUT_UNDEFINED;
  attachment.finalLayout=VK_IMAGE_LAYOUT_GENERAL;
@@ -586,6 +591,12 @@ int main(int argc,char** argv)
  VkRenderPassBeginInfo render={};render.sType=VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
  render.renderPass=pass;render.framebuffer=framebuffer;
  render.renderArea={{0,0},{dimension,dimension}};
+ VkClearValue clearValue={};
+ clearValue.color.float32[0]=0.2f;
+ clearValue.color.float32[1]=0.4f;
+ clearValue.color.float32[2]=0.6f;
+ clearValue.color.float32[3]=1.0f;
+ if(clearPass){render.clearValueCount=1;render.pClearValues=&clearValue;}
  vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline);
  if(ubo)vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -748,7 +759,10 @@ int main(int argc,char** argv)
  for(unsigned i=0;i<dimension*dimension;i++)hash=(hash^pixels[i])*16777619u;
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(indexPair || indexPairReference || indexSix){
+ if(clearPass){
+  REQUIRE(pixels[0]==0xff336699
+   && pixels[(large?20:10)*dimension+(large?40:20)]==0xffff4000,30);
+ }else if(indexPair || indexPairReference || indexSix){
   REQUIRE(hash==(large?0x554d3ec5:0x261a8285)
    && pixels[0]==0x19537bad,30);
  }else if(indexed && repeats==2){

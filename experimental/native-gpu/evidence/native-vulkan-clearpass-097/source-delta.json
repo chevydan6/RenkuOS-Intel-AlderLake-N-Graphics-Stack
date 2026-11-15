@@ -1,0 +1,10 @@
+{
+  "base_checkpoint": "native-vulkan-indexsix-096",
+  "base_selected_runtime_bytes": 14814188,
+  "changed_runtime_source": "experimental/native-gpu/vulkan/NativeVulkan.cpp",
+  "before_bytes": 79017,
+  "after_bytes": 81204,
+  "after_sha256": "fdf4e23ee9825c5674b3704fab0c3559482a921f879c2a6a2c2df991c06fb919",
+  "adjusted_selected_runtime_bytes": 14816375,
+  "method": "Single runtime-source file changed; base closure dependencies unchanged. Adjusted byte count, not a fresh depfile scan or model tokenizer count."
+}
