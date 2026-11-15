@@ -97,6 +97,20 @@ int main()
  vkFreeCommandBuffers(&device,pool,1,pair);
  if(pool->commands!=pair[1] || pair[1]->pool!=pool)return 23;
  vkDestroyCommandPool(&device,pool,nullptr);
+ VkCommandBuffer_T six={};six.device=&device;six.recording=true;
+ six.inRenderPass=true;six.pipeline=&pipeline;six.framebuffer=&framebuffer;
+ six.boundVertex=&vertex;vertex.bytes=96;
+ vkCmdDraw(&six,6,1,0,0);
+ if(six.invalid || six.drawCount!=2 || six.draws[0].vertexOffset!=0
+  || six.draws[1].vertexOffset!=48 || six.draws[0].preserve
+  || !six.draws[1].preserve)return 24;
+ six.drawCount=0;six.invalid=false;vertex.bytes=48;
+ vkCmdDraw(&six,6,1,0,0);
+ if(!six.invalid || six.drawCount)return 25;
+ six.invalid=false;vertex.bytes=8192;six.boundVertexOffset=4096-48;
+ vkCmdDraw(&six,6,1,0,0);
+ if(!six.invalid || six.drawCount)return 26;
+ free(six.draws);
  puts("Vulkan command reset and two-buffer allocation: PASS");
  return 0;
 }

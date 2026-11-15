@@ -120,6 +120,10 @@ extends that versioned owner request to the four-page target. The N100 matched
 all 4,096 output pixels against independently captured triangles. The median
 blocking submit time was 4,893.5 µs versus 10,218 µs for two publications;
 the prior 262 hardware regression draws passed again.
+The [six-vertex draw checkpoint](../evidence/native-vulkan-draw6-086/README.md)
+extends that path to one `vkCmdDraw` call for two triangle-list primitives.
+Both target sizes matched the prior captured images byte for byte on the N100;
+the existing 262 hardware regression draws passed with the candidate library.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

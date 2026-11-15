@@ -1385,7 +1385,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
 {
  if(!command)return;
  if(!command->recording || !command->inRenderPass || !command->pipeline
-  || !command->boundVertex || vertices!=3 || instances!=1
+  || !command->boundVertex || (vertices!=3 && vertices!=6) || instances!=1
   || firstInstance){command->invalid=true;return;}
  if(command->pipeline->uniformBuffer && (!command->boundDescriptor
   || !command->boundDescriptor->valid
@@ -1393,13 +1393,18 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   command->invalid=true;return;
  }
  uint64_t start=command->boundVertexOffset+uint64_t(firstVertex)*16;
+ const uint32_t vertexBytes=vertices*16;
  if(start>UINT32_MAX || start>command->boundVertex->bytes
-  || 48>command->boundVertex->bytes-start || (start&4095)>4096-48){
+  || vertexBytes>command->boundVertex->bytes-start
+  || (start&4095)>4096-vertexBytes){
   command->invalid=true;return;
  }
  start+=command->boundVertex->memoryOffset;
- if(command->drawCount==command->drawCapacity){
+ const size_t added=vertices/3;
+ if(command->drawCount>SIZE_MAX-added){command->invalid=true;return;}
+ if(command->drawCount+added>command->drawCapacity){
   size_t next=command->drawCapacity?command->drawCapacity*2:4;
+  if(next<command->drawCount+added)next=command->drawCount+added;
   if(next<command->drawCapacity || next>SIZE_MAX/sizeof(VkCommandBuffer_T::Draw)){
    command->invalid=true;return;
   }
@@ -1408,9 +1413,10 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   command->draws=(VkCommandBuffer_T::Draw*)storage;
   command->drawCapacity=next;
  }
- command->draws[command->drawCount++]={command->framebuffer,
-  command->pipeline,command->boundVertex,command->boundDescriptor,
-  uint32_t(start),command->drawn};
+ for(size_t i=0;i<added;i++)
+  command->draws[command->drawCount++]={command->framebuffer,
+   command->pipeline,command->boundVertex,command->boundDescriptor,
+   uint32_t(start+i*48),command->drawn || i!=0};
  command->drawn=true;
 }
 
