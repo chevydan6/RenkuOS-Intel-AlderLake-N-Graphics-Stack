@@ -13,6 +13,10 @@ int main() {
  c.action=NATIVE_GPU_RESOURCE_READ;assert(NativeGpuResourceValid(c));
  c.action=NATIVE_GPU_RESOURCE_DESTROY;c.bytes=0;assert(NativeGpuResourceValid(c));
  c.offset=1;assert(!NativeGpuResourceValid(c));c.offset=0;
+ c.action=NATIVE_GPU_RESOURCE_COPY;c.gpu=2;c.bytes=48;
+ assert(NativeGpuResourceValid(c));
+ c.gpu=UINT64_MAX;assert(!NativeGpuResourceValid(c));c.gpu=2;
+ c.bytes=64*4096+1;assert(!NativeGpuResourceValid(c));c.bytes=48;
  c.action=999;assert(!NativeGpuResourceValid(c));
  c.version=2;assert(!NativeGpuResourceValid(c));
  puts("Native GPU resource ioctl validation: PASS (CPU only)");

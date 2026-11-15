@@ -149,6 +149,10 @@ The [indexed vertex-offset checkpoint](../evidence/native-vulkan-indexoffset-099
 supports positive and negative `vertexOffset` in bounded indexed draws by
 adjusting the native vertex base. Both signs reproduced the earlier N100 mesh
 image, and the installed kernel owner was unchanged.
+The [native buffer-copy checkpoint](../evidence/native-vulkan-copybuffer-100/README.md)
+adds ordered `vkCmdCopyBuffer` operations and a versioned owner-side buffer
+copy request. A staging-buffer copy followed by a GPU triangle draw in the
+same submission matched prior N100 captures at both target sizes.
 The [multi-primitive draw checkpoint](../evidence/native-vulkan-draw9-087/README.md)
 accepts additional triangle-list primitives in one `vkCmdDraw`. Nine vertices
 in one call matched three established calls byte for byte at both target sizes.

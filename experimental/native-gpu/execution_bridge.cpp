@@ -78,6 +78,9 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
    status=s.resourceModule->create(s.resourceSession,c.size,&c.handle,&c.gpu,&c.size);
   else if(c.action==NATIVE_GPU_RESOURCE_DESTROY)
    status=s.resourceModule->destroy(s.resourceSession,c.handle);
+  else if(c.action==NATIVE_GPU_RESOURCE_COPY)
+   status=s.resourceModule->copy(s.resourceSession,uint32(c.gpu),c.size,
+    c.handle,c.offset,c.bytes);
   else {
    if(c.action==NATIVE_GPU_RESOURCE_READ)memset(c.data,0,sizeof(c.data));
    status=s.resourceModule->transfer(s.resourceSession,c.action==NATIVE_GPU_RESOURCE_WRITE,

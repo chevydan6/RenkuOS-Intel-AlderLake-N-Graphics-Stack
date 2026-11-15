@@ -1225,6 +1225,33 @@ static status_t NativeResourceTransfer(uint64_t session,bool write,uint32_t hand
  }
  mutex_unlock(&sLock);return ok?B_OK:allowed?B_BAD_VALUE:B_DEV_NOT_READY;
 }
+static status_t NativeResourceCopy(uint64_t session,uint32_t source,
+ uint64_t sourceOffset,uint32_t destination,uint64_t destinationOffset,
+ uint32_t count)
+{
+ if(!count || count>NativeGpu::RcsResourceRange::Pages*4096)return B_BAD_VALUE;
+ mutex_lock(&sLock);
+ uint64_t sourceGpu=0,destinationGpu=0;
+ bool allowed=NativeResourceAllowedLocked();
+ bool ok=allowed
+  && sRenderArena.Resolve(session,source,sourceOffset,count,sourceGpu)
+  && sRenderArena.Resolve(session,destination,destinationOffset,count,destinationGpu)
+  && (sourceGpu>=destinationGpu+count
+   || destinationGpu>=sourceGpu+count);
+ if(ok)ok=NativeVisible(NULL);
+ if(ok)for(uint32_t copied=0;copied<count;){
+  uint64_t from=sourceGpu+copied-kRenderArenaGpu;
+  uint64_t to=destinationGpu+copied-kRenderArenaGpu;
+  uint32_t sourceWithin=uint32_t(from&4095),destinationWithin=uint32_t(to&4095);
+  uint32_t chunk=count-copied;
+  if(chunk>4096-sourceWithin)chunk=4096-sourceWithin;
+  if(chunk>4096-destinationWithin)chunk=4096-destinationWithin;
+  memcpy((uint8_t*)sRenderArenaPages[to/4096].cpu+destinationWithin,
+   (const uint8_t*)sRenderArenaPages[from/4096].cpu+sourceWithin,chunk);
+  copied+=chunk;
+ }
+ mutex_unlock(&sLock);return ok?B_OK:allowed?B_BAD_VALUE:B_DEV_NOT_READY;
+}
 static status_t NativeResourceDestroy(uint64_t session,uint32_t handle)
 {
  mutex_lock(&sLock);
@@ -1240,6 +1267,7 @@ static native_gpu_render_large_module sNativeRenderLargeModule={
 };
 static native_gpu_resource_module sNativeResourceModule={
  {NATIVE_GPU_RESOURCE_MODULE,B_KEEP_LOADED,ObservationOperations},NativeResourceOpen,
- NativeResourceClose,NativeResourceCreate,NativeResourceTransfer,NativeResourceDestroy,
+ NativeResourceClose,NativeResourceCreate,NativeResourceTransfer,NativeResourceCopy,
+ NativeResourceDestroy,
  NativeResourceDraw
 };

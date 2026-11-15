@@ -98,15 +98,33 @@ struct VkCommandBuffer_T {
   VkBuffer index;uint32_t indexOffset;bool indexed;uint32_t indexCount;
   uint32_t vertexCount;
   bool clear;uint32_t clearColor;};
+ struct Copy {VkBuffer source,destination;VkDeviceSize sourceOffset,destinationOffset,size;};
+ struct Event {bool copy;size_t index;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
  VkBuffer boundVertex;VkDeviceSize boundVertexOffset;
  VkBuffer boundIndex;VkDeviceSize boundIndexOffset;
  VkDescriptorSet boundDescriptor;
  Draw* draws;size_t drawCount,drawCapacity;
+ Copy* copies;size_t copyCount,copyCapacity;
+ Event* events;size_t eventCount,eventCapacity;
  uint32_t clearColor;
  bool recording;bool inRenderPass;bool drawn;bool complete;bool invalid;
 };
+
+static bool AppendEvent(VkCommandBuffer command,bool copy,size_t index)
+{
+ if(command->eventCount==command->eventCapacity){
+  size_t next=command->eventCapacity?command->eventCapacity*2:4;
+  if(next<command->eventCapacity || next>SIZE_MAX/sizeof(VkCommandBuffer_T::Event))
+   return false;
+  void* storage=realloc(command->events,next*sizeof(VkCommandBuffer_T::Event));
+  if(!storage)return false;
+  command->events=(VkCommandBuffer_T::Event*)storage;
+  command->eventCapacity=next;
+ }
+ command->events[command->eventCount++]={copy,index};return true;
+}
 
 static bool ProbeN100(VkPhysicalDevice_T* physical)
 {
@@ -538,9 +556,10 @@ vkCreateBuffer(VkDevice device,const VkBufferCreateInfo* info,
   || info->sType!=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO
   || info->sharingMode!=VK_SHARING_MODE_EXCLUSIVE || !info->size
   || info->size>NativeGpu::RcsResourceRange::Pages*4096
-  || (info->usage!=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
-   && info->usage!=VK_BUFFER_USAGE_INDEX_BUFFER_BIT
-   && info->usage!=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT))
+  || !info->usage
+  || (info->usage&~(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+   |VK_BUFFER_USAGE_INDEX_BUFFER_BIT|VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
+   |VK_BUFFER_USAGE_TRANSFER_SRC_BIT|VK_BUFFER_USAGE_TRANSFER_DST_BIT)))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  VkBuffer_T* value=(VkBuffer_T*)calloc(1,sizeof(VkBuffer_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -963,7 +982,7 @@ vkUpdateDescriptorSets(VkDevice device,uint32_t writeCount,
    continue;
   const auto& b=w.pBufferInfo[0];
   if(!b.buffer || b.buffer->device!=device
-   || b.buffer->usage!=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
+   || !(b.buffer->usage&VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
    || !b.buffer->memory || b.range!=16 || b.buffer->bytes<16
    || (b.offset&15) || b.offset>b.buffer->bytes-16)
    continue;
@@ -1229,7 +1248,8 @@ vkDestroyCommandPool(VkDevice device,VkCommandPool pool,const VkAllocationCallba
  if(!*current)return;
  while(pool->commands){
   VkCommandBuffer_T* next=pool->commands->next;
-  free(pool->commands->draws);free(pool->commands);pool->commands=next;
+  free(pool->commands->draws);free(pool->commands->copies);
+  free(pool->commands->events);free(pool->commands);pool->commands=next;
  }
  *current=pool->next;free(pool);
 }
@@ -1242,7 +1262,7 @@ static void ResetCommandState(VkCommandBuffer_T* command)
  command->boundDescriptor=VK_NULL_HANDLE;
  command->boundVertexOffset=0;
  command->clearColor=0;
- command->drawCount=0;
+ command->drawCount=0;command->copyCount=0;command->eventCount=0;
  command->recording=false;command->inRenderPass=false;
  command->drawn=false;command->complete=false;command->invalid=false;
 }
@@ -1257,6 +1277,8 @@ vkResetCommandPool(VkDevice device,VkCommandPool pool,VkCommandPoolResetFlags fl
   ResetCommandState(command);
   if(flags&VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT){
    free(command->draws);command->draws=nullptr;command->drawCapacity=0;
+   free(command->copies);command->copies=nullptr;command->copyCapacity=0;
+   free(command->events);command->events=nullptr;command->eventCapacity=0;
   }
  }
  return VK_SUCCESS;
@@ -1273,6 +1295,8 @@ vkResetCommandBuffer(VkCommandBuffer command,VkCommandBufferResetFlags flags)
  ResetCommandState(command);
  if(flags&VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT){
   free(command->draws);command->draws=nullptr;command->drawCapacity=0;
+  free(command->copies);command->copies=nullptr;command->copyCapacity=0;
+  free(command->events);command->events=nullptr;command->eventCapacity=0;
  }
  return VK_SUCCESS;
 }
@@ -1314,7 +1338,7 @@ vkFreeCommandBuffers(VkDevice device,VkCommandPool pool,uint32_t count,
   VkCommandBuffer_T** current=&pool->commands;
   while(*current && *current!=commands[i])current=&(*current)->next;
   if(*current){VkCommandBuffer_T* value=*current;*current=value->next;
-   free(value->draws);free(value);}
+   free(value->draws);free(value->copies);free(value->events);free(value);}
  }
 }
 
@@ -1389,7 +1413,7 @@ vkCmdBindVertexBuffers(VkCommandBuffer command,uint32_t first,uint32_t count,
  if(!command->recording || !command->inRenderPass || first || count!=1
   || !buffers || !offsets || !buffers[0]
   || buffers[0]->device!=command->device || !buffers[0]->memory
-  || buffers[0]->usage!=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+  || !(buffers[0]->usage&VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
   || (offsets[0]&15) || offsets[0]>buffers[0]->bytes){
   command->invalid=true;return;
  }
@@ -1403,11 +1427,58 @@ vkCmdBindIndexBuffer(VkCommandBuffer command,VkBuffer buffer,
  if(!command)return;
  if(!command->recording || !command->inRenderPass || !buffer
   || buffer->device!=command->device || !buffer->memory
-  || buffer->usage!=VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+  || !(buffer->usage&VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
   || type!=VK_INDEX_TYPE_UINT16 || (offset&1) || offset>buffer->bytes){
   command->invalid=true;return;
  }
  command->boundIndex=buffer;command->boundIndexOffset=offset;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdCopyBuffer(VkCommandBuffer command,VkBuffer source,VkBuffer destination,
+ uint32_t count,const VkBufferCopy* regions)
+{
+ if(!command)return;
+ if(!command->recording || command->inRenderPass || !source || !destination
+  || source->device!=command->device || destination->device!=command->device
+  || !source->memory || !destination->memory
+  || !(source->usage&VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
+  || !(destination->usage&VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+  || !count || !regions){command->invalid=true;return;}
+ for(uint32_t i=0;i<count;i++){
+  const auto& region=regions[i];
+  if(!region.size || region.size>NativeGpu::RcsResourceRange::Pages*4096
+   || ((region.srcOffset|region.dstOffset|region.size)&3)
+   || region.srcOffset>source->bytes
+   || region.size>source->bytes-region.srcOffset
+   || region.dstOffset>destination->bytes
+   || region.size>destination->bytes-region.dstOffset){
+   command->invalid=true;return;
+  }
+  if(source->memory==destination->memory){
+   uint64_t from=source->memoryOffset+region.srcOffset;
+   uint64_t to=destination->memoryOffset+region.dstOffset;
+   if(from<to+region.size && to<from+region.size){
+    command->invalid=true;return;
+   }
+  }
+ }
+ for(uint32_t i=0;i<count;i++){
+  if(command->copyCount==command->copyCapacity){
+   size_t next=command->copyCapacity?command->copyCapacity*2:4;
+   if(next<command->copyCapacity || next>SIZE_MAX/sizeof(VkCommandBuffer_T::Copy)){
+    command->invalid=true;return;
+   }
+   void* storage=realloc(command->copies,next*sizeof(VkCommandBuffer_T::Copy));
+   if(!storage){command->invalid=true;return;}
+   command->copies=(VkCommandBuffer_T::Copy*)storage;
+   command->copyCapacity=next;
+  }
+  size_t index=command->copyCount++;
+  command->copies[index]={source,destination,regions[i].srcOffset,
+   regions[i].dstOffset,regions[i].size};
+  if(!AppendEvent(command,true,index)){command->invalid=true;return;}
+ }
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
@@ -1462,13 +1533,16 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   command->draws=(VkCommandBuffer_T::Draw*)storage;
   command->drawCapacity=next;
  }
- for(size_t i=0;i<added;i++)
-  command->draws[command->drawCount++]={command->framebuffer,
+ for(size_t i=0;i<added;i++){
+  size_t index=command->drawCount++;
+  command->draws[index]={command->framebuffer,
    command->pipeline,command->boundVertex,command->boundDescriptor,
    uint32_t(start+i*48),0,command->pass->load || command->pass->clear
     || command->drawn || i!=0,
    VK_NULL_HANDLE,0,false,0,0,
    command->pass->clear && !command->drawn && i==0,command->clearColor};
+  if(!AppendEvent(command,false,index)){command->invalid=true;return;}
+ }
  command->drawn=true;
 }
 
@@ -1537,6 +1611,9 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
   command->boundIndex,uint32_t(indexStart),true,indexCount,
   uint32_t(vertexBytes/16),
   command->pass->clear && !command->drawn,command->clearColor};
+ if(!AppendEvent(command,false,command->drawCount-1)){
+  command->invalid=true;return;
+ }
  command->drawn=true;
 }
 
@@ -1554,7 +1631,7 @@ extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkEndCommandBuffer(VkCommandBuffer command)
 {
  if(!command || !command->recording || command->inRenderPass
-  || !command->drawCount || command->invalid)return VK_ERROR_INITIALIZATION_FAILED;
+  || !command->eventCount || command->invalid)return VK_ERROR_INITIALIZATION_FAILED;
  command->recording=false;command->complete=true;return VK_SUCCESS;
 }
 
@@ -1661,8 +1738,17 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   for(uint32_t j=0;j<submit.commandBufferCount;j++){
    VkCommandBuffer command=submit.pCommandBuffers[j];
    if(!command || command->device!=device || !command->complete
-    || !command->drawCount || !command->draws)
+    || !command->eventCount || !command->events
+    || (command->drawCount && !command->draws)
+    || (command->copyCount && !command->copies))
     return VK_ERROR_INITIALIZATION_FAILED;
+   for(size_t k=0;k<command->copyCount;k++){
+    const auto& recorded=command->copies[k];
+    if(!recorded.source || !recorded.destination
+     || recorded.source->device!=device || recorded.destination->device!=device
+     || !recorded.source->memory || !recorded.destination->memory)
+     return VK_ERROR_INITIALIZATION_FAILED;
+   }
    for(size_t k=0;k<command->drawCount;k++){
     const auto& recorded=command->draws[k];
     if(!recorded.framebuffer || recorded.framebuffer->device!=device
@@ -1677,7 +1763,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
     if(recorded.preserve && !directTarget)return VK_ERROR_FEATURE_NOT_PRESENT;
     if(recorded.indexed && (!directTarget || !recorded.index
      || recorded.index->device!=device || !recorded.index->memory
-     || recorded.index->usage!=VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+     || !(recorded.index->usage&VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
      || recorded.framebuffer->view->image->memoryOffset))
      return VK_ERROR_FEATURE_NOT_PRESENT;
     if(recorded.pipeline->uniformBuffer && (!directTarget
@@ -1697,14 +1783,39 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   __atomic_store_n(&submits[i].pWaitSemaphores[j]->signaled,false,__ATOMIC_RELEASE);
  for(uint32_t j=0;j<submits[i].commandBufferCount;j++){
  VkCommandBuffer command=submits[i].pCommandBuffers[j];
- for(size_t k=0;k<command->drawCount;k++){
+ for(size_t eventIndex=0;eventIndex<command->eventCount;eventIndex++){
+ const auto& event=command->events[eventIndex];
+ if(event.copy){
+  const auto& copy=command->copies[event.index];
+  native_gpu_resource_command request={};request.version=1;
+  request.action=NATIVE_GPU_RESOURCE_COPY;
+  request.handle=copy.destination->memory->handle;
+  request.gpu=copy.source->memory->handle;
+  request.size=copy.source->memoryOffset+copy.sourceOffset;
+  request.offset=copy.destination->memoryOffset+copy.destinationOffset;
+  request.bytes=uint32_t(copy.size);
+  const bigtime_t started=device->trace?system_time():0;
+  int status=ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&request,sizeof(request));
+  if(device->trace)fprintf(stderr,
+   "{\"event\":\"vk_copy_buffer\",\"src_bo\":%u,\"dst_bo\":%u,"
+   "\"src_offset\":%llu,\"dst_offset\":%llu,\"bytes\":%u,"
+   "\"status\":%d,\"us\":%lld}\n",
+   copy.source->memory->handle,copy.destination->memory->handle,
+   (unsigned long long)request.size,(unsigned long long)request.offset,
+   request.bytes,status,(long long)(system_time()-started));
+  if(status!=0)return VK_ERROR_DEVICE_LOST;
+  continue;
+ }
+ size_t k=event.index;
  const auto& recorded=command->draws[k];
  const bool large=recorded.framebuffer->view->image->width==64;
  const bool uniform=recorded.pipeline->uniformBuffer;
  const bool generalIndexed=recorded.indexed
   && (recorded.indexCount>6 || recorded.vertexCount!=4
    || (recorded.indexCount==6 && recorded.preserve));
- const bool nativeBatch=!recorded.indexed && k+1<command->drawCount
+ const bool nativeBatch=!recorded.indexed && eventIndex+1<command->eventCount
+  && !command->events[eventIndex+1].copy
+  && command->events[eventIndex+1].index==k+1
   && !command->draws[k+1].indexed && directTarget
   && !uniform && !recorded.pipeline->vertexShaderHandle
   && !recorded.pipeline->fragcoordGradient
@@ -1866,7 +1977,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   (long long)(renderDone-submitStart),(long long)(writeDone-writeStart),
   (long long)(system_time()-submitStart));
  if(!valid || writeStatus!=0)return VK_ERROR_DEVICE_LOST;
- if(nativeBatch)++k;
+ if(nativeBatch)++eventIndex;
  }
  }
  for(uint32_t j=0;j<submits[i].signalSemaphoreCount;j++)
@@ -1937,6 +2048,7 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkCmdBindDescriptorSets);
  VK_PROC(vkCmdBindVertexBuffers);
  VK_PROC(vkCmdBindIndexBuffer);
+ VK_PROC(vkCmdCopyBuffer);
  VK_PROC(vkCmdDraw);
  VK_PROC(vkCmdDrawIndexed);
  VK_PROC(vkCmdEndRenderPass);

@@ -5,7 +5,8 @@
 #define NATIVE_GPU_RESOURCE_IOCTL UINT32_C(0x91504e31)
 enum native_gpu_resource_action : uint32_t {
  NATIVE_GPU_RESOURCE_CREATE=1, NATIVE_GPU_RESOURCE_WRITE=2,
- NATIVE_GPU_RESOURCE_READ=3, NATIVE_GPU_RESOURCE_DESTROY=4
+ NATIVE_GPU_RESOURCE_READ=3, NATIVE_GPU_RESOURCE_DESTROY=4,
+ NATIVE_GPU_RESOURCE_COPY=5
 };
 // One bounded transfer per ioctl. A successful CREATE returns a file-local
 // handle, rounded size and owner-selected GPU VA; users cannot choose a VA.
@@ -14,6 +15,8 @@ struct native_gpu_resource_command {
  uint64_t size,offset,gpu;
  uint8_t data[4096];
 };
+// COPY keeps the existing ABI: handle=destination, gpu=source handle,
+// size=source byte offset, offset=destination byte offset, bytes=length.
 static_assert(sizeof(native_gpu_resource_command)==4136,"resource ioctl ABI");
 inline bool NativeGpuResourceValid(const native_gpu_resource_command& c) {
  if(c.version!=1)return false;
@@ -26,6 +29,9 @@ inline bool NativeGpuResourceValid(const native_gpu_resource_command& c) {
    && c.size==0 && c.gpu==0;
  case NATIVE_GPU_RESOURCE_DESTROY:
   return c.handle!=0 && c.bytes==0 && c.size==0 && c.offset==0 && c.gpu==0;
+ case NATIVE_GPU_RESOURCE_COPY:
+  return c.handle!=0 && c.gpu!=0 && c.gpu<=UINT32_MAX
+   && c.bytes>0 && c.bytes<=64*4096;
  default:return false;
  }
 }

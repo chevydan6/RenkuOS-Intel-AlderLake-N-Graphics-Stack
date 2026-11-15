@@ -48,6 +48,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"indexmesh") && strcmp(argv[4],"indexmeshbad")
    && strcmp(argv[4],"indexmeshclear")
    && strcmp(argv[4],"indexmeshplus") && strcmp(argv[4],"indexmeshminus")
+   && strcmp(argv[4],"copyvertex")
    && strcmp(argv[4],"clearpass")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
@@ -109,6 +110,7 @@ int main(int argc,char** argv)
  bool indexMeshClear=argc==5 && !strcmp(argv[4],"indexmeshclear");
  bool indexMeshPlus=argc==5 && !strcmp(argv[4],"indexmeshplus");
  bool indexMeshMinus=argc==5 && !strcmp(argv[4],"indexmeshminus");
+ bool copyVertex=argc==5 && !strcmp(argv[4],"copyvertex");
  bool indexMesh=argc==5 && (!strcmp(argv[4],"indexmesh")
   || indexMeshBad || indexMeshClear || indexMeshPlus || indexMeshMinus);
  bool clearPass=argc==5 && (!strcmp(argv[4],"clearpass") || indexMeshClear);
@@ -164,6 +166,8 @@ int main(int argc,char** argv)
  if(indexSix && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(indexMesh && (shape!=0 || repeats!=1
+  || strcmp(argv[2],"original")))return 40;
+ if(copyVertex && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(clearPass && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
@@ -279,7 +283,9 @@ int main(int argc,char** argv)
   indexPairReference?96:indexed?64:
   fourTriangles?192:threeTriangles?144:
   (selectedVertexRange || twoTriangles)?96:48;
- bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+ bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+  |(copyVertex?VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+    |VK_BUFFER_USAGE_TRANSFER_DST_BIT:0);
  bufferInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
  VkBuffer vertex=VK_NULL_HANDLE;
  REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&vertex)==VK_SUCCESS,7);
@@ -614,6 +620,10 @@ int main(int argc,char** argv)
  VkCommandBuffer command=commands[0];
  VkCommandBufferBeginInfo begin={};begin.sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
  REQUIRE(vkBeginCommandBuffer(command,&begin)==VK_SUCCESS,24);
+ if(copyVertex){
+  VkBufferCopy region={0,0,48};
+  vkCmdCopyBuffer(command,vertex,laterVertex,1,&region);
+ }
  VkRenderPassBeginInfo render={};render.sType=VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
  render.renderPass=pass;render.framebuffer=framebuffer;
  render.renderArea={{0,0},{dimension,dimension}};
@@ -629,7 +639,8 @@ int main(int argc,char** argv)
   layout,0,1,&descriptor,0,nullptr);
  VkDeviceSize offset=pageOffset?4096:drawPage?4096-48:bindOffset?48:
   indexMeshMinus?32:0;
- vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
+ VkBuffer drawVertex=copyVertex?laterVertex:vertex;
+ vkCmdBindVertexBuffers(command,0,1,&drawVertex,&offset);
  const uint32_t drawVertices=drawTwelve?12:drawNine?9:
   (drawSix || drawPage || indexPairReference)?6:3;
  if(indexed){
@@ -867,6 +878,8 @@ int main(int argc,char** argv)
  if(indexPair || indexPairReference || indexSix)
   printf("Native Vulkan N100 %ux%u %s pair: PASS hash=%08x\n",
    dimension,dimension,indexPair?"indexed":indexSix?"six-index":"reference",hash);
+ else if(copyVertex)printf("Native Vulkan N100 %ux%u copied GPU vertex triangle: PASS hash=%08x\n",
+  dimension,dimension,hash);
  else if(indexed)printf("Native Vulkan N100 %ux%u GPU indexed triangle: PASS hash=%08x\n",
   dimension,dimension,hash);
  else if(batchGpu)printf("Native Vulkan N100 %ux%u two triangles: PASS hash=%08x draws=2\n",

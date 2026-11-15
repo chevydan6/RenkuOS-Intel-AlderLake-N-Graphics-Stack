@@ -4,7 +4,7 @@
 #include <module.h>
 #include "ResourceCommand.h"
 #include "RenderReport.h"
-#define NATIVE_GPU_RESOURCE_MODULE "bus_managers/intel_memory_owner/native_resource/v1"
+#define NATIVE_GPU_RESOURCE_MODULE "bus_managers/intel_memory_owner/native_resource/v2"
 struct native_gpu_resource_module {
  module_info info;
  status_t (*open)(uint64_t* session);
@@ -13,6 +13,8 @@ struct native_gpu_resource_module {
   uint64_t* gpu,uint64_t* actual);
  status_t (*transfer)(uint64_t session,bool write,uint32_t handle,
   uint64_t offset,uint8_t* bytes,uint32_t count);
+ status_t (*copy)(uint64_t session,uint32_t source,uint64_t sourceOffset,
+  uint32_t destination,uint64_t destinationOffset,uint32_t count);
  status_t (*destroy)(uint64_t session,uint32_t handle);
  status_t (*draw)(uint64_t session,native_gpu_render_command* command);
 };

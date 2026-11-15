@@ -1,0 +1,15 @@
+N100 final owner and bridge, 32x32 copyvertex, RENKU_VK_TRACE=1
+{"event":"vk_copy_buffer","src_bo":129,"dst_bo":130,"src_offset":0,"dst_offset":0,"bytes":48,"status":0,"us":563}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":15,"stage":12,"sequence":2,"observed":2,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":130,"shader_bo":132,"vertex_shader_bo":0,"image_bo":131,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"411000","shader_gpu_va":"413000","image_gpu_va":"412000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5690,"write_ioctl_us":0,"submit_us":5692}
+Native Vulkan N100 32x32 copied GPU vertex triangle: PASS hash=28616d2d
+
+N100 final owner and bridge, 64x64 copyvertex
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+Native Vulkan N100 64x64 copied GPU vertex triangle: PASS hash=8aaee2f5
+c3cd98385b4fc4dc40f92bec112697c8ecaabe670c029db25c6f18217591882d  /boot/home/native-copybuffer-100/capture-64-copyvertex.bin
+
+N100 final owner and bridge, previous indexed mesh
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=cdad4a41
+
+N100 final owner and bridge, previous native two-triangle batch
+Native Vulkan N100 32x32 two triangles: PASS hash=d23b1ba1 draws=2
