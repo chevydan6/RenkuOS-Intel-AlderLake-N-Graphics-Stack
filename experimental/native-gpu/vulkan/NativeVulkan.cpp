@@ -1249,10 +1249,12 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  for(size_t k=0;k<command->drawCount;k++){
  const auto& recorded=command->draws[k];
  const bool large=recorded.framebuffer->view->image->width==64;
+ const char* directSetting=getenv("RENKU_VK_DIRECT_TARGET");
+ const bool directTarget=!directSetting || strcmp(directSetting,"0")!=0;
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=recorded.vertexOffset
+ draw.version=directTarget?15:recorded.vertexOffset
   ?(recorded.pipeline->vertexShaderHandle?14:13)
   :large?(recorded.pipeline->fragcoordRed?12:
   recorded.pipeline->vertexShaderHandle?11:10):
@@ -1260,7 +1262,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=recorded.vertex->memory->handle;
  draw.reserved=recorded.pipeline->shaderHandle;
- if(draw.version==13 || draw.version==14)
+ if(draw.version==13 || draw.version==14 || draw.version==15)
   memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
@@ -1269,11 +1271,17 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(draw.version==14)memcpy(draw.output+4,
   &recorded.pipeline->vertexShaderHandle,
   sizeof(recorded.pipeline->vertexShaderHandle));
+ if(draw.version==15){
+  memcpy(draw.output+4,&recorded.pipeline->vertexShaderHandle,
+   sizeof(recorded.pipeline->vertexShaderHandle));
+  memcpy(draw.output+8,&recorded.framebuffer->view->image->memory->handle,
+   sizeof(recorded.framebuffer->view->image->memory->handle));
+ }
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=large
   ?ioctl(device->fd,NATIVE_GPU_RENDER_LARGE_IOCTL,&largeDraw,sizeof(largeDraw))
   :ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&smallDraw,sizeof(smallDraw));
- if(large && draw.version==12){
+ if(large && (draw.version==12 || draw.version==15)){
   const char* capture=getenv("RENKU_VK_CAPTURE_PIXELS");
   if(capture){
    FILE* file=fopen(capture,"wb");
@@ -1301,9 +1309,9 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   && r.observed_complement==~r.nonce && r.checked_pixels>=(large?2000u:500u)
   && r.matched_pixels==r.checked_pixels && hash==r.target_hash
   && !r.fault && r.engine_stage==4 && !r.engine_error && !r.csb_error;
- int writeStatus=-1;
+ int writeStatus=directTarget?0:-1;
  bigtime_t writeStart=renderDone,writeDone=renderDone;
- if(valid){
+ if(valid && !directTarget){
   if(device->trace)writeStart=system_time();
   for(unsigned p=0;p<(large?4u:1u);p++){
    native_gpu_resource_command write={};write.version=1;
@@ -1319,13 +1327,13 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(device->trace)fprintf(stderr,
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
-  "\"draw_index\":%zu,\"draw_count\":%zu,\"vertex_offset\":%u,"
+  "\"draw_index\":%zu,\"draw_count\":%zu,\"vertex_offset\":%u,\"direct_target\":%u,"
   "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,"
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
   "\"render_ioctl_us\":%lld,\"write_ioctl_us\":%lld,\"submit_us\":%lld}\n",
   status,writeStatus,r.version,r.stage,r.sequence,r.observed_sequence,
-  k,command->drawCount,recorded.vertexOffset,draw.variant,draw.reserved,
+  k,command->drawCount,recorded.vertexOffset,unsigned(directTarget),draw.variant,draw.reserved,
   recorded.pipeline->vertexShaderHandle,
   recorded.framebuffer->view->image->memory->handle,
   r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error,

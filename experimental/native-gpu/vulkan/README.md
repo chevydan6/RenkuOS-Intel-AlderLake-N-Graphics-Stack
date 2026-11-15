@@ -42,6 +42,10 @@ adds a version-14 owner request for approved rotated and depth vertex shaders
 with a binding offset, `firstVertex`, or a second-page vertex range. It passed
 60 repeated draws on the physical N100. The fragment program for that request
 remains the approved constant-color profile.
+The [direct render-target checkpoint](../evidence/native-direct-target-053/README.md)
+records 178 physical regression draws after adding an owner-resolved image BO
+as the GPU render target. This is the default Vulkan path; set
+`RENKU_VK_DIRECT_TARGET=0` to use the earlier readback-and-write path.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
@@ -68,10 +72,11 @@ features are rejected.
 Device creation bootstraps the existing RCS owner. Vulkan memory allocation
 creates an owner BO, and explicit flush/invalidate copies mapped staging data
 through the native resource ioctl. This memory type is host-visible and
-noncoherent. The native interface currently supports one 64 KiB heap,
-vertex-buffer usage, and one 32×32 linear BGRA color image shape. A synchronous
-`vkQueueSubmit` submits each owner-validated hardware triangle and copies its
-completed pixels into the bound image BO. Set `RENKU_VK_TRACE=1` for a concise
+noncoherent. The native interface currently supports one 64 KiB resource arena,
+vertex-buffer usage, and 32×32 or 64×64 linear BGRA color images. A synchronous
+`vkQueueSubmit` submits each owner-validated hardware triangle directly into
+the bound image BO. The owner returns a diagnostic pixel copy for verification.
+Set `RENKU_VK_TRACE=1` for a concise
 JSON submission report; normal draws skip the diagnostic print.
 
 ## Reproduce on the N100

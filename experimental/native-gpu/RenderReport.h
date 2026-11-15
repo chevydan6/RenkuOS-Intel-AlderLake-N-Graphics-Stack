@@ -69,6 +69,10 @@ struct native_gpu_render_command {
 // The owner validates the selected three-vertex range before GPU publication.
 // Version 14 adds a distinct owner-approved vertex shader handle in input
 // output bytes 4..7 and requires a constant-color fragment shader.
+// Version 15 renders directly to an owner-allocated image resource. Input
+// output bytes 0..3 hold a possibly zero vertex offset, bytes 4..7 an
+// optional approved vertex shader handle, and bytes 8..11 the distinct image
+// resource handle. The image resource must cover the complete 32/64 target.
 // The v1-v8 4 KiB ABI remains unchanged.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {
