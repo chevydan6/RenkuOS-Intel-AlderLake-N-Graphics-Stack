@@ -129,6 +129,11 @@ accepts additional triangle-list primitives in one `vkCmdDraw`. Nine vertices
 in one call matched three established calls byte for byte at both target sizes.
 It also keeps a two-triangle batch within one vertex page; a pair split across
 pages falls back to two validated submissions.
+The [preserving-pair checkpoint](../evidence/native-pairpreserve-088/README.md)
+adds owner request version 21 for a later pair in the same render pass. Four
+triangles now take two RCS submissions rather than three, with byte-identical
+32×32 and 64×64 images and a 33.7% lower median blocking submission time in
+the measured workload.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

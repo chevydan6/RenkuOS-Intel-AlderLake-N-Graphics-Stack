@@ -61,6 +61,27 @@ int main() {
  assert(!V::Inspect(overlay,triangles[0],preserved));
  overlay[0]^=1;assert(!V::Inspect(overlay,triangles[0],preserved,
   D::RenderedPixel,previous));overlay[0]^=1;
+ V::Coord second[3]={};assert(V::Validate(triangles[1],second));
+ auto covers=[](const V::Coord* points,int x,int y,int scale){
+  for(unsigned i=0;i<3;i++){
+   unsigned j=(i+1)%3;
+   int ax=2*scale*points[i].x,ay=2*scale*points[i].y;
+   int bx=2*scale*points[j].x,by=2*scale*points[j].y;
+   if((bx-ax)*(2*y+1-ay)-(by-ay)*(2*x+1-ax)<=0)return false;
+  }
+  return true;
+ };
+ for(int y=0;y<32;y++)for(int x=0;x<32;x++){
+  unsigned index=unsigned(y*32+x);
+  overlay[index]=covers(first,x,y,1) || covers(second,x,y,1)
+   ?D::RenderedPixel:previous[index];
+ }
+ assert(V::InspectPair(overlay,triangles[0],triangles[1],preserved,
+  D::RenderedPixel,previous));
+ assert(!V::InspectPair(overlay,triangles[0],triangles[1],preserved,
+  D::RenderedPixel));
+ overlay[0]^=1;assert(!V::InspectPair(overlay,triangles[0],triangles[1],
+  preserved,D::RenderedPixel,previous));overlay[0]^=1;
  uint32_t largePrevious[4096],largeOverlay[4096];
  alignas(4096) uint32_t largeStorage[11][1024]={};
  uint32_t* largePages[11]={};
@@ -77,6 +98,19 @@ int main() {
  largePages[6][0]^=1;
  assert(!V::Inspect64(largePages,triangles[0],preserved,D::RenderedPixel,
   0,false,largePrevious));
+ for(int y=0;y<64;y++)for(int x=0;x<64;x++){
+  unsigned index=unsigned(y*64+x);
+  largePages[6+index/1024][index%1024]=
+   covers(first,x,y,2) || covers(second,x,y,2)
+   ?D::RenderedPixel:largePrevious[index];
+ }
+ assert(V::InspectPair64(largePages,triangles[0],triangles[1],preserved,
+  D::RenderedPixel,largePrevious));
+ assert(!V::InspectPair64(largePages,triangles[0],triangles[1],preserved,
+  D::RenderedPixel));
+ largePages[6][0]^=1;
+ assert(!V::InspectPair64(largePages,triangles[0],triangles[1],preserved,
+  D::RenderedPixel,largePrevious));
  uint32_t invalid[12];memcpy(invalid,triangles[0],sizeof(invalid));
  invalid[0]=0x7fc00000;assert(!V::Validate(invalid));
  invalid[0]=triangles[0][0];invalid[3]=0;assert(!V::Validate(invalid));

@@ -63,7 +63,8 @@ public:
  }
 
  static bool InspectPair(const volatile uint32_t* target,const uint32_t* first,
-  const uint32_t* second,Check& check,uint32_t renderedPixel) {
+  const uint32_t* second,Check& check,uint32_t renderedPixel,
+  const uint32_t* background=nullptr) {
   Coord a[3]={},b[3]={};
   if(!target || !Validate(first,a) || !Validate(second,b))return false;
   Check found={0,0,2166136261u,0,0};
@@ -74,7 +75,8 @@ public:
    int firstKind=Classify(a,x,y),secondKind=Classify(b,x,y);
    if(firstKind<0 || secondKind<0)continue;
    bool inside=firstKind==1 || secondKind==1;
-   uint32_t expected=inside?renderedPixel:RcsDrawImage::Poison;
+   uint32_t expected=inside?renderedPixel:
+    background?background[y*32+x]:RcsDrawImage::Poison;
    found.checked++;found.matched+=observed==expected;
    if(inside && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
    if(!inside && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}
@@ -120,7 +122,8 @@ public:
  }
 
  static bool InspectPair64(uint32_t* const* pages,const uint32_t* first,
-  const uint32_t* second,Check& check,uint32_t renderedPixel) {
+  const uint32_t* second,Check& check,uint32_t renderedPixel,
+  const uint32_t* background=nullptr) {
   Coord a[3]={},b[3]={};
   if(!pages || !Validate(first,a) || !Validate(second,b))return false;
   for(unsigned p=6;p<10;p++)if(!pages[p])return false;
@@ -133,7 +136,8 @@ public:
    int firstKind=Classify(a,x,y,2),secondKind=Classify(b,x,y,2);
    if(firstKind<0 || secondKind<0)continue;
    bool inside=firstKind==1 || secondKind==1;
-   uint32_t expected=inside?renderedPixel:RcsDrawImage::Poison;
+   uint32_t expected=inside?renderedPixel:
+    background?background[index]:RcsDrawImage::Poison;
    found.checked++;found.matched+=observed==expected;
    if(inside && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
    if(!inside && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}

@@ -43,6 +43,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"batchgpu")
    && strcmp(argv[4],"draw6")
    && strcmp(argv[4],"draw9") && strcmp(argv[4],"draw3x3")
+   && strcmp(argv[4],"draw12") && strcmp(argv[4],"draw3x4")
    && strcmp(argv[4],"drawpage")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
@@ -94,6 +95,9 @@ int main(int argc,char** argv)
  bool drawNine=argc==5 && !strcmp(argv[4],"draw9");
  bool drawThree=argc==5 && !strcmp(argv[4],"draw3x3");
  bool threeTriangles=drawNine || drawThree;
+ bool drawTwelve=argc==5 && !strcmp(argv[4],"draw12");
+ bool drawFour=argc==5 && !strcmp(argv[4],"draw3x4");
+ bool fourTriangles=drawTwelve || drawFour;
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
  bool bindOffset=argc==5 && (!strcmp(argv[4],"offset")
   || !strcmp(argv[4],"rotateoffset") || !strcmp(argv[4],"depthoffset"));
@@ -110,6 +114,8 @@ int main(int argc,char** argv)
   || strcmp(argv[2],"original") || repeats!=2))return 40;
  if(threeTriangles && (shape!=0 || argc!=5
   || strcmp(argv[2],"original") || repeats!=3))return 40;
+ if(fourTriangles && (shape!=0 || argc!=5
+  || strcmp(argv[2],"original") || repeats!=4))return 40;
  if(large && (half || green75 || green90 || named || twoPipelines
   || batch || (depth && shape!=0)))return 40;
  if(fragcoord && (!large || shape!=0 || rotate || depth || twoPipelines
@@ -222,7 +228,8 @@ int main(int argc,char** argv)
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
  bufferInfo.size=(pageOffset || drawPage)?8192:
-  threeTriangles?144:(selectedVertexRange || twoTriangles)?96:48;
+  fourTriangles?192:threeTriangles?144:
+  (selectedVertexRange || twoTriangles)?96:48;
  bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
  bufferInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
  VkBuffer vertex=VK_NULL_HANDLE;
@@ -250,6 +257,10 @@ int main(int argc,char** argv)
   {0xbf000000,0xbf000000,0x3f000000,0x3f800000,
    0x3f000000,0xbf000000,0x3f000000,0x3f800000,
    0x00000000,0x3f000000,0x3f000000,0x3f800000}};
+ const uint32_t fourthVertices[12]={
+  0xbf000000,0x3e800000,0x3f000000,0x3f800000,
+  0x3f000000,0x3e800000,0x3f000000,0x3f800000,
+  0x00000000,0x3f400000,0x3f000000,0x3f800000};
  void* mapped=nullptr;
  REQUIRE(vkMapMemory(device,vertexMemory,0,
   bufferInfo.size+(vertexMemOffset?4096:0),0,&mapped)==VK_SUCCESS
@@ -266,9 +277,10 @@ int main(int argc,char** argv)
  }else{
   memcpy(mapped,positions[shape],48);
   if(twoTriangles)memcpy((uint8_t*)mapped+48,positions[2],48);
-  if(threeTriangles){
+  if(threeTriangles || fourTriangles){
    memcpy((uint8_t*)mapped+48,positions[2],48);
    memcpy((uint8_t*)mapped+96,positions[1],48);
+   if(fourTriangles)memcpy((uint8_t*)mapped+144,fourthVertices,48);
   }
  }
  VkMappedMemoryRange range={};range.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
@@ -496,9 +508,10 @@ int main(int argc,char** argv)
   layout,0,1,&descriptor,0,nullptr);
  VkDeviceSize offset=pageOffset?4096:drawPage?4096-48:bindOffset?48:0;
  vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
- const uint32_t drawVertices=drawNine?9:(drawSix || drawPage)?6:3;
+ const uint32_t drawVertices=drawTwelve?12:drawNine?9:
+  (drawSix || drawPage)?6:3;
  vkCmdDraw(command,drawVertices,1,firstVertex?3:0,0);
- if(!twoTriangles && !threeTriangles)
+ if(!twoTriangles && !threeTriangles && !fourTriangles)
   vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
  if(multiDraw){
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -509,6 +522,11 @@ int main(int argc,char** argv)
  if(drawThree){
   vkCmdDraw(command,3,1,3,0);
   vkCmdDraw(command,3,1,6,0);
+ }
+ if(drawFour){
+  vkCmdDraw(command,3,1,3,0);
+  vkCmdDraw(command,3,1,6,0);
+  vkCmdDraw(command,3,1,9,0);
  }
  vkCmdEndRenderPass(command);
  if(multiPass){
@@ -565,7 +583,7 @@ int main(int argc,char** argv)
    && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
   if(dependency)vkDestroySemaphore(device,dependency,nullptr);
  }else for(unsigned i=0;i<((multiPass || multiDraw || twoTriangles
-  || threeTriangles)?1:repeats);i++){
+  || threeTriangles || fourTriangles)?1:repeats);i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
   if(ubo){
@@ -597,7 +615,10 @@ int main(int argc,char** argv)
  for(unsigned i=0;i<dimension*dimension;i++)hash=(hash^pixels[i])*16777619u;
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(threeTriangles){
+ if(fourTriangles){
+  REQUIRE(hash==(large?0x61162dae:0x5bf758b9)
+   && pixels[0]==0x19537bad,30);
+ }else if(threeTriangles){
   REQUIRE(hash==(large?0x9bd44344:0xcdad4a41)
    && pixels[0]==0x19537bad,30);
  }else if(twoTriangles){
@@ -666,6 +687,9 @@ int main(int argc,char** argv)
  else if(threeTriangles)
   printf("Native Vulkan N100 %ux%u three triangles: PASS hash=%08x calls=%u\n",
    dimension,dimension,hash,drawNine?1u:3u);
+ else if(fourTriangles)
+  printf("Native Vulkan N100 %ux%u four triangles: PASS hash=%08x calls=%u\n",
+   dimension,dimension,hash,drawTwelve?1u:4u);
  else if(multiDraw)printf("Native Vulkan N100 %ux%u two draws in one render pass: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,shape,hash,repeats);
  else if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
   ubo?"UBO ":fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):

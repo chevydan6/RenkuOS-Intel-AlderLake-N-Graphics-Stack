@@ -1,0 +1,12 @@
+{
+  "32": {
+    "baseline_median_submit_us": 15474.0,
+    "pair_median_submit_us": 10264.5,
+    "reduction_percent": 33.7
+  },
+  "64": {
+    "baseline_median_submit_us": 15609.5,
+    "pair_median_submit_us": 10348.0,
+    "reduction_percent": 33.7
+  }
+}

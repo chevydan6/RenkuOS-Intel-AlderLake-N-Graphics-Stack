@@ -1552,7 +1552,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  const bool nativeBatch=k+1<command->drawCount && directTarget
   && !uniform && !recorded.pipeline->vertexShaderHandle
   && !recorded.pipeline->fragcoordGradient
-  && !recorded.framebuffer->view->image->memoryOffset && !recorded.preserve
+  && !recorded.framebuffer->view->image->memoryOffset
   && command->draws[k+1].preserve
   && command->draws[k+1].framebuffer==recorded.framebuffer
   && command->draws[k+1].pipeline==recorded.pipeline
@@ -1565,7 +1565,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=nativeBatch?20:recorded.preserve?19:
+ draw.version=nativeBatch?(recorded.preserve?21:20):recorded.preserve?19:
   directTarget && recorded.framebuffer->view->image->memoryOffset?18:
   uniform?(uniformOffset?17:16):directTarget?15:recorded.vertexOffset
   ?(recorded.pipeline->vertexShaderHandle?14:13)
@@ -1577,7 +1577,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  draw.reserved=recorded.pipeline->shaderHandle;
  if(draw.version==13 || draw.version==14 || draw.version==15
   || draw.version==16 || draw.version==17 || draw.version==18
-  || draw.version==19 || draw.version==20)
+  || draw.version==19 || draw.version==20 || draw.version==21)
   memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
@@ -1587,7 +1587,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   &recorded.pipeline->vertexShaderHandle,
   sizeof(recorded.pipeline->vertexShaderHandle));
  if(draw.version==15 || draw.version==16 || draw.version==17
-  || draw.version==18 || draw.version==19 || draw.version==20){
+  || draw.version==18 || draw.version==19 || draw.version==20
+  || draw.version==21){
   memcpy(draw.output+4,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
   memcpy(draw.output+8,&recorded.framebuffer->view->image->memory->handle,

@@ -1,0 +1,10 @@
+CASE 32 profile=half repeats=4 variant=none rc=0 PASS
+CASE 32 profile=green75 repeats=4 variant=none rc=0 PASS
+CASE 32 profile=green90 repeats=4 variant=none rc=0 PASS
+CASE 32 profile=original repeats=4 variant=named rc=0 PASS
+CASE 32 profile=original repeats=2 variant=batch rc=0 PASS
+CASE 32 profile=original repeats=2 variant=dual rc=0 PASS
+CASE 32 profile=original repeats=2 variant=multipass rc=0 PASS
+CASE 32 profile=original repeats=4 variant=coloronly rc=0 PASS
+CASE 64 profile=original repeats=4 variant=coloronly rc=0 PASS
+N100 GL-extension prune: PASS (9 cases, 30 draws)
