@@ -1,0 +1,26 @@
+N100 32x32 barrierupload, RENKU_VK_TRACE=1
+{"event":"vk_image_layout","image_bo":1411,"kind":4,"old":0,"new":1}
+{"event":"vk_copy_buffer","src_kind":"buffer","dst_kind":"image","src_bo":1412,"dst_bo":1411,"src_offset":0,"dst_offset":0,"bytes":4096,"status":0,"us":561}
+{"event":"vk_image_layout","image_bo":1411,"kind":2,"old":1,"new":2}
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":19,"stage":12,"sequence":14,"observed":14,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":1409,"shader_bo":773,"vertex_shader_bo":0,"image_bo":1411,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"412000","checked":777,"matched":777,"pixel_hash":"0551568d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5612,"write_ioctl_us":0,"submit_us":5614}
+{"event":"vk_image_layout","image_bo":1411,"kind":3,"old":2,"new":1}
+Native Vulkan N100 32x32 barrier upload and draw: PASS hash=0551568d
+
+N100 64x64 barrierupload, RENKU_VK_TRACE=1
+{"event":"vk_image_layout","image_bo":1539,"kind":4,"old":0,"new":1}
+{"event":"vk_copy_buffer","src_kind":"buffer","dst_kind":"image","src_bo":1540,"dst_bo":1539,"src_offset":0,"dst_offset":0,"bytes":16384,"status":0,"us":598}
+{"event":"vk_image_layout","image_bo":1539,"kind":2,"old":1,"new":2}
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":19,"stage":12,"sequence":15,"observed":15,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":1537,"shader_bo":901,"vertex_shader_bo":0,"image_bo":1539,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"410000","shader_gpu_va":"41a000","image_gpu_va":"412000","checked":3476,"matched":3476,"pixel_hash":"9c978c95","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5811,"write_ioctl_us":0,"submit_us":5817}
+{"event":"vk_image_layout","image_bo":1539,"kind":3,"old":2,"new":1}
+Native Vulkan N100 64x64 barrier upload and draw: PASS hash=9c978c95
+
+N100 mismatched old layout, before GPU submission
+Native Vulkan N100 mismatched image barrier rejected before draw: PASS
+
+Focused previous paths under candidate library
+Native Vulkan N100 32x32 buffer-to-image background: PASS hash=2039aba5
+Native Vulkan N100 32x32 image-to-buffer readback: PASS hash=28616d2d
+Native Vulkan N100 32x32 two triangles: PASS hash=d23b1ba1 draws=2
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=cdad4a41

@@ -162,6 +162,11 @@ adds a whole-image `vkCmdCopyBufferToImage` upload between render passes.
 The second pass preserves the uploaded background and renders over it;
 complete N100 images matched independent triangle captures with that
 background substituted.
+The [image-layout checkpoint](../evidence/native-vulkan-layout-103/README.md)
+records render-pass layout transitions and bounded `vkCmdPipelineBarrier`
+image transitions. It preflights layout order before submission. A barrier,
+upload, and preserving draw in one command buffer matched complete N100
+reference images at both supported sizes.
 The [multi-primitive draw checkpoint](../evidence/native-vulkan-draw9-087/README.md)
 accepts additional triangle-list primitives in one `vkCmdDraw`. Nine vertices
 in one call matched three established calls byte for byte at both target sizes.

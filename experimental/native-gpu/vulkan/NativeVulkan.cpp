@@ -58,10 +58,11 @@ struct VkBuffer_T {
 };
 struct VkImage_T {
  VkDevice_T* device;VkImage_T* next;VkDeviceMemory memory;
- uint32_t width,memoryOffset;VkImageUsageFlags usage;
+ uint32_t width,memoryOffset;VkImageUsageFlags usage;VkImageLayout layout;
 };
 struct VkImageView_T { VkDevice_T* device;VkImageView_T* next;VkImage image; };
-struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next;bool load,clear; };
+struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next;bool load,clear;
+ VkImageLayout initialLayout,finalLayout; };
 struct VkFramebuffer_T {
  VkDevice_T* device;VkFramebuffer_T* next;
  VkRenderPass pass;VkImageView view;
@@ -100,8 +101,11 @@ struct VkCommandBuffer_T {
   bool clear;uint32_t clearColor;};
  struct Copy {VkDeviceMemory source,destination;
   VkDeviceSize sourceOffset,destinationOffset,size;
-  bool sourceImage,destinationImage;};
- struct Event {bool copy;size_t index;};
+  VkImage sourceImage,destinationImage;
+  VkImageLayout sourceLayout,destinationLayout;};
+ enum EventKind : uint8_t {DrawEvent,CopyEvent,BeginPassEvent,EndPassEvent,BarrierEvent};
+ struct Event {EventKind kind;size_t index;VkImage image;
+  VkImageLayout oldLayout,newLayout;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
  VkBuffer boundVertex;VkDeviceSize boundVertexOffset;
@@ -114,7 +118,7 @@ struct VkCommandBuffer_T {
  bool recording;bool inRenderPass;bool drawn;bool complete;bool invalid;
 };
 
-static bool AppendEvent(VkCommandBuffer command,bool copy,size_t index)
+static bool AppendEvent(VkCommandBuffer command,const VkCommandBuffer_T::Event& event)
 {
  if(command->eventCount==command->eventCapacity){
   size_t next=command->eventCapacity?command->eventCapacity*2:4;
@@ -125,7 +129,7 @@ static bool AppendEvent(VkCommandBuffer command,bool copy,size_t index)
   command->events=(VkCommandBuffer_T::Event*)storage;
   command->eventCapacity=next;
  }
- command->events[command->eventCount++]={copy,index};return true;
+ command->events[command->eventCount++]=event;return true;
 }
 
 static bool AppendCopy(VkCommandBuffer command,const VkCommandBuffer_T::Copy& copy)
@@ -141,7 +145,8 @@ static bool AppendCopy(VkCommandBuffer command,const VkCommandBuffer_T::Copy& co
  }
  size_t index=command->copyCount++;
  command->copies[index]=copy;
- return AppendEvent(command,true,index);
+ return AppendEvent(command,{VkCommandBuffer_T::CopyEvent,index,
+  VK_NULL_HANDLE,VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_UNDEFINED});
 }
 
 static bool DisjointCopy(VkDeviceMemory source,VkDeviceSize sourceOffset,
@@ -635,6 +640,7 @@ vkCreateImage(VkDevice device,const VkImageCreateInfo* info,
  VkImage_T* value=(VkImage_T*)calloc(1,sizeof(VkImage_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
  value->device=device;value->width=info->extent.width;value->usage=info->usage;
+ value->layout=info->initialLayout;
  value->next=device->images;device->images=value;
  *image=value;return VK_SUCCESS;
 }
@@ -725,6 +731,7 @@ vkCreateRenderPass(VkDevice device,const VkRenderPassCreateInfo* info,
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
  value->device=device;value->load=a.loadOp==VK_ATTACHMENT_LOAD_OP_LOAD;
  value->clear=a.loadOp==VK_ATTACHMENT_LOAD_OP_CLEAR;
+ value->initialLayout=a.initialLayout;value->finalLayout=a.finalLayout;
  value->next=device->passes;device->passes=value;
  *pass=value;return VK_SUCCESS;
 }
@@ -1417,6 +1424,9 @@ vkCmdBeginRenderPass(VkCommandBuffer command,const VkRenderPassBeginInfo* info,
  command->boundVertexOffset=0;
  command->drawn=false;
  command->inRenderPass=true;
+ if(!AppendEvent(command,{VkCommandBuffer_T::BeginPassEvent,0,
+  info->framebuffer->view->image,info->renderPass->initialLayout,
+  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}))command->invalid=true;
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
@@ -1489,7 +1499,9 @@ vkCmdCopyBuffer(VkCommandBuffer command,VkBuffer source,VkBuffer destination,
  for(uint32_t i=0;i<count;i++){
   VkCommandBuffer_T::Copy copy={source->memory,destination->memory,
    source->memoryOffset+regions[i].srcOffset,
-   destination->memoryOffset+regions[i].dstOffset,regions[i].size,false,false};
+   destination->memoryOffset+regions[i].dstOffset,regions[i].size,
+   VK_NULL_HANDLE,VK_NULL_HANDLE,VK_IMAGE_LAYOUT_UNDEFINED,
+   VK_IMAGE_LAYOUT_UNDEFINED};
   if(!AppendCopy(command,copy)){command->invalid=true;return;}
  }
 }
@@ -1522,7 +1534,9 @@ vkCmdCopyImageToBuffer(VkCommandBuffer command,VkImage source,
   || !source->memory || !destination->memory
   || !(source->usage&VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
   || !(destination->usage&VK_BUFFER_USAGE_TRANSFER_DST_BIT)
-  || layout!=VK_IMAGE_LAYOUT_GENERAL || count!=1 || !regions){
+  || (layout!=VK_IMAGE_LAYOUT_GENERAL
+   && layout!=VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+  || count!=1 || !regions){
   command->invalid=true;return;
  }
  const VkBufferImageCopy& region=regions[0];
@@ -1536,7 +1550,7 @@ vkCmdCopyImageToBuffer(VkCommandBuffer command,VkImage source,
  }
  VkCommandBuffer_T::Copy copy={source->memory,destination->memory,
   source->memoryOffset,destination->memoryOffset+region.bufferOffset,
-  bytes,true,false};
+  bytes,source,VK_NULL_HANDLE,layout,VK_IMAGE_LAYOUT_UNDEFINED};
  if(!AppendCopy(command,copy))command->invalid=true;
 }
 
@@ -1551,7 +1565,9 @@ vkCmdCopyBufferToImage(VkCommandBuffer command,VkBuffer source,
   || !source->memory || !destination->memory
   || !(source->usage&VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
   || !(destination->usage&VK_IMAGE_USAGE_TRANSFER_DST_BIT)
-  || layout!=VK_IMAGE_LAYOUT_GENERAL || count!=1 || !regions){
+  || (layout!=VK_IMAGE_LAYOUT_GENERAL
+   && layout!=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+  || count!=1 || !regions){
   command->invalid=true;return;
  }
  const VkBufferImageCopy& region=regions[0];
@@ -1564,8 +1580,58 @@ vkCmdCopyBufferToImage(VkCommandBuffer command,VkBuffer source,
  }
  VkCommandBuffer_T::Copy copy={source->memory,destination->memory,
   source->memoryOffset+region.bufferOffset,destination->memoryOffset,
-  bytes,false,true};
+  bytes,VK_NULL_HANDLE,destination,VK_IMAGE_LAYOUT_UNDEFINED,layout};
  if(!AppendCopy(command,copy))command->invalid=true;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdPipelineBarrier(VkCommandBuffer command,VkPipelineStageFlags sourceStages,
+ VkPipelineStageFlags destinationStages,VkDependencyFlags flags,
+ uint32_t memoryCount,const VkMemoryBarrier* memoryBarriers,
+ uint32_t bufferCount,const VkBufferMemoryBarrier* bufferBarriers,
+ uint32_t imageCount,const VkImageMemoryBarrier* imageBarriers)
+{
+ if(!command)return;
+ constexpr VkPipelineStageFlags stages=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT
+  |VK_PIPELINE_STAGE_TRANSFER_BIT|VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  |VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+ constexpr VkAccessFlags accesses=VK_ACCESS_TRANSFER_READ_BIT
+  |VK_ACCESS_TRANSFER_WRITE_BIT|VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
+  |VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+ if(!command->recording || command->inRenderPass || flags
+  || !sourceStages || !destinationStages
+  || (sourceStages&~stages) || (destinationStages&~stages)
+  || memoryCount || memoryBarriers || bufferCount || bufferBarriers
+  || imageCount!=1 || !imageBarriers){command->invalid=true;return;}
+ const VkImageMemoryBarrier& barrier=imageBarriers[0];
+ if(barrier.sType!=VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER || barrier.pNext
+  || !barrier.image || barrier.image->device!=command->device
+  || !barrier.image->memory
+  || (barrier.srcAccessMask&~accesses) || (barrier.dstAccessMask&~accesses)
+  || (barrier.oldLayout==VK_IMAGE_LAYOUT_UNDEFINED
+   && barrier.srcAccessMask)
+  || (barrier.oldLayout!=VK_IMAGE_LAYOUT_UNDEFINED
+   && barrier.oldLayout!=VK_IMAGE_LAYOUT_GENERAL
+   && barrier.oldLayout!=VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+   && barrier.oldLayout!=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+  || (barrier.newLayout!=VK_IMAGE_LAYOUT_GENERAL
+   && barrier.newLayout!=VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+   && barrier.newLayout!=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+  || (barrier.newLayout==VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+   && !(barrier.image->usage&VK_IMAGE_USAGE_TRANSFER_SRC_BIT))
+  || (barrier.newLayout==VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+   && !(barrier.image->usage&VK_IMAGE_USAGE_TRANSFER_DST_BIT))
+  || barrier.srcQueueFamilyIndex!=VK_QUEUE_FAMILY_IGNORED
+  || barrier.dstQueueFamilyIndex!=VK_QUEUE_FAMILY_IGNORED
+  || barrier.subresourceRange.aspectMask!=VK_IMAGE_ASPECT_COLOR_BIT
+  || barrier.subresourceRange.baseMipLevel
+  || barrier.subresourceRange.levelCount!=1
+  || barrier.subresourceRange.baseArrayLayer
+  || barrier.subresourceRange.layerCount!=1){
+  command->invalid=true;return;
+ }
+ if(!AppendEvent(command,{VkCommandBuffer_T::BarrierEvent,0,barrier.image,
+  barrier.oldLayout,barrier.newLayout}))command->invalid=true;
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
@@ -1628,7 +1694,10 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
     || command->drawn || i!=0,
    VK_NULL_HANDLE,0,false,0,0,
    command->pass->clear && !command->drawn && i==0,command->clearColor};
-  if(!AppendEvent(command,false,index)){command->invalid=true;return;}
+  if(!AppendEvent(command,{VkCommandBuffer_T::DrawEvent,index,
+   VK_NULL_HANDLE,VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_UNDEFINED})){
+   command->invalid=true;return;
+  }
  }
  command->drawn=true;
 }
@@ -1698,7 +1767,8 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
   command->boundIndex,uint32_t(indexStart),true,indexCount,
   uint32_t(vertexBytes/16),
   command->pass->clear && !command->drawn,command->clearColor};
- if(!AppendEvent(command,false,command->drawCount-1)){
+ if(!AppendEvent(command,{VkCommandBuffer_T::DrawEvent,command->drawCount-1,
+  VK_NULL_HANDLE,VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_UNDEFINED})){
   command->invalid=true;return;
  }
  command->drawn=true;
@@ -1711,6 +1781,9 @@ vkCmdEndRenderPass(VkCommandBuffer command)
  if(!command->recording || !command->inRenderPass || !command->drawn){
   command->invalid=true;return;
  }
+ if(!AppendEvent(command,{VkCommandBuffer_T::EndPassEvent,0,
+  command->framebuffer->view->image,VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+  command->pass->finalLayout}))command->invalid=true;
  command->inRenderPass=false;
 }
 
@@ -1800,6 +1873,59 @@ static VkResult ClearImage(VkDevice device,VkImage image,uint32_t color)
  return VK_SUCCESS;
 }
 
+static VkResult ValidateImageLayouts(VkDevice device,uint32_t submitCount,
+ const VkSubmitInfo* submits)
+{
+ struct State {VkImage image;VkImageLayout layout;};
+ size_t imageCount=0;
+ for(VkImage image=device->images;image;image=image->next)imageCount++;
+ if(imageCount>SIZE_MAX/sizeof(State))return VK_ERROR_OUT_OF_HOST_MEMORY;
+ State* states=(State*)calloc(imageCount?imageCount:1,sizeof(State));
+ if(!states)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ size_t index=0;
+ for(VkImage image=device->images;image;image=image->next)
+  states[index++]={image,image->layout};
+ VkResult result=VK_SUCCESS;
+ for(uint32_t i=0;i<submitCount && result==VK_SUCCESS;i++)
+ for(uint32_t j=0;j<submits[i].commandBufferCount && result==VK_SUCCESS;j++){
+  VkCommandBuffer command=submits[i].pCommandBuffers[j];
+  for(size_t k=0;k<command->eventCount;k++){
+   const auto& event=command->events[k];
+   VkImage image=VK_NULL_HANDLE;
+   VkImageLayout required=VK_IMAGE_LAYOUT_UNDEFINED;
+   if(event.kind==VkCommandBuffer_T::DrawEvent){
+    if(event.index>=command->drawCount){result=VK_ERROR_INITIALIZATION_FAILED;break;}
+    image=command->draws[event.index].framebuffer->view->image;
+    required=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+   }else if(event.kind==VkCommandBuffer_T::CopyEvent){
+    if(event.index>=command->copyCount){result=VK_ERROR_INITIALIZATION_FAILED;break;}
+    const auto& copy=command->copies[event.index];
+    for(unsigned side=0;side<2;side++){
+     image=side?copy.destinationImage:copy.sourceImage;
+     if(!image)continue;
+     required=side?copy.destinationLayout:copy.sourceLayout;
+     size_t n=0;while(n<imageCount && states[n].image!=image)n++;
+     if(n==imageCount || states[n].layout!=required){
+      result=VK_ERROR_INITIALIZATION_FAILED;break;
+     }
+    }
+    if(result!=VK_SUCCESS)break;
+    continue;
+   }else if(event.kind==VkCommandBuffer_T::BeginPassEvent
+    || event.kind==VkCommandBuffer_T::EndPassEvent
+    || event.kind==VkCommandBuffer_T::BarrierEvent){
+    image=event.image;required=event.oldLayout;
+   }else{result=VK_ERROR_INITIALIZATION_FAILED;break;}
+   size_t n=0;while(n<imageCount && states[n].image!=image)n++;
+   if(n==imageCount || (required!=VK_IMAGE_LAYOUT_UNDEFINED
+    && states[n].layout!=required)){result=VK_ERROR_INITIALIZATION_FAILED;break;}
+   if(event.kind!=VkCommandBuffer_T::DrawEvent)
+    states[n].layout=event.newLayout;
+  }
+ }
+ free(states);return result;
+}
+
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence fence)
 {
@@ -1866,6 +1992,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
    }
   }
  }
+ VkResult layoutState=ValidateImageLayouts(device,count,submits);
+ if(layoutState!=VK_SUCCESS)return layoutState;
  VkResult semaphoreState=ValidateSemaphoreSubmits(device,count,submits);
  if(semaphoreState!=VK_SUCCESS)return semaphoreState;
  for(uint32_t i=0;i<count;i++){
@@ -1875,7 +2003,18 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  VkCommandBuffer command=submits[i].pCommandBuffers[j];
  for(size_t eventIndex=0;eventIndex<command->eventCount;eventIndex++){
  const auto& event=command->events[eventIndex];
- if(event.copy){
+ if(event.kind==VkCommandBuffer_T::BeginPassEvent
+  || event.kind==VkCommandBuffer_T::EndPassEvent
+  || event.kind==VkCommandBuffer_T::BarrierEvent){
+  event.image->layout=event.newLayout;
+  if(device->trace)fprintf(stderr,
+   "{\"event\":\"vk_image_layout\",\"image_bo\":%u,"
+   "\"kind\":%u,\"old\":%u,\"new\":%u}\n",
+   event.image->memory->handle,unsigned(event.kind),
+   unsigned(event.oldLayout),unsigned(event.newLayout));
+  continue;
+ }
+ if(event.kind==VkCommandBuffer_T::CopyEvent){
   const auto& copy=command->copies[event.index];
   native_gpu_resource_command request={};request.version=1;
   request.action=NATIVE_GPU_RESOURCE_COPY;
@@ -1906,7 +2045,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   && (recorded.indexCount>6 || recorded.vertexCount!=4
    || (recorded.indexCount==6 && recorded.preserve));
  const bool nativeBatch=!recorded.indexed && eventIndex+1<command->eventCount
-  && !command->events[eventIndex+1].copy
+  && command->events[eventIndex+1].kind==VkCommandBuffer_T::DrawEvent
   && command->events[eventIndex+1].index==k+1
   && !command->draws[k+1].indexed && directTarget
   && !uniform && !recorded.pipeline->vertexShaderHandle
@@ -2143,6 +2282,7 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkCmdCopyBuffer);
  VK_PROC(vkCmdCopyImageToBuffer);
  VK_PROC(vkCmdCopyBufferToImage);
+ VK_PROC(vkCmdPipelineBarrier);
  VK_PROC(vkCmdDraw);
  VK_PROC(vkCmdDrawIndexed);
  VK_PROC(vkCmdEndRenderPass);

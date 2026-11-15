@@ -51,6 +51,8 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"copyvertex")
    && strcmp(argv[4],"copyreadback")
    && strcmp(argv[4],"copybackground")
+   && strcmp(argv[4],"barrierupload")
+   && strcmp(argv[4],"barrierbad")
    && strcmp(argv[4],"clearpass")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
@@ -115,6 +117,9 @@ int main(int argc,char** argv)
  bool copyVertex=argc==5 && !strcmp(argv[4],"copyvertex");
  bool copyReadback=argc==5 && !strcmp(argv[4],"copyreadback");
  bool copyBackground=argc==5 && !strcmp(argv[4],"copybackground");
+ bool barrierBad=argc==5 && !strcmp(argv[4],"barrierbad");
+ bool barrierUpload=argc==5 && (!strcmp(argv[4],"barrierupload")
+  || barrierBad);
  bool indexMesh=argc==5 && (!strcmp(argv[4],"indexmesh")
   || indexMeshBad || indexMeshClear || indexMeshPlus || indexMeshMinus);
  bool clearPass=argc==5 && (!strcmp(argv[4],"clearpass") || indexMeshClear);
@@ -177,6 +182,8 @@ int main(int argc,char** argv)
  if(copyReadback && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(copyBackground && (shape!=0 || repeats!=2
+  || strcmp(argv[2],"original")))return 40;
+ if(barrierUpload && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(clearPass && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
@@ -437,7 +444,7 @@ int main(int argc,char** argv)
  imageInfo.samples=VK_SAMPLE_COUNT_1_BIT;imageInfo.tiling=VK_IMAGE_TILING_LINEAR;
  imageInfo.usage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
   |(colorOnly?0:VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
-  |(copyBackground?VK_IMAGE_USAGE_TRANSFER_DST_BIT:0);
+  |((copyBackground || barrierUpload)?VK_IMAGE_USAGE_TRANSFER_DST_BIT:0);
  imageInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
  VkImage image=VK_NULL_HANDLE;
  REQUIRE(vkCreateImage(device,&imageInfo,nullptr,&image)==VK_SUCCESS,13);
@@ -460,7 +467,7 @@ int main(int argc,char** argv)
  }
  VkBuffer background=VK_NULL_HANDLE;
  VkDeviceMemory backgroundMemory=VK_NULL_HANDLE;
- if(copyBackground){
+ if(copyBackground || barrierUpload){
   bufferInfo.size=imageBytes;bufferInfo.usage=VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
   REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&background)==VK_SUCCESS,92);
   vkGetBufferMemoryRequirements(device,background,&requirement);
@@ -496,9 +503,11 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateImageView(device,&viewInfo,nullptr,&view)==VK_SUCCESS,17);
  VkAttachmentDescription attachment={};attachment.format=VK_FORMAT_B8G8R8A8_UNORM;
  attachment.samples=VK_SAMPLE_COUNT_1_BIT;
- attachment.loadOp=clearPass?VK_ATTACHMENT_LOAD_OP_CLEAR:VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+ attachment.loadOp=barrierUpload?VK_ATTACHMENT_LOAD_OP_LOAD:
+  clearPass?VK_ATTACHMENT_LOAD_OP_CLEAR:VK_ATTACHMENT_LOAD_OP_DONT_CARE;
  attachment.storeOp=VK_ATTACHMENT_STORE_OP_STORE;
- attachment.initialLayout=VK_IMAGE_LAYOUT_UNDEFINED;
+ attachment.initialLayout=barrierUpload?VK_IMAGE_LAYOUT_GENERAL:
+  VK_IMAGE_LAYOUT_UNDEFINED;
  attachment.finalLayout=VK_IMAGE_LAYOUT_GENERAL;
  VkAttachmentReference color={};color.attachment=0;
  color.layout=VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -661,6 +670,25 @@ int main(int argc,char** argv)
  if(copyVertex){
   VkBufferCopy region={0,0,48};
   vkCmdCopyBuffer(command,vertex,laterVertex,1,&region);
+ }
+ if(barrierUpload){
+  VkImageMemoryBarrier barrier={};
+  barrier.sType=VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  barrier.srcQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED;
+  barrier.dstQueueFamilyIndex=VK_QUEUE_FAMILY_IGNORED;
+  barrier.oldLayout=barrierBad?VK_IMAGE_LAYOUT_GENERAL:
+   VK_IMAGE_LAYOUT_UNDEFINED;
+  barrier.newLayout=VK_IMAGE_LAYOUT_GENERAL;
+  barrier.dstAccessMask=VK_ACCESS_TRANSFER_WRITE_BIT;
+  barrier.image=image;
+  barrier.subresourceRange={VK_IMAGE_ASPECT_COLOR_BIT,0,1,0,1};
+  vkCmdPipelineBarrier(command,VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+   VK_PIPELINE_STAGE_TRANSFER_BIT,0,0,nullptr,0,nullptr,1,&barrier);
+  VkBufferImageCopy region={};
+  region.imageSubresource={VK_IMAGE_ASPECT_COLOR_BIT,0,0,1};
+  region.imageExtent={dimension,dimension,1};
+  vkCmdCopyBufferToImage(command,background,image,VK_IMAGE_LAYOUT_GENERAL,
+   1,&region);
  }
  VkRenderPassBeginInfo render={};render.sType=VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
  render.renderPass=pass;render.framebuffer=framebuffer;
@@ -828,6 +856,12 @@ int main(int argc,char** argv)
    REQUIRE(vkFlushMappedMemoryRanges(device,1,&uniformRange)==VK_SUCCESS,72);
   }
   VkResult submitted=vkQueueSubmit(queue,1,&submit,fence);
+  if(barrierBad){
+   REQUIRE(submitted==VK_ERROR_INITIALIZATION_FAILED
+    && vkGetFenceStatus(device,fence)==VK_NOT_READY,97);
+   puts("Native Vulkan N100 mismatched image barrier rejected before draw: PASS");
+   return 0;
+  }
   if(indexBad || indexAlias){
    REQUIRE(submitted==VK_ERROR_DEVICE_LOST
     && vkGetFenceStatus(device,fence)==VK_NOT_READY,87);
@@ -858,7 +892,10 @@ int main(int argc,char** argv)
  }
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(copyBackground){
+ if(barrierUpload){
+  REQUIRE(pixels[0]==0xff336699
+   && pixels[(dimension/2)*dimension+dimension/2]==0xffff4000,30);
+ }else if(copyBackground){
   REQUIRE(pixels[0]==0xff336699
    && pixels[(dimension/2)*dimension+dimension/2]
     ==(large?0xffff4000:0xffff8000),30);
@@ -948,6 +985,8 @@ int main(int argc,char** argv)
   dimension,dimension,hash);
  else if(copyBackground)printf("Native Vulkan N100 %ux%u buffer-to-image background: PASS hash=%08x\n",
   dimension,dimension,hash);
+ else if(barrierUpload)printf("Native Vulkan N100 %ux%u barrier upload and draw: PASS hash=%08x\n",
+  dimension,dimension,hash);
  else if(indexed)printf("Native Vulkan N100 %ux%u GPU indexed triangle: PASS hash=%08x\n",
   dimension,dimension,hash);
  else if(batchGpu)printf("Native Vulkan N100 %ux%u two triangles: PASS hash=%08x draws=2\n",
@@ -1003,7 +1042,7 @@ int main(int argc,char** argv)
  vkFreeMemory(device,imageMemory,nullptr);
  if(copyReadback){vkDestroyBuffer(device,readback,nullptr);
   vkFreeMemory(device,readbackMemory,nullptr);}
- if(copyBackground){vkDestroyBuffer(device,background,nullptr);
+ if(copyBackground || barrierUpload){vkDestroyBuffer(device,background,nullptr);
   vkFreeMemory(device,backgroundMemory,nullptr);}
  vkDestroyBuffer(device,vertex,nullptr);
  vkFreeMemory(device,vertexMemory,nullptr);
