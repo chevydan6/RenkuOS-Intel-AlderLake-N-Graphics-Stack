@@ -1,11 +1,11 @@
-# RenkuOS Intel GPU development
+# RenkuOS Intel Alder Lake-N Graphics Stack
 
 > **Active handoff — 2026-11-14:** Continue from [NATIVE_GPU_HANDOFF.md](NATIVE_GPU_HANDOFF.md). The owner abandoned the full Linux i915/LinuxKPI port in favor of native adaptation retaining Intel hardware logic and a real GPU-accelerated RenkuOS sample. New native code and prior work are preserved on the linked continuation/archive branches. See also the [Intel documentation inventory](docs/INTEL_GPU_DOCUMENTATION.md).
 
 > **Repository navigation:** Start with the [documentation index](docs/INDEX.md), [current evidence status](docs/CURRENT_STATUS.md), [native/experimental driver map](drivers/README.md), and [test/evidence map](tests/README.md). The cleanup branch is a staged reorganization; production source and hardware installation are unchanged.
 
-Astra High #2: private Intel N100 / Alder Lake-N graphics development for RenkuOS,
-with independent Terra research and validation. Target: `8086:46d1`, revision 00.
+Public, open-source Intel N100 / Alder Lake-N graphics development for RenkuOS.
+Target: `8086:46d1`, revision 00.
 Haiku research, patches and tests are preserved on `gpu/alderlake-n`.
 
 **Current status, 2026-11-07:** native 1920×1080 RGB8 HDMI desktop output is
@@ -104,3 +104,10 @@ and contributor accountability. No upstream submission has been made.
 
 Unreviewed raw logs, SSH configuration, credentials, VM images and generated binaries
 are excluded from version control. Only reviewed evidence is committed.
+
+## Open source and licensing
+
+Original contributions by chevydan6 are available under the [MIT License](LICENSE).
+You may use, modify, and redistribute those contributions under its terms.
+Inherited and referenced code retains its original notices and licenses;
+the root MIT license does not replace third-party license requirements.
