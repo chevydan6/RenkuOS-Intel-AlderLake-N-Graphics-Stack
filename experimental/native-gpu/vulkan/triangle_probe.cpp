@@ -48,6 +48,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"indexmesh") && strcmp(argv[4],"indexmeshbad")
    && strcmp(argv[4],"indexmeshclear")
    && strcmp(argv[4],"indexmeshplus") && strcmp(argv[4],"indexmeshminus")
+   && strcmp(argv[4],"indexmeshubo")
    && strcmp(argv[4],"copyvertex")
    && strcmp(argv[4],"copyreadback")
    && strcmp(argv[4],"copybackground")
@@ -114,6 +115,7 @@ int main(int argc,char** argv)
  bool indexMeshClear=argc==5 && !strcmp(argv[4],"indexmeshclear");
  bool indexMeshPlus=argc==5 && !strcmp(argv[4],"indexmeshplus");
  bool indexMeshMinus=argc==5 && !strcmp(argv[4],"indexmeshminus");
+ bool indexMeshUbo=argc==5 && !strcmp(argv[4],"indexmeshubo");
  bool copyVertex=argc==5 && !strcmp(argv[4],"copyvertex");
  bool copyReadback=argc==5 && !strcmp(argv[4],"copyreadback");
  bool copyBackground=argc==5 && !strcmp(argv[4],"copybackground");
@@ -121,7 +123,8 @@ int main(int argc,char** argv)
  bool barrierUpload=argc==5 && (!strcmp(argv[4],"barrierupload")
   || barrierBad);
  bool indexMesh=argc==5 && (!strcmp(argv[4],"indexmesh")
-  || indexMeshBad || indexMeshClear || indexMeshPlus || indexMeshMinus);
+  || indexMeshBad || indexMeshClear || indexMeshPlus || indexMeshMinus
+  || indexMeshUbo);
  bool clearPass=argc==5 && (!strcmp(argv[4],"clearpass") || indexMeshClear);
  bool indexSix=argc==5 && (!strcmp(argv[4],"indexsix")
   || indexSixBad || indexSixPage);
@@ -169,14 +172,15 @@ int main(int argc,char** argv)
   || repeats!=2))return 40;
  if((highVa || endVa) && (shape!=0 || argc!=5
   || strcmp(argv[2],"original") || repeats>4 || (endVa && large)))return 40;
- if(indexed && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
+ if(indexed && (shape!=0 || argc!=5
+  || strcmp(argv[2],indexMeshUbo?"ubo":"original")
   || repeats>2 || ((indexBad || indexAlias) && repeats!=1)))return 40;
  if((indexPair || indexPairReference) && (shape!=0 || repeats!=2
   || strcmp(argv[2],"original")))return 40;
  if(indexSix && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(indexMesh && (shape!=0 || repeats!=1
-  || strcmp(argv[2],"original")))return 40;
+  || strcmp(argv[2],indexMeshUbo?"ubo":"original")))return 40;
  if(copyVertex && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(copyReadback && (shape!=0 || repeats!=1
@@ -193,7 +197,8 @@ int main(int argc,char** argv)
  if(imageOffset && (shape!=0 || repeats!=2))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || ((batch || semaphoreBatch) && repeats!=2))return 40;
- if(ubo && (shape!=0 || repeats!=2 || (argc==5 && !imageOffset)))return 40;
+ if(ubo && (shape!=0 || repeats!=(indexMeshUbo?1u:2u)
+  || (argc==5 && !imageOffset && !indexMeshUbo)))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
  memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
  bool alternateChanged=false;
@@ -848,7 +853,8 @@ int main(int argc,char** argv)
     const uint32_t decoy[4]={0,0,0,0x3f800000};
     memcpy(uniformMapped,decoy,16);
    }
-   memcpy((uint8_t*)uniformMapped+(uboMemOffset?4096:uboOffset?16:0),colors[i],16);
+   memcpy((uint8_t*)uniformMapped+(uboMemOffset?4096:uboOffset?16:0),
+    colors[indexMeshUbo?1:i],16);
    VkMappedMemoryRange uniformRange={};
    uniformRange.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
    uniformRange.memory=uniformMemory;
@@ -905,6 +911,10 @@ int main(int argc,char** argv)
  }else if(indexPair || indexPairReference || indexSix){
   REQUIRE(hash==(large?0x554d3ec5:0x261a8285)
    && pixels[0]==0x19537bad,30);
+ }else if(indexMeshUbo){
+  REQUIRE(pixels[0]==0x19537bad
+   && pixels[10*dimension+20]==0xff00ff80
+   && hash!=(large?0x9bd44344:0xcdad4a41),30);
  }else if(indexMesh){
   REQUIRE(hash==(large?0x9bd44344:0xcdad4a41)
    && pixels[0]==0x19537bad,30);
