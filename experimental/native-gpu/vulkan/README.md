@@ -50,6 +50,10 @@ The [current source-closure inventory](../evidence/native-stack-current-054/READ
 counts 14,174,197 unique canonical runtime bytes across the selected compiler,
 owner, and Vulkan inputs. It tracks generated and SDK inputs separately; model
 token counts and some external dependencies remain unmeasured.
+The [native GL-header compiler candidate](../evidence/native-glheader-prune-055/README.md)
+reduces that measured closure to 13,479,049 bytes and passed 162 physical N100
+draws. It remains an isolated bundle; the installed owner and kernel were not
+changed.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
