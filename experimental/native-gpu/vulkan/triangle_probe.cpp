@@ -31,7 +31,10 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
-   && strcmp(argv[4],"pageoffset")))return 40;
+   && strcmp(argv[4],"pageoffset")
+   && strcmp(argv[4],"rotateoffset") && strcmp(argv[4],"rotatepage")
+   && strcmp(argv[4],"rotatefirst")
+   && strcmp(argv[4],"depthoffset")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  const bool large=getenv("RENKU_VK_TARGET_64")!=nullptr;
  const uint32_t dimension=large?64:32;
@@ -48,14 +51,20 @@ int main(int argc,char** argv)
  unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
  bool batch=argc==5 && !strcmp(argv[4],"batch");
  bool named=argc==5 && !strcmp(argv[4],"named");
- bool depth=argc==5 && !strcmp(argv[4],"depth");
- bool rotate=argc==5 && !strcmp(argv[4],"rotate");
+ bool depth=argc==5 && (!strcmp(argv[4],"depth")
+  || !strcmp(argv[4],"depthoffset"));
+ bool rotate=argc==5 && (!strcmp(argv[4],"rotate")
+  || !strcmp(argv[4],"rotateoffset") || !strcmp(argv[4],"rotatepage")
+  || !strcmp(argv[4],"rotatefirst"));
  bool dual=argc==5 && !strcmp(argv[4],"dual");
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
- bool bindOffset=argc==5 && !strcmp(argv[4],"offset");
- bool firstVertex=argc==5 && !strcmp(argv[4],"firstvertex");
- bool pageOffset=argc==5 && !strcmp(argv[4],"pageoffset");
+ bool bindOffset=argc==5 && (!strcmp(argv[4],"offset")
+  || !strcmp(argv[4],"rotateoffset") || !strcmp(argv[4],"depthoffset"));
+ bool firstVertex=argc==5 && (!strcmp(argv[4],"firstvertex")
+  || !strcmp(argv[4],"rotatefirst"));
+ bool pageOffset=argc==5 && (!strcmp(argv[4],"pageoffset")
+  || !strcmp(argv[4],"rotatepage"));
  bool selectedVertexRange=bindOffset || firstVertex || pageOffset;
  bool twoPipelines=dual || multiPass;
  if(large && (half || green75 || green90 || named || twoPipelines
@@ -65,7 +74,7 @@ int main(int argc,char** argv)
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats!=2))return 40;
- if(selectedVertexRange && (shape!=0 || repeats>8 || rotate || depth))return 40;
+ if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || (batch && repeats!=2))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];

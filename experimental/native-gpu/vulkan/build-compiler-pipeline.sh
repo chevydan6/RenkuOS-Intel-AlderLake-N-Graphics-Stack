@@ -45,13 +45,13 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -I"$RENKU_VULKAN_HEADERS" \
  "$here/triangle_probe.cpp" -L"$here/build-compiler" -lvulkan \
  -L"$RENKU_INTEL_COMPILER_LIB_DIR" \
  -Wl,-rpath,"$here/build-compiler" -o "$here/build-compiler/triangle_probe"
-LIBRARY_PATH="$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
+LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/compiler_pipeline_probe"
-LIBRARY_PATH="$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
+LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/compiler_pipeline_api_probe"
-LIBRARY_PATH="$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
+LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/fence_probe"
-LIBRARY_PATH="$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
+LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/command_reset_probe"
 sha256sum "$here/build-compiler/libvulkan.so" \
  "$here/build-compiler/compiler_pipeline_probe" \

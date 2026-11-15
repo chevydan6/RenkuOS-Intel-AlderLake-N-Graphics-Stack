@@ -67,6 +67,8 @@ struct native_gpu_render_command {
 // Version 13 uses version-7/10 handles for either target size, with a nonzero
 // 16-byte-aligned vertex offset in the first four output bytes on input.
 // The owner validates the selected three-vertex range before GPU publication.
+// Version 14 adds a distinct owner-approved vertex shader handle in input
+// output bytes 4..7 and requires a constant-color fragment shader.
 // The v1-v8 4 KiB ABI remains unchanged.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {

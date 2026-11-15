@@ -1169,8 +1169,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   || firstInstance){command->invalid=true;return;}
  uint64_t start=command->boundVertexOffset+uint64_t(firstVertex)*16;
  if(start>UINT32_MAX || start>command->boundVertex->bytes
-  || 48>command->boundVertex->bytes-start || (start&4095)>4096-48
-  || (start && command->pipeline->vertexShaderHandle)){
+  || 48>command->boundVertex->bytes-start || (start&4095)>4096-48){
   command->invalid=true;return;
  }
  if(command->drawCount==command->drawCapacity){
@@ -1253,17 +1252,23 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=recorded.vertexOffset?13:large?(recorded.pipeline->fragcoordRed?12:
+ draw.version=recorded.vertexOffset
+  ?(recorded.pipeline->vertexShaderHandle?14:13)
+  :large?(recorded.pipeline->fragcoordRed?12:
   recorded.pipeline->vertexShaderHandle?11:10):
   recorded.pipeline->vertexShaderHandle?8:7;
  draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=recorded.vertex->memory->handle;
  draw.reserved=recorded.pipeline->shaderHandle;
- if(draw.version==13)memcpy(draw.output,&recorded.vertexOffset,
+ if(draw.version==13 || draw.version==14)
+  memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
   memcpy(draw.output,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
+ if(draw.version==14)memcpy(draw.output+4,
+  &recorded.pipeline->vertexShaderHandle,
+  sizeof(recorded.pipeline->vertexShaderHandle));
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=large
   ?ioctl(device->fd,NATIVE_GPU_RENDER_LARGE_IOCTL,&largeDraw,sizeof(largeDraw))

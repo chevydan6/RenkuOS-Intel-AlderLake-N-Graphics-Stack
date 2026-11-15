@@ -37,9 +37,11 @@ The [vertex-offset checkpoint](../evidence/native-vulkan-vertex-offset-051/READM
 records 112 physical N100 draws with `vkCmdBindVertexBuffers` byte offset,
 `firstVertex`, and a second-page vertex range in an 8 KiB buffer. The owner
 checks the selected 48-byte range before patching the GPU vertex address.
-Offset draws currently require the approved constant or FragCoord-red fragment
-shader with the original vertex shader; distinct vertex shader variants at a
-nonzero vertex offset are not yet supported.
+The [distinct vertex shader offset checkpoint](../evidence/native-vulkan-vs-offset-052/README.md)
+adds a version-14 owner request for approved rotated and depth vertex shaders
+with a binding offset, `firstVertex`, or a second-page vertex range. It passed
+60 repeated draws on the physical N100. The fragment program for that request
+remains the approved constant-color profile.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

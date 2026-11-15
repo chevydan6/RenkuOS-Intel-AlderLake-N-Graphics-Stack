@@ -1,0 +1,3 @@
+N100, old libvulkan.so with a new rotateoffset probe, before owner ABI change:
+Vulkan triangle failed at /boot/home/test-work/vulkan-vertex-offset-051/vulkan/triangle_probe.cpp:356 (code 25)
+probe_exit=25
