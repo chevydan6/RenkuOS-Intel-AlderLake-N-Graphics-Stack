@@ -2,6 +2,7 @@
 #ifndef NATIVE_GPU_RCS_RESOURCE_VERTICES_H
 #define NATIVE_GPU_RCS_RESOURCE_VERTICES_H
 #include "RcsUserVertices.h"
+#include "RcsResourceRange.h"
 #include <string.h>
 namespace NativeGpu {
 // Owner-allocated vertex resource at a fixed PPGTT VA. Only the vertex-buffer
@@ -36,7 +37,7 @@ public:
  }
 private:
  static bool ValidVertexGpu(uint64_t gpu) {
-  return gpu>=0x410000 && gpu<=0x420000-48 && !(gpu&15)
+  return gpu>=RcsResourceRange::Base && gpu<=RcsResourceRange::End-48 && !(gpu&15)
    && (gpu&4095)<=4096-48;
  }
  static bool Patch(uint32_t* const* pages,const uint32_t* words,uint32_t gpu) {

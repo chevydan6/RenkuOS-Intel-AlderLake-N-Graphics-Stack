@@ -16,6 +16,7 @@
 #include "render/RcsPciAdmission.h"
 #include "NativeResourceArena.h"
 #include "render/RcsResourceTarget.h"
+#include "render/RcsResourceRange.h"
 #include "ResourceModule.h"
 static native_gpu_render_report sRenderReport;
 // This grant is reachable only through the private graphics-driver module ABI.
@@ -95,8 +96,8 @@ static uint64_t sRenderArenaGpu,sRenderPublicBatchGpu,sRenderPublicShaderGpu;
 static uint64_t sRenderTargetGpu;
 static uint32_t* sRenderTargetPages[NativeGpu::RcsDrawImage64::TargetPages];
 static IntelN100PpgttTree::Page sRenderResourcePage;
-static constexpr uint64_t kRenderArenaGpu=0x410000;
-static constexpr unsigned kRenderArenaPages=16;
+static constexpr uint64_t kRenderArenaGpu=NativeGpu::RcsResourceRange::Base;
+static constexpr unsigned kRenderArenaPages=NativeGpu::RcsResourceRange::Pages;
 static IntelN100PpgttTree::Page sRenderArenaPages[kRenderArenaPages];
 static NativeGpu::ResourceArena sRenderArena(kRenderArenaGpu,kRenderArenaPages);
 static bool sRenderArenaReady;
@@ -608,7 +609,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
    && variant!=command->reserved && resourceSession!=0
    && ((version!=13 && version!=14 && version!=15)
     || ((version==15 || vertexOffset>=16)
-    && vertexOffset<=16*4096-48
+    && vertexOffset<=NativeGpu::RcsResourceRange::Pages*4096-48
     && !(vertexOffset&15) && (vertexOffset&4095)<=4096-48))
    && (version!=15 || (targetHandle!=0 && targetHandle!=variant
     && targetHandle!=command->reserved

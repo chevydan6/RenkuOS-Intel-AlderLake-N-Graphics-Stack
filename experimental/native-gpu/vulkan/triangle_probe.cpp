@@ -33,6 +33,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
    && strcmp(argv[4],"semaphore")
+   && strcmp(argv[4],"highva")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
@@ -60,6 +61,7 @@ int main(int argc,char** argv)
  unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
  bool batch=argc==5 && !strcmp(argv[4],"batch");
  bool semaphoreBatch=argc==5 && !strcmp(argv[4],"semaphore");
+ bool highVa=argc==5 && !strcmp(argv[4],"highva");
  bool named=argc==5 && !strcmp(argv[4],"named");
  bool depth=argc==5 && (!strcmp(argv[4],"depth")
   || !strcmp(argv[4],"depthoffset"));
@@ -84,6 +86,8 @@ int main(int argc,char** argv)
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats!=2))return 40;
+ if(highVa && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
+  || repeats>4))return 40;
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || ((batch || semaphoreBatch) && repeats!=2))return 40;
@@ -170,6 +174,14 @@ int main(int argc,char** argv)
   rgb?rgbCode.size()*4:
   half?sizeof(RenkuKnownSpirv::FragmentHalf):sizeof(RenkuKnownSpirv::Fragment);
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
+
+ VkDeviceMemory padding=VK_NULL_HANDLE;
+ if(highVa){
+  VkMemoryAllocateInfo padInfo={};padInfo.sType=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  padInfo.allocationSize=16*4096;padInfo.memoryTypeIndex=0;
+  REQUIRE(vkAllocateMemory(device,&padInfo,nullptr,&padding)==VK_SUCCESS
+   && padding,64);
+ }
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
  bufferInfo.size=pageOffset?8192:selectedVertexRange?96:48;
@@ -324,10 +336,10 @@ int main(int argc,char** argv)
   secondStages[1].module=halfFs;
   pipelineInfos[1].pStages=secondStages;
   if(dual){
-   VkGraphicsPipelineCreateInfo overflow[17]={};
-   VkPipeline rolledBack[17]={};
-   for(unsigned i=0;i<17;i++)overflow[i]=pipelineInfo;
-   REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,17,
+   VkGraphicsPipelineCreateInfo overflow[65]={};
+   VkPipeline rolledBack[65]={};
+   for(unsigned i=0;i<65;i++)overflow[i]=pipelineInfo;
+   REQUIRE(vkCreateGraphicsPipelines(device,VK_NULL_HANDLE,65,
     overflow,nullptr,rolledBack)==VK_ERROR_OUT_OF_DEVICE_MEMORY,57);
    for(VkPipeline prior:rolledBack)REQUIRE(!prior,58);
    VkPipeline filled[13]={};
@@ -508,6 +520,7 @@ int main(int argc,char** argv)
  vkFreeMemory(device,vertexMemory,nullptr);
  vkDestroyBuffer(device,laterVertex,nullptr);
  vkFreeMemory(device,laterMemory,nullptr);
+ if(padding)vkFreeMemory(device,padding,nullptr);
  vkDestroyDevice(device,nullptr);vkDestroyInstance(instance,nullptr);
  return 0;
 }

@@ -14,6 +14,6 @@ int main() {
  words[0]^=1;assert(!RcsValidatedBatch::Validate(words,1024,0x411000));words[0]^=1;
  words[1023]=1;assert(!RcsValidatedBatch::Validate(words,1024,0x411000));words[1023]=0;
  assert(!RcsValidatedBatch::PatchVertex(words,0x410001));
- assert(!RcsValidatedBatch::PatchVertex(words,0x420000));
+ assert(!RcsValidatedBatch::PatchVertex(words,NativeGpu::RcsResourceRange::End));
  puts("N100 exact public RCS batch validation: PASS (CPU only)");
 }

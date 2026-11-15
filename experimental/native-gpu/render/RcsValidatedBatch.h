@@ -2,6 +2,7 @@
 #ifndef NATIVE_GPU_RCS_VALIDATED_BATCH_H
 #define NATIVE_GPU_RCS_VALIDATED_BATCH_H
 #include "RcsDrawImage.h"
+#include "RcsResourceRange.h"
 namespace NativeGpu {
 // First public command BO contract. The entire 4 KiB page must equal the
 // owner-proven draw batch, except for one owner-validated vertex BO address.
@@ -23,7 +24,7 @@ public:
  }
 private:
  static bool ValidAddress(uint32_t gpu)
- {return gpu>=0x410000 && gpu<0x420000 && !(gpu&4095);}
+ {return gpu>=RcsResourceRange::Base && gpu<RcsResourceRange::End && !(gpu&4095);}
  static uint32_t Expected(unsigned index)
  {return index<RcsDrawImage::BatchDwords?RcsDrawData::Batch[index]:0;}
  static unsigned VertexIndex() {

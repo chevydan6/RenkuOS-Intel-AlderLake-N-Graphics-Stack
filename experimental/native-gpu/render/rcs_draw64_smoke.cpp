@@ -65,7 +65,8 @@ int main()
  assert(pages[3][0]==0);
  assert(NativeGpu::RcsPublicShader::PatchBatchWithVertex(
   pages[0],1024,0x411000,0x410000,true));
- assert(pages[0][44]==0x20001 && pages[0][239]==0x11000);
+ assert(pages[0][44]==NativeGpu::RcsResourceRange::InstructionBufferSize
+  && pages[0][239]==0x11000);
  for(int y=0;y<64;y++)for(int x=0;x<64;x++){
   bool inside=x>=8 && y>=8 && x<56 && y<56 && x>y;
   if(inside){unsigned index=unsigned(y*64+x);

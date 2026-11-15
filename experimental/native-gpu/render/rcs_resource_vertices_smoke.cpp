@@ -39,6 +39,6 @@ int main() {
  for(unsigned i=0;i<1024;i++)assert(pages[RcsDrawImage::Vertices][i]==0);
  assert(!RcsResourceVertices::BuildAt(pages,words,0x40f000));
  assert(!RcsResourceVertices::BuildAt(pages,words,0x410001));
- assert(!RcsResourceVertices::BuildAt(pages,words,0x420000));
+  assert(!RcsResourceVertices::BuildAt(pages,words,NativeGpu::RcsResourceRange::End));
  puts("RCS separate vertex resource packet: PASS (CPU only)");
 }

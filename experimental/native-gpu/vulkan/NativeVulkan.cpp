@@ -4,6 +4,7 @@
 #include "../ResourceCommand.h"
 #include "KnownSpirv.h"
 #include "../render/draw/RcsDrawGenerated.h"
+#include "../render/RcsResourceRange.h"
 #include <OS.h>
 #ifdef RENKU_VULKAN_USE_INTEL_COMPILER
 #include "CompiledKnownShader.h"
@@ -62,7 +63,7 @@ struct VkFramebuffer_T {
 struct VkPipelineLayout_T { VkDevice_T* device;VkPipelineLayout_T* next; };
 struct VkPipeline_T {
  VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;
- uint32_t shaderHandle,vertexShaderHandle,width;
+ uint32_t shaderHandle,vertexShaderHandle,width;uint64_t shaderGpu;
  bool fragcoordGradient;
 };
 struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
@@ -241,7 +242,7 @@ vkGetPhysicalDeviceMemoryProperties(VkPhysicalDevice physical,
  memset(memory,0,sizeof(*memory));
  if(!physical)return;
  memory->memoryHeapCount=1;
- memory->memoryHeaps[0].size=16*4096;
+ memory->memoryHeaps[0].size=NativeGpu::RcsResourceRange::Pages*4096;
  memory->memoryHeaps[0].flags=VK_MEMORY_HEAP_DEVICE_LOCAL_BIT;
  memory->memoryTypeCount=1;
  memory->memoryTypes[0].heapIndex=0;
@@ -490,7 +491,8 @@ vkCreateBuffer(VkDevice device,const VkBufferCreateInfo* info,
  if(!device || !info || !buffer || allocator || info->pNext || info->flags
   || info->sType!=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO
   || info->sharingMode!=VK_SHARING_MODE_EXCLUSIVE || !info->size
-  || info->size>16*4096 || info->usage!=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+  || info->size>NativeGpu::RcsResourceRange::Pages*4096
+  || info->usage!=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
   return VK_ERROR_FEATURE_NOT_PRESENT;
  VkBuffer_T* value=(VkBuffer_T*)calloc(1,sizeof(VkBuffer_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -672,7 +674,8 @@ vkAllocateMemory(VkDevice device,const VkMemoryAllocateInfo* info,
  if(memory)*memory=VK_NULL_HANDLE;
  if(!device || !info || !memory || allocator || info->pNext
   || info->sType!=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO
-  || !info->allocationSize || info->allocationSize>16*4096
+  || !info->allocationSize
+  || info->allocationSize>NativeGpu::RcsResourceRange::Pages*4096
   || info->memoryTypeIndex!=0)return VK_ERROR_FEATURE_NOT_PRESENT;
  native_gpu_resource_command c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_CREATE;
  c.size=info->allocationSize;
@@ -930,6 +933,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
   free(value);return VK_ERROR_OUT_OF_DEVICE_MEMORY;
  }
  value->shaderHandle=c.handle;
+ value->shaderGpu=c.gpu;
  c={};c.version=1;c.action=NATIVE_GPU_RESOURCE_WRITE;
  c.handle=value->shaderHandle;c.bytes=fragmentCodeBytes;
  memcpy(c.data,fragmentCode,c.bytes);
@@ -1411,6 +1415,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
   "\"draw_index\":%zu,\"draw_count\":%zu,\"vertex_offset\":%u,\"direct_target\":%u,"
   "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,"
+  "\"vertex_gpu_va\":\"%llx\",\"shader_gpu_va\":\"%llx\",\"image_gpu_va\":\"%llx\","
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
   "\"render_ioctl_us\":%lld,\"write_ioctl_us\":%lld,\"submit_us\":%lld}\n",
@@ -1418,6 +1423,9 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   k,command->drawCount,recorded.vertexOffset,unsigned(directTarget),draw.variant,draw.reserved,
   recorded.pipeline->vertexShaderHandle,
   recorded.framebuffer->view->image->memory->handle,
+  (unsigned long long)recorded.vertex->memory->gpu,
+  (unsigned long long)recorded.pipeline->shaderGpu,
+  (unsigned long long)recorded.framebuffer->view->image->memory->gpu,
   r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error,
   (long long)(renderDone-submitStart),(long long)(writeDone-writeStart),
   (long long)(system_time()-submitStart));

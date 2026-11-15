@@ -16,7 +16,8 @@ int main() {
  if(!NativeGpu::RcsPublicShader::ExpectedPixel(shader,1024,pixel)
   || pixel!=NativeGpu::RcsDrawImage::RenderedPixel)return 16;
  if(!NativeGpu::RcsPublicShader::PatchBatch(batch,1024,0x410000))return 2;
- if(batch[44]!=0x20001 || batch[239]!=0x10000 || batch[248]!=0x10080)return 3;
+ if(batch[44]!=NativeGpu::RcsResourceRange::InstructionBufferSize
+  || batch[239]!=0x10000 || batch[248]!=0x10080)return 3;
  if(!NativeGpu::RcsPublicShader::ValidateBatch(batch,1024,0x410000))return 4;
  batch[0]^=1;
  if(NativeGpu::RcsPublicShader::ValidateBatch(batch,1024,0x410000))return 5;
@@ -78,7 +79,7 @@ int main() {
  uint32_t original[1024]={};
  memcpy(original,NativeGpu::RcsDrawData::Batch,sizeof(NativeGpu::RcsDrawData::Batch));
  uint32_t invalid[1024];memcpy(invalid,original,sizeof(invalid));
- if(NativeGpu::RcsPublicShader::PatchBatch(invalid,1024,0x420000)
+ if(NativeGpu::RcsPublicShader::PatchBatch(invalid,1024,NativeGpu::RcsResourceRange::End)
   || memcmp(invalid,original,sizeof(invalid)))return 8;
  invalid[1]^=1;uint32_t before[1024];memcpy(before,invalid,sizeof(before));
  if(NativeGpu::RcsPublicShader::PatchBatch(invalid,1024,0x410000)
@@ -94,7 +95,8 @@ int main() {
  uint32_t* combined=pagePointers[NativeGpu::RcsDrawImage::Batch];
  if(!NativeGpu::RcsPublicShader::PatchBatchWithVertex(combined,1024,0x411000,0x410000))
   return 11;
- if(combined[44]!=0x20001 || combined[239]!=0x11000
+ if(combined[44]!=NativeGpu::RcsResourceRange::InstructionBufferSize
+  || combined[239]!=0x11000
   || combined[248]!=0x11080)return 12;
  combined[0]^=1;
  if(NativeGpu::RcsPublicShader::PatchBatchWithVertex(combined,1024,0x411000,0x410000))

@@ -7,6 +7,7 @@
 #include "RcsRotateVertex.h"
 #include "RcsFragCoordRed.h"
 #include "RcsUserVertices.h"
+#include "RcsResourceRange.h"
 namespace NativeGpu {
 // Bounded shader BO contract. Accept the 208-byte constant-RGB template or
 // the 352-byte FragCoord scale family, with paired immediates and full-page
@@ -81,7 +82,7 @@ public:
  static bool PatchBatch(uint32_t* words,unsigned dwords,uint64_t gpu) {
   if(!words || dwords!=1024 || !ValidGpu(gpu))return false;
   for(unsigned i=0;i<1024;i++)if(words[i]!=Original(i))return false;
-  words[44]=0x20001; // STATE_BASE_ADDRESS Instruction Buffer Size: 32 pages.
+  words[44]=RcsResourceRange::InstructionBufferSize;
   words[239]=uint32_t(gpu-RcsDrawImage::GpuBase); // PS SIMD8 KSP.
   words[248]=words[239]+0x80; // PS SIMD16 KSP.
   return true;
@@ -104,7 +105,7 @@ public:
   for(unsigned i=0;i<1024;i++)
    if(words[i]!=(i==slot?uint32_t(vertexGpu):
     large?RcsDrawImage64::BatchWord(i):Original(i)))return false;
-  words[44]=0x20001;
+  words[44]=RcsResourceRange::InstructionBufferSize;
   words[239]=uint32_t(shaderGpu-RcsDrawImage::GpuBase);
   if(gradient){
    words[245]=0x00040006; // SIMD8 GRF4, SIMD16 GRF6.
@@ -116,7 +117,8 @@ public:
   if(!words || dwords!=1024 || !ValidGpu(gpu))return false;
   uint32_t offset=uint32_t(gpu-RcsDrawImage::GpuBase);
   for(unsigned i=0;i<1024;i++){
-   uint32_t expected=i==44?0x20001:i==239?offset:i==248?offset+0x80:Original(i);
+   uint32_t expected=i==44?RcsResourceRange::InstructionBufferSize:
+    i==239?offset:i==248?offset+0x80:Original(i);
    if(words[i]!=expected)return false;
   }
   return true;
@@ -141,9 +143,9 @@ private:
  static_assert(RcsDrawData::Batch[44]==0x8001 && RcsDrawData::Batch[239]==0x5000
   && RcsDrawData::Batch[248]==0x5080,"Mesa 26.3.0 batch layout changed");
  static bool ValidGpu(uint64_t gpu)
- {return gpu>=0x410000 && gpu<0x420000 && !(gpu&4095);}
+ {return gpu>=RcsResourceRange::Base && gpu<RcsResourceRange::End && !(gpu&4095);}
  static bool ValidVertexGpu(uint64_t gpu)
- {return gpu>=0x410000 && gpu<=0x420000-48 && !(gpu&15)
+ {return gpu>=RcsResourceRange::Base && gpu<=RcsResourceRange::End-48 && !(gpu&15)
    && (gpu&4095)<=4096-48;}
  static uint32_t Unorm8(uint32_t bits) {
   const uint32_t exponent=bits>>23;
