@@ -1,0 +1,8 @@
+446b288fe76d3f31bbf9a405d62b97020ac0f135edb0ed5dbdf1136c488138f5  /home/dan/projects/mesa-26.3-native/spirv-tools-closure-081/spirv-tools-v1.4.350.0.tar.gz
+9905d9341f20388adb852c77dd982f2c4d539fd68e6c1f1bcebf034715f2d1d5  /home/dan/projects/mesa-26.3-native/spirv-tools-closure-081/spirv-headers-v1.4.350.0.tar.gz
+429028fd8b1e1fd4c56f2678d22db4d7b791440465b870d77fc9caed6f3a367f  /home/dan/projects/mesa-26.3-native/spirv-tools-closure-081/build/source/libSPIRV-Tools-shared.so
+86b129653247d613e5da66f2dff1d23c2f57333cf9b712532d0629c3b9a265fe  /home/dan/projects/mesa-26.3-native/haiku-spirv-tools-001/spirv_tools-1.4.350.0-1-x86_64.hpkg
+c66dbbf378dfa0fc1f79cca76a96b1c0e8fe4ad1169e195e3480bbef72dd1f12  /home/dan/projects/mesa-26.3-native/spirv-tools-closure-081/spirv_tools-1.4.350.0.patchset
+20b0cb45cf57e993b45be504130e6e1e1287c2f64b0315eae464d57782402d35  experimental/native-gpu/evidence/native-spirv-tools-closure-081/spirv_tools-1.4.350.0.patchset.gz
+316c86d1ae90a16a7844c5757f3abf2e1792b78f5654f550dcebca455511fd37  experimental/native-gpu/evidence/native-spirv-tools-closure-081/spirv_tools-1.4.350.0.recipe
+524dbff195105787e3db3bb07d221cb3d57f31e8c53ee6a45b213a963dec5b19  experimental/native-gpu/evidence/native-spirv-tools-closure-081/spirv_headers-1.4.350.0.recipe

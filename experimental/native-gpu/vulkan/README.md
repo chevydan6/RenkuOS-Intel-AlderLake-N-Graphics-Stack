@@ -101,6 +101,12 @@ retaining AVX2, SSE4.1, and SSE2. The isolated compiler and Vulkan bundle
 passed 222 regression draws plus 40 offset draws on the physical N100. The
 selected runtime source closure is now 12,502,676 bytes; model tokens and
 broader kernel/build inputs remain unmeasured.
+The [SPIRV-Tools closure checkpoint](../evidence/native-spirv-tools-closure-081/README.md)
+adds the validator library's pinned source to that inventory. Its host build
+selected 137 canonical project files, bringing the deduplicated selected
+runtime source measurement to 15,222,168 bytes. This is a host reproduction
+of the Haiku package target; the exact Haiku package build inputs, build-only
+generators, and model tokens are still unmeasured.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
