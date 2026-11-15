@@ -1,0 +1,2 @@
+validate=0 error=
+compile=-5 error=uniform buffers need native descriptor lowering vs_bytes=0 fs_bytes=0 fs_grf=0 fs_dispatch=0/0/0 fs_offset=0/0 fs_scratch=0 fs_relocs=0

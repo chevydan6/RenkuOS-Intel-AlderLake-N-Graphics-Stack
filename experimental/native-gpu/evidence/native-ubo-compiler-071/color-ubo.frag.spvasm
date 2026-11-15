@@ -1,0 +1,30 @@
+; SPDX-License-Identifier: MIT
+; Read one RGBA value from set 0, binding 0.
+OpCapability Shader
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %main "main" %out_color
+OpExecutionMode %main OriginUpperLeft
+OpDecorate %out_color Location 0
+OpDecorate %color_block Block
+OpMemberDecorate %color_block 0 Offset 0
+OpDecorate %color_ubo DescriptorSet 0
+OpDecorate %color_ubo Binding 0
+%void = OpTypeVoid
+%fn = OpTypeFunction %void
+%float = OpTypeFloat 32
+%v4float = OpTypeVector %float 4
+%uint = OpTypeInt 32 0
+%zero = OpConstant %uint 0
+%color_block = OpTypeStruct %v4float
+%ptr_uniform_block = OpTypePointer Uniform %color_block
+%ptr_uniform_color = OpTypePointer Uniform %v4float
+%ptr_output_color = OpTypePointer Output %v4float
+%color_ubo = OpVariable %ptr_uniform_block Uniform
+%out_color = OpVariable %ptr_output_color Output
+%main = OpFunction %void None %fn
+%entry = OpLabel
+%access = OpAccessChain %ptr_uniform_color %color_ubo %zero
+%color = OpLoad %v4float %access
+OpStore %out_color %color
+OpReturn
+OpFunctionEnd

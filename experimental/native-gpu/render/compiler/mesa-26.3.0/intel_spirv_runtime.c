@@ -105,6 +105,13 @@ int renku_intel_compile_vulkan_pair(const uint32_t* vertex,size_t vertex_words,
  nir_shader* fs=spirv_to_nir(fragment,fragment_words,NULL,MESA_SHADER_FRAGMENT,"main",
   &spv,&compiler->nir_options[MESA_SHADER_FRAGMENT]);
  if(!vs || !fs){status=RENKU_INTEL_COMPILE_FAILED;message="SPIR-V translation failed";goto done;}
+ // ANV lowers descriptor layouts and UBO loads before brw_compile. Until the
+ // native path provides those bindings, forwarding a UBO shader can stall the
+ // backend rather than producing a usable program.
+ if(vs->info.num_ubos || fs->info.num_ubos){
+  status=RENKU_INTEL_COMPILE_UNSUPPORTED;
+  message="uniform buffers need native descriptor lowering";goto done;
+ }
  struct brw_nir_compiler_opts opts={0};
  brw_preprocess_nir(compiler,vs,&opts);
  nir_shader_gather_info(vs,nir_shader_get_entrypoint(vs));
