@@ -123,6 +123,14 @@ int main()
  if(six.invalid || six.drawCount!=2
   || six.draws[0].vertexOffset!=4096-48
   || six.draws[1].vertexOffset!=4096)return 28;
+ six.drawCount=1;six.invalid=false;six.boundVertexOffset=4096-64;
+ vkCmdDraw(&six,6,1,0,0);
+ if(!six.invalid || six.drawCount!=1
+  || six.draws[0].vertexOffset!=4096-48)return 30;
+ six.invalid=false;six.boundVertexOffset=4096-112;
+ vkCmdDraw(&six,9,1,0,0);
+ if(!six.invalid || six.drawCount!=1
+  || six.draws[0].vertexOffset!=4096-48)return 31;
  six.drawCount=0;six.invalid=false;six.boundVertexOffset=4096-32;
  vkCmdDraw(&six,6,1,0,0);
  if(!six.invalid || six.drawCount)return 26;

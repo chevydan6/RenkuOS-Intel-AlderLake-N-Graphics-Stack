@@ -12,7 +12,10 @@ The command-recording probe first failed with code 27 against checkpoint 086's
 six-vertex limit. It now checks nine vertices (three records), fifteen vertices
 (five records and allocation growth), a 48-byte undersized buffer, and a
 48-byte triangle crossing a page boundary. Two complete triangles placed on
-opposite sides of a page boundary are accepted.
+opposite sides of a page boundary are accepted. A follow-up VM check also
+rejects six- and nine-vertex calls whose later triangle crosses a page,
+without appending any records from the rejected call or changing an earlier
+record.
 
 The new `draw9` probe submits nine vertices in one `vkCmdDraw`. A separate
 `draw3x3` probe submits the same vertices in three established calls. On the
