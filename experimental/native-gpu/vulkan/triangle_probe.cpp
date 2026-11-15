@@ -39,6 +39,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"highva")
    && strcmp(argv[4],"endva")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"loadpass")
+   && strcmp(argv[4],"loadsubmit")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
    && strcmp(argv[4],"batchgpu")
@@ -88,7 +89,8 @@ int main(int argc,char** argv)
   || !strcmp(argv[4],"rotatefirst") || !strcmp(argv[4],"rotateimageoffset"));
  bool dual=argc==5 && !strcmp(argv[4],"dual");
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
- bool loadPass=argc==5 && !strcmp(argv[4],"loadpass");
+ bool loadSubmit=argc==5 && !strcmp(argv[4],"loadsubmit");
+ bool loadPass=argc==5 && (!strcmp(argv[4],"loadpass") || loadSubmit);
  bool multiDraw=argc==5 && !strcmp(argv[4],"multidraw");
  bool batchGpu=argc==5 && !strcmp(argv[4],"batchgpu");
  bool drawSix=argc==5 && !strcmp(argv[4],"draw6");
@@ -508,10 +510,10 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateCommandPool(device,&poolInfo,nullptr,&pool)==VK_SUCCESS,22);
  VkCommandBufferAllocateInfo commandInfo={};commandInfo.sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
  commandInfo.commandPool=pool;commandInfo.level=VK_COMMAND_BUFFER_LEVEL_PRIMARY;
- commandInfo.commandBufferCount=(batch || dual || semaphoreBatch)?2:1;
+ commandInfo.commandBufferCount=(batch || dual || semaphoreBatch || loadSubmit)?2:1;
  VkCommandBuffer commands[2]={VK_NULL_HANDLE,VK_NULL_HANDLE};
  REQUIRE(vkAllocateCommandBuffers(device,&commandInfo,commands)==VK_SUCCESS
-  && commands[0] && (!(batch || dual || semaphoreBatch)
+  && commands[0] && (!(batch || dual || semaphoreBatch || loadSubmit)
    || (commands[1] && commands[1]!=commands[0])),23);
  VkCommandBuffer command=commands[0];
  VkCommandBufferBeginInfo begin={};begin.sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -553,7 +555,7 @@ int main(int argc,char** argv)
   vkCmdDraw(command,3,1,0,0);
   vkCmdEndRenderPass(command);
  }
- if(loadPass){
+ if(loadPass && !loadSubmit){
   VkRenderPassBeginInfo renderLoad=render;
   renderLoad.renderPass=loadRenderPass;
   renderLoad.framebuffer=loadFramebuffer;
@@ -565,12 +567,16 @@ int main(int argc,char** argv)
  }
  REQUIRE(vkEndCommandBuffer(command)==VK_SUCCESS,25);
  VkCommandBuffer second=commands[1];
- if(batch || dual || semaphoreBatch){
+ if(batch || dual || semaphoreBatch || loadSubmit){
   REQUIRE(vkBeginCommandBuffer(second,&begin)==VK_SUCCESS,53);
-  vkCmdBeginRenderPass(second,&render,VK_SUBPASS_CONTENTS_INLINE);
+  VkRenderPassBeginInfo secondRender=render;
+  if(loadSubmit){secondRender.renderPass=loadRenderPass;
+   secondRender.framebuffer=loadFramebuffer;}
+  vkCmdBeginRenderPass(second,&secondRender,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(second,VK_PIPELINE_BIND_POINT_GRAPHICS,
-   dual?secondPipeline:pipeline);
-  vkCmdBindVertexBuffers(second,0,1,&vertex,&offset);
+   (dual || loadSubmit)?secondPipeline:pipeline);
+  VkBuffer secondVertex=loadSubmit?laterVertex:vertex;
+  vkCmdBindVertexBuffers(second,0,1,&secondVertex,&offset);
   vkCmdDraw(second,3,1,0,0);
   vkCmdEndRenderPass(second);
   REQUIRE(vkEndCommandBuffer(second)==VK_SUCCESS,54);
@@ -582,7 +588,17 @@ int main(int argc,char** argv)
   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_TIMEOUT,48);
  VkSubmitInfo submit={};submit.sType=VK_STRUCTURE_TYPE_SUBMIT_INFO;
  submit.commandBufferCount=1;submit.pCommandBuffers=&command;
- if(batch || dual || semaphoreBatch){
+ if(loadSubmit){
+  REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
+  REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
+   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
+  REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
+   && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
+  submit.pCommandBuffers=&second;
+  REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
+  REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
+   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
+ }else if(batch || dual || semaphoreBatch){
   VkSubmitInfo submits[2]={submit,submit};
   submits[1].pCommandBuffers=&second;
   VkSemaphore dependency=VK_NULL_HANDLE;
@@ -718,7 +734,7 @@ int main(int argc,char** argv)
   printf("Native Vulkan N100 %ux%u four triangles: PASS hash=%08x calls=%u\n",
    dimension,dimension,hash,drawTwelve?1u:4u);
  else if(multiDraw)printf("Native Vulkan N100 %ux%u two draws in one render pass: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,shape,hash,repeats);
- else if(loadPass)printf("Native Vulkan N100 %ux%u load across render passes: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,shape,hash,repeats);
+ else if(loadPass)printf("Native Vulkan N100 %ux%u load across %s: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,loadSubmit?"submissions":"render passes",shape,hash,repeats);
  else if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
   ubo?"UBO ":fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):
   rotate?"rotated-vertex ":
