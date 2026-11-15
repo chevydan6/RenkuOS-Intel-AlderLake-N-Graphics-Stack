@@ -71,10 +71,12 @@ struct VkCommandPool_T {
  VkCommandPoolCreateFlags flags;
 };
 struct VkCommandBuffer_T {
- struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;};
+ struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;
+  uint32_t vertexOffset;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
- VkBuffer boundVertex;Draw* draws;size_t drawCount,drawCapacity;
+ VkBuffer boundVertex;VkDeviceSize boundVertexOffset;
+ Draw* draws;size_t drawCount,drawCapacity;
  bool recording;bool inRenderPass;bool drawn;bool complete;bool invalid;
 };
 
@@ -1017,6 +1019,7 @@ static void ResetCommandState(VkCommandBuffer_T* command)
 {
  command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+ command->boundVertexOffset=0;
  command->drawCount=0;
  command->recording=false;command->inRenderPass=false;
  command->drawn=false;command->complete=false;command->invalid=false;
@@ -1124,6 +1127,7 @@ vkCmdBeginRenderPass(VkCommandBuffer command,const VkRenderPassBeginInfo* info,
  }
  command->pass=info->renderPass;command->framebuffer=info->framebuffer;
  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+ command->boundVertexOffset=0;
  command->drawn=false;
  command->inRenderPass=true;
 }
@@ -1148,10 +1152,11 @@ vkCmdBindVertexBuffers(VkCommandBuffer command,uint32_t first,uint32_t count,
  if(!command)return;
  if(!command->recording || !command->inRenderPass || first || count!=1
   || !buffers || !offsets || !buffers[0]
-  || buffers[0]->device!=command->device || !buffers[0]->memory || offsets[0]){
+  || buffers[0]->device!=command->device || !buffers[0]->memory
+  || (offsets[0]&15) || offsets[0]>buffers[0]->bytes){
   command->invalid=true;return;
  }
- command->boundVertex=buffers[0];
+ command->boundVertex=buffers[0];command->boundVertexOffset=offsets[0];
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
@@ -1161,7 +1166,13 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
  if(!command)return;
  if(!command->recording || !command->inRenderPass || !command->pipeline
   || !command->boundVertex || command->drawn || vertices!=3 || instances!=1
-  || firstVertex || firstInstance){command->invalid=true;return;}
+  || firstInstance){command->invalid=true;return;}
+ uint64_t start=command->boundVertexOffset+uint64_t(firstVertex)*16;
+ if(start>UINT32_MAX || start>command->boundVertex->bytes
+  || 48>command->boundVertex->bytes-start || (start&4095)>4096-48
+  || (start && command->pipeline->vertexShaderHandle)){
+  command->invalid=true;return;
+ }
  if(command->drawCount==command->drawCapacity){
   size_t next=command->drawCapacity?command->drawCapacity*2:4;
   if(next<command->drawCapacity || next>SIZE_MAX/sizeof(VkCommandBuffer_T::Draw)){
@@ -1173,7 +1184,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   command->drawCapacity=next;
  }
  command->draws[command->drawCount++]={command->framebuffer,
-  command->pipeline,command->boundVertex};
+  command->pipeline,command->boundVertex,uint32_t(start)};
  command->drawn=true;
 }
 
@@ -1242,12 +1253,14 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=large?(recorded.pipeline->fragcoordRed?12:
+ draw.version=recorded.vertexOffset?13:large?(recorded.pipeline->fragcoordRed?12:
   recorded.pipeline->vertexShaderHandle?11:10):
   recorded.pipeline->vertexShaderHandle?8:7;
  draw.mode=NATIVE_GPU_RENDER_DRAW;
  draw.variant=recorded.vertex->memory->handle;
  draw.reserved=recorded.pipeline->shaderHandle;
+ if(draw.version==13)memcpy(draw.output,&recorded.vertexOffset,
+  sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
   memcpy(draw.output,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
@@ -1301,13 +1314,13 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(device->trace)fprintf(stderr,
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
-  "\"draw_index\":%zu,\"draw_count\":%zu,"
+  "\"draw_index\":%zu,\"draw_count\":%zu,\"vertex_offset\":%u,"
   "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,"
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
   "\"render_ioctl_us\":%lld,\"write_ioctl_us\":%lld,\"submit_us\":%lld}\n",
   status,writeStatus,r.version,r.stage,r.sequence,r.observed_sequence,
-  k,command->drawCount,draw.variant,draw.reserved,
+  k,command->drawCount,recorded.vertexOffset,draw.variant,draw.reserved,
   recorded.pipeline->vertexShaderHandle,
   recorded.framebuffer->view->image->memory->handle,
   r.checked_pixels,r.matched_pixels,hash,r.fault,r.engine_stage,r.csb_error,

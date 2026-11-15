@@ -33,6 +33,13 @@ vertex bindings in order and signals the fence after the last draw. The
 [multi-pass checkpoint](../evidence/native-vulkan-multipass-032/README.md)
 records two draws from one command buffer on the N100. Multiple draws within
 one render pass and attachment load/preservation semantics remain unsupported.
+The [vertex-offset checkpoint](../evidence/native-vulkan-vertex-offset-051/README.md)
+records 112 physical N100 draws with `vkCmdBindVertexBuffers` byte offset,
+`firstVertex`, and a second-page vertex range in an 8 KiB buffer. The owner
+checks the selected 48-byte range before patching the GPU vertex address.
+Offset draws currently require the approved constant or FragCoord-red fragment
+shader with the original vertex shader; distinct vertex shader variants at a
+nonzero vertex offset are not yet supported.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

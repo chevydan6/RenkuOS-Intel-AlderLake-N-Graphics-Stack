@@ -1,0 +1,4 @@
+compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input
+516ced7a735c2bbcc79e0f7a7ceb2899980876f96bae9af65dd5a3c86d324754  /boot/home/test-work/vulkan-vertex-offset-051-build/libvulkan.so
+3dba3b8b2179796b50e1251c1e179008e74d01c5cb1d85538eeafebf8c05bc9c  /boot/home/test-work/vulkan-vertex-offset-051-build/triangle_probe
+c34ec243b0796570e513451d592a0652138be01b7ef28b1494e297662b709da6  /boot/home/test-work/vulkan-vertex-offset-051-build/compiler_pipeline_probe

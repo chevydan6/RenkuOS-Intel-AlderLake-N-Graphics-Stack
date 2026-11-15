@@ -84,7 +84,7 @@ public:
  static bool PatchBatchWithVertex(uint32_t* words,unsigned dwords,
   uint64_t shaderGpu,uint64_t vertexGpu,bool large=false,
   FragmentProgram fragment=ConstantColor) {
-  if(!words || dwords!=1024 || !ValidGpu(shaderGpu) || !ValidGpu(vertexGpu)
+  if(!words || dwords!=1024 || !ValidGpu(shaderGpu) || !ValidVertexGpu(vertexGpu)
    || shaderGpu==vertexGpu || fragment==InvalidFragment
    || (fragment==FragCoordRed && !large))return false;
   unsigned slot=1024;
@@ -131,6 +131,9 @@ private:
   && RcsDrawData::Batch[248]==0x5080,"Mesa 26.3.0 batch layout changed");
  static bool ValidGpu(uint64_t gpu)
  {return gpu>=0x410000 && gpu<0x420000 && !(gpu&4095);}
+ static bool ValidVertexGpu(uint64_t gpu)
+ {return gpu>=0x410000 && gpu<=0x420000-48 && !(gpu&15)
+   && (gpu&4095)<=4096-48;}
  static uint32_t Unorm8(uint32_t bits) {
   const uint32_t exponent=bits>>23;
   if(exponent<=86)return 0;

@@ -160,6 +160,15 @@ int main() {
   || largePages[0][244]!=0x1f800003
   || largePages[0][245]!=0x00040006
   || largePages[0][248]!=0x110c0)return 37;
+ if(!NativeGpu::RcsDrawImage64::Build(largePages,0)
+  || !NativeGpu::RcsResourceVertices::PatchAddressOnly(largePages,0x410030)
+  || !NativeGpu::RcsPublicShader::PatchBatchWithVertex(largePages[0],1024,
+   0x411000,0x410030,true,NativeGpu::RcsPublicShader::FragCoordRed))return 42;
+ if(!NativeGpu::RcsDrawImage64::Build(largePages,0)
+  || NativeGpu::RcsResourceVertices::PatchAddressOnly(largePages,0x410ff0)
+  || NativeGpu::RcsResourceVertices::PatchAddressOnly(largePages,0x410031)
+  || NativeGpu::RcsPublicShader::PatchBatchWithVertex(largePages[0],1024,
+   0x411000,0x410ff0,true,NativeGpu::RcsPublicShader::FragCoordRed))return 43;
  puts("N100 bounded FS/VS templates and batch patch: PASS (CPU only)");
  return 0;
 }

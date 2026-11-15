@@ -4,8 +4,8 @@
 #include "RcsUserVertices.h"
 #include <string.h>
 namespace NativeGpu {
-// First distinct GPU resource: one owner-allocated page at a fixed PPGTT VA.
-// Only the vertex-buffer packet's low address changes from the v2 workload.
+// Owner-allocated vertex resource at a fixed PPGTT VA. Only the vertex-buffer
+// packet's low address changes from the v2 workload; one draw reads 48 bytes.
 class RcsResourceVertices {
 public:
  // Keep this distinct page beyond the 64x64 target and post-sync page.
@@ -20,7 +20,7 @@ public:
   return true;
  }
  static bool BuildAt(uint32_t* const* pages,const uint32_t* words,uint64_t gpu) {
-  if(gpu<0x410000 || gpu>=0x420000 || (gpu&4095))return false;
+  if(!ValidVertexGpu(gpu))return false;
   if(!Patch(pages,words,uint32_t(gpu)))return false;
   // An unchanged fixed vertex page must not accidentally satisfy the image
   // check if the packet address fails to use the public resource.
@@ -29,12 +29,16 @@ public:
  }
  // Use after a prebuilt 64x64 image; keep its viewport, surfaces, and target.
  static bool PatchAddressOnly(uint32_t* const* pages,uint64_t gpu) {
-  if(!pages || gpu<0x410000 || gpu>=0x420000 || (gpu&4095))return false;
+  if(!pages || !ValidVertexGpu(gpu))return false;
   if(!PatchAddress(pages,uint32_t(gpu)))return false;
   memset(pages[RcsDrawImage::Vertices],0,4096);
   return true;
  }
 private:
+ static bool ValidVertexGpu(uint64_t gpu) {
+  return gpu>=0x410000 && gpu<=0x420000-48 && !(gpu&15)
+   && (gpu&4095)<=4096-48;
+ }
  static bool Patch(uint32_t* const* pages,const uint32_t* words,uint32_t gpu) {
   if(!RcsUserVertices::Build(pages,words))return false;
   return PatchAddress(pages,gpu);

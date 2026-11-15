@@ -29,7 +29,9 @@ int main(int argc,char** argv)
   || (argc==5 && strcmp(argv[4],"batch")
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
-   && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")))return 40;
+   && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
+   && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
+   && strcmp(argv[4],"pageoffset")))return 40;
  unsigned shape=unsigned(argv[1][0]-'0');
  const bool large=getenv("RENKU_VK_TARGET_64")!=nullptr;
  const uint32_t dimension=large?64:32;
@@ -51,6 +53,10 @@ int main(int argc,char** argv)
  bool dual=argc==5 && !strcmp(argv[4],"dual");
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
+ bool bindOffset=argc==5 && !strcmp(argv[4],"offset");
+ bool firstVertex=argc==5 && !strcmp(argv[4],"firstvertex");
+ bool pageOffset=argc==5 && !strcmp(argv[4],"pageoffset");
+ bool selectedVertexRange=bindOffset || firstVertex || pageOffset;
  bool twoPipelines=dual || multiPass;
  if(large && (half || green75 || green90 || named || twoPipelines
   || batch || (depth && shape!=0)))return 40;
@@ -59,6 +65,7 @@ int main(int argc,char** argv)
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats!=2))return 40;
+ if(selectedVertexRange && (shape!=0 || repeats>8 || rotate || depth))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || (batch && repeats!=2))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
@@ -135,12 +142,14 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
- bufferInfo.size=48;bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+ bufferInfo.size=pageOffset?8192:selectedVertexRange?96:48;
+ bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
  bufferInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
  VkBuffer vertex=VK_NULL_HANDLE;
  REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&vertex)==VK_SUCCESS,7);
  VkMemoryRequirements requirement={};vkGetBufferMemoryRequirements(device,vertex,&requirement);
- REQUIRE(requirement.size==4096 && requirement.memoryTypeBits==1,8);
+ REQUIRE(requirement.size==(pageOffset?8192u:4096u)
+  && requirement.memoryTypeBits==1,8);
  VkMemoryAllocateInfo allocation={};allocation.sType=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
  allocation.memoryTypeIndex=0;allocation.allocationSize=requirement.size;
  VkDeviceMemory vertexMemory=VK_NULL_HANDLE;
@@ -160,10 +169,14 @@ int main(int argc,char** argv)
    0x3f000000,0xbf000000,0x3f000000,0x3f800000,
    0x00000000,0x3f000000,0x3f000000,0x3f800000}};
  void* mapped=nullptr;
- REQUIRE(vkMapMemory(device,vertexMemory,0,48,0,&mapped)==VK_SUCCESS && mapped,11);
- memcpy(mapped,positions[shape],48);
+ REQUIRE(vkMapMemory(device,vertexMemory,0,bufferInfo.size,0,&mapped)==VK_SUCCESS
+  && mapped,11);
+ if(selectedVertexRange){
+  memcpy(mapped,positions[(shape+1)%4],48);
+  memcpy((uint8_t*)mapped+(pageOffset?4096:48),positions[shape],48);
+ }else memcpy(mapped,positions[shape],48);
  VkMappedMemoryRange range={};range.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
- range.memory=vertexMemory;range.size=48;
+ range.memory=vertexMemory;range.size=bufferInfo.size;
  REQUIRE(vkFlushMappedMemoryRanges(device,1,&range)==VK_SUCCESS,12);
  vkUnmapMemory(device,vertexMemory);
  VkBuffer laterVertex=VK_NULL_HANDLE;
@@ -322,8 +335,9 @@ int main(int argc,char** argv)
  render.renderArea={{0,0},{dimension,dimension}};
  vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline);
- VkDeviceSize offset=0;vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
- vkCmdDraw(command,3,1,0,0);
+ VkDeviceSize offset=pageOffset?4096:bindOffset?48:0;
+ vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
+ vkCmdDraw(command,3,1,firstVertex?3:0,0);
  vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
  vkCmdEndRenderPass(command);
  if(multiPass){
