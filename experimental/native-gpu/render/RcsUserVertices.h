@@ -62,7 +62,7 @@ public:
 
  static bool Inspect64(uint32_t* const* pages,const uint32_t* words,Check& check,
   uint32_t renderedPixel=RcsDrawImage::RenderedPixel,
-  unsigned fragcoordDenominator=0) {
+  unsigned fragcoordDenominator=0,bool fragcoordGreen=false) {
   Coord points[3]={};
   if(!pages || !Validate(words,points)
    || (fragcoordDenominator && fragcoordDenominator!=32
@@ -78,11 +78,11 @@ public:
    if(kind<0)continue;
    // FragCoord.x is the pixel-center coordinate x+0.5. The accepted
    // power-of-two divisors give exact float values at these pixel centers.
-   uint32_t red=fragcoordDenominator
+   uint32_t channel=fragcoordDenominator
     ?((2*x+1)*255+fragcoordDenominator)/(2*fragcoordDenominator):0;
-   if(red>255)red=255;
+   if(channel>255)channel=255;
    uint32_t expected=kind
-    ?fragcoordDenominator?0xff000000u|(red<<16):renderedPixel
+    ?fragcoordDenominator?0xff000000u|(channel<<(fragcoordGreen?8:16)):renderedPixel
     :RcsDrawImage::Poison;
    found.matched+=observed==expected;
    found.checked++;

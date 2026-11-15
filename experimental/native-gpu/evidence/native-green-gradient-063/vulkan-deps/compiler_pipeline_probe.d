@@ -1,0 +1,19 @@
+/boot/home/test-work/vulkan-green-gradient-063/vulkan/build-compiler/compiler_pipeline_probe: \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/compiler_pipeline_probe.cpp \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/CompiledKnownShader.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/KnownSpirv.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsPublicShader.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsDrawImage.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/draw/RcsDrawGenerated.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsDrawImage64.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsDepthVertex.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsRotateVertex.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsFragCoordRed.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsUserVertices.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsDepthVertex.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/RcsRotateVertex.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/../render/compiler/mesa-26.3.0/IntelSpirvRuntime.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/RgbSpirvFixture.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/DepthSpirvFixture.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/RotateSpirvFixture.h \
+ /boot/home/test-work/vulkan-green-gradient-063/vulkan/FragCoordSpirvFixture.h

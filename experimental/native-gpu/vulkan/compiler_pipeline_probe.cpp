@@ -121,6 +121,35 @@ int main()
   expected[29]=expected[77]=scale==0x3c000000?0x3c002002:0x3d002002;
   if(memcmp(gradientFs,expected,sizeof(expected)))return 21;
  }
+ uint32_t greenCode[sizeof(RenkuFragCoordSpirv::Fragment)/4];
+ memcpy(greenCode,RenkuFragCoordSpirv::Fragment,sizeof(greenCode));
+ unsigned changed=0;
+ for(size_t i=0;i+6<sizeof(greenCode)/4;i++)
+  if(greenCode[i]==0x00070050u && greenCode[i+1]==7
+   && greenCode[i+2]==17 && greenCode[i+3]==16
+   && greenCode[i+4]==10 && greenCode[i+5]==10
+   && greenCode[i+6]==11){
+   greenCode[i+3]=10;greenCode[i+4]=16;changed++;
+  }
+ if(changed!=1)return 22;
+ const uint32_t greenScales[]={0x3d000000u,0x3c800000u,0x3c000000u};
+ for(uint32_t scale:greenScales){
+  uint32_t code[sizeof(greenCode)/4];memcpy(code,greenCode,sizeof(code));
+  for(uint32_t& word:code)if(word==0x3c800000u){word=scale;break;}
+  gradient=false;gradientFsBytes=0;
+  if(!CompileKnownPipeline(RenkuKnownSpirv::Vertex,
+    sizeof(RenkuKnownSpirv::Vertex),code,sizeof(code),
+    gradientVs,sizeof(gradientVs),&gradientVsBytes,
+    gradientFs,sizeof(gradientFs),&gradientFsBytes,&gradient)
+   || !gradient || gradientFsBytes!=sizeof(gradientFs))return 23;
+  uint32_t expected[sizeof(gradientFs)/4];
+  memcpy(expected,NativeGpu::RcsFragCoordRed::Words,sizeof(expected));
+  expected[5]=0x7c054220;expected[28]=0xe17d0141;
+  expected[53]=0x78054220;expected[76]=0xe07a0141;
+  expected[29]=expected[77]=scale==0x3d000000u?0x3d002002:
+   scale==0x3c800000u?0x3c802002:0x3c002002;
+  if(memcmp(gradientFs,expected,sizeof(expected)))return 24;
+ }
  puts("compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input");
  return 0;
 }

@@ -1,0 +1,10 @@
+compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input
+Vulkan API probe: accepted bounded RGB pipeline; rejected 1.0 green pipeline
+Vulkan fence probe: timed wait; empty submit signal; reset; signaled creation; wait-any/all
+Vulkan command reset and two-buffer allocation: PASS
+74b1bfe81df91eeffb489cabd7e86314b38d0bbcc849c2ae59d3422c93f33edb  /boot/home/test-work/vulkan-green-gradient-063/vulkan/build-compiler/libvulkan.so
+4e0a468b6a569179caa73b1bd8eeff79234f355a72e1a20c64eb64a18be0fdff  /boot/home/test-work/vulkan-green-gradient-063/vulkan/build-compiler/compiler_pipeline_probe
+40a2e6ef8f434d89afdbc1609e1fca0570c1b2e481a156412e0f691ddd0309de  /boot/home/test-work/vulkan-green-gradient-063/vulkan/build-compiler/compiler_pipeline_api_probe
+9f0e0952fdae21c3c55037ab800acffd9325a7bffe15532374512a7d24dc3165  /boot/home/test-work/vulkan-green-gradient-063/vulkan/build-compiler/fence_probe
+21c966e8e840de17b27e89a17b835ed937bb218b6de71155c502cc1b9d59bbd8  /boot/home/test-work/vulkan-green-gradient-063/vulkan/build-compiler/command_reset_probe
+08a7af2fda67e87a08a582922f8b825857cf158894bdd6a4e2c81ecfdf7dfc4d  /boot/home/test-work/vulkan-green-gradient-063/vulkan/build-compiler/triangle_probe

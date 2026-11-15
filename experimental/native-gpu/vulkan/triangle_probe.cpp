@@ -25,7 +25,10 @@ int main(int argc,char** argv)
   || (argc>=3 && strcmp(argv[2],"original") && strcmp(argv[2],"half")
    && strcmp(argv[2],"green75") && strcmp(argv[2],"green90")
    && strcmp(argv[2],"rgb") && strcmp(argv[2],"fragcoord")
-   && strcmp(argv[2],"fragcoord32") && strcmp(argv[2],"fragcoord128"))
+   && strcmp(argv[2],"fragcoord32") && strcmp(argv[2],"fragcoord128")
+   && strcmp(argv[2],"fragcoordgreen")
+   && strcmp(argv[2],"fragcoordgreen32")
+   && strcmp(argv[2],"fragcoordgreen128"))
   || (argc==5 && strcmp(argv[4],"batch")
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
@@ -43,9 +46,14 @@ int main(int argc,char** argv)
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
- unsigned fragcoordDenominator=argc>=3 && !strcmp(argv[2],"fragcoord32")?32:
-  argc>=3 && !strcmp(argv[2],"fragcoord128")?128:
-  argc>=3 && !strcmp(argv[2],"fragcoord")?64:0;
+ bool fragcoordGreen=argc>=3 && (!strcmp(argv[2],"fragcoordgreen")
+  || !strcmp(argv[2],"fragcoordgreen32")
+  || !strcmp(argv[2],"fragcoordgreen128"));
+ unsigned fragcoordDenominator=argc>=3 && (!strcmp(argv[2],"fragcoord32")
+  || !strcmp(argv[2],"fragcoordgreen32"))?32:
+  argc>=3 && (!strcmp(argv[2],"fragcoord128")
+  || !strcmp(argv[2],"fragcoordgreen128"))?128:
+  argc>=3 && (!strcmp(argv[2],"fragcoord") || fragcoordGreen)?64:0;
  bool fragcoord=fragcoordDenominator!=0;
  char* repeatEnd=nullptr;
  unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
@@ -94,6 +102,17 @@ int main(int argc,char** argv)
   for(uint32_t& word:fragcoordCode)
    if(word==0x3c800000){word=scale;changed=true;break;}
   REQUIRE(changed,56);
+ }
+ if(fragcoordGreen){
+  unsigned changed=0;
+  for(size_t i=0;i+6<sizeof(fragcoordCode)/4;i++)
+   if(fragcoordCode[i]==0x00070050u && fragcoordCode[i+1]==7
+    && fragcoordCode[i+2]==17 && fragcoordCode[i+3]==16
+    && fragcoordCode[i+4]==10 && fragcoordCode[i+5]==10
+    && fragcoordCode[i+6]==11){
+    fragcoordCode[i+3]=10;fragcoordCode[i+4]=16;changed++;
+   }
+  REQUIRE(changed==1,57);
  }
  std::vector<uint32_t> namedVertex;
  if(named){
@@ -403,9 +422,15 @@ int main(int argc,char** argv)
    0x8aaee2f5,0x9ca44bcd,0x23ba4705,0xb0d153c5};
   const uint32_t expectedLargeRgb[4]={
    0x7a1ac675,0xe178394d,0x49942685,0x9eff5945};
-  REQUIRE((fragcoord?(hash==(fragcoordDenominator==32?0x655762f5:
+  REQUIRE((fragcoord?(hash==(fragcoordGreen
+    ?(fragcoordDenominator==32?0x6e59daf5:
+      fragcoordDenominator==64?0xf25bcaf5:0x649956f5):
+    fragcoordDenominator==32?0x655762f5:
     fragcoordDenominator==64?0x7b2f62f5:0xa0a362f5)
-   && pixels[10*64+20]==(fragcoordDenominator==32?0xffa30000:
+   && pixels[10*64+20]==(fragcoordGreen
+    ?(fragcoordDenominator==32?0xff00a300:
+      fragcoordDenominator==64?0xff005200:0xff002900):
+    fragcoordDenominator==32?0xffa30000:
     fragcoordDenominator==64?0xff520000:0xff290000)):
    hash==(rotate?0x7b48f3e5:
    rgb?expectedLargeRgb[shape]:expectedLarge[shape])
@@ -427,7 +452,8 @@ int main(int argc,char** argv)
    && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
  if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
-  fragcoord?"FragCoord-red ":rotate?"rotated-vertex ":
+  fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):
+  rotate?"rotated-vertex ":
   depth?"depth-vertex ":rgb?"RGB ":"",
   shape,hash,repeats);
  else if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);

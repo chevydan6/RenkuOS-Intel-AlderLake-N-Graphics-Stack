@@ -85,6 +85,7 @@ static uint32_t sRenderExpectedPixel=NativeGpu::RcsDrawImage::RenderedPixel;
 static NativeGpu::RcsPublicShader::FragmentProgram sRenderFragmentProgram=
  NativeGpu::RcsPublicShader::ConstantColor;
 static unsigned sRenderGradientDenominator;
+static bool sRenderGradientGreen;
 static bool sRenderGradientCaptured;
 static bool sRenderResourceDraw,sRenderArenaDraw,sRenderPublicBatchDraw,sRenderPublicShaderDraw;
 static bool sRenderCombinedDraw,sRenderPublicVertexDraw,sRenderResourceReady;
@@ -472,7 +473,8 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
    NativeGpu::RcsUserVertices::Check check={};
    matched=NativeGpu::RcsUserVertices::Inspect64(
     resultPages,sRenderPublicVertexDraw?sRenderExpectedVertices:
-     sRenderUserVertices,check,sRenderExpectedPixel,sRenderGradientDenominator);
+     sRenderUserVertices,check,sRenderExpectedPixel,sRenderGradientDenominator,
+    sRenderGradientGreen);
    r.checked_pixels=check.checked;r.matched_pixels=check.matched;r.target_hash=check.hash;
    r.interior_xy=check.interior;r.exterior_xy=check.exterior;
   }else if(sRenderLargeDraw){
@@ -611,13 +613,15 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   unsigned shaderPage=unsigned((publicShaderGpu-kRenderArenaGpu)/4096);
   const uint32_t* shaderWords=(const uint32_t*)sRenderArenaPages[shaderPage].cpu;
   fragmentProgram=NativeGpu::RcsPublicShader::IdentifyFragmentPage(shaderWords,1024);
-  if(fragmentProgram==NativeGpu::RcsPublicShader::FragCoordRed)
+  bool gradient=fragmentProgram==NativeGpu::RcsPublicShader::FragCoordRed
+   || fragmentProgram==NativeGpu::RcsPublicShader::FragCoordGreen;
+  if(gradient)
    gradientDenominator=NativeGpu::RcsPublicShader::GradientDenominator(shaderWords[29]);
   bool accepted=version==12
-   ?fragmentProgram==NativeGpu::RcsPublicShader::FragCoordRed:
+   ?gradient:
    (version==13 || version==15)
     ?fragmentProgram==NativeGpu::RcsPublicShader::ConstantColor
-    || (largeDraw && fragmentProgram==NativeGpu::RcsPublicShader::FragCoordRed):
+    || (largeDraw && gradient):
    fragmentProgram==NativeGpu::RcsPublicShader::ConstantColor;
   if(!accepted || (fragmentProgram==NativeGpu::RcsPublicShader::ConstantColor
    && !NativeGpu::RcsPublicShader::ExpectedPixel(
@@ -706,6 +710,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  sRenderExpectedPixel=renderedPixel;
  sRenderFragmentProgram=fragmentProgram;
  sRenderGradientDenominator=gradientDenominator;
+ sRenderGradientGreen=fragmentProgram==NativeGpu::RcsPublicShader::FragCoordGreen;
  sRenderGradientCaptured=false;
  if(userDraw || arenaDraw || publicBatchDraw || combinedDraw)
   memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));

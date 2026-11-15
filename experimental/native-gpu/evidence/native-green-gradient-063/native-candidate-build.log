@@ -1,0 +1,4 @@
+compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input
+7e0067bec47e1cf1cae7ae5eb6a140f808b796b1c603ce681229e01b1745c8c2  /boot/home/test-work/native-green-gradient-063-final/libvulkan.so
+04438afbec318c1a05b32895d45f796baca227b32ac7496fc52f68434bf31d98  /boot/home/test-work/native-green-gradient-063-final/triangle_probe
+de3058cf76613eebda59333b4dd4d12ae23ec0533f0b764ee135c63aa87a4bad  /boot/home/test-work/native-green-gradient-063-final/compiler_pipeline_probe

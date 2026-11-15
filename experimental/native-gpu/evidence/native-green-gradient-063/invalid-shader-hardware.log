@@ -1,0 +1,4 @@
+public_shader_invalid trial=0 status=-1 sequence=0 clear=1 result=PASS
+public_shader_invalid trial=1 status=-1 sequence=0 clear=1 result=PASS
+public_shader_invalid trial=2 status=-1 sequence=0 clear=1 result=PASS
+public_shader_invalid trial=3 status=-1 sequence=0 clear=1 result=PASS

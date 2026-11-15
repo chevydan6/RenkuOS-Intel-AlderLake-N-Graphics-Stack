@@ -62,7 +62,7 @@ struct VkPipelineLayout_T { VkDevice_T* device;VkPipelineLayout_T* next; };
 struct VkPipeline_T {
  VkDevice_T* device;VkPipeline_T* next;VkRenderPass pass;
  uint32_t shaderHandle,vertexShaderHandle,width;
- bool fragcoordRed;
+ bool fragcoordGradient;
 };
 struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
 struct VkCommandBuffer_T;
@@ -873,7 +873,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
  const VkGraphicsPipelineCreateInfo& info,VkPipeline* pipeline)
 {
  size_t fragmentCodeBytes=sizeof(NativeGpu::RcsDrawData::Fs);
- bool fragcoordRed=false;
+ bool fragcoordGradient=false;
 #ifdef RENKU_VULKAN_USE_INTEL_COMPILER
  uint8_t compiledVs[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
  size_t compiledVsBytes=0;
@@ -882,7 +882,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
     info.pStages[0].module->bytes,info.pStages[1].module->code,
     info.pStages[1].module->bytes,compiledVs,sizeof(compiledVs),
     &compiledVsBytes,compiledFs,sizeof(compiledFs),
-    &fragmentCodeBytes,&fragcoordRed))
+    &fragmentCodeBytes,&fragcoordGradient))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  const void* fragmentCode=compiledFs;
  const bool customVertex=compiledVsBytes!=sizeof(NativeGpu::RcsDrawData::Vs);
@@ -890,7 +890,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
  const void* fragmentCode=NativeGpu::RcsDrawData::Fs;
  const bool customVertex=false;
 #endif
- if(fragcoordRed && (customVertex
+ if(fragcoordGradient && (customVertex
   || info.pViewportState->pViewports[0].width!=64))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  VkPipeline_T* value=(VkPipeline_T*)calloc(1,sizeof(VkPipeline_T));
@@ -938,7 +938,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
  }
  value->device=device;value->pass=info.renderPass;
  value->width=uint32_t(info.pViewportState->pViewports[0].width);
- value->fragcoordRed=fragcoordRed;
+ value->fragcoordGradient=fragcoordGradient;
  value->next=device->pipelines;device->pipelines=value;
  *pipeline=value;return VK_SUCCESS;
 }
@@ -1256,7 +1256,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
  draw.version=directTarget?15:recorded.vertexOffset
   ?(recorded.pipeline->vertexShaderHandle?14:13)
-  :large?(recorded.pipeline->fragcoordRed?12:
+  :large?(recorded.pipeline->fragcoordGradient?12:
   recorded.pipeline->vertexShaderHandle?11:10):
   recorded.pipeline->vertexShaderHandle?8:7;
  draw.mode=NATIVE_GPU_RENDER_DRAW;

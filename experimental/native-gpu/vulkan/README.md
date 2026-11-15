@@ -58,6 +58,10 @@ The [selected GL-extension constants candidate](../evidence/native-glext-prune-0
 reduces the closure further to 12,628,736 bytes. Its compiler binary is byte
 identical to the 055 compiler, and the isolated 062 bundle passed 162 N100
 draws. Neither candidate changes the installed owner or kernel.
+The [green FragCoord checkpoint](../evidence/native-green-gradient-063/README.md)
+adds a second hardware-tested gradient output channel at scales 1/32, 1/64,
+and 1/128. The updated native owner and Vulkan bundle passed 178 physical N100
+draws, and the selected runtime source closure is 12,629,415 bytes.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

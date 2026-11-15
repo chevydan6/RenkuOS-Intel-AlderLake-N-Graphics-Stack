@@ -14,10 +14,10 @@ static bool CompileKnownPipeline(const uint32_t* vertex,size_t vertexBytes,
  const uint32_t* fragment,size_t fragmentBytes,void* vertexCode,
  size_t vertexCapacity,size_t* vertexCodeBytes,void* fragmentCode,
  size_t fragmentCapacity,size_t* fragmentCodeBytes=nullptr,
- bool* fragcoordRed=nullptr)
+ bool* fragcoordGradient=nullptr)
 {
  if(fragmentCodeBytes)*fragmentCodeBytes=0;
- if(fragcoordRed)*fragcoordRed=false;
+ if(fragcoordGradient)*fragcoordGradient=false;
  if(!vertex || !fragment || !vertexCode || !vertexCodeBytes || !fragmentCode
   || !vertexBytes || (vertexBytes&3)
   || !fragmentBytes || (fragmentBytes&3)
@@ -48,7 +48,8 @@ static bool CompileKnownPipeline(const uint32_t* vertex,size_t vertexBytes,
   || pair.fragment.bytes>fragmentCapacity)return false;
  memcpy(shaderPage,fs,pair.fragment.bytes);
  auto program=NativeGpu::RcsPublicShader::IdentifyFragmentPage(shaderPage,1024);
- const bool gradient=program==NativeGpu::RcsPublicShader::FragCoordRed;
+ const bool gradient=program==NativeGpu::RcsPublicShader::FragCoordRed
+  || program==NativeGpu::RcsPublicShader::FragCoordGreen;
  if(program==NativeGpu::RcsPublicShader::InvalidFragment
   || pair.fragment.grf_used!=128 || !pair.fragment.dispatch_8
   || !pair.fragment.dispatch_16 || pair.fragment.dispatch_32
@@ -60,7 +61,7 @@ static bool CompileKnownPipeline(const uint32_t* vertex,size_t vertexBytes,
  *vertexCodeBytes=pair.vertex.bytes;
  memcpy(fragmentCode,fs,pair.fragment.bytes);
  if(fragmentCodeBytes)*fragmentCodeBytes=pair.fragment.bytes;
- if(fragcoordRed)*fragcoordRed=gradient;
+ if(fragcoordGradient)*fragcoordGradient=gradient;
  return true;
 }
 

@@ -149,6 +149,18 @@ int main() {
  if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
   !=NativeGpu::RcsPublicShader::InvalidFragment)return 36;
  gradientPage[1023]=0;
+ gradientPage[5]=0x7c054220;
+ gradientPage[28]=0xe17d0141;
+ gradientPage[53]=0x78054220;
+ gradientPage[76]=0xe07a0141;
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::FragCoordGreen)return 44;
+ gradientPage[29]=gradientPage[77]=0x3c002002;
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::FragCoordGreen)return 45;
+ gradientPage[5]^=1;
+ if(NativeGpu::RcsPublicShader::IdentifyFragmentPage(gradientPage,1024)
+  !=NativeGpu::RcsPublicShader::InvalidFragment)return 46;
  alignas(4096) uint32_t largeStorage[NativeGpu::RcsDrawImage64::PageCount][1024]={};
  uint32_t* largePages[NativeGpu::RcsDrawImage64::PageCount]={};
  for(unsigned i=0;i<NativeGpu::RcsDrawImage64::PageCount;i++)
@@ -169,6 +181,12 @@ int main() {
   || NativeGpu::RcsResourceVertices::PatchAddressOnly(largePages,0x410031)
   || NativeGpu::RcsPublicShader::PatchBatchWithVertex(largePages[0],1024,
    0x411000,0x410ff0,true,NativeGpu::RcsPublicShader::FragCoordRed))return 43;
+ if(!NativeGpu::RcsDrawImage64::Build(largePages,0)
+  || !NativeGpu::RcsResourceVertices::PatchAddressOnly(largePages,0x410000)
+  || !NativeGpu::RcsPublicShader::PatchBatchWithVertex(largePages[0],1024,
+   0x411000,0x410000,true,NativeGpu::RcsPublicShader::FragCoordGreen)
+  || largePages[0][245]!=0x00040006
+  || largePages[0][248]!=0x110c0)return 47;
  puts("N100 bounded FS/VS templates and batch patch: PASS (CPU only)");
  return 0;
 }
