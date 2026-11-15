@@ -1,0 +1,52 @@
+[01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:[m[K In function '[01m[Kvoid[01;32m[K brw_from_nir_emit_texture[m[K(nir_to_brw_state&, nir_tex_instr*)[m[K':
+[01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6401:32:[m[K [01;35m[Kwarning: [m[Kwriting 1 byte into a region of size 0 [[01;35m[K-Wstringop-overflow=[m[K]
+ 6401 |          [01;35m[Ktex->const_offsets[i] = offset[m[K;
+      |          [01;35m[K~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~[m[K
+In file included from [01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_cfg.h:12[m[K,
+                 from [01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_analysis.h:8[m[K,
+                 from [01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_shader.h:8[m[K,
+                 from [01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6[m[K:
+[01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_inst.h:334:11:[m[K [01;36m[Knote: [m[Kat offset 3 into destination object '[01m[Kbrw_tex_inst::const_offsets[m[K' of size 3
+  334 |    int8_t [01;36m[Kconst_offsets[m[K[3];
+      |           [01;36m[K^~~~~~~~~~~~~[m[K
+[01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6401:32:[m[K [01;35m[Kwarning: [m[Kwriting 1 byte into a region of size 0 [[01;35m[K-Wstringop-overflow=[m[K]
+ 6401 |          [01;35m[Ktex->const_offsets[i] = offset[m[K;
+      |          [01;35m[K~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~[m[K
+[01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_inst.h:334:11:[m[K [01;36m[Knote: [m[Kat offset 3 into destination object '[01m[Kbrw_tex_inst::const_offsets[m[K' of size 3
+  334 |    int8_t [01;36m[Kconst_offsets[m[K[3];
+      |           [01;36m[K^~~~~~~~~~~~~[m[K
+[01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_from_nir.cpp:6401:32:[m[K [01;35m[Kwarning: [m[Kwriting 1 byte into a region of size 0 [[01;35m[K-Wstringop-overflow=[m[K]
+ 6401 |          [01;35m[Ktex->const_offsets[i] = offset[m[K;
+      |          [01;35m[K~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~[m[K
+[01m[K../mesa-26.3.0/src/intel/compiler/brw/brw_inst.h:334:11:[m[K [01;36m[Knote: [m[Kat offset 3 into destination object '[01m[Kbrw_tex_inst::const_offsets[m[K' of size 3
+  334 |    int8_t [01;36m[Kconst_offsets[m[K[3];
+      |           [01;36m[K^~~~~~~~~~~~~[m[K
+{
+  "mesa_version": "26.3.0",
+  "binary": "/boot/home/test-work/native-compiler-glheader-062/librenku_intel_compiler.so",
+  "binary_bytes": 14594272,
+  "linked_objects": 346,
+  "runtime_libraries": [
+    "libSPIRV-Tools-shared.so",
+    "libstdc++.so.6",
+    "libgcc_s.so.1",
+    "libroot.so"
+  ],
+  "included_files": 843,
+  "file_counts": {
+    "mesa": 498,
+    "generated": 49,
+    "external": 292,
+    "native_override": 4
+  },
+  "source_bytes": {
+    "mesa": 12052862,
+    "generated": 62392205,
+    "external": 5049619,
+    "native_override": 94340
+  },
+  "i915_drm_header_selected": false,
+  "i915_device_info_object_selected": false,
+  "i915_engine_object_selected": false,
+  "native_glheader_objects": 76
+}

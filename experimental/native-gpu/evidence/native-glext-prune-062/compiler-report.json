@@ -1,0 +1,29 @@
+{
+  "mesa_version": "26.3.0",
+  "binary": "/boot/home/test-work/native-compiler-glheader-062/librenku_intel_compiler.so",
+  "binary_bytes": 14594272,
+  "linked_objects": 346,
+  "runtime_libraries": [
+    "libSPIRV-Tools-shared.so",
+    "libstdc++.so.6",
+    "libgcc_s.so.1",
+    "libroot.so"
+  ],
+  "included_files": 843,
+  "file_counts": {
+    "mesa": 498,
+    "generated": 49,
+    "external": 292,
+    "native_override": 4
+  },
+  "source_bytes": {
+    "mesa": 12052862,
+    "generated": 62392205,
+    "external": 5049619,
+    "native_override": 94340
+  },
+  "i915_drm_header_selected": false,
+  "i915_device_info_object_selected": false,
+  "i915_engine_object_selected": false,
+  "native_glheader_objects": 76
+}

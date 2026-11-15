@@ -54,6 +54,10 @@ The [native GL-header compiler candidate](../evidence/native-glheader-prune-055/
 reduces that measured closure to 13,479,049 bytes and passed 162 physical N100
 draws. It remains an isolated bundle; the installed owner and kernel were not
 changed.
+The [selected GL-extension constants candidate](../evidence/native-glext-prune-062/README.md)
+reduces the closure further to 12,628,736 bytes. Its compiler binary is byte
+identical to the 055 compiler, and the isolated 062 bundle passed 162 N100
+draws. Neither candidate changes the installed owner or kernel.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
