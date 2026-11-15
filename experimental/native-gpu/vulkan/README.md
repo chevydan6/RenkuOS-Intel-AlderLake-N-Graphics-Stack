@@ -80,6 +80,12 @@ removes one redundant pre-publication flush and passes 974 draws with the
 installed normal owner. Median blocking submit time falls about 9–11% across
 the four measured 32×32/64×64 direct/fallback workloads. The selected source
 closure is 12,635,680 bytes.
+The [uniform-buffer Vulkan checkpoint](../evidence/native-vulkan-ubo-075/README.md)
+adds a compiler-backed set-0/binding-0 fragment UBO descriptor. A Vulkan
+application changed its mapped 16-byte buffer between two submissions and
+verified both N100 images. The isolated compiler and Vulkan bundle also passed
+222 prior hardware regression draws. The selected runtime source closure is
+12,667,193 bytes, with model tokens still unmeasured.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
@@ -106,8 +112,9 @@ features are rejected.
 Device creation bootstraps the existing RCS owner. Vulkan memory allocation
 creates an owner BO, and explicit flush/invalidate copies mapped staging data
 through the native resource ioctl. This memory type is host-visible and
-noncoherent. The native interface currently supports one 64 KiB resource arena,
-vertex-buffer usage, and 32×32 or 64×64 linear BGRA color images. A synchronous
+noncoherent. The native interface currently supports one 256 KiB resource arena,
+vertex buffers and one bounded uniform buffer, and 32×32 or 64×64 linear BGRA
+color images. A synchronous
 `vkQueueSubmit` submits each owner-validated hardware triangle directly into
 the bound image BO. The owner returns a diagnostic pixel copy for verification.
 Set `RENKU_VK_TRACE=1` for a concise

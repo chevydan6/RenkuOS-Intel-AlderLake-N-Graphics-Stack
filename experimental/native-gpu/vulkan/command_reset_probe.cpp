@@ -31,8 +31,10 @@ int main()
  VkPipeline_T secondPipeline={};secondPipeline.device=&device;secondPipeline.pass=&pass;
  VkDeviceMemory_T memory={};memory.device=&device;
  VkBuffer_T vertex={};vertex.device=&device;vertex.memory=&memory;vertex.bytes=48;
+ vertex.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
  VkBuffer_T secondVertex={};secondVertex.device=&device;
  secondVertex.memory=&memory;secondVertex.bytes=48;
+ secondVertex.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
  VkRenderPassBeginInfo render={};render.sType=VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
  render.renderPass=&pass;render.framebuffer=&framebuffer;
  render.renderArea.extent={32,32};

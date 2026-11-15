@@ -19,6 +19,34 @@
 static void compiler_log(void* data, unsigned* id, const char* format, ...)
 {(void)data;(void)id;(void)format;}
 
+struct one_ubo_binding { unsigned indices, descriptors; bool invalid; };
+static bool lower_one_ubo(nir_builder* b,nir_instr* instr,void* data)
+{
+ if(instr->type!=nir_instr_type_intrinsic)return false;
+ nir_intrinsic_instr* in=nir_instr_as_intrinsic(instr);
+ struct one_ubo_binding* binding=(struct one_ubo_binding*)data;
+ if(in->intrinsic==nir_intrinsic_vulkan_resource_reindex){
+  binding->invalid=true;return false;
+ }
+ if(in->intrinsic==nir_intrinsic_vulkan_resource_index){
+  binding->indices++;
+  if(nir_intrinsic_desc_set(in)!=0 || nir_intrinsic_binding(in)!=0
+   || nir_intrinsic_desc_type(in)!=nir_descriptor_type_uniform_buffer
+   || nir_intrinsic_resource_type(in)!=nir_resource_type_uniform_buffer
+   || !nir_src_is_const(in->src[0]) || nir_src_as_uint(in->src[0])!=0){
+   binding->invalid=true;return false;
+  }
+ }else if(in->intrinsic==nir_intrinsic_load_vulkan_descriptor){
+  binding->descriptors++;
+  if(nir_intrinsic_desc_type(in)!=nir_descriptor_type_uniform_buffer){
+   binding->invalid=true;return false;
+  }
+ }else return false;
+ b->cursor=nir_before_instr(instr);
+ nir_def_replace(&in->def,nir_imm_ivec2(b,1,0));
+ return true;
+}
+
 static int failure(int code, char* error, size_t capacity, const char* message)
 {
  if(error && capacity)snprintf(error,capacity,"%s",message ? message : "compiler failed");
@@ -105,12 +133,19 @@ int renku_intel_compile_vulkan_pair(const uint32_t* vertex,size_t vertex_words,
  nir_shader* fs=spirv_to_nir(fragment,fragment_words,NULL,MESA_SHADER_FRAGMENT,"main",
   &spv,&compiler->nir_options[MESA_SHADER_FRAGMENT]);
  if(!vs || !fs){status=RENKU_INTEL_COMPILE_FAILED;message="SPIR-V translation failed";goto done;}
- // ANV lowers descriptor layouts and UBO loads before brw_compile. Until the
- // native path provides those bindings, forwarding a UBO shader can stall the
- // backend rather than producing a usable program.
  if(vs->info.num_ubos || fs->info.num_ubos){
-  status=RENKU_INTEL_COMPILE_UNSUPPORTED;
-  message="uniform buffers need native descriptor lowering";goto done;
+  if(vs->info.num_ubos || fs->info.num_ubos!=1){
+   status=RENKU_INTEL_COMPILE_UNSUPPORTED;
+   message="only one fragment uniform buffer is supported";goto done;
+  }
+  struct one_ubo_binding binding={0};
+  nir_shader_instructions_pass(fs,lower_one_ubo,nir_metadata_none,&binding);
+  if(binding.invalid || binding.indices!=1 || binding.descriptors!=1){
+   status=RENKU_INTEL_COMPILE_UNSUPPORTED;
+   message="only set 0 binding 0 uniform buffer is supported";goto done;
+  }
+  nir_lower_explicit_io(fs,nir_var_mem_ubo,
+   nir_address_format_32bit_index_offset);
  }
  struct brw_nir_compiler_opts opts={0};
  brw_preprocess_nir(compiler,vs,&opts);

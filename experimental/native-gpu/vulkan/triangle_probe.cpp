@@ -6,6 +6,7 @@
 #include "DepthSpirvFixture.h"
 #include "RotateSpirvFixture.h"
 #include "FragCoordSpirvFixture.h"
+#include "UboSpirvFixture.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +28,7 @@ int main(int argc,char** argv)
    && strcmp(argv[2],"rgb") && strcmp(argv[2],"fragcoord")
    && strcmp(argv[2],"fragcoord32") && strcmp(argv[2],"fragcoord128")
    && strcmp(argv[2],"fragcoordgreen")
+   && strcmp(argv[2],"ubo")
    && strcmp(argv[2],"fragcoordgreen32")
    && strcmp(argv[2],"fragcoordgreen128"))
   || (argc==5 && strcmp(argv[4],"batch")
@@ -49,6 +51,7 @@ int main(int argc,char** argv)
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
+ bool ubo=argc>=3 && !strcmp(argv[2],"ubo");
  bool fragcoordGreen=argc>=3 && (!strcmp(argv[2],"fragcoordgreen")
   || !strcmp(argv[2],"fragcoordgreen32")
   || !strcmp(argv[2],"fragcoordgreen128"));
@@ -93,6 +96,7 @@ int main(int argc,char** argv)
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || ((batch || semaphoreBatch) && repeats!=2))return 40;
+ if(ubo && (large || shape!=0 || repeats!=2 || argc==5))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
  memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
  bool alternateChanged=false;
@@ -169,10 +173,11 @@ int main(int argc,char** argv)
   named?namedVertex.size()*4:sizeof(RenkuKnownSpirv::Vertex);
  VkShaderModule vs=VK_NULL_HANDLE,fs=VK_NULL_HANDLE;
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&vs)==VK_SUCCESS,5);
- moduleInfo.pCode=fragcoord?fragcoordCode:
+ moduleInfo.pCode=ubo?RenkuUboSpirv::Fragment:fragcoord?fragcoordCode:
   rgb?rgbCode.data():(green75 || green90)?alternateCode:
   half?RenkuKnownSpirv::FragmentHalf:RenkuKnownSpirv::Fragment;
- moduleInfo.codeSize=fragcoord?sizeof(RenkuFragCoordSpirv::Fragment):
+ moduleInfo.codeSize=ubo?sizeof(RenkuUboSpirv::Fragment):
+  fragcoord?sizeof(RenkuFragCoordSpirv::Fragment):
   rgb?rgbCode.size()*4:
   half?sizeof(RenkuKnownSpirv::FragmentHalf):sizeof(RenkuKnownSpirv::Fragment);
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
@@ -235,6 +240,20 @@ int main(int argc,char** argv)
  REQUIRE(vkFlushMappedMemoryRanges(device,1,&range)==VK_SUCCESS,45);
  vkUnmapMemory(device,laterMemory);
 
+ VkBuffer uniform=VK_NULL_HANDLE;
+ VkDeviceMemory uniformMemory=VK_NULL_HANDLE;
+ void* uniformMapped=nullptr;
+ if(ubo){
+  bufferInfo.size=16;bufferInfo.usage=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+  REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&uniform)==VK_SUCCESS,65);
+  vkGetBufferMemoryRequirements(device,uniform,&requirement);
+  allocation.allocationSize=requirement.size;
+  REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&uniformMemory)==VK_SUCCESS,66);
+  REQUIRE(vkBindBufferMemory(device,uniform,uniformMemory,0)==VK_SUCCESS,67);
+  REQUIRE(vkMapMemory(device,uniformMemory,0,16,0,&uniformMapped)==VK_SUCCESS
+   && uniformMapped,68);
+ }
+
  VkImageCreateInfo imageInfo={};imageInfo.sType=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
  imageInfo.imageType=VK_IMAGE_TYPE_2D;imageInfo.format=VK_FORMAT_B8G8R8A8_UNORM;
  imageInfo.extent={dimension,dimension,1};imageInfo.mipLevels=1;imageInfo.arrayLayers=1;
@@ -277,7 +296,38 @@ int main(int argc,char** argv)
  VkFramebuffer framebuffer=VK_NULL_HANDLE;
  REQUIRE(vkCreateFramebuffer(device,&fbInfo,nullptr,&framebuffer)==VK_SUCCESS,19);
 
+ VkDescriptorSetLayout setLayout=VK_NULL_HANDLE;
+ VkDescriptorPool descriptorPool=VK_NULL_HANDLE;
+ VkDescriptorSet descriptor=VK_NULL_HANDLE;
+ if(ubo){
+  VkDescriptorSetLayoutBinding uniformBinding={};uniformBinding.binding=0;
+  uniformBinding.descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  uniformBinding.descriptorCount=1;uniformBinding.stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
+  VkDescriptorSetLayoutCreateInfo setInfo={};
+  setInfo.sType=VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  setInfo.bindingCount=1;setInfo.pBindings=&uniformBinding;
+  REQUIRE(vkCreateDescriptorSetLayout(device,&setInfo,nullptr,&setLayout)
+   ==VK_SUCCESS && setLayout,69);
+  VkDescriptorPoolSize poolSize={VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,1};
+  VkDescriptorPoolCreateInfo poolInfo={};
+  poolInfo.sType=VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolInfo.maxSets=1;poolInfo.poolSizeCount=1;poolInfo.pPoolSizes=&poolSize;
+  REQUIRE(vkCreateDescriptorPool(device,&poolInfo,nullptr,&descriptorPool)
+   ==VK_SUCCESS && descriptorPool,70);
+  VkDescriptorSetAllocateInfo setAllocation={};
+  setAllocation.sType=VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  setAllocation.descriptorPool=descriptorPool;
+  setAllocation.descriptorSetCount=1;setAllocation.pSetLayouts=&setLayout;
+  REQUIRE(vkAllocateDescriptorSets(device,&setAllocation,&descriptor)
+   ==VK_SUCCESS && descriptor,71);
+  VkDescriptorBufferInfo uniformInfo={uniform,0,16};
+  VkWriteDescriptorSet write={};write.sType=VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  write.dstSet=descriptor;write.descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  write.descriptorCount=1;write.pBufferInfo=&uniformInfo;
+  vkUpdateDescriptorSets(device,1,&write,0,nullptr);
+ }
  VkPipelineLayoutCreateInfo layoutInfo={};layoutInfo.sType=VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+ if(ubo){layoutInfo.setLayoutCount=1;layoutInfo.pSetLayouts=&setLayout;}
  VkPipelineLayout layout=VK_NULL_HANDLE;
  REQUIRE(vkCreatePipelineLayout(device,&layoutInfo,nullptr,&layout)==VK_SUCCESS,20);
  VkPipelineShaderStageCreateInfo stages[2]={};
@@ -380,6 +430,8 @@ int main(int argc,char** argv)
  render.renderArea={{0,0},{dimension,dimension}};
  vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline);
+ if(ubo)vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,
+  layout,0,1,&descriptor,0,nullptr);
  VkDeviceSize offset=pageOffset?4096:bindOffset?48:0;
  vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
  vkCmdDraw(command,3,1,firstVertex?3:0,0);
@@ -441,6 +493,15 @@ int main(int argc,char** argv)
  }else for(unsigned i=0;i<(multiPass?1:repeats);i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
+  if(ubo){
+   const uint32_t colors[2][4]={{0x3f800000,0x3e800000,0,0x3f800000},
+    {0,0x3f800000,0x3f000000,0x3f800000}};
+   memcpy(uniformMapped,colors[i],16);
+   VkMappedMemoryRange uniformRange={};
+   uniformRange.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+   uniformRange.memory=uniformMemory;uniformRange.size=16;
+   REQUIRE(vkFlushMappedMemoryRanges(device,1,&uniformRange)==VK_SUCCESS,72);
+  }
   REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
   REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
    && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
@@ -473,6 +534,9 @@ int main(int argc,char** argv)
    hash==(rotate?0x7b48f3e5:
    rgb?expectedLargeRgb[shape]:expectedLarge[shape])
    ) && pixels[0]==0x19537bad,30);
+ }else if(ubo){
+  REQUIRE(hash==0x4979062d && pixels[10*32+20]==0xff00ff80
+   && pixels[0]==0x19537bad,30);
  }else if(half || green75 || green90 || rgb || twoPipelines){
   const uint32_t expectedHalf[4]={0x1629ed2d,0x0bf039c3,0x48e0ed05,0x05d66945};
   const uint32_t expectedGreen75[4]={0x28e87f2d,0xa6f78dc3,0xcef9f105,0xabd7c545};
@@ -497,6 +561,7 @@ int main(int argc,char** argv)
  else if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(dual)printf("Native Vulkan N100 dual pipeline: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(semaphoreBatch)printf("Native Vulkan N100 binary semaphore: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ else if(ubo)printf("Native Vulkan N100 UBO triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(rgb)printf("Native Vulkan N100 RGB triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green75)printf("Native Vulkan N100 0.75-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
@@ -513,6 +578,13 @@ int main(int argc,char** argv)
  if(secondPipeline)vkDestroyPipeline(device,secondPipeline,nullptr);
  vkDestroyPipeline(device,pipeline,nullptr);
  vkDestroyPipelineLayout(device,layout,nullptr);
+ if(ubo){
+  vkDestroyDescriptorPool(device,descriptorPool,nullptr);
+  vkDestroyDescriptorSetLayout(device,setLayout,nullptr);
+  vkUnmapMemory(device,uniformMemory);
+  vkDestroyBuffer(device,uniform,nullptr);
+  vkFreeMemory(device,uniformMemory,nullptr);
+ }
  vkDestroyFramebuffer(device,framebuffer,nullptr);
  vkDestroyRenderPass(device,pass,nullptr);
  vkDestroyImageView(device,view,nullptr);

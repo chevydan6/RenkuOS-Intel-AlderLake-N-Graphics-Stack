@@ -19,7 +19,8 @@ def compiler_category(path):
     if path.startswith("/boot/home/test-work/closure-current-022/src/"):
         return "compiler_project_runtime"
     if path.startswith(("/boot/home/test-work/native-fragcoord-runtime-048/",
-                        "/boot/home/test-work/native-ubo-compiler-071/")):
+                        "/boot/home/test-work/native-ubo-compiler-071/",
+                        "/boot/home/test-work/native-ubo-compiler-075/")):
         return "compiler_project_runtime"
     if path.startswith("/boot/home/test-work/native-device-info-044/"):
         return "compiler_native_adaptation"

@@ -20,6 +20,9 @@ def category(path, bundle):
         return "khronos_headers"
     if path == bundle + "/vulkan/NativeVulkan.cpp":
         return "driver_source"
+    if path in (bundle + "/vulkan/CompiledKnownShader.h",
+                bundle + "/vulkan/KnownSpirv.h"):
+        return "driver_source"
     if path.startswith(bundle + "/render/draw/"):
         return "intel_draw_fixture"
     if path.startswith(bundle + "/render/"):

@@ -4,8 +4,10 @@
 #include "DepthSpirvFixture.h"
 #include "RotateSpirvFixture.h"
 #include "FragCoordSpirvFixture.h"
+#include "UboSpirvFixture.h"
 #include "../render/RcsDepthVertex.h"
 #include "../render/RcsRotateVertex.h"
+#include "../render/RcsUboFragment.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -150,6 +152,24 @@ int main()
    scale==0x3c800000u?0x3c802002:0x3c002002;
   if(memcmp(gradientFs,expected,sizeof(expected)))return 24;
  }
- puts("compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input");
+ uint8_t uboFs[sizeof(NativeGpu::RcsUboFragment::Words)]={};
+ uint8_t uboVs[sizeof(NativeGpu::RcsDepthVertex::Words)]={};
+ size_t uboVsBytes=0,uboFsBytes=0;
+ if(!CompileKnownPipeline(RenkuKnownSpirv::Vertex,
+   sizeof(RenkuKnownSpirv::Vertex),RenkuUboSpirv::Fragment,
+   sizeof(RenkuUboSpirv::Fragment),uboVs,sizeof(uboVs),&uboVsBytes,
+   uboFs,sizeof(uboFs),&uboFsBytes)
+  || uboFsBytes!=sizeof(uboFs)
+  || memcmp(uboFs,NativeGpu::RcsUboFragment::Words,sizeof(uboFs)))return 25;
+ uint32_t otherBinding[sizeof(RenkuUboSpirv::Fragment)/4];
+ memcpy(otherBinding,RenkuUboSpirv::Fragment,sizeof(otherBinding));
+ unsigned changedBinding=0;
+ for(size_t i=5;i+3<sizeof(otherBinding)/4;i++)
+  if(otherBinding[i]==0x00040047u && otherBinding[i+2]==33
+   && otherBinding[i+3]==0){otherBinding[i+3]=1;changedBinding++;}
+ if(changedBinding!=1 || CompileKnownPipeline(RenkuKnownSpirv::Vertex,
+   sizeof(RenkuKnownSpirv::Vertex),otherBinding,sizeof(otherBinding),
+   uboVs,sizeof(uboVs),&uboVsBytes,uboFs,sizeof(uboFs),&uboFsBytes))return 26;
+ puts("compiler pipeline probe: bounded RGB, vertex, and UBO programs PASS");
  return 0;
 }
