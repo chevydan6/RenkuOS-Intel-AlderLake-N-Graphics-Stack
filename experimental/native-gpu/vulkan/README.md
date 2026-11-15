@@ -145,6 +145,10 @@ The [six-vertex draw checkpoint](../evidence/native-vulkan-draw6-086/README.md)
 extends that path to one `vkCmdDraw` call for two triangle-list primitives.
 Both target sizes matched the prior captured images byte for byte on the N100;
 the existing 262 hardware regression draws passed with the candidate library.
+The [indexed vertex-offset checkpoint](../evidence/native-vulkan-indexoffset-099/README.md)
+supports positive and negative `vertexOffset` in bounded indexed draws by
+adjusting the native vertex base. Both signs reproduced the earlier N100 mesh
+image, and the installed kernel owner was unchanged.
 The [multi-primitive draw checkpoint](../evidence/native-vulkan-draw9-087/README.md)
 accepts additional triangle-list primitives in one `vkCmdDraw`. Nine vertices
 in one call matched three established calls byte for byte at both target sizes.

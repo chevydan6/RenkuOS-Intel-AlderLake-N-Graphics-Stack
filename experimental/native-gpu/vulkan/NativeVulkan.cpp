@@ -94,7 +94,7 @@ struct VkCommandPool_T {
 struct VkCommandBuffer_T {
  struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;
   VkDescriptorSet descriptor;
-  uint32_t vertexOffset;bool preserve;
+  uint32_t vertexOffset;int32_t vertexBias;bool preserve;
   VkBuffer index;uint32_t indexOffset;bool indexed;uint32_t indexCount;
   uint32_t vertexCount;
   bool clear;uint32_t clearColor;};
@@ -1465,7 +1465,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
  for(size_t i=0;i<added;i++)
   command->draws[command->drawCount++]={command->framebuffer,
    command->pipeline,command->boundVertex,command->boundDescriptor,
-   uint32_t(start+i*48),command->pass->load || command->pass->clear
+   uint32_t(start+i*48),0,command->pass->load || command->pass->clear
     || command->drawn || i!=0,
    VK_NULL_HANDLE,0,false,0,0,
    command->pass->clear && !command->drawn && i==0,command->clearColor};
@@ -1484,10 +1484,26 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
   || command->pipeline->vertexShaderHandle
   || command->pipeline->uniformBuffer || command->pipeline->fragcoordGradient
   || indexCount<3 || indexCount>255 || indexCount%3
-  || instanceCount!=1 || vertexOffset || firstInstance){
+  || instanceCount!=1 || firstInstance){
   command->invalid=true;return;
  }
  uint64_t vertexStart=command->boundVertexOffset;
+ // The owner fetches an index relative to the supplied vertex address.
+ // Shift that address to implement Vulkan's signed vertexOffset exactly.
+ if(vertexStart>command->boundVertex->bytes){
+  command->invalid=true;return;
+ }
+ if(vertexOffset>=0){
+  const uint64_t advance=uint64_t(vertexOffset)*16;
+  if(advance>command->boundVertex->bytes-vertexStart){
+   command->invalid=true;return;
+  }
+  vertexStart+=advance;
+ }else{
+  const uint64_t retreat=uint64_t(-int64_t(vertexOffset))*16;
+  if(retreat>vertexStart){command->invalid=true;return;}
+  vertexStart-=retreat;
+ }
  uint64_t indexStart=command->boundIndexOffset+uint64_t(firstIndex)*2;
  if(vertexStart>command->boundVertex->bytes
   || indexStart>command->boundIndex->bytes
@@ -1516,7 +1532,7 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
  }
  auto& draw=command->draws[command->drawCount++];
  draw={command->framebuffer,command->pipeline,command->boundVertex,
-  command->boundDescriptor,uint32_t(vertexStart),
+  command->boundDescriptor,uint32_t(vertexStart),vertexOffset,
   command->pass->load || command->pass->clear || command->drawn,
   command->boundIndex,uint32_t(indexStart),true,indexCount,
   uint32_t(vertexBytes/16),
@@ -1823,7 +1839,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(device->trace)fprintf(stderr,
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
-  "\"draw_index\":%zu,\"draw_count\":%zu,\"gpu_draws\":%u,\"vertex_offset\":%u,\"direct_target\":%u,"
+  "\"draw_index\":%zu,\"draw_count\":%zu,\"gpu_draws\":%u,\"vertex_offset\":%u,\"vertex_bias\":%d,\"direct_target\":%u,"
   "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,\"image_offset\":%u,\"uniform_bo\":%u,\"uniform_offset\":%u,\"index_bo\":%u,\"index_offset\":%u,\"index_count\":%u,\"vertex_count\":%u,\"pixel_oracle\":%u,"
   "\"vertex_gpu_va\":\"%llx\",\"shader_gpu_va\":\"%llx\",\"image_gpu_va\":\"%llx\","
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
@@ -1831,6 +1847,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   "\"render_ioctl_us\":%lld,\"write_ioctl_us\":%lld,\"submit_us\":%lld}\n",
   status,writeStatus,r.version,r.stage,r.sequence,r.observed_sequence,
   k,command->drawCount,nativeBatch?2u:1u,recorded.vertexOffset,
+  recorded.vertexBias,
   unsigned(directTarget),draw.variant,draw.reserved,
   recorded.pipeline->vertexShaderHandle,
   recorded.framebuffer->view->image->memory->handle,

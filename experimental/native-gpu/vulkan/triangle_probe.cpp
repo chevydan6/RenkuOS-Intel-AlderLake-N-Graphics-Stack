@@ -47,6 +47,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"indexsixpage")
    && strcmp(argv[4],"indexmesh") && strcmp(argv[4],"indexmeshbad")
    && strcmp(argv[4],"indexmeshclear")
+   && strcmp(argv[4],"indexmeshplus") && strcmp(argv[4],"indexmeshminus")
    && strcmp(argv[4],"clearpass")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
@@ -106,8 +107,10 @@ int main(int argc,char** argv)
  bool indexSixPage=argc==5 && !strcmp(argv[4],"indexsixpage");
  bool indexMeshBad=argc==5 && !strcmp(argv[4],"indexmeshbad");
  bool indexMeshClear=argc==5 && !strcmp(argv[4],"indexmeshclear");
+ bool indexMeshPlus=argc==5 && !strcmp(argv[4],"indexmeshplus");
+ bool indexMeshMinus=argc==5 && !strcmp(argv[4],"indexmeshminus");
  bool indexMesh=argc==5 && (!strcmp(argv[4],"indexmesh")
-  || indexMeshBad || indexMeshClear);
+  || indexMeshBad || indexMeshClear || indexMeshPlus || indexMeshMinus);
  bool clearPass=argc==5 && (!strcmp(argv[4],"clearpass") || indexMeshClear);
  bool indexSix=argc==5 && (!strcmp(argv[4],"indexsix")
   || indexSixBad || indexSixPage);
@@ -271,7 +274,8 @@ int main(int argc,char** argv)
  }
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
- bufferInfo.size=(pageOffset || drawPage)?8192:indexMesh?144:
+ bufferInfo.size=(pageOffset || drawPage)?8192:
+  (indexMeshPlus || indexMeshMinus)?160:indexMesh?144:
   indexPairReference?96:indexed?64:
   fourTriangles?192:threeTriangles?144:
   (selectedVertexRange || twoTriangles)?96:48;
@@ -320,12 +324,14 @@ int main(int argc,char** argv)
   memcpy((uint8_t*)mapped+4096-48,positions[shape],48);
   memcpy((uint8_t*)mapped+4096,positions[2],48);
  }else if(indexMesh){
-  memcpy(mapped,positions[0],48);
-  memcpy((uint8_t*)mapped+48,positions[2],48);
-  memcpy((uint8_t*)mapped+96,positions[1],48);
-  uint8_t saved[16];memcpy(saved,(uint8_t*)mapped+16,16);
-  memcpy((uint8_t*)mapped+16,(uint8_t*)mapped+32,16);
-  memcpy((uint8_t*)mapped+32,saved,16);
+  uint8_t* mesh=(uint8_t*)mapped+(indexMeshPlus || indexMeshMinus?16:0);
+  if(indexMeshPlus || indexMeshMinus)memcpy(mapped,positions[0],16);
+  memcpy(mesh,positions[0],48);
+  memcpy(mesh+48,positions[2],48);
+  memcpy(mesh+96,positions[1],48);
+  uint8_t saved[16];memcpy(saved,mesh+16,16);
+  memcpy(mesh+16,mesh+32,16);
+  memcpy(mesh+32,saved,16);
  }else if(indexPairReference){
   const uint32_t complement[12]={
    0xbf400000,0xbf400000,0x3f000000,0x3f800000,
@@ -621,14 +627,15 @@ int main(int argc,char** argv)
  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline);
  if(ubo)vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,
   layout,0,1,&descriptor,0,nullptr);
- VkDeviceSize offset=pageOffset?4096:drawPage?4096-48:bindOffset?48:0;
+ VkDeviceSize offset=pageOffset?4096:drawPage?4096-48:bindOffset?48:
+  indexMeshMinus?32:0;
  vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
  const uint32_t drawVertices=drawTwelve?12:drawNine?9:
   (drawSix || drawPage || indexPairReference)?6:3;
  if(indexed){
   vkCmdBindIndexBuffer(command,index,0,VK_INDEX_TYPE_UINT16);
   vkCmdDrawIndexed(command,indexMesh?9:indexSix?6:3,1,
-   indexSixPage?2045:0,0,0);
+   indexSixPage?2045:0,indexMeshPlus?1:indexMeshMinus?-1:0,0);
   if(indexPair)vkCmdDrawIndexed(command,3,1,3,0,0);
  }else vkCmdDraw(command,drawVertices,1,firstVertex?3:0,0);
  if(!twoTriangles && !threeTriangles && !fourTriangles)
