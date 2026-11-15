@@ -1,0 +1,38 @@
+{
+  "32": {
+    "repeat": {
+      "samples": 20,
+      "median_total_submit_us": 9606.0,
+      "median_first_submit_us": 4822.0,
+      "median_second_submit_us": 4752.0,
+      "min_total_submit_us": 9470,
+      "max_total_submit_us": 10891
+    },
+    "multidraw": {
+      "samples": 20,
+      "median_total_submit_us": 10041.5,
+      "median_first_submit_us": 4796.5,
+      "median_second_submit_us": 5226.5,
+      "min_total_submit_us": 9974,
+      "max_total_submit_us": 11483
+    }
+  },
+  "64": {
+    "repeat": {
+      "samples": 20,
+      "median_total_submit_us": 9670.0,
+      "median_first_submit_us": 4887.5,
+      "median_second_submit_us": 4786.0,
+      "min_total_submit_us": 9585,
+      "max_total_submit_us": 10022
+    },
+    "multidraw": {
+      "samples": 20,
+      "median_total_submit_us": 10174.0,
+      "median_first_submit_us": 4901.0,
+      "median_second_submit_us": 5263.5,
+      "min_total_submit_us": 9977,
+      "max_total_submit_us": 11645
+    }
+  }
+}

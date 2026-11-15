@@ -1,0 +1,882 @@
+[
+  {
+    "size": 32,
+    "sample": 0,
+    "variant": "repeat",
+    "submit_us": [
+      5422,
+      5469
+    ],
+    "total_submit_us": 10891,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 0,
+    "variant": "multidraw",
+    "submit_us": [
+      4967,
+      5233
+    ],
+    "total_submit_us": 10200,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 1,
+    "variant": "repeat",
+    "submit_us": [
+      4831,
+      4639
+    ],
+    "total_submit_us": 9470,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 1,
+    "variant": "multidraw",
+    "submit_us": [
+      5510,
+      5943
+    ],
+    "total_submit_us": 11453,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 2,
+    "variant": "repeat",
+    "submit_us": [
+      4792,
+      4830
+    ],
+    "total_submit_us": 9622,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 2,
+    "variant": "multidraw",
+    "submit_us": [
+      4808,
+      5232
+    ],
+    "total_submit_us": 10040,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 3,
+    "variant": "repeat",
+    "submit_us": [
+      4797,
+      4736
+    ],
+    "total_submit_us": 9533,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 3,
+    "variant": "multidraw",
+    "submit_us": [
+      4798,
+      5252
+    ],
+    "total_submit_us": 10050,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 4,
+    "variant": "repeat",
+    "submit_us": [
+      4813,
+      4768
+    ],
+    "total_submit_us": 9581,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 4,
+    "variant": "multidraw",
+    "submit_us": [
+      5059,
+      5395
+    ],
+    "total_submit_us": 10454,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 5,
+    "variant": "repeat",
+    "submit_us": [
+      4788,
+      4754
+    ],
+    "total_submit_us": 9542,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 5,
+    "variant": "multidraw",
+    "submit_us": [
+      4812,
+      5216
+    ],
+    "total_submit_us": 10028,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 6,
+    "variant": "repeat",
+    "submit_us": [
+      4795,
+      4828
+    ],
+    "total_submit_us": 9623,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 6,
+    "variant": "multidraw",
+    "submit_us": [
+      4769,
+      5207
+    ],
+    "total_submit_us": 9976,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 7,
+    "variant": "repeat",
+    "submit_us": [
+      4848,
+      4755
+    ],
+    "total_submit_us": 9603,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 7,
+    "variant": "multidraw",
+    "submit_us": [
+      4775,
+      5214
+    ],
+    "total_submit_us": 9989,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 8,
+    "variant": "repeat",
+    "submit_us": [
+      4966,
+      4656
+    ],
+    "total_submit_us": 9622,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 8,
+    "variant": "multidraw",
+    "submit_us": [
+      4783,
+      5214
+    ],
+    "total_submit_us": 9997,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 9,
+    "variant": "repeat",
+    "submit_us": [
+      4773,
+      4758
+    ],
+    "total_submit_us": 9531,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 9,
+    "variant": "multidraw",
+    "submit_us": [
+      4818,
+      5225
+    ],
+    "total_submit_us": 10043,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 10,
+    "variant": "repeat",
+    "submit_us": [
+      4779,
+      4735
+    ],
+    "total_submit_us": 9514,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 10,
+    "variant": "multidraw",
+    "submit_us": [
+      4792,
+      5303
+    ],
+    "total_submit_us": 10095,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 11,
+    "variant": "repeat",
+    "submit_us": [
+      4968,
+      4909
+    ],
+    "total_submit_us": 9877,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 11,
+    "variant": "multidraw",
+    "submit_us": [
+      4786,
+      5228
+    ],
+    "total_submit_us": 10014,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 12,
+    "variant": "repeat",
+    "submit_us": [
+      4969,
+      4640
+    ],
+    "total_submit_us": 9609,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 12,
+    "variant": "multidraw",
+    "submit_us": [
+      4803,
+      5253
+    ],
+    "total_submit_us": 10056,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 13,
+    "variant": "repeat",
+    "submit_us": [
+      4898,
+      4738
+    ],
+    "total_submit_us": 9636,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 13,
+    "variant": "multidraw",
+    "submit_us": [
+      4787,
+      5215
+    ],
+    "total_submit_us": 10002,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 14,
+    "variant": "repeat",
+    "submit_us": [
+      4785,
+      4718
+    ],
+    "total_submit_us": 9503,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 14,
+    "variant": "multidraw",
+    "submit_us": [
+      4763,
+      5294
+    ],
+    "total_submit_us": 10057,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 15,
+    "variant": "repeat",
+    "submit_us": [
+      4765,
+      4750
+    ],
+    "total_submit_us": 9515,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 15,
+    "variant": "multidraw",
+    "submit_us": [
+      4795,
+      5197
+    ],
+    "total_submit_us": 9992,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 16,
+    "variant": "repeat",
+    "submit_us": [
+      4969,
+      4774
+    ],
+    "total_submit_us": 9743,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 16,
+    "variant": "multidraw",
+    "submit_us": [
+      5528,
+      5955
+    ],
+    "total_submit_us": 11483,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 17,
+    "variant": "repeat",
+    "submit_us": [
+      4886,
+      4740
+    ],
+    "total_submit_us": 9626,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 17,
+    "variant": "multidraw",
+    "submit_us": [
+      4772,
+      5202
+    ],
+    "total_submit_us": 9974,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 18,
+    "variant": "repeat",
+    "submit_us": [
+      4792,
+      4734
+    ],
+    "total_submit_us": 9526,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 18,
+    "variant": "multidraw",
+    "submit_us": [
+      4958,
+      5209
+    ],
+    "total_submit_us": 10167,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 32,
+    "sample": 19,
+    "variant": "repeat",
+    "submit_us": [
+      5032,
+      4828
+    ],
+    "total_submit_us": 9860,
+    "final_hash": "28616d2d"
+  },
+  {
+    "size": 32,
+    "sample": 19,
+    "variant": "multidraw",
+    "submit_us": [
+      4780,
+      5216
+    ],
+    "total_submit_us": 9996,
+    "final_hash": "225b1ba1"
+  },
+  {
+    "size": 64,
+    "sample": 0,
+    "variant": "repeat",
+    "submit_us": [
+      4963,
+      4934
+    ],
+    "total_submit_us": 9897,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 0,
+    "variant": "multidraw",
+    "submit_us": [
+      4815,
+      5351
+    ],
+    "total_submit_us": 10166,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 1,
+    "variant": "repeat",
+    "submit_us": [
+      4819,
+      4780
+    ],
+    "total_submit_us": 9599,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 1,
+    "variant": "multidraw",
+    "submit_us": [
+      4910,
+      5255
+    ],
+    "total_submit_us": 10165,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 2,
+    "variant": "repeat",
+    "submit_us": [
+      4922,
+      4773
+    ],
+    "total_submit_us": 9695,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 2,
+    "variant": "multidraw",
+    "submit_us": [
+      5561,
+      6004
+    ],
+    "total_submit_us": 11565,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 3,
+    "variant": "repeat",
+    "submit_us": [
+      5000,
+      4949
+    ],
+    "total_submit_us": 9949,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 3,
+    "variant": "multidraw",
+    "submit_us": [
+      4843,
+      5265
+    ],
+    "total_submit_us": 10108,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 4,
+    "variant": "repeat",
+    "submit_us": [
+      4986,
+      4770
+    ],
+    "total_submit_us": 9756,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 4,
+    "variant": "multidraw",
+    "submit_us": [
+      5568,
+      6077
+    ],
+    "total_submit_us": 11645,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 5,
+    "variant": "repeat",
+    "submit_us": [
+      4931,
+      4856
+    ],
+    "total_submit_us": 9787,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 5,
+    "variant": "multidraw",
+    "submit_us": [
+      4808,
+      5169
+    ],
+    "total_submit_us": 9977,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 6,
+    "variant": "repeat",
+    "submit_us": [
+      4828,
+      4773
+    ],
+    "total_submit_us": 9601,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 6,
+    "variant": "multidraw",
+    "submit_us": [
+      5025,
+      5265
+    ],
+    "total_submit_us": 10290,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 7,
+    "variant": "repeat",
+    "submit_us": [
+      5069,
+      4953
+    ],
+    "total_submit_us": 10022,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 7,
+    "variant": "multidraw",
+    "submit_us": [
+      4798,
+      5255
+    ],
+    "total_submit_us": 10053,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 8,
+    "variant": "repeat",
+    "submit_us": [
+      4801,
+      4785
+    ],
+    "total_submit_us": 9586,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 8,
+    "variant": "multidraw",
+    "submit_us": [
+      5607,
+      5995
+    ],
+    "total_submit_us": 11602,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 9,
+    "variant": "repeat",
+    "submit_us": [
+      4809,
+      4778
+    ],
+    "total_submit_us": 9587,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 9,
+    "variant": "multidraw",
+    "submit_us": [
+      5009,
+      5259
+    ],
+    "total_submit_us": 10268,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 10,
+    "variant": "repeat",
+    "submit_us": [
+      4839,
+      4787
+    ],
+    "total_submit_us": 9626,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 10,
+    "variant": "multidraw",
+    "submit_us": [
+      5020,
+      5478
+    ],
+    "total_submit_us": 10498,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 11,
+    "variant": "repeat",
+    "submit_us": [
+      4958,
+      4805
+    ],
+    "total_submit_us": 9763,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 11,
+    "variant": "multidraw",
+    "submit_us": [
+      4817,
+      5243
+    ],
+    "total_submit_us": 10060,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 12,
+    "variant": "repeat",
+    "submit_us": [
+      4813,
+      4772
+    ],
+    "total_submit_us": 9585,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 12,
+    "variant": "multidraw",
+    "submit_us": [
+      5097,
+      5264
+    ],
+    "total_submit_us": 10361,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 13,
+    "variant": "repeat",
+    "submit_us": [
+      4900,
+      4772
+    ],
+    "total_submit_us": 9672,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 13,
+    "variant": "multidraw",
+    "submit_us": [
+      4863,
+      5260
+    ],
+    "total_submit_us": 10123,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 14,
+    "variant": "repeat",
+    "submit_us": [
+      4815,
+      4859
+    ],
+    "total_submit_us": 9674,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 14,
+    "variant": "multidraw",
+    "submit_us": [
+      4992,
+      5062
+    ],
+    "total_submit_us": 10054,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 15,
+    "variant": "repeat",
+    "submit_us": [
+      4831,
+      4789
+    ],
+    "total_submit_us": 9620,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 15,
+    "variant": "multidraw",
+    "submit_us": [
+      4892,
+      5251
+    ],
+    "total_submit_us": 10143,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 16,
+    "variant": "repeat",
+    "submit_us": [
+      5010,
+      4893
+    ],
+    "total_submit_us": 9903,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 16,
+    "variant": "multidraw",
+    "submit_us": [
+      4838,
+      5460
+    ],
+    "total_submit_us": 10298,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 17,
+    "variant": "repeat",
+    "submit_us": [
+      4824,
+      4764
+    ],
+    "total_submit_us": 9588,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 17,
+    "variant": "multidraw",
+    "submit_us": [
+      4823,
+      5263
+    ],
+    "total_submit_us": 10086,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 18,
+    "variant": "repeat",
+    "submit_us": [
+      4875,
+      4793
+    ],
+    "total_submit_us": 9668,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 18,
+    "variant": "multidraw",
+    "submit_us": [
+      5013,
+      5252
+    ],
+    "total_submit_us": 10265,
+    "final_hash": "bb1f873b"
+  },
+  {
+    "size": 64,
+    "sample": 19,
+    "variant": "repeat",
+    "submit_us": [
+      4917,
+      4717
+    ],
+    "total_submit_us": 9634,
+    "final_hash": "8aaee2f5"
+  },
+  {
+    "size": 64,
+    "sample": 19,
+    "variant": "multidraw",
+    "submit_us": [
+      4836,
+      5346
+    ],
+    "total_submit_us": 10182,
+    "final_hash": "bb1f873b"
+  }
+]

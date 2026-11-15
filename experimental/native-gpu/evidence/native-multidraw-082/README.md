@@ -29,6 +29,27 @@ reproduction scripts and per-case logs are included. `physical-hashes.log`
 identifies the tested binaries. The shader compiler and SPIR-V Tools library
 are the previously validated binaries; this increment does not change them.
 
+## Blocking submission latency
+
+`measure-submit.py` interleaves 20 pairs of runs per target size on the same
+physical N100. Each run executes two verified draws. `repeat` submits one
+ordinary draw twice; `multidraw` submits two recorded draws from one render
+pass. The script checks the owner versions and pixel reports for every draw.
+It saves all 80 samples in `submit-samples.json` and the medians in
+`submit-summary.json`.
+
+| Target | Two ordinary submits | Two-draw render pass | Preserve second draw |
+| --- | ---: | ---: | ---: |
+| 32x32 | 9,606 µs | 10,041.5 µs | 5,226.5 µs |
+| 64x64 | 9,670 µs | 10,174 µs | 5,263.5 µs |
+
+These are sums of the Vulkan trace's blocking `submit_us`, not GPU execution
+times. Both variants still invoke the owner twice. The preserve path adds one
+`NativeVisible` call before it snapshots the target; its roughly 0.4–0.5 ms
+extra total is consistent with that call, but this comparison does not isolate
+its cost from different second-draw geometry. A true multi-draw performance
+gain requires one native RCS batch publication and completion for both draws.
+
 The latest measured selected runtime source inventory was 15,222,168 unique
 bytes at checkpoint 081. The changed runtime source files add an estimated
 1,457 bytes against checkpoint 080's manifest, giving **15,223,625 bytes**
