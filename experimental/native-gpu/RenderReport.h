@@ -85,12 +85,18 @@ struct native_gpu_render_command {
 // Version 19 uses the same direct-target fields and preserves the image's
 // previous pixels outside the current triangle. Image offset may be zero.
 // The owner snapshots the prior image and verifies retained pixels after GPU
-// completion. Use only after a preceding draw in the same Vulkan render pass.
+// completion. It may also preserve pixels across separate queue submissions.
 // Version 20 draws two contiguous triangles from one vertex resource (96
 // bytes) with one fragment shader, one direct 32x32 or 64x64 target, and one RCS
 // publication. The first vertex offset and resource handles use version-15
 // fields. Vertex shader handle must be zero; the target starts at offset 0.
 // The v1-v8 4 KiB ABI remains unchanged.
+// Version 22 draws one indexed triangle using four vec4 vertices in the
+// public vertex BO and three 16-bit indices in a distinct public index BO.
+// Input output bytes 0..3 select the vertex offset, 8..11 the direct target,
+// 24..27 the index BO handle, and 28..31 its 2-byte-aligned offset. Bytes
+// 4..7 must be zero. The owner validates and snapshots the selected indices
+// into a private GPU page; the GPU fetches indices and vertices itself.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {
  native_gpu_render_command base;

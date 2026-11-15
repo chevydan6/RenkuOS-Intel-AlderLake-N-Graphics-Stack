@@ -94,10 +94,12 @@ struct VkCommandPool_T {
 struct VkCommandBuffer_T {
  struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;
   VkDescriptorSet descriptor;
-  uint32_t vertexOffset;bool preserve;};
+  uint32_t vertexOffset;bool preserve;
+  VkBuffer index;uint32_t indexOffset;bool indexed;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
  VkBuffer boundVertex;VkDeviceSize boundVertexOffset;
+ VkBuffer boundIndex;VkDeviceSize boundIndexOffset;
  VkDescriptorSet boundDescriptor;
  Draw* draws;size_t drawCount,drawCapacity;
  bool recording;bool inRenderPass;bool drawn;bool complete;bool invalid;
@@ -199,6 +201,10 @@ vkGetPhysicalDeviceProperties(VkPhysicalDevice physical,VkPhysicalDeviceProperti
  properties->limits.maxFramebufferWidth=64;
  properties->limits.maxFramebufferHeight=64;
  properties->limits.maxColorAttachments=1;
+ properties->limits.maxDrawIndexedIndexValue=3;
+ properties->limits.maxVertexInputAttributes=1;
+ properties->limits.maxVertexInputBindings=1;
+ properties->limits.maxVertexInputBindingStride=16;
  properties->limits.maxMemoryAllocationCount=16;
  properties->limits.maxBoundDescriptorSets=1;
  properties->limits.maxPerStageDescriptorUniformBuffers=1;
@@ -530,6 +536,7 @@ vkCreateBuffer(VkDevice device,const VkBufferCreateInfo* info,
   || info->sharingMode!=VK_SHARING_MODE_EXCLUSIVE || !info->size
   || info->size>NativeGpu::RcsResourceRange::Pages*4096
   || (info->usage!=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+   && info->usage!=VK_BUFFER_USAGE_INDEX_BUFFER_BIT
    && info->usage!=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  VkBuffer_T* value=(VkBuffer_T*)calloc(1,sizeof(VkBuffer_T));
@@ -1224,6 +1231,7 @@ static void ResetCommandState(VkCommandBuffer_T* command)
 {
  command->pass=VK_NULL_HANDLE;command->framebuffer=VK_NULL_HANDLE;
  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+ command->boundIndex=VK_NULL_HANDLE;command->boundIndexOffset=0;
  command->boundDescriptor=VK_NULL_HANDLE;
  command->boundVertexOffset=0;
  command->drawCount=0;
@@ -1333,6 +1341,7 @@ vkCmdBeginRenderPass(VkCommandBuffer command,const VkRenderPassBeginInfo* info,
  }
  command->pass=info->renderPass;command->framebuffer=info->framebuffer;
  command->pipeline=VK_NULL_HANDLE;command->boundVertex=VK_NULL_HANDLE;
+ command->boundIndex=VK_NULL_HANDLE;command->boundIndexOffset=0;
  command->boundDescriptor=VK_NULL_HANDLE;
  command->boundVertexOffset=0;
  command->drawn=false;
@@ -1365,6 +1374,20 @@ vkCmdBindVertexBuffers(VkCommandBuffer command,uint32_t first,uint32_t count,
   command->invalid=true;return;
  }
  command->boundVertex=buffers[0];command->boundVertexOffset=offsets[0];
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdBindIndexBuffer(VkCommandBuffer command,VkBuffer buffer,
+ VkDeviceSize offset,VkIndexType type)
+{
+ if(!command)return;
+ if(!command->recording || !command->inRenderPass || !buffer
+  || buffer->device!=command->device || !buffer->memory
+  || buffer->usage!=VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+  || type!=VK_INDEX_TYPE_UINT16 || (offset&1) || offset>buffer->bytes){
+  command->invalid=true;return;
+ }
+ command->boundIndex=buffer;command->boundIndexOffset=offset;
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
@@ -1422,7 +1445,51 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
  for(size_t i=0;i<added;i++)
   command->draws[command->drawCount++]={command->framebuffer,
    command->pipeline,command->boundVertex,command->boundDescriptor,
-   uint32_t(start+i*48),command->pass->load || command->drawn || i!=0};
+   uint32_t(start+i*48),command->pass->load || command->drawn || i!=0,
+   VK_NULL_HANDLE,0,false};
+ command->drawn=true;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
+ uint32_t instanceCount,uint32_t firstIndex,int32_t vertexOffset,
+ uint32_t firstInstance)
+{
+ if(!command)return;
+ if(!command->recording || !command->inRenderPass || !command->pass
+  || command->pass->load || command->drawn || !command->pipeline
+  || !command->boundVertex || !command->boundIndex
+  || command->pipeline->vertexShaderHandle
+  || command->pipeline->uniformBuffer || command->pipeline->fragcoordGradient
+  || indexCount!=3 || instanceCount!=1 || vertexOffset || firstInstance){
+  command->invalid=true;return;
+ }
+ uint64_t vertexStart=command->boundVertexOffset;
+ uint64_t indexStart=command->boundIndexOffset+uint64_t(firstIndex)*2;
+ if(vertexStart>command->boundVertex->bytes
+  || 64>command->boundVertex->bytes-vertexStart
+  || (vertexStart&4095)>4096-64
+  || indexStart>command->boundIndex->bytes
+  || 6>command->boundIndex->bytes-indexStart
+  || (indexStart&4095)>4096-6){command->invalid=true;return;}
+ vertexStart+=command->boundVertex->memoryOffset;
+ indexStart+=command->boundIndex->memoryOffset;
+ if(vertexStart>UINT32_MAX || indexStart>UINT32_MAX
+  || command->drawCount==SIZE_MAX){command->invalid=true;return;}
+ if(command->drawCount==command->drawCapacity){
+  size_t next=command->drawCapacity?command->drawCapacity*2:4;
+  if(next<command->drawCapacity || next>SIZE_MAX/sizeof(VkCommandBuffer_T::Draw)){
+   command->invalid=true;return;
+  }
+  void* storage=realloc(command->draws,next*sizeof(VkCommandBuffer_T::Draw));
+  if(!storage){command->invalid=true;return;}
+  command->draws=(VkCommandBuffer_T::Draw*)storage;
+  command->drawCapacity=next;
+ }
+ auto& draw=command->draws[command->drawCount++];
+ draw={command->framebuffer,command->pipeline,command->boundVertex,
+  command->boundDescriptor,uint32_t(vertexStart),false,
+  command->boundIndex,uint32_t(indexStart),true};
  command->drawn=true;
 }
 
@@ -1533,6 +1600,11 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
     if(recorded.pipeline->width!=recorded.framebuffer->view->image->width)
      return VK_ERROR_FEATURE_NOT_PRESENT;
     if(recorded.preserve && !directTarget)return VK_ERROR_FEATURE_NOT_PRESENT;
+    if(recorded.indexed && (!directTarget || !recorded.index
+     || recorded.index->device!=device || !recorded.index->memory
+     || recorded.index->usage!=VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+     || recorded.framebuffer->view->image->memoryOffset))
+     return VK_ERROR_FEATURE_NOT_PRESENT;
     if(recorded.pipeline->uniformBuffer && (!directTarget
      || !recorded.descriptor || !recorded.descriptor->valid
      || recorded.descriptor->device!=device
@@ -1554,7 +1626,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  const auto& recorded=command->draws[k];
  const bool large=recorded.framebuffer->view->image->width==64;
  const bool uniform=recorded.pipeline->uniformBuffer;
- const bool nativeBatch=k+1<command->drawCount && directTarget
+ const bool nativeBatch=!recorded.indexed && k+1<command->drawCount
+  && !command->draws[k+1].indexed && directTarget
   && !uniform && !recorded.pipeline->vertexShaderHandle
   && !recorded.pipeline->fragcoordGradient
   && !recorded.framebuffer->view->image->memoryOffset
@@ -1570,7 +1643,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=nativeBatch?(recorded.preserve?21:20):recorded.preserve?19:
+ draw.version=recorded.indexed?22:
+  nativeBatch?(recorded.preserve?21:20):recorded.preserve?19:
   directTarget && recorded.framebuffer->view->image->memoryOffset?18:
   uniform?(uniformOffset?17:16):directTarget?15:recorded.vertexOffset
   ?(recorded.pipeline->vertexShaderHandle?14:13)
@@ -1582,7 +1656,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  draw.reserved=recorded.pipeline->shaderHandle;
  if(draw.version==13 || draw.version==14 || draw.version==15
   || draw.version==16 || draw.version==17 || draw.version==18
-  || draw.version==19 || draw.version==20 || draw.version==21)
+  || draw.version==19 || draw.version==20 || draw.version==21
+  || draw.version==22)
   memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
@@ -1593,7 +1668,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   sizeof(recorded.pipeline->vertexShaderHandle));
  if(draw.version==15 || draw.version==16 || draw.version==17
   || draw.version==18 || draw.version==19 || draw.version==20
-  || draw.version==21){
+  || draw.version==21 || draw.version==22){
   memcpy(draw.output+4,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
   memcpy(draw.output+8,&recorded.framebuffer->view->image->memory->handle,
@@ -1607,6 +1682,11 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   if(draw.version==18 || draw.version==19)memcpy(draw.output+20,
    &recorded.framebuffer->view->image->memoryOffset,
    sizeof(recorded.framebuffer->view->image->memoryOffset));
+  if(draw.version==22){
+   memcpy(draw.output+24,&recorded.index->memory->handle,
+    sizeof(recorded.index->memory->handle));
+   memcpy(draw.output+28,&recorded.indexOffset,sizeof(recorded.indexOffset));
+  }
  }
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=large
@@ -1661,7 +1741,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
   "\"draw_index\":%zu,\"draw_count\":%zu,\"gpu_draws\":%u,\"vertex_offset\":%u,\"direct_target\":%u,"
-  "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,\"image_offset\":%u,\"uniform_bo\":%u,\"uniform_offset\":%u,"
+  "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,\"image_offset\":%u,\"uniform_bo\":%u,\"uniform_offset\":%u,\"index_bo\":%u,\"index_offset\":%u,"
   "\"vertex_gpu_va\":\"%llx\",\"shader_gpu_va\":\"%llx\",\"image_gpu_va\":\"%llx\","
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
@@ -1674,6 +1754,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   recorded.framebuffer->view->image->memoryOffset,
   uniform?recorded.descriptor->buffer->memory->handle:0,
   uniformOffset,
+  recorded.indexed?recorded.index->memory->handle:0,
+  recorded.indexed?recorded.indexOffset:0,
   (unsigned long long)recorded.vertex->memory->gpu,
   (unsigned long long)recorded.pipeline->shaderGpu,
   (unsigned long long)recorded.framebuffer->view->image->memory->gpu,
@@ -1751,7 +1833,9 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkCmdBindPipeline);
  VK_PROC(vkCmdBindDescriptorSets);
  VK_PROC(vkCmdBindVertexBuffers);
+ VK_PROC(vkCmdBindIndexBuffer);
  VK_PROC(vkCmdDraw);
+ VK_PROC(vkCmdDrawIndexed);
  VK_PROC(vkCmdEndRenderPass);
  VK_PROC(vkEndCommandBuffer);
  VK_PROC(vkQueueSubmit);

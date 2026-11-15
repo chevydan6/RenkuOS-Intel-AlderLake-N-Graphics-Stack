@@ -1,0 +1,80 @@
+size=32 count=1 iteration=0
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=28616d2d
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":638,"observed":638,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36353,"shader_bo":19717,"vertex_shader_bo":0,"image_bo":36868,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36355,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5344,"write_ioctl_us":0,"submit_us":5346}
+size=32 count=1 iteration=1
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=28616d2d
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":639,"observed":639,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36481,"shader_bo":19845,"vertex_shader_bo":0,"image_bo":36996,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36483,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5751,"write_ioctl_us":0,"submit_us":5752}
+size=32 count=1 iteration=2
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=28616d2d
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":640,"observed":640,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36609,"shader_bo":19973,"vertex_shader_bo":0,"image_bo":37124,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36611,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5756,"write_ioctl_us":0,"submit_us":5758}
+size=32 count=2 iteration=0
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=459d92c5
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":641,"observed":641,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36737,"shader_bo":20101,"vertex_shader_bo":0,"image_bo":37252,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36739,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5020,"write_ioctl_us":0,"submit_us":5021}
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":642,"observed":642,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36737,"shader_bo":20101,"vertex_shader_bo":0,"image_bo":37252,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36739,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":766,"matched":766,"pixel_hash":"459d92c5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":4925,"write_ioctl_us":0,"submit_us":4926}
+size=32 count=2 iteration=1
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=459d92c5
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":643,"observed":643,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36865,"shader_bo":20229,"vertex_shader_bo":0,"image_bo":37380,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36867,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5780,"write_ioctl_us":0,"submit_us":5781}
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":644,"observed":644,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36865,"shader_bo":20229,"vertex_shader_bo":0,"image_bo":37380,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36867,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":766,"matched":766,"pixel_hash":"459d92c5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5712,"write_ioctl_us":0,"submit_us":5713}
+size=32 count=2 iteration=2
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=459d92c5
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":645,"observed":645,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36993,"shader_bo":20357,"vertex_shader_bo":0,"image_bo":37508,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36995,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5008,"write_ioctl_us":0,"submit_us":5009}
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":646,"observed":646,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":36993,"shader_bo":20357,"vertex_shader_bo":0,"image_bo":37508,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":36995,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":766,"matched":766,"pixel_hash":"459d92c5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":4955,"write_ioctl_us":0,"submit_us":4956}
+size=32 sequential reference
+Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d draws=1
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+size=32 indexbad
+Native Vulkan N100 invalid GPU index rejected before draw: PASS
+{"event":"vk_queue_submit","ioctl":-1,"write_ioctl":0,"version":22,"stage":0,"sequence":0,"observed":0,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":37249,"shader_bo":20485,"vertex_shader_bo":0,"image_bo":37764,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":37251,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"1f116dc5","fault":0,"engine_stage":0,"csb_error":0,"render_ioctl_us":8,"write_ioctl_us":0,"submit_us":9}
+size=32 indexalias
+Native Vulkan N100 aliased index BO rejected before draw: PASS
+{"event":"vk_queue_submit","ioctl":-1,"write_ioctl":0,"version":22,"stage":0,"sequence":0,"observed":0,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":37377,"shader_bo":20613,"vertex_shader_bo":0,"image_bo":37892,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":37377,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"1f116dc5","fault":0,"engine_stage":0,"csb_error":0,"render_ioctl_us":2,"write_ioctl_us":0,"submit_us":3}
+size=64 count=1 iteration=0
+Native Vulkan N100 64x64 GPU indexed triangle: PASS hash=8aaee2f5
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":648,"observed":648,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":37505,"shader_bo":20741,"vertex_shader_bo":0,"image_bo":38020,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":37507,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5225,"write_ioctl_us":0,"submit_us":5231}
+size=64 count=1 iteration=1
+Native Vulkan N100 64x64 GPU indexed triangle: PASS hash=8aaee2f5
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":649,"observed":649,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":37633,"shader_bo":20869,"vertex_shader_bo":0,"image_bo":38148,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":37635,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5781,"write_ioctl_us":0,"submit_us":5787}
+size=64 count=1 iteration=2
+Native Vulkan N100 64x64 GPU indexed triangle: PASS hash=8aaee2f5
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":650,"observed":650,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":37761,"shader_bo":20997,"vertex_shader_bo":0,"image_bo":38276,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":37763,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5005,"write_ioctl_us":0,"submit_us":5010}
+size=64 count=2 iteration=0
+Native Vulkan N100 64x64 GPU indexed triangle: PASS hash=5fdea115
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":651,"observed":651,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":37889,"shader_bo":21125,"vertex_shader_bo":0,"image_bo":38404,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":37891,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5036,"write_ioctl_us":0,"submit_us":5041}
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":652,"observed":652,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":37889,"shader_bo":21125,"vertex_shader_bo":0,"image_bo":38404,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":37891,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3487,"matched":3487,"pixel_hash":"5fdea115","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":4980,"write_ioctl_us":0,"submit_us":4986}
+size=64 count=2 iteration=1
+Native Vulkan N100 64x64 GPU indexed triangle: PASS hash=5fdea115
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":653,"observed":653,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":38017,"shader_bo":21253,"vertex_shader_bo":0,"image_bo":38532,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":38019,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5043,"write_ioctl_us":0,"submit_us":5048}
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":654,"observed":654,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":38017,"shader_bo":21253,"vertex_shader_bo":0,"image_bo":38532,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":38019,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3487,"matched":3487,"pixel_hash":"5fdea115","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":4983,"write_ioctl_us":0,"submit_us":4988}
+size=64 count=2 iteration=2
+Native Vulkan N100 64x64 GPU indexed triangle: PASS hash=5fdea115
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":655,"observed":655,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":38145,"shader_bo":21381,"vertex_shader_bo":0,"image_bo":38660,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":38147,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5008,"write_ioctl_us":0,"submit_us":5013}
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":22,"stage":12,"sequence":656,"observed":656,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":38145,"shader_bo":21381,"vertex_shader_bo":0,"image_bo":38660,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":38147,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":3487,"matched":3487,"pixel_hash":"5fdea115","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5028,"write_ioctl_us":0,"submit_us":5034}
+size=64 sequential reference
+Native Vulkan N100 64x64 triangle: PASS shape=0 hash=8aaee2f5 draws=1
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+size=64 indexbad
+Native Vulkan N100 invalid GPU index rejected before draw: PASS
+{"event":"vk_queue_submit","ioctl":-1,"write_ioctl":0,"version":22,"stage":0,"sequence":0,"observed":0,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":38401,"shader_bo":21509,"vertex_shader_bo":0,"image_bo":38916,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":38403,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"76efddc5","fault":0,"engine_stage":0,"csb_error":0,"render_ioctl_us":11,"write_ioctl_us":0,"submit_us":16}
+size=64 indexalias
+Native Vulkan N100 aliased index BO rejected before draw: PASS
+{"event":"vk_queue_submit","ioctl":-1,"write_ioctl":0,"version":22,"stage":0,"sequence":0,"observed":0,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":38529,"shader_bo":21637,"vertex_shader_bo":0,"image_bo":39044,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":38529,"index_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"76efddc5","fault":0,"engine_stage":0,"csb_error":0,"render_ioctl_us":4,"write_ioctl_us":0,"submit_us":9}
+direct target disabled
+Vulkan triangle failed at /boot/home/test-work/vulkan-indexed-bundle-094/vulkan/triangle_probe.cpp:710 (code 26)

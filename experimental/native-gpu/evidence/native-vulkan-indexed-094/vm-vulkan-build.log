@@ -1,0 +1,4 @@
+compiler pipeline probe: bounded RGB, vertex, and UBO programs PASS
+08a9fe64f1954e1ce8214e98bf5c9ab249e4e854dbc7133910af4a5a48f59f0c  /boot/home/test-work/vulkan-indexed-bundle-094/candidate-indexed/libvulkan.so
+235e5c9d63d71e27ade31282d049d65c5b2e95949ee2efdc632d53270be9d6fe  /boot/home/test-work/vulkan-indexed-bundle-094/candidate-indexed/triangle_probe
+8db2bf596d0f3aee740fb5292c5c3af6297391ee1c1a31c8ef846503c6206565  /boot/home/test-work/vulkan-indexed-bundle-094/candidate-indexed/compiler_pipeline_probe
