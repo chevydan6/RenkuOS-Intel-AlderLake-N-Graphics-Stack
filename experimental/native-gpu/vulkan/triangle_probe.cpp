@@ -40,6 +40,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"endva")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
+   && strcmp(argv[4],"batchgpu")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
    && strcmp(argv[4],"memoryoffset")
@@ -83,6 +84,7 @@ int main(int argc,char** argv)
  bool dual=argc==5 && !strcmp(argv[4],"dual");
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
  bool multiDraw=argc==5 && !strcmp(argv[4],"multidraw");
+ bool batchGpu=argc==5 && !strcmp(argv[4],"batchgpu");
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
  bool bindOffset=argc==5 && (!strcmp(argv[4],"offset")
   || !strcmp(argv[4],"rotateoffset") || !strcmp(argv[4],"depthoffset"));
@@ -95,6 +97,8 @@ int main(int argc,char** argv)
   || !strcmp(argv[4],"rotateimageoffset"));
  bool selectedVertexRange=bindOffset || firstVertex || pageOffset;
  bool twoPipelines=dual || multiPass || (multiDraw && !large);
+ if(batchGpu && (large || shape!=0 || argc!=5
+  || strcmp(argv[2],"original") || repeats!=2))return 40;
  if(large && (half || green75 || green90 || named || twoPipelines
   || batch || (depth && shape!=0)))return 40;
  if(fragcoord && (!large || shape!=0 || rotate || depth || twoPipelines
@@ -206,7 +210,7 @@ int main(int argc,char** argv)
  }
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
- bufferInfo.size=pageOffset?8192:selectedVertexRange?96:48;
+ bufferInfo.size=pageOffset?8192:selectedVertexRange || batchGpu?96:48;
  bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
  bufferInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
  VkBuffer vertex=VK_NULL_HANDLE;
@@ -244,7 +248,10 @@ int main(int argc,char** argv)
  }else if(vertexMemOffset){
   memcpy(mapped,positions[(shape+1)%4],48);
   memcpy((uint8_t*)mapped+4096,positions[shape],48);
- }else memcpy(mapped,positions[shape],48);
+ }else{
+  memcpy(mapped,positions[shape],48);
+  if(batchGpu)memcpy((uint8_t*)mapped+48,positions[2],48);
+ }
  VkMappedMemoryRange range={};range.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
  range.memory=vertexMemory;range.size=bufferInfo.size+(vertexMemOffset?4096:0);
  REQUIRE(vkFlushMappedMemoryRanges(device,1,&range)==VK_SUCCESS,12);
@@ -471,12 +478,13 @@ int main(int argc,char** argv)
  VkDeviceSize offset=pageOffset?4096:bindOffset?48:0;
  vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
  vkCmdDraw(command,3,1,firstVertex?3:0,0);
- vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
+ if(!batchGpu)vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
  if(multiDraw){
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,
    twoPipelines?secondPipeline:pipeline);
   vkCmdDraw(command,3,1,0,0);
  }
+ if(batchGpu)vkCmdDraw(command,3,1,3,0);
  vkCmdEndRenderPass(command);
  if(multiPass){
   vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
@@ -531,7 +539,7 @@ int main(int argc,char** argv)
   REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
    && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
   if(dependency)vkDestroySemaphore(device,dependency,nullptr);
- }else for(unsigned i=0;i<((multiPass || multiDraw)?1:repeats);i++){
+ }else for(unsigned i=0;i<((multiPass || multiDraw || batchGpu)?1:repeats);i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
   if(ubo){
@@ -563,7 +571,11 @@ int main(int argc,char** argv)
  for(unsigned i=0;i<dimension*dimension;i++)hash=(hash^pixels[i])*16777619u;
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(multiDraw){
+ if(batchGpu){
+  REQUIRE(hash==0xd23b1ba1 && pixels[0]==0x19537bad
+   && pixels[10*32+25]==0xffff4000
+   && pixels[20*32+10]==0xffff4000,30);
+ }else if(multiDraw){
   REQUIRE(pixels[0]==0x19537bad
    && pixels[(large?20:10)*dimension+(large?40:20)]==0xffff4000
    && pixels[(large?40:20)*dimension+(large?20:10)]
@@ -617,7 +629,8 @@ int main(int argc,char** argv)
   for(unsigned i=0;i<4096;i++)REQUIRE(((uint8_t*)guard)[i]==0xa5,77);
   vkUnmapMemory(device,imageMemory);
  }
- if(multiDraw)printf("Native Vulkan N100 %ux%u two draws in one render pass: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,shape,hash,repeats);
+ if(batchGpu)printf("Native Vulkan N100 two triangles: PASS hash=%08x draws=2\n",hash);
+ else if(multiDraw)printf("Native Vulkan N100 %ux%u two draws in one render pass: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,shape,hash,repeats);
  else if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
   ubo?"UBO ":fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):
   rotate?"rotated-vertex ":

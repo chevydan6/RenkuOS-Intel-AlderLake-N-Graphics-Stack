@@ -1,0 +1,15 @@
+{
+  "batch": {
+    "samples": 30,
+    "median_submit_us": 4931.0,
+    "minimum_submit_us": 4601,
+    "maximum_submit_us": 5632
+  },
+  "fallback": {
+    "samples": 30,
+    "median_submit_us": 10197.0,
+    "minimum_submit_us": 9924,
+    "maximum_submit_us": 11870
+  },
+  "median_reduction_percent": 51.6
+}

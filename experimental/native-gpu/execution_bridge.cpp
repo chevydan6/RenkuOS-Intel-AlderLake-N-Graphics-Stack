@@ -98,7 +98,7 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
    || s.render.version==13 || s.render.version==14
    || s.render.version==15 || s.render.version==16
    || s.render.version==17 || s.render.version==18
-   || s.render.version==19){
+   || s.render.version==19 || s.render.version==20){
    if(!s.resourceSession){
     status=s.resourceModule->open(&s.resourceSession);
     if(status!=B_OK)return status;

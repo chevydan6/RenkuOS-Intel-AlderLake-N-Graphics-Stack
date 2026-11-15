@@ -1,0 +1,3 @@
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":20,"stage":12,"sequence":364,"observed":364,"draw_index":0,"draw_count":2,"gpu_draws":2,"vertex_offset":0,"direct_target":1,"vertex_bo":20353,"shader_bo":20612,"vertex_shader_bo":0,"image_bo":20355,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"vertex_gpu_va":"410000","shader_gpu_va":"413000","image_gpu_va":"412000","checked":585,"matched":585,"pixel_hash":"d23b1ba1","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5213,"write_ioctl_us":0,"submit_us":5214}
+Native Vulkan N100 two triangles: PASS hash=d23b1ba1 draws=2

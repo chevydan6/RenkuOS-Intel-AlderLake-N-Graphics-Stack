@@ -107,6 +107,14 @@ selected 137 canonical project files, bringing the deduplicated selected
 runtime source measurement to 15,222,168 bytes. This is a host reproduction
 of the Haiku package target; the exact Haiku package build inputs, build-only
 generators, and model tokens are still unmeasured.
+The [one-pass multidraw checkpoint](../evidence/native-multidraw-082/README.md)
+preserves the render target across two draws and verifies the complete 32x32
+and 64x64 images on the N100. Its initial path uses two blocking owner calls.
+The [native GPU batch checkpoint](../evidence/native-gpubatch-083/README.md)
+combines a bounded pair of 32x32 triangles sharing a pipeline and contiguous
+vertex data into one owner call and one RCS completion. The physical N100
+matched the complete output image; median blocking submit time fell 51.6%
+for that workload, and the prior 262 regression draws passed.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

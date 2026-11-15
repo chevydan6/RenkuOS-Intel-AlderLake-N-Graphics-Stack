@@ -62,6 +62,28 @@ public:
   return haveInterior && haveExterior && found.matched==found.checked;
  }
 
+ static bool InspectPair(const volatile uint32_t* target,const uint32_t* first,
+  const uint32_t* second,Check& check,uint32_t renderedPixel) {
+  Coord a[3]={},b[3]={};
+  if(!target || !Validate(first,a) || !Validate(second,b))return false;
+  Check found={0,0,2166136261u,0,0};
+  bool haveInterior=false,haveExterior=false;
+  for(int y=0;y<32;y++)for(int x=0;x<32;x++){
+   uint32_t observed=target[y*32+x];
+   found.hash=(found.hash^observed)*16777619u;
+   int firstKind=Classify(a,x,y),secondKind=Classify(b,x,y);
+   if(firstKind<0 || secondKind<0)continue;
+   bool inside=firstKind==1 || secondKind==1;
+   uint32_t expected=inside?renderedPixel:RcsDrawImage::Poison;
+   found.checked++;found.matched+=observed==expected;
+   if(inside && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
+   if(!inside && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}
+  }
+  check=found;
+  return haveInterior && haveExterior && found.checked>=500
+   && found.matched==found.checked;
+ }
+
  static bool Inspect64(uint32_t* const* pages,const uint32_t* words,Check& check,
   uint32_t renderedPixel=RcsDrawImage::RenderedPixel,
   unsigned fragcoordDenominator=0,bool fragcoordGreen=false,
