@@ -97,6 +97,8 @@ struct native_gpu_render_command {
 // 24..27 the index BO handle, and 28..31 its 2-byte-aligned offset. Bytes
 // 4..7 must be zero. The owner validates and snapshots the selected indices
 // into a private GPU page; the GPU fetches indices and vertices itself.
+// Version 23 uses the same indexed request and preserves existing image
+// pixels outside the selected triangle, including across render passes.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {
  native_gpu_render_command base;

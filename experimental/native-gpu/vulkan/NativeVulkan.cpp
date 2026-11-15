@@ -1457,7 +1457,7 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
 {
  if(!command)return;
  if(!command->recording || !command->inRenderPass || !command->pass
-  || command->pass->load || command->drawn || !command->pipeline
+  || !command->pipeline
   || !command->boundVertex || !command->boundIndex
   || command->pipeline->vertexShaderHandle
   || command->pipeline->uniformBuffer || command->pipeline->fragcoordGradient
@@ -1488,7 +1488,8 @@ vkCmdDrawIndexed(VkCommandBuffer command,uint32_t indexCount,
  }
  auto& draw=command->draws[command->drawCount++];
  draw={command->framebuffer,command->pipeline,command->boundVertex,
-  command->boundDescriptor,uint32_t(vertexStart),false,
+  command->boundDescriptor,uint32_t(vertexStart),
+  command->pass->load || command->drawn,
   command->boundIndex,uint32_t(indexStart),true};
  command->drawn=true;
 }
@@ -1643,7 +1644,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=recorded.indexed?22:
+ draw.version=recorded.indexed?(recorded.preserve?23:22):
   nativeBatch?(recorded.preserve?21:20):recorded.preserve?19:
   directTarget && recorded.framebuffer->view->image->memoryOffset?18:
   uniform?(uniformOffset?17:16):directTarget?15:recorded.vertexOffset
@@ -1657,7 +1658,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(draw.version==13 || draw.version==14 || draw.version==15
   || draw.version==16 || draw.version==17 || draw.version==18
   || draw.version==19 || draw.version==20 || draw.version==21
-  || draw.version==22)
+  || draw.version==22 || draw.version==23)
   memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
@@ -1668,7 +1669,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   sizeof(recorded.pipeline->vertexShaderHandle));
  if(draw.version==15 || draw.version==16 || draw.version==17
   || draw.version==18 || draw.version==19 || draw.version==20
-  || draw.version==21 || draw.version==22){
+  || draw.version==21 || draw.version==22 || draw.version==23){
   memcpy(draw.output+4,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
   memcpy(draw.output+8,&recorded.framebuffer->view->image->memory->handle,
@@ -1682,7 +1683,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   if(draw.version==18 || draw.version==19)memcpy(draw.output+20,
    &recorded.framebuffer->view->image->memoryOffset,
    sizeof(recorded.framebuffer->view->image->memoryOffset));
-  if(draw.version==22){
+  if(draw.version==22 || draw.version==23){
    memcpy(draw.output+24,&recorded.index->memory->handle,
     sizeof(recorded.index->memory->handle));
    memcpy(draw.output+28,&recorded.indexOffset,sizeof(recorded.indexOffset));

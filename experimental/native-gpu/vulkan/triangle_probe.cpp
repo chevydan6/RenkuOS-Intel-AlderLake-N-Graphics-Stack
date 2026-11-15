@@ -42,6 +42,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"loadsubmit")
    && strcmp(argv[4],"indexed") && strcmp(argv[4],"indexbad")
    && strcmp(argv[4],"indexalias")
+   && strcmp(argv[4],"indexpair") && strcmp(argv[4],"indexpairref")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
    && strcmp(argv[4],"batchgpu")
@@ -94,8 +95,10 @@ int main(int argc,char** argv)
  bool loadSubmit=argc==5 && !strcmp(argv[4],"loadsubmit");
  bool indexBad=argc==5 && !strcmp(argv[4],"indexbad");
  bool indexAlias=argc==5 && !strcmp(argv[4],"indexalias");
+ bool indexPair=argc==5 && !strcmp(argv[4],"indexpair");
+ bool indexPairReference=argc==5 && !strcmp(argv[4],"indexpairref");
  bool indexed=argc==5 && (!strcmp(argv[4],"indexed") || indexBad
-  || indexAlias);
+  || indexAlias || indexPair);
  bool loadPass=argc==5 && (!strcmp(argv[4],"loadpass") || loadSubmit);
  bool multiDraw=argc==5 && !strcmp(argv[4],"multidraw");
  bool batchGpu=argc==5 && !strcmp(argv[4],"batchgpu");
@@ -139,6 +142,8 @@ int main(int argc,char** argv)
   || strcmp(argv[2],"original") || repeats>4 || (endVa && large)))return 40;
  if(indexed && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats>2 || ((indexBad || indexAlias) && repeats!=1)))return 40;
+ if((indexPair || indexPairReference) && (shape!=0 || repeats!=2
+  || strcmp(argv[2],"original")))return 40;
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(vertexMemOffset && (shape!=0 || repeats>8 || argc<3
   || strcmp(argv[2],"original")))return 40;
@@ -246,7 +251,7 @@ int main(int argc,char** argv)
  }
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
- bufferInfo.size=(pageOffset || drawPage)?8192:indexed?64:
+ bufferInfo.size=(pageOffset || drawPage)?8192:indexPairReference?96:indexed?64:
   fourTriangles?192:threeTriangles?144:
   (selectedVertexRange || twoTriangles)?96:48;
  bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -293,13 +298,21 @@ int main(int argc,char** argv)
  }else if(drawPage){
   memcpy((uint8_t*)mapped+4096-48,positions[shape],48);
   memcpy((uint8_t*)mapped+4096,positions[2],48);
+ }else if(indexPairReference){
+  const uint32_t complement[12]={
+   0xbf400000,0xbf400000,0x3f000000,0x3f800000,
+   0x3f400000,0x3f400000,0x3f000000,0x3f800000,
+   0xbf400000,0x3f400000,0x3f000000,0x3f800000};
+  memcpy(mapped,positions[0],48);
+  memcpy((uint8_t*)mapped+48,complement,48);
  }else{
   memcpy(mapped,positions[shape],48);
   if(indexed){
    uint8_t saved[16];memcpy(saved,(uint8_t*)mapped+16,16);
    memcpy((uint8_t*)mapped+16,(uint8_t*)mapped+32,16);
    memcpy((uint8_t*)mapped+32,saved,16);
-   const uint32_t alternative[4]={0,0xbf400000,0x3f000000,0x3f800000};
+   const uint32_t alternative[4]={indexPair?0xbf400000u:0u,
+    indexPair?0x3f400000u:0xbf400000u,0x3f000000,0x3f800000};
    memcpy((uint8_t*)mapped+48,alternative,16);
   }
   if(twoTriangles)memcpy((uint8_t*)mapped+48,positions[2],48);
@@ -328,7 +341,8 @@ int main(int argc,char** argv)
  VkBuffer index=VK_NULL_HANDLE;
  VkDeviceMemory indexMemory=VK_NULL_HANDLE;
  if(indexed){
-  bufferInfo.size=6;bufferInfo.usage=VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+  bufferInfo.size=indexPair?12:6;
+  bufferInfo.usage=VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
   REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&index)==VK_SUCCESS,80);
   vkGetBufferMemoryRequirements(device,index,&requirement);
   allocation.allocationSize=requirement.size;
@@ -336,11 +350,11 @@ int main(int argc,char** argv)
   REQUIRE(vkBindBufferMemory(device,index,
    indexAlias?vertexMemory:indexMemory,0)==VK_SUCCESS,82);
   void* indexMapped=nullptr;
-  REQUIRE(vkMapMemory(device,indexMemory,0,6,0,&indexMapped)==VK_SUCCESS
+  REQUIRE(vkMapMemory(device,indexMemory,0,bufferInfo.size,0,&indexMapped)==VK_SUCCESS
    && indexMapped,83);
-  const uint16_t order[3]={0,uint16_t(indexBad?4:2),1};
-  memcpy(indexMapped,order,sizeof(order));
-  range.memory=indexMemory;range.size=6;
+  const uint16_t order[6]={0,uint16_t(indexBad?4:2),1,0,1,3};
+  memcpy(indexMapped,order,bufferInfo.size);
+  range.memory=indexMemory;range.size=bufferInfo.size;
   REQUIRE(vkFlushMappedMemoryRanges(device,1,&range)==VK_SUCCESS,84);
   vkUnmapMemory(device,indexMemory);
  }
@@ -569,10 +583,11 @@ int main(int argc,char** argv)
  VkDeviceSize offset=pageOffset?4096:drawPage?4096-48:bindOffset?48:0;
  vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
  const uint32_t drawVertices=drawTwelve?12:drawNine?9:
-  (drawSix || drawPage)?6:3;
+  (drawSix || drawPage || indexPairReference)?6:3;
  if(indexed){
   vkCmdBindIndexBuffer(command,index,0,VK_INDEX_TYPE_UINT16);
   vkCmdDrawIndexed(command,3,1,0,0,0);
+  if(indexPair)vkCmdDrawIndexed(command,3,1,3,0,0);
  }else vkCmdDraw(command,drawVertices,1,firstVertex?3:0,0);
  if(!twoTriangles && !threeTriangles && !fourTriangles)
   vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
@@ -670,7 +685,8 @@ int main(int argc,char** argv)
    && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
   if(dependency)vkDestroySemaphore(device,dependency,nullptr);
  }else for(unsigned i=0;i<((multiPass || loadPass || multiDraw || twoTriangles
-  || threeTriangles || fourTriangles)?1:repeats);i++){
+  || threeTriangles || fourTriangles || indexPair
+  || indexPairReference)?1:repeats);i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
   if(indexed && i){
@@ -722,7 +738,10 @@ int main(int argc,char** argv)
  for(unsigned i=0;i<dimension*dimension;i++)hash=(hash^pixels[i])*16777619u;
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(indexed && repeats==2){
+ if(indexPair || indexPairReference){
+  REQUIRE(hash==(large?0x554d3ec5:0x261a8285)
+   && pixels[0]==0x19537bad,30);
+ }else if(indexed && repeats==2){
   REQUIRE(hash==(large?0x5fdea115:0x459d92c5)
    && pixels[0]==0x19537bad,30);
  }else if(fourTriangles){
@@ -790,7 +809,10 @@ int main(int argc,char** argv)
   for(unsigned i=0;i<4096;i++)REQUIRE(((uint8_t*)guard)[i]==0xa5,77);
   vkUnmapMemory(device,imageMemory);
  }
- if(indexed)printf("Native Vulkan N100 %ux%u GPU indexed triangle: PASS hash=%08x\n",
+ if(indexPair || indexPairReference)
+  printf("Native Vulkan N100 %ux%u %s pair: PASS hash=%08x\n",
+   dimension,dimension,indexPair?"indexed":"reference",hash);
+ else if(indexed)printf("Native Vulkan N100 %ux%u GPU indexed triangle: PASS hash=%08x\n",
   dimension,dimension,hash);
  else if(batchGpu)printf("Native Vulkan N100 %ux%u two triangles: PASS hash=%08x draws=2\n",
   dimension,dimension,hash);

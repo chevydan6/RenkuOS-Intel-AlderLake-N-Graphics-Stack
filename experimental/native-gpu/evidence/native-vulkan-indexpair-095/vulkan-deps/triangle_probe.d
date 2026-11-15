@@ -1,0 +1,27 @@
+triangle_probe.o: \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/vulkan/triangle_probe.cpp \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vulkan/vulkan.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vulkan/vk_platform.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vulkan/vulkan_core.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h264std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codecs_common.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h264std_encode.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h264std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h265std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h265std_encode.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h265std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h264std_decode.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_h265std_decode.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_av1std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_av1std_decode.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_av1std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_av1std_encode.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_vp9std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_vp9std_decode.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/include/vk_video/vulkan_video_codec_vp9std.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/vulkan/KnownSpirv.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/vulkan/RgbSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/vulkan/DepthSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/vulkan/RotateSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/vulkan/FragCoordSpirvFixture.h \
+ /boot/home/test-work/vulkan-indexpair-bundle-095/vulkan/UboSpirvFixture.h
