@@ -1,0 +1,6 @@
+CASE 0 original 2 memoryoffset rc=10
+
+Vulkan triangle failed at /boot/home/test-work/vulkan-ubo-075/vulkan/triangle_probe.cpp:214 (code 10)
+CASE 0 ubomemoffset 2 rc=67
+
+Vulkan triangle failed at /boot/home/test-work/vulkan-ubo-075/vulkan/triangle_probe.cpp:266 (code 67)

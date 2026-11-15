@@ -54,7 +54,7 @@ struct VkDeviceMemory_T {
 };
 struct VkBuffer_T {
  VkDevice_T* device;VkBuffer_T* next;VkDeviceSize bytes;VkBufferUsageFlags usage;
- VkDeviceMemory memory;
+ VkDeviceMemory memory;uint32_t memoryOffset;
 };
 struct VkImage_T {
  VkDevice_T* device;VkImage_T* next;VkDeviceMemory memory;uint32_t width;
@@ -752,10 +752,12 @@ vkBindBufferMemory(VkDevice device,VkBuffer buffer,VkDeviceMemory memory,
  VkDeviceSize offset)
 {
  if(!device || !buffer || !memory || buffer->device!=device
-  || memory->device!=device || buffer->memory || offset
-  || memory->bytes<((buffer->bytes+4095)&~VkDeviceSize(4095)))
+  || memory->device!=device || buffer->memory || (offset&4095)
+  || offset>memory->bytes
+  || ((buffer->bytes+4095)&~VkDeviceSize(4095))>memory->bytes-offset)
   return VK_ERROR_OUT_OF_DEVICE_MEMORY;
- buffer->memory=memory;return VK_SUCCESS;
+ buffer->memory=memory;buffer->memoryOffset=uint32_t(offset);
+ return VK_SUCCESS;
 }
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
@@ -1392,6 +1394,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   || 48>command->boundVertex->bytes-start || (start&4095)>4096-48){
   command->invalid=true;return;
  }
+ start+=command->boundVertex->memoryOffset;
  if(command->drawCount==command->drawCapacity){
   size_t next=command->drawCapacity?command->drawCapacity*2:4;
   if(next<command->drawCapacity || next>SIZE_MAX/sizeof(VkCommandBuffer_T::Draw)){
@@ -1532,10 +1535,12 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  const auto& recorded=command->draws[k];
  const bool large=recorded.framebuffer->view->image->width==64;
  const bool uniform=recorded.pipeline->uniformBuffer;
+ const uint32_t uniformOffset=uniform
+  ?recorded.descriptor->buffer->memoryOffset+recorded.descriptor->bufferOffset:0;
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=uniform?(recorded.descriptor->bufferOffset?17:16):directTarget?15:recorded.vertexOffset
+ draw.version=uniform?(uniformOffset?17:16):directTarget?15:recorded.vertexOffset
   ?(recorded.pipeline->vertexShaderHandle?14:13)
   :large?(recorded.pipeline->fragcoordGradient?12:
   recorded.pipeline->vertexShaderHandle?11:10):
@@ -1562,8 +1567,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
    &recorded.descriptor->buffer->memory->handle,
    sizeof(recorded.descriptor->buffer->memory->handle));
   if(draw.version==17)memcpy(draw.output+16,
-   &recorded.descriptor->bufferOffset,
-   sizeof(recorded.descriptor->bufferOffset));
+   &uniformOffset,sizeof(uniformOffset));
  }
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=large
@@ -1627,7 +1631,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   recorded.pipeline->vertexShaderHandle,
   recorded.framebuffer->view->image->memory->handle,
   uniform?recorded.descriptor->buffer->memory->handle:0,
-  uniform?recorded.descriptor->bufferOffset:0,
+  uniformOffset,
   (unsigned long long)recorded.vertex->memory->gpu,
   (unsigned long long)recorded.pipeline->shaderGpu,
   (unsigned long long)recorded.framebuffer->view->image->memory->gpu,

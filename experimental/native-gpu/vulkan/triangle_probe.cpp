@@ -29,6 +29,7 @@ int main(int argc,char** argv)
    && strcmp(argv[2],"fragcoord32") && strcmp(argv[2],"fragcoord128")
    && strcmp(argv[2],"fragcoordgreen")
    && strcmp(argv[2],"ubo") && strcmp(argv[2],"ubooffset")
+   && strcmp(argv[2],"ubomemoffset")
    && strcmp(argv[2],"fragcoordgreen32")
    && strcmp(argv[2],"fragcoordgreen128"))
   || (argc==5 && strcmp(argv[4],"batch")
@@ -40,6 +41,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
+   && strcmp(argv[4],"memoryoffset")
    && strcmp(argv[4],"rotateoffset") && strcmp(argv[4],"rotatepage")
    && strcmp(argv[4],"rotatefirst")
    && strcmp(argv[4],"depthoffset")))return 40;
@@ -52,7 +54,8 @@ int main(int argc,char** argv)
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
  bool uboOffset=argc>=3 && !strcmp(argv[2],"ubooffset");
- bool ubo=argc>=3 && (!strcmp(argv[2],"ubo") || uboOffset);
+ bool uboMemOffset=argc>=3 && !strcmp(argv[2],"ubomemoffset");
+ bool ubo=argc>=3 && (!strcmp(argv[2],"ubo") || uboOffset || uboMemOffset);
  bool fragcoordGreen=argc>=3 && (!strcmp(argv[2],"fragcoordgreen")
   || !strcmp(argv[2],"fragcoordgreen32")
   || !strcmp(argv[2],"fragcoordgreen128"));
@@ -83,6 +86,7 @@ int main(int argc,char** argv)
   || !strcmp(argv[4],"rotatefirst"));
  bool pageOffset=argc==5 && (!strcmp(argv[4],"pageoffset")
   || !strcmp(argv[4],"rotatepage"));
+ bool vertexMemOffset=argc==5 && !strcmp(argv[4],"memoryoffset");
  bool selectedVertexRange=bindOffset || firstVertex || pageOffset;
  bool twoPipelines=dual || multiPass;
  if(large && (half || green75 || green90 || named || twoPipelines
@@ -95,6 +99,8 @@ int main(int argc,char** argv)
  if((highVa || endVa) && (shape!=0 || argc!=5
   || strcmp(argv[2],"original") || repeats>4 || (endVa && large)))return 40;
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
+ if(vertexMemOffset && (shape!=0 || repeats>8 || argc<3
+  || strcmp(argv[2],"original")))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || ((batch || semaphoreBatch) && repeats!=2))return 40;
  if(ubo && (shape!=0 || repeats!=2 || argc==5))return 40;
@@ -201,10 +207,12 @@ int main(int argc,char** argv)
  REQUIRE(requirement.size==(pageOffset?8192u:4096u)
   && requirement.memoryTypeBits==1,8);
  VkMemoryAllocateInfo allocation={};allocation.sType=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
- allocation.memoryTypeIndex=0;allocation.allocationSize=requirement.size;
+ allocation.memoryTypeIndex=0;
+ allocation.allocationSize=requirement.size+(vertexMemOffset?4096:0);
  VkDeviceMemory vertexMemory=VK_NULL_HANDLE;
  REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&vertexMemory)==VK_SUCCESS,9);
- REQUIRE(vkBindBufferMemory(device,vertex,vertexMemory,0)==VK_SUCCESS,10);
+ REQUIRE(vkBindBufferMemory(device,vertex,vertexMemory,
+  vertexMemOffset?4096:0)==VK_SUCCESS,10);
  const uint32_t positions[4][12]={
   {0xbf400000,0xbf400000,0x3f000000,0x3f800000,
    0x3f400000,0xbf400000,0x3f000000,0x3f800000,
@@ -219,14 +227,18 @@ int main(int argc,char** argv)
    0x3f000000,0xbf000000,0x3f000000,0x3f800000,
    0x00000000,0x3f000000,0x3f000000,0x3f800000}};
  void* mapped=nullptr;
- REQUIRE(vkMapMemory(device,vertexMemory,0,bufferInfo.size,0,&mapped)==VK_SUCCESS
+ REQUIRE(vkMapMemory(device,vertexMemory,0,
+  bufferInfo.size+(vertexMemOffset?4096:0),0,&mapped)==VK_SUCCESS
   && mapped,11);
  if(selectedVertexRange){
   memcpy(mapped,positions[(shape+1)%4],48);
   memcpy((uint8_t*)mapped+(pageOffset?4096:48),positions[shape],48);
+ }else if(vertexMemOffset){
+  memcpy(mapped,positions[(shape+1)%4],48);
+  memcpy((uint8_t*)mapped+4096,positions[shape],48);
  }else memcpy(mapped,positions[shape],48);
  VkMappedMemoryRange range={};range.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
- range.memory=vertexMemory;range.size=bufferInfo.size;
+ range.memory=vertexMemory;range.size=bufferInfo.size+(vertexMemOffset?4096:0);
  REQUIRE(vkFlushMappedMemoryRanges(device,1,&range)==VK_SUCCESS,12);
  vkUnmapMemory(device,vertexMemory);
  VkBuffer laterVertex=VK_NULL_HANDLE;
@@ -249,10 +261,12 @@ int main(int argc,char** argv)
   bufferInfo.usage=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
   REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&uniform)==VK_SUCCESS,65);
   vkGetBufferMemoryRequirements(device,uniform,&requirement);
-  allocation.allocationSize=requirement.size;
+  allocation.allocationSize=requirement.size+(uboMemOffset?4096:0);
   REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&uniformMemory)==VK_SUCCESS,66);
-  REQUIRE(vkBindBufferMemory(device,uniform,uniformMemory,0)==VK_SUCCESS,67);
-  REQUIRE(vkMapMemory(device,uniformMemory,0,bufferInfo.size,0,&uniformMapped)==VK_SUCCESS
+  REQUIRE(vkBindBufferMemory(device,uniform,uniformMemory,
+   uboMemOffset?4096:0)==VK_SUCCESS,67);
+  REQUIRE(vkMapMemory(device,uniformMemory,0,
+   bufferInfo.size+(uboMemOffset?4096:0),0,&uniformMapped)==VK_SUCCESS
    && uniformMapped,68);
  }
 
@@ -498,14 +512,15 @@ int main(int argc,char** argv)
   if(ubo){
    const uint32_t colors[2][4]={{0x3f800000,0x3e800000,0,0x3f800000},
     {0,0x3f800000,0x3f000000,0x3f800000}};
-   if(uboOffset){
+   if(uboOffset || uboMemOffset){
     const uint32_t decoy[4]={0,0,0,0x3f800000};
     memcpy(uniformMapped,decoy,16);
    }
-   memcpy((uint8_t*)uniformMapped+(uboOffset?16:0),colors[i],16);
+   memcpy((uint8_t*)uniformMapped+(uboMemOffset?4096:uboOffset?16:0),colors[i],16);
    VkMappedMemoryRange uniformRange={};
    uniformRange.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-   uniformRange.memory=uniformMemory;uniformRange.size=uboOffset?32:16;
+   uniformRange.memory=uniformMemory;
+   uniformRange.size=uboMemOffset?4112:uboOffset?32:16;
    REQUIRE(vkFlushMappedMemoryRanges(device,1,&uniformRange)==VK_SUCCESS,72);
   }
   REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);
