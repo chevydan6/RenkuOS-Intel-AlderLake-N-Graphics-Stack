@@ -119,6 +119,30 @@ public:
    && found.matched==found.checked;
  }
 
+ static bool InspectPair64(uint32_t* const* pages,const uint32_t* first,
+  const uint32_t* second,Check& check,uint32_t renderedPixel) {
+  Coord a[3]={},b[3]={};
+  if(!pages || !Validate(first,a) || !Validate(second,b))return false;
+  for(unsigned p=6;p<10;p++)if(!pages[p])return false;
+  Check found={0,0,2166136261u,0,0};
+  bool haveInterior=false,haveExterior=false;
+  for(int y=0;y<64;y++)for(int x=0;x<64;x++){
+   unsigned index=unsigned(y*64+x);
+   uint32_t observed=pages[6+index/1024][index%1024];
+   found.hash=(found.hash^observed)*16777619u;
+   int firstKind=Classify(a,x,y,2),secondKind=Classify(b,x,y,2);
+   if(firstKind<0 || secondKind<0)continue;
+   bool inside=firstKind==1 || secondKind==1;
+   uint32_t expected=inside?renderedPixel:RcsDrawImage::Poison;
+   found.checked++;found.matched+=observed==expected;
+   if(inside && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
+   if(!inside && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}
+  }
+  check=found;
+  return haveInterior && haveExterior && found.checked>=2000
+   && found.matched==found.checked;
+ }
+
 private:
  static bool Decode(uint32_t bits,int& pixel) {
   static constexpr uint32_t encoded[25]={

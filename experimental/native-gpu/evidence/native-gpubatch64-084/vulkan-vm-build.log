@@ -1,0 +1,4 @@
+compiler pipeline probe: bounded RGB, vertex, and UBO programs PASS
+e81bdb1a9fbf914a7b9531ed21559dc84d4abc88e1aa903b746788581d65719d  /boot/home/test-work/vulkan-multidraw-082/candidate-batch64/libvulkan.so
+10e4d36481028aa2835ee8bfadd970001c8bf997ba91b1c23c008c2d2f5bc05e  /boot/home/test-work/vulkan-multidraw-082/candidate-batch64/triangle_probe
+7ab1e6e639be9848c10b40121b33ae6a9f397c1013962d1ef90e304330093a38  /boot/home/test-work/vulkan-multidraw-082/candidate-batch64/compiler_pipeline_probe

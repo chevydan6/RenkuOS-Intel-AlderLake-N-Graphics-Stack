@@ -1542,8 +1542,9 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  const auto& recorded=command->draws[k];
  const bool large=recorded.framebuffer->view->image->width==64;
  const bool uniform=recorded.pipeline->uniformBuffer;
- const bool nativeBatch=k+1<command->drawCount && directTarget && !large
+ const bool nativeBatch=k+1<command->drawCount && directTarget
   && !uniform && !recorded.pipeline->vertexShaderHandle
+  && !recorded.pipeline->fragcoordGradient
   && !recorded.framebuffer->view->image->memoryOffset && !recorded.preserve
   && command->draws[k+1].preserve
   && command->draws[k+1].framebuffer==recorded.framebuffer

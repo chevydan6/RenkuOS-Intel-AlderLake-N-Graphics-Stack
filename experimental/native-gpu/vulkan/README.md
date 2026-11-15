@@ -115,6 +115,11 @@ combines a bounded pair of 32x32 triangles sharing a pipeline and contiguous
 vertex data into one owner call and one RCS completion. The physical N100
 matched the complete output image; median blocking submit time fell 51.6%
 for that workload, and the prior 262 regression draws passed.
+The [64x64 native GPU batch checkpoint](../evidence/native-gpubatch64-084/README.md)
+extends that versioned owner request to the four-page target. The N100 matched
+all 4,096 output pixels against independently captured triangles. The median
+blocking submit time was 4,893.5 µs versus 10,218 µs for two publications;
+the prior 262 hardware regression draws passed again.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

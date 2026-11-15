@@ -97,7 +97,7 @@ int main(int argc,char** argv)
   || !strcmp(argv[4],"rotateimageoffset"));
  bool selectedVertexRange=bindOffset || firstVertex || pageOffset;
  bool twoPipelines=dual || multiPass || (multiDraw && !large);
- if(batchGpu && (large || shape!=0 || argc!=5
+ if(batchGpu && (shape!=0 || argc!=5
   || strcmp(argv[2],"original") || repeats!=2))return 40;
  if(large && (half || green75 || green90 || named || twoPipelines
   || batch || (depth && shape!=0)))return 40;
@@ -572,9 +572,10 @@ int main(int argc,char** argv)
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
  if(batchGpu){
-  REQUIRE(hash==0xd23b1ba1 && pixels[0]==0x19537bad
-   && pixels[10*32+25]==0xffff4000
-   && pixels[20*32+10]==0xffff4000,30);
+  REQUIRE(hash==(large?0xbb1f873b:0xd23b1ba1)
+   && pixels[0]==0x19537bad
+   && pixels[(large?20:10)*dimension+(large?50:25)]==0xffff4000
+   && pixels[(large?40:20)*dimension+(large?20:10)]==0xffff4000,30);
  }else if(multiDraw){
   REQUIRE(pixels[0]==0x19537bad
    && pixels[(large?20:10)*dimension+(large?40:20)]==0xffff4000
@@ -629,7 +630,8 @@ int main(int argc,char** argv)
   for(unsigned i=0;i<4096;i++)REQUIRE(((uint8_t*)guard)[i]==0xa5,77);
   vkUnmapMemory(device,imageMemory);
  }
- if(batchGpu)printf("Native Vulkan N100 two triangles: PASS hash=%08x draws=2\n",hash);
+ if(batchGpu)printf("Native Vulkan N100 %ux%u two triangles: PASS hash=%08x draws=2\n",
+  dimension,dimension,hash);
  else if(multiDraw)printf("Native Vulkan N100 %ux%u two draws in one render pass: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,shape,hash,repeats);
  else if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
   ubo?"UBO ":fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):

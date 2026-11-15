@@ -1,0 +1,5 @@
+486d9f3d5476a266305085280f1476c217d2e92d1e31dbf8629aab2aef08c82b  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+837385d1f4e7742d09dc133a2b1432d0bf22f47554a3c57dceccaf0a60c92b47  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_native_execution_bridge
+e81bdb1a9fbf914a7b9531ed21559dc84d4abc88e1aa903b746788581d65719d  /boot/home/native-gpubatch64-084/libvulkan.so
+10e4d36481028aa2835ee8bfadd970001c8bf997ba91b1c23c008c2d2f5bc05e  /boot/home/native-gpubatch64-084/triangle_probe
+2617d71d10a1bf62451a3d7b1ef7e11cc36a298ee98949ab2f79d612ed31991b  /boot/home/native-blake3-080/librenku_intel_compiler.so

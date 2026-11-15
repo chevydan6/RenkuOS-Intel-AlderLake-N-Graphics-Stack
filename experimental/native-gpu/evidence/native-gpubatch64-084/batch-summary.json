@@ -1,0 +1,32 @@
+{
+  "32": {
+    "batch": {
+      "samples": 20,
+      "median_submit_us": 4869.0,
+      "minimum_submit_us": 4800,
+      "maximum_submit_us": 5575
+    },
+    "fallback": {
+      "samples": 20,
+      "median_submit_us": 10072.5,
+      "minimum_submit_us": 9988,
+      "maximum_submit_us": 11481
+    },
+    "median_reduction_percent": 51.7
+  },
+  "64": {
+    "batch": {
+      "samples": 20,
+      "median_submit_us": 4893.5,
+      "minimum_submit_us": 4705,
+      "maximum_submit_us": 5634
+    },
+    "fallback": {
+      "samples": 20,
+      "median_submit_us": 10218.0,
+      "minimum_submit_us": 9990,
+      "maximum_submit_us": 11626
+    },
+    "median_reduction_percent": 52.1
+  }
+}

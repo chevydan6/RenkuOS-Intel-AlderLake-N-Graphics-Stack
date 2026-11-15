@@ -31,5 +31,15 @@ int main() {
  assert(!NativeGpu::RcsTwoDrawBatch::AppendContiguous(batch,1024));
  batch[323]=0;batch[294]=0x44fff0;
  assert(!NativeGpu::RcsTwoDrawBatch::AppendContiguous(batch,1024));
+
+ memset(batch,0,sizeof(batch));
+ for(unsigned i=0;i<NativeGpu::RcsDrawImage::BatchDwords;i++)
+  batch[i]=NativeGpu::RcsDrawImage64::BatchWord(i);
+ batch[294]=0x410000;
+ assert(NativeGpu::RcsPublicShader::PatchBatchWithVertex(batch,1024,
+  0x412000,0x410000,true));
+ assert(NativeGpu::RcsTwoDrawBatch::AppendContiguous(batch,1024));
+ assert(!memcmp(batch+316,expected,sizeof(expected)));
+ assert(batch[290]==0x003f003f && batch[334]==0x05000000);
  return 0;
 }

@@ -87,7 +87,7 @@ struct native_gpu_render_command {
 // The owner snapshots the prior image and verifies retained pixels after GPU
 // completion. Use only after a preceding draw in the same Vulkan render pass.
 // Version 20 draws two contiguous triangles from one vertex resource (96
-// bytes) with one fragment shader, one direct 32x32 target, and one RCS
+// bytes) with one fragment shader, one direct 32x32 or 64x64 target, and one RCS
 // publication. The first vertex offset and resource handles use version-15
 // fields. Vertex shader handle must be zero; the target starts at offset 0.
 // The v1-v8 4 KiB ABI remains unchanged.
