@@ -14,12 +14,12 @@ Vulkan 1.0 version is an **experimental API target**, not a conformance claim.
 The hardware-tested default build accepts one vertex and one fragment SPIR-V
 fixture and a fixed N100 pipeline and command shape. General shader execution,
 resource formats, command streams,
-semaphores, presentation, and broad Vulkan compatibility remain open. Basic
+timeline semaphores, presentation, and broad Vulkan compatibility remain open. Basic
 host fences now support creation, status, reset, wait, and signaling after a
 successful synchronous queue submission. A physical N100 triangle probe now
 tests fence state before submission, after GPU completion, and after reset.
 The compiler-backed path accepts multiple submit records and command buffers
-without semaphores; it validates the full call before executing commands in
+with binary semaphore dependencies; it validates the full call before executing commands in
 order and signals the fence after the final successful draw. A two-submit call
 and the original single-submit path passed on all four triangle shapes.
 It now accepts multiple graphics pipelines in one creation call, validates
@@ -62,6 +62,10 @@ The [green FragCoord checkpoint](../evidence/native-green-gradient-063/README.md
 adds a second hardware-tested gradient output channel at scales 1/32, 1/64,
 and 1/128. The updated native owner and Vulkan bundle passed 178 physical N100
 draws, and the selected runtime source closure is 12,629,415 bytes.
+The [binary semaphore checkpoint](../evidence/native-vulkan-semaphore-064/README.md)
+adds signal/wait ordering on the single synchronous queue. Its isolated Vulkan
+bundle passed 28 semaphore draws and 178 rendering regression draws on the
+N100. The measured selected runtime source closure is 12,633,124 bytes.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

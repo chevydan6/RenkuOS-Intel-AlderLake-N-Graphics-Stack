@@ -35,6 +35,12 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -DRENKU_VULKAN_USE_INTEL_COMPILER \
  -Wl,-rpath,"$RENKU_INTEL_COMPILER_LIB_DIR" \
  -o "$here/build-compiler/fence_probe"
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -DRENKU_VULKAN_USE_INTEL_COMPILER \
+ -MMD -MF "$here/build-compiler/semaphore_probe.d" \
+ -I"$RENKU_VULKAN_HEADERS" "$here/semaphore_probe.cpp" \
+ -L"$RENKU_INTEL_COMPILER_LIB_DIR" -lrenku_intel_compiler \
+ -Wl,-rpath,"$RENKU_INTEL_COMPILER_LIB_DIR" \
+ -o "$here/build-compiler/semaphore_probe"
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -DRENKU_VULKAN_USE_INTEL_COMPILER \
  -MMD -MF "$here/build-compiler/command_reset_probe.d" \
  -I"$RENKU_VULKAN_HEADERS" "$here/command_reset_probe.cpp" \
  -L"$RENKU_INTEL_COMPILER_LIB_DIR" -lrenku_intel_compiler \
@@ -52,10 +58,13 @@ LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boo
 LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/fence_probe"
 LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
+ "$here/build-compiler/semaphore_probe"
+LIBRARY_PATH="$root/lib:$RENKU_INTEL_COMPILER_LIB_DIR:/boot/home/config/lib:/boot/system/lib" \
  "$here/build-compiler/command_reset_probe"
 sha256sum "$here/build-compiler/libvulkan.so" \
  "$here/build-compiler/compiler_pipeline_probe" \
  "$here/build-compiler/compiler_pipeline_api_probe" \
  "$here/build-compiler/fence_probe" \
+ "$here/build-compiler/semaphore_probe" \
  "$here/build-compiler/command_reset_probe" \
  "$here/build-compiler/triangle_probe"

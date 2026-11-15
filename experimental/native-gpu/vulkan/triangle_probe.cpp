@@ -32,6 +32,7 @@ int main(int argc,char** argv)
   || (argc==5 && strcmp(argv[4],"batch")
    && strcmp(argv[4],"named") && strcmp(argv[4],"depth")
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
+   && strcmp(argv[4],"semaphore")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
@@ -58,6 +59,7 @@ int main(int argc,char** argv)
  char* repeatEnd=nullptr;
  unsigned long repeats=argc>=4?strtoul(argv[3],&repeatEnd,10):1;
  bool batch=argc==5 && !strcmp(argv[4],"batch");
+ bool semaphoreBatch=argc==5 && !strcmp(argv[4],"semaphore");
  bool named=argc==5 && !strcmp(argv[4],"named");
  bool depth=argc==5 && (!strcmp(argv[4],"depth")
   || !strcmp(argv[4],"depthoffset"));
@@ -84,7 +86,7 @@ int main(int argc,char** argv)
   || repeats!=2))return 40;
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
-  || (batch && repeats!=2))return 40;
+  || ((batch || semaphoreBatch) && repeats!=2))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
  memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
  bool alternateChanged=false;
@@ -351,10 +353,11 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateCommandPool(device,&poolInfo,nullptr,&pool)==VK_SUCCESS,22);
  VkCommandBufferAllocateInfo commandInfo={};commandInfo.sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
  commandInfo.commandPool=pool;commandInfo.level=VK_COMMAND_BUFFER_LEVEL_PRIMARY;
- commandInfo.commandBufferCount=(batch || dual)?2:1;
+ commandInfo.commandBufferCount=(batch || dual || semaphoreBatch)?2:1;
  VkCommandBuffer commands[2]={VK_NULL_HANDLE,VK_NULL_HANDLE};
  REQUIRE(vkAllocateCommandBuffers(device,&commandInfo,commands)==VK_SUCCESS
-  && commands[0] && (!(batch || dual) || (commands[1] && commands[1]!=commands[0])),23);
+  && commands[0] && (!(batch || dual || semaphoreBatch)
+   || (commands[1] && commands[1]!=commands[0])),23);
  VkCommandBuffer command=commands[0];
  VkCommandBufferBeginInfo begin={};begin.sType=VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
  REQUIRE(vkBeginCommandBuffer(command,&begin)==VK_SUCCESS,24);
@@ -377,7 +380,7 @@ int main(int argc,char** argv)
  }
  REQUIRE(vkEndCommandBuffer(command)==VK_SUCCESS,25);
  VkCommandBuffer second=commands[1];
- if(batch || dual){
+ if(batch || dual || semaphoreBatch){
   REQUIRE(vkBeginCommandBuffer(second,&begin)==VK_SUCCESS,53);
   vkCmdBeginRenderPass(second,&render,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(second,VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -394,12 +397,33 @@ int main(int argc,char** argv)
   && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_TIMEOUT,48);
  VkSubmitInfo submit={};submit.sType=VK_STRUCTURE_TYPE_SUBMIT_INFO;
  submit.commandBufferCount=1;submit.pCommandBuffers=&command;
- if(batch || dual){
+ if(batch || dual || semaphoreBatch){
   VkSubmitInfo submits[2]={submit,submit};
   submits[1].pCommandBuffers=&second;
+  VkSemaphore dependency=VK_NULL_HANDLE;
+  VkPipelineStageFlags stage=VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  if(semaphoreBatch){
+   VkSemaphoreCreateInfo semInfo={};semInfo.sType=VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+   REQUIRE(vkCreateSemaphore(device,&semInfo,nullptr,&dependency)==VK_SUCCESS
+    && dependency,61);
+   submits[0].signalSemaphoreCount=1;
+   submits[0].pSignalSemaphores=&dependency;
+   submits[1].waitSemaphoreCount=1;
+   submits[1].pWaitSemaphores=&dependency;
+   submits[1].pWaitDstStageMask=&stage;
+   VkSemaphore unsignaled=VK_NULL_HANDLE;
+   REQUIRE(vkCreateSemaphore(device,&semInfo,nullptr,&unsignaled)==VK_SUCCESS
+    && unsignaled,62);
+   submits[1].pWaitSemaphores=&unsignaled;
+   REQUIRE(vkQueueSubmit(queue,2,submits,fence)==VK_ERROR_INITIALIZATION_FAILED
+    && vkGetFenceStatus(device,fence)==VK_NOT_READY,63);
+   submits[1].pWaitSemaphores=&dependency;
+   vkDestroySemaphore(device,unsignaled,nullptr);
+  }
   REQUIRE(vkQueueSubmit(queue,2,submits,fence)==VK_SUCCESS,55);
   REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
    && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
+  if(dependency)vkDestroySemaphore(device,dependency,nullptr);
  }else for(unsigned i=0;i<(multiPass?1:repeats);i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
@@ -458,13 +482,14 @@ int main(int argc,char** argv)
   shape,hash,repeats);
  else if(multiPass)printf("Native Vulkan N100 two passes in one command buffer: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(dual)printf("Native Vulkan N100 dual pipeline: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
+ else if(semaphoreBatch)printf("Native Vulkan N100 binary semaphore: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(rgb)printf("Native Vulkan N100 RGB triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green90)printf("Native Vulkan N100 0.9-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(green75)printf("Native Vulkan N100 0.75-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else if(half)printf("Native Vulkan N100 half-green triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
  else printf("Native Vulkan N100 triangle: PASS shape=%u hash=%08x draws=%lu\n",shape,hash,repeats);
 
- if(batch || dual){VkCommandBuffer both[2]={command,second};vkFreeCommandBuffers(device,pool,2,both);}
+ if(batch || dual || semaphoreBatch){VkCommandBuffer both[2]={command,second};vkFreeCommandBuffers(device,pool,2,both);}
  else vkFreeCommandBuffers(device,pool,1,&command);
  vkDestroyCommandPool(device,pool,nullptr);
  REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS

@@ -41,7 +41,8 @@ def main():
     names = {p.name for p in depfiles}
     required = {"libvulkan.d"}
     api_probes = {"api_probe.d", "compiler_pipeline_api_probe.d"}
-    optional = {"triangle_probe.d", "fence_probe.d", "command_reset_probe.d",
+    optional = {"triangle_probe.d", "fence_probe.d", "semaphore_probe.d",
+                "command_reset_probe.d",
                 "compiler_pipeline_probe.d"}
     if (not required.issubset(names) or not (names & api_probes)
             or not names.issubset(required | api_probes | optional)):

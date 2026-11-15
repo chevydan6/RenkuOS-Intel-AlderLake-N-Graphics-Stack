@@ -31,6 +31,7 @@ struct VkFramebuffer_T;
 struct VkPipelineLayout_T;
 struct VkPipeline_T;
 struct VkFence_T;
+struct VkSemaphore_T;
 struct VkCommandPool_T;
 struct VkQueue_T { VkDevice_T* device; };
 struct VkDevice_T {
@@ -39,7 +40,7 @@ struct VkDevice_T {
  VkBuffer_T* buffers;VkImage_T* images;VkImageView_T* views;
  VkRenderPass_T* passes;VkFramebuffer_T* framebuffers;
  VkPipelineLayout_T* layouts;VkPipeline_T* pipelines;VkCommandPool_T* pools;
- VkFence_T* fences;
+ VkFence_T* fences;VkSemaphore_T* semaphores;
 };
 struct VkShaderModule_T { VkDevice_T* device; VkShaderModule_T* next; size_t bytes; uint32_t* code; };
 struct VkDeviceMemory_T {
@@ -65,6 +66,7 @@ struct VkPipeline_T {
  bool fragcoordGradient;
 };
 struct VkFence_T { VkDevice_T* device;VkFence_T* next;bool signaled; };
+struct VkSemaphore_T { VkDevice_T* device;VkSemaphore_T* next;bool signaled; };
 struct VkCommandBuffer_T;
 struct VkCommandPool_T {
  VkDevice_T* device;VkCommandPool_T* next;VkCommandBuffer_T* commands;
@@ -341,6 +343,10 @@ vkDestroyDevice(VkDevice device,const VkAllocationCallbacks*)
   VkFence_T* next=device->fences->next;
   free(device->fences);device->fences=next;
  }
+ while(device->semaphores){
+  VkSemaphore_T* next=device->semaphores->next;
+  free(device->semaphores);device->semaphores=next;
+ }
  close(device->fd);free(device);
 }
 
@@ -355,6 +361,29 @@ vkQueueWaitIdle(VkQueue queue)
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkDeviceWaitIdle(VkDevice device)
 {return device?VK_SUCCESS:VK_ERROR_DEVICE_LOST;}
+
+extern "C" VKAPI_ATTR VkResult VKAPI_CALL
+vkCreateSemaphore(VkDevice device,const VkSemaphoreCreateInfo* info,
+ const VkAllocationCallbacks* allocator,VkSemaphore* semaphore)
+{
+ if(semaphore)*semaphore=VK_NULL_HANDLE;
+ if(!device || !info || !semaphore || allocator || info->pNext || info->flags
+  || info->sType!=VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO)
+  return VK_ERROR_INITIALIZATION_FAILED;
+ VkSemaphore_T* value=(VkSemaphore_T*)calloc(1,sizeof(VkSemaphore_T));
+ if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ value->device=device;value->next=device->semaphores;
+ device->semaphores=value;*semaphore=value;return VK_SUCCESS;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkDestroySemaphore(VkDevice device,VkSemaphore semaphore,const VkAllocationCallbacks*)
+{
+ if(!device || !semaphore)return;
+ VkSemaphore_T** current=&device->semaphores;
+ while(*current && *current!=semaphore)current=&(*current)->next;
+ if(*current){*current=semaphore->next;free(semaphore);}
+}
 
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateFence(VkDevice device,const VkFenceCreateInfo* info,
@@ -1205,6 +1234,56 @@ vkEndCommandBuffer(VkCommandBuffer command)
  command->recording=false;command->complete=true;return VK_SUCCESS;
 }
 
+// Queue execution is synchronous today. Simulate all binary transitions before
+// the first draw so a bad later submit cannot partially execute the call.
+static VkResult ValidateSemaphoreSubmits(VkDevice device,uint32_t count,
+ const VkSubmitInfo* submits)
+{
+ size_t operations=0;
+ for(uint32_t i=0;i<count;i++){
+  const auto& submit=submits[i];
+  if((submit.waitSemaphoreCount && (!submit.pWaitSemaphores
+    || !submit.pWaitDstStageMask))
+   || (submit.signalSemaphoreCount && !submit.pSignalSemaphores))
+   return VK_ERROR_FEATURE_NOT_PRESENT;
+  if(operations>SIZE_MAX-submit.waitSemaphoreCount
+   || operations+submit.waitSemaphoreCount>SIZE_MAX-submit.signalSemaphoreCount)
+   return VK_ERROR_OUT_OF_HOST_MEMORY;
+  operations+=size_t(submit.waitSemaphoreCount)+submit.signalSemaphoreCount;
+ }
+ if(!operations)return VK_SUCCESS;
+ struct State {VkSemaphore semaphore;bool signaled;};
+ if(operations>SIZE_MAX/sizeof(State))return VK_ERROR_OUT_OF_HOST_MEMORY;
+ State* states=(State*)calloc(operations,sizeof(State));
+ if(!states)return VK_ERROR_OUT_OF_HOST_MEMORY;
+ size_t used=0;
+ auto state=[&](VkSemaphore semaphore)->State* {
+  if(!semaphore || semaphore->device!=device)return nullptr;
+  for(size_t i=0;i<used;i++)if(states[i].semaphore==semaphore)return &states[i];
+  State* found=&states[used++];found->semaphore=semaphore;
+  found->signaled=__atomic_load_n(&semaphore->signaled,__ATOMIC_ACQUIRE);
+  return found;
+ };
+ VkResult result=VK_SUCCESS;
+ for(uint32_t i=0;i<count && result==VK_SUCCESS;i++){
+  const auto& submit=submits[i];
+  for(uint32_t j=0;j<submit.waitSemaphoreCount;j++){
+   State* found=state(submit.pWaitSemaphores[j]);
+   if(!found || !submit.pWaitDstStageMask[j] || !found->signaled){
+    result=VK_ERROR_INITIALIZATION_FAILED;break;
+   }
+   found->signaled=false;
+  }
+  if(result!=VK_SUCCESS)break;
+  for(uint32_t j=0;j<submit.signalSemaphoreCount;j++){
+   State* found=state(submit.pSignalSemaphores[j]);
+   if(!found || found->signaled){result=VK_ERROR_INITIALIZATION_FAILED;break;}
+   found->signaled=true;
+  }
+ }
+ free(states);return result;
+}
+
 extern "C" VKAPI_ATTR VkResult VKAPI_CALL
 vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence fence)
 {
@@ -1221,7 +1300,6 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  for(uint32_t i=0;i<count;i++){
   const VkSubmitInfo& submit=submits[i];
   if(submit.sType!=VK_STRUCTURE_TYPE_SUBMIT_INFO || submit.pNext
-   || submit.waitSemaphoreCount || submit.signalSemaphoreCount
    || (submit.commandBufferCount && !submit.pCommandBuffers))
    return VK_ERROR_FEATURE_NOT_PRESENT;
   for(uint32_t j=0;j<submit.commandBufferCount;j++){
@@ -1243,7 +1321,11 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
    }
   }
  }
+ VkResult semaphoreState=ValidateSemaphoreSubmits(device,count,submits);
+ if(semaphoreState!=VK_SUCCESS)return semaphoreState;
  for(uint32_t i=0;i<count;i++){
+ for(uint32_t j=0;j<submits[i].waitSemaphoreCount;j++)
+  __atomic_store_n(&submits[i].pWaitSemaphores[j]->signaled,false,__ATOMIC_RELEASE);
  for(uint32_t j=0;j<submits[i].commandBufferCount;j++){
  VkCommandBuffer command=submits[i].pCommandBuffers[j];
  for(size_t k=0;k<command->drawCount;k++){
@@ -1342,6 +1424,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(!valid || writeStatus!=0)return VK_ERROR_DEVICE_LOST;
  }
  }
+ for(uint32_t j=0;j<submits[i].signalSemaphoreCount;j++)
+  __atomic_store_n(&submits[i].pSignalSemaphores[j]->signaled,true,__ATOMIC_RELEASE);
  }
  if(fence)__atomic_store_n(&fence->signaled,true,__ATOMIC_RELEASE);
  return VK_SUCCESS;
@@ -1358,6 +1442,8 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkQueueWaitIdle);
  VK_PROC(vkDeviceWaitIdle);
  VK_PROC(vkCreateFence);
+ VK_PROC(vkCreateSemaphore);
+ VK_PROC(vkDestroySemaphore);
  VK_PROC(vkDestroyFence);
  VK_PROC(vkGetFenceStatus);
  VK_PROC(vkResetFences);

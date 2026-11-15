@@ -1,0 +1,4 @@
+compiler pipeline probe: accepted bounded RGB and vertex programs; rejected changed instructions and invalid input
+800d657695b12676137627700e039202f3bb73f32010c1141382e235d95a58f5  /boot/home/test-work/native-semaphore-064/libvulkan.so
+b1901b9b6f1643ea96810e9434e13fe12686f296e5fab5eee80b4b8c70720b55  /boot/home/test-work/native-semaphore-064/triangle_probe
+0cd1766eee7ece57ed2d1663899ea8cf205744729a92d01a228bb00a79235f2e  /boot/home/test-work/native-semaphore-064/compiler_pipeline_probe
