@@ -1083,8 +1083,7 @@ static VkResult CreateGraphicsPipelineOne(VkDevice device,
  if(fragcoordGradient && (customVertex
   || info.pViewportState->pViewports[0].width!=64))
   return VK_ERROR_FEATURE_NOT_PRESENT;
- if(uniformBuffer && (customVertex || !info.layout->setLayout
-  || info.pViewportState->pViewports[0].width!=32))
+ if(uniformBuffer && (customVertex || !info.layout->setLayout))
   return VK_ERROR_FEATURE_NOT_PRESENT;
  VkPipeline_T* value=(VkPipeline_T*)calloc(1,sizeof(VkPipeline_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -1565,7 +1564,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  int status=large
   ?ioctl(device->fd,NATIVE_GPU_RENDER_LARGE_IOCTL,&largeDraw,sizeof(largeDraw))
   :ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&smallDraw,sizeof(smallDraw));
- if(large && (draw.version==12 || draw.version==15)){
+ if(large && (draw.version==12 || draw.version==15 || draw.version==16)){
   const char* capture=getenv("RENKU_VK_CAPTURE_PIXELS");
   if(capture){
    FILE* file=fopen(capture,"wb");

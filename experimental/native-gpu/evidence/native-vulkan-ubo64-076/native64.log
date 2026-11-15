@@ -1,0 +1,4 @@
+shader_read=0 exact=1
+ubo_draw=0 size=64 ioctl=0 status=0 stage=12 seq=688/688 version=16 refusal=0 handles=29185,29186,29187,29956 expected=ffff4000 checked=3476/3476 hash=8aaee2f5 fault=00000000
+ubo_draw=1 size=64 ioctl=0 status=0 stage=12 seq=689/689 version=16 refusal=0 handles=29185,29186,29187,29956 expected=ff00ff80 checked=3476/3476 hash=8df12ff5 fault=00000000
+RCS UBO color draw: PASS

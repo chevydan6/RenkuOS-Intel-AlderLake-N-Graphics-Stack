@@ -86,6 +86,11 @@ application changed its mapped 16-byte buffer between two submissions and
 verified both N100 images. The isolated compiler and Vulkan bundle also passed
 222 prior hardware regression draws. The selected runtime source closure is
 12,667,193 bytes, with model tokens still unmeasured.
+The [64×64 UBO checkpoint](../evidence/native-vulkan-ubo64-076/README.md)
+extends the same descriptor-backed fragment program to the larger render
+target. Two N100 draws matched 3,476/3,476 checked pixels each, and the final
+raw image was captured. The existing 222-draw regression matrix passed; the
+selected runtime source closure is 12,667,163 bytes.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the

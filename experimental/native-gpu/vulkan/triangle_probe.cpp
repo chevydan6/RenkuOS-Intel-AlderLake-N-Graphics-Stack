@@ -96,7 +96,7 @@ int main(int argc,char** argv)
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || ((batch || semaphoreBatch) && repeats!=2))return 40;
- if(ubo && (large || shape!=0 || repeats!=2 || argc==5))return 40;
+ if(ubo && (shape!=0 || repeats!=2 || argc==5))return 40;
  uint32_t alternateCode[sizeof(RenkuKnownSpirv::Fragment)/4];
  memcpy(alternateCode,RenkuKnownSpirv::Fragment,sizeof(alternateCode));
  bool alternateChanged=false;
@@ -521,7 +521,8 @@ int main(int argc,char** argv)
    0x8aaee2f5,0x9ca44bcd,0x23ba4705,0xb0d153c5};
   const uint32_t expectedLargeRgb[4]={
    0x7a1ac675,0xe178394d,0x49942685,0x9eff5945};
-  REQUIRE((fragcoord?(hash==(fragcoordGreen
+  REQUIRE((ubo?hash==0x8df12ff5:
+   fragcoord?(hash==(fragcoordGreen
     ?(fragcoordDenominator==32?0x6e59daf5:
       fragcoordDenominator==64?0xf25bcaf5:0x649956f5):
     fragcoordDenominator==32?0x655762f5:
@@ -554,7 +555,7 @@ int main(int argc,char** argv)
    && pixels[10*32+20]==0x19537bad)),30);
  vkUnmapMemory(device,imageMemory);
  if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
-  fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):
+  ubo?"UBO ":fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):
   rotate?"rotated-vertex ":
   depth?"depth-vertex ":rgb?"RGB ":"",
   shape,hash,repeats);
