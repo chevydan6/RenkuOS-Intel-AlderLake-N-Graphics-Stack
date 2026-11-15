@@ -1,0 +1,27 @@
+validate=0 error=
+shader: MESA_SHADER_FRAGMENT
+source_blake3: {0x8f0a3f10, 0xcc8c7cc8, 0x1b4dfb5d, 0x40dae145, 0xaa72e34a, 0xf54d95ba, 0x5b5fd703, 0x7c5a1414}
+num_ubos: 1
+max_subgroup_size: 128
+min_subgroup_size: 1
+origin_upper_left: true
+decl_var shader_out INTERP_MODE_NONE none vec4 #0 (FRAG_RESULT_DATA0.xyzw, 0, 0)
+decl_var ubo INTERP_MODE_NONE none block #1 (~0, 0, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    block b0:  // preds:
+    32    %0 = load_const (0x00000000 = 0.000000)
+    32x2  %1 = @vulkan_resource_index (%0 (0x0)) (desc_set=0, binding=0, desc_type=UBO, resource_type=UBO)
+    32x2  %2 = @load_vulkan_descriptor (%1) (desc_type=UBO)
+    32x2  %3 = deref_cast (block *)%2 (ubo block)  (ptr_stride=0, align_mul=0, align_offset=0)
+    32x2  %4 = deref_struct &%3->field0 (ubo vec4)  // &((block *)%2)->field0
+    32x4  %5 = @load_deref (%4) (access=none)
+    32    %6 = deref_var &#0 (shader_out vec4)
+               @store_deref (%6, %5) (wrmask=xyzw, access=none)
+               return
+               // succs: b1
+    block b1:
+}
+
+compile=-5 error=uniform buffers need native descriptor lowering vs_bytes=0 fs_bytes=0 fs_grf=0 fs_dispatch=0/0/0 fs_offset=0/0 fs_scratch=0 fs_relocs=0

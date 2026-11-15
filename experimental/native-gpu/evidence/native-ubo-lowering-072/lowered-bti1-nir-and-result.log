@@ -1,0 +1,31 @@
+validate=0 error=
+shader: MESA_SHADER_FRAGMENT
+source_blake3: {0x8f0a3f10, 0xcc8c7cc8, 0x1b4dfb5d, 0x40dae145, 0xaa72e34a, 0xf54d95ba, 0x5b5fd703, 0x7c5a1414}
+num_ubos: 1
+max_subgroup_size: 128
+min_subgroup_size: 1
+origin_upper_left: true
+decl_var shader_out INTERP_MODE_NONE none vec4 #0 (FRAG_RESULT_DATA0.xyzw, 0, 0)
+decl_var ubo INTERP_MODE_NONE none block #1 (~0, 0, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    block b0:   // preds:
+    32     %0 = load_const (0x00000000 = 0.000000)
+    32x2   %1 = load_const (0x00000001, 0x00000000) = (0.000000, 0.000000)
+    32x2   %2 = load_const (0x00000001, 0x00000000)
+    32     %3 = load_const (0x00000000)
+    32     %4 = mov %2 (0x1, 0x0).y
+    32     %5 = iadd %4, %3 (0x0)
+    32x2   %6 = vec2 %2 (0x1, 0x0).x, %5
+    32     %7 = mov %6.x
+    32     %8 = mov %6.y
+    32x4   %9 = @load_ubo (%7, %8) (access=none, align_mul=4, align_offset=0, range_base=0, range=16)
+    32    %10 = deref_var &#0 (shader_out vec4)
+                @store_deref (%10, %9) (wrmask=xyzw, access=none)
+                return
+                // succs: b1
+    block b1:
+}
+
+compile=0 error= vs_bytes=128 fs_bytes=336 fs_grf=128 fs_dispatch=1/1/0 fs_offset=192/0 fs_scratch=0 fs_relocs=0

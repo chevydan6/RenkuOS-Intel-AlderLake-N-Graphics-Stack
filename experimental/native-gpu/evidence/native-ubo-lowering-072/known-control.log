@@ -1,0 +1,2 @@
+validate=0 error=
+compile=0 error= vs_bytes=128 fs_bytes=208 fs_grf=128 fs_dispatch=1/1/0 fs_offset=128/0 fs_scratch=0 fs_relocs=0
