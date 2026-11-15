@@ -50,6 +50,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"indexmeshplus") && strcmp(argv[4],"indexmeshminus")
    && strcmp(argv[4],"copyvertex")
    && strcmp(argv[4],"copyreadback")
+   && strcmp(argv[4],"copybackground")
    && strcmp(argv[4],"clearpass")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
@@ -113,6 +114,7 @@ int main(int argc,char** argv)
  bool indexMeshMinus=argc==5 && !strcmp(argv[4],"indexmeshminus");
  bool copyVertex=argc==5 && !strcmp(argv[4],"copyvertex");
  bool copyReadback=argc==5 && !strcmp(argv[4],"copyreadback");
+ bool copyBackground=argc==5 && !strcmp(argv[4],"copybackground");
  bool indexMesh=argc==5 && (!strcmp(argv[4],"indexmesh")
   || indexMeshBad || indexMeshClear || indexMeshPlus || indexMeshMinus);
  bool clearPass=argc==5 && (!strcmp(argv[4],"clearpass") || indexMeshClear);
@@ -120,7 +122,8 @@ int main(int argc,char** argv)
   || indexSixBad || indexSixPage);
  bool indexed=argc==5 && (!strcmp(argv[4],"indexed") || indexBad
   || indexAlias || indexPair || indexSix || indexMesh);
- bool loadPass=argc==5 && (!strcmp(argv[4],"loadpass") || loadSubmit);
+ bool loadPass=argc==5 && (!strcmp(argv[4],"loadpass") || loadSubmit
+  || copyBackground);
  bool multiDraw=argc==5 && !strcmp(argv[4],"multidraw");
  bool batchGpu=argc==5 && !strcmp(argv[4],"batchgpu");
  bool drawSix=argc==5 && !strcmp(argv[4],"draw6");
@@ -172,6 +175,8 @@ int main(int argc,char** argv)
  if(copyVertex && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(copyReadback && (shape!=0 || repeats!=1
+  || strcmp(argv[2],"original")))return 40;
+ if(copyBackground && (shape!=0 || repeats!=2
   || strcmp(argv[2],"original")))return 40;
  if(clearPass && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
@@ -236,7 +241,7 @@ int main(int argc,char** argv)
  VkFormatProperties format={};
  vkGetPhysicalDeviceFormatProperties(physical,VK_FORMAT_B8G8R8A8_UNORM,&format);
  REQUIRE(format.linearTilingFeatures==(VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
-  |VK_FORMAT_FEATURE_TRANSFER_SRC_BIT),56);
+  |VK_FORMAT_FEATURE_TRANSFER_SRC_BIT|VK_FORMAT_FEATURE_TRANSFER_DST_BIT),56);
  vkGetPhysicalDeviceFormatProperties(physical,VK_FORMAT_R32G32B32A32_SFLOAT,&format);
  REQUIRE(format.bufferFeatures==VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT,57);
  VkImageFormatProperties imageFormat={};
@@ -431,7 +436,8 @@ int main(int argc,char** argv)
  imageInfo.extent={dimension,dimension,1};imageInfo.mipLevels=1;imageInfo.arrayLayers=1;
  imageInfo.samples=VK_SAMPLE_COUNT_1_BIT;imageInfo.tiling=VK_IMAGE_TILING_LINEAR;
  imageInfo.usage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-  |(colorOnly?0:VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+  |(colorOnly?0:VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+  |(copyBackground?VK_IMAGE_USAGE_TRANSFER_DST_BIT:0);
  imageInfo.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
  VkImage image=VK_NULL_HANDLE;
  REQUIRE(vkCreateImage(device,&imageInfo,nullptr,&image)==VK_SUCCESS,13);
@@ -451,6 +457,24 @@ int main(int argc,char** argv)
   allocation.allocationSize=requirement.size;
   REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&readbackMemory)==VK_SUCCESS,89);
   REQUIRE(vkBindBufferMemory(device,readback,readbackMemory,0)==VK_SUCCESS,90);
+ }
+ VkBuffer background=VK_NULL_HANDLE;
+ VkDeviceMemory backgroundMemory=VK_NULL_HANDLE;
+ if(copyBackground){
+  bufferInfo.size=imageBytes;bufferInfo.usage=VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+  REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&background)==VK_SUCCESS,92);
+  vkGetBufferMemoryRequirements(device,background,&requirement);
+  allocation.allocationSize=requirement.size;
+  REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&backgroundMemory)==VK_SUCCESS,93);
+  REQUIRE(vkBindBufferMemory(device,background,backgroundMemory,0)==VK_SUCCESS,94);
+  void* pixels=nullptr;
+  REQUIRE(vkMapMemory(device,backgroundMemory,0,imageBytes,0,&pixels)==VK_SUCCESS
+   && pixels,95);
+  for(uint32_t i=0;i<dimension*dimension;i++)((uint32_t*)pixels)[i]=0xff336699;
+  VkMappedMemoryRange upload={};upload.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+  upload.memory=backgroundMemory;upload.size=imageBytes;
+  REQUIRE(vkFlushMappedMemoryRanges(device,1,&upload)==VK_SUCCESS,96);
+  vkUnmapMemory(device,backgroundMemory);
  }
  if(imageOffset){
   void* guard=nullptr;
@@ -681,6 +705,13 @@ int main(int argc,char** argv)
   vkCmdDraw(command,3,1,9,0);
  }
  vkCmdEndRenderPass(command);
+ if(copyBackground){
+  VkBufferImageCopy region={};
+  region.imageSubresource={VK_IMAGE_ASPECT_COLOR_BIT,0,0,1};
+  region.imageExtent={dimension,dimension,1};
+  vkCmdCopyBufferToImage(command,background,image,VK_IMAGE_LAYOUT_GENERAL,
+   1,&region);
+ }
  if(copyReadback){
   VkBufferImageCopy region={};
   region.imageSubresource={VK_IMAGE_ASPECT_COLOR_BIT,0,0,1};
@@ -827,7 +858,11 @@ int main(int argc,char** argv)
  }
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(clearPass){
+ if(copyBackground){
+  REQUIRE(pixels[0]==0xff336699
+   && pixels[(dimension/2)*dimension+dimension/2]
+    ==(large?0xffff4000:0xffff8000),30);
+ }else if(clearPass){
   REQUIRE(pixels[0]==0xff336699
    && pixels[(large?20:10)*dimension+(large?40:20)]==0xffff4000,30);
  }else if(indexPair || indexPairReference || indexSix){
@@ -911,6 +946,8 @@ int main(int argc,char** argv)
   dimension,dimension,hash);
  else if(copyReadback)printf("Native Vulkan N100 %ux%u image-to-buffer readback: PASS hash=%08x\n",
   dimension,dimension,hash);
+ else if(copyBackground)printf("Native Vulkan N100 %ux%u buffer-to-image background: PASS hash=%08x\n",
+  dimension,dimension,hash);
  else if(indexed)printf("Native Vulkan N100 %ux%u GPU indexed triangle: PASS hash=%08x\n",
   dimension,dimension,hash);
  else if(batchGpu)printf("Native Vulkan N100 %ux%u two triangles: PASS hash=%08x draws=2\n",
@@ -966,6 +1003,8 @@ int main(int argc,char** argv)
  vkFreeMemory(device,imageMemory,nullptr);
  if(copyReadback){vkDestroyBuffer(device,readback,nullptr);
   vkFreeMemory(device,readbackMemory,nullptr);}
+ if(copyBackground){vkDestroyBuffer(device,background,nullptr);
+  vkFreeMemory(device,backgroundMemory,nullptr);}
  vkDestroyBuffer(device,vertex,nullptr);
  vkFreeMemory(device,vertexMemory,nullptr);
  vkDestroyBuffer(device,laterVertex,nullptr);

@@ -1,0 +1,19 @@
+N100 32x32 copybackground, RENKU_VK_TRACE=1
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":15,"stage":12,"sequence":8,"observed":8,"draw_index":0,"draw_count":2,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":897,"shader_bo":389,"vertex_shader_bo":0,"image_bo":899,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"412000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":7903,"write_ioctl_us":0,"submit_us":7905}
+{"event":"vk_copy_buffer","src_kind":"buffer","dst_kind":"image","src_bo":900,"dst_bo":899,"src_offset":0,"dst_offset":0,"bytes":4096,"status":0,"us":555}
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":19,"stage":12,"sequence":9,"observed":9,"draw_index":1,"draw_count":2,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":898,"shader_bo":134,"vertex_shader_bo":0,"image_bo":899,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"411000","shader_gpu_va":"415000","image_gpu_va":"412000","checked":766,"matched":766,"pixel_hash":"2039aba5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5496,"write_ioctl_us":0,"submit_us":5497}
+Native Vulkan N100 32x32 buffer-to-image background: PASS hash=2039aba5
+
+N100 64x64 copybackground, RENKU_VK_TRACE=1
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":15,"stage":12,"sequence":10,"observed":10,"draw_index":0,"draw_count":2,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":1025,"shader_bo":517,"vertex_shader_bo":0,"image_bo":1027,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"410000","shader_gpu_va":"41a000","image_gpu_va":"412000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":6688,"write_ioctl_us":0,"submit_us":6694}
+{"event":"vk_copy_buffer","src_kind":"buffer","dst_kind":"image","src_bo":1028,"dst_bo":1027,"src_offset":0,"dst_offset":0,"bytes":16384,"status":0,"us":583}
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":19,"stage":12,"sequence":11,"observed":11,"draw_index":1,"draw_count":2,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":1026,"shader_bo":262,"vertex_shader_bo":0,"image_bo":1027,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"411000","shader_gpu_va":"41b000","image_gpu_va":"412000","checked":3552,"matched":3552,"pixel_hash":"65b4a445","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5636,"write_ioctl_us":0,"submit_us":5641}
+Native Vulkan N100 64x64 buffer-to-image background: PASS hash=65b4a445
+
+Focused prior transfer regressions under this candidate library
+Native Vulkan N100 32x32 copied GPU vertex triangle: PASS hash=28616d2d
+Native Vulkan N100 32x32 image-to-buffer readback: PASS hash=28616d2d

@@ -157,6 +157,11 @@ The [image-to-buffer checkpoint](../evidence/native-vulkan-imagecopy-101/README.
 adds a whole-image `vkCmdCopyImageToBuffer` readback through the same native
 copy request. A recorded draw followed by readback matched previous complete
 N100 captures at 32×32 and 64×64.
+The [buffer-to-image checkpoint](../evidence/native-vulkan-imageupload-102/README.md)
+adds a whole-image `vkCmdCopyBufferToImage` upload between render passes.
+The second pass preserves the uploaded background and renders over it;
+complete N100 images matched independent triangle captures with that
+background substituted.
 The [multi-primitive draw checkpoint](../evidence/native-vulkan-draw9-087/README.md)
 accepts additional triangle-list primitives in one `vkCmdDraw`. Nine vertices
 in one call matched three established calls byte for byte at both target sizes.

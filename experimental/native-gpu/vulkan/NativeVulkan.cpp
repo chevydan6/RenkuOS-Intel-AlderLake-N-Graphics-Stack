@@ -98,8 +98,9 @@ struct VkCommandBuffer_T {
   VkBuffer index;uint32_t indexOffset;bool indexed;uint32_t indexCount;
   uint32_t vertexCount;
   bool clear;uint32_t clearColor;};
- struct Copy {VkBuffer source,destination;VkImage sourceImage;
-  VkDeviceSize sourceOffset,destinationOffset,size;};
+ struct Copy {VkDeviceMemory source,destination;
+  VkDeviceSize sourceOffset,destinationOffset,size;
+  bool sourceImage,destinationImage;};
  struct Event {bool copy;size_t index;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
@@ -141,6 +142,13 @@ static bool AppendCopy(VkCommandBuffer command,const VkCommandBuffer_T::Copy& co
  size_t index=command->copyCount++;
  command->copies[index]=copy;
  return AppendEvent(command,true,index);
+}
+
+static bool DisjointCopy(VkDeviceMemory source,VkDeviceSize sourceOffset,
+ VkDeviceMemory destination,VkDeviceSize destinationOffset,VkDeviceSize size)
+{
+ return source!=destination || sourceOffset>=destinationOffset+size
+  || destinationOffset>=sourceOffset+size;
 }
 
 static bool ProbeN100(VkPhysicalDevice_T* physical)
@@ -263,7 +271,7 @@ vkGetPhysicalDeviceFormatProperties(VkPhysicalDevice physical,VkFormat format,
  memset(properties,0,sizeof(*properties));
  if(physical && format==VK_FORMAT_B8G8R8A8_UNORM)
   properties->linearTilingFeatures=VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
-   |VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;
+   |VK_FORMAT_FEATURE_TRANSFER_SRC_BIT|VK_FORMAT_FEATURE_TRANSFER_DST_BIT;
  if(physical && format==VK_FORMAT_R32G32B32A32_SFLOAT)
   properties->bufferFeatures=VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT;
 }
@@ -278,7 +286,8 @@ vkGetPhysicalDeviceImageFormatProperties(VkPhysicalDevice physical,VkFormat form
  if(!physical || format!=VK_FORMAT_B8G8R8A8_UNORM
   || type!=VK_IMAGE_TYPE_2D || tiling!=VK_IMAGE_TILING_LINEAR
   || !(usage&VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-  || (usage&~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT))
+  || (usage&~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+   |VK_IMAGE_USAGE_TRANSFER_DST_BIT))
   || flags)return VK_ERROR_FORMAT_NOT_SUPPORTED;
  properties->maxExtent={64,64,1};
  properties->maxMipLevels=1;properties->maxArrayLayers=1;
@@ -618,7 +627,8 @@ vkCreateImage(VkDevice device,const VkImageCreateInfo* info,
   || info->mipLevels!=1 || info->arrayLayers!=1
   || info->samples!=VK_SAMPLE_COUNT_1_BIT || info->tiling!=VK_IMAGE_TILING_LINEAR
   || !(info->usage&VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-  || (info->usage&~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_TRANSFER_SRC_BIT))
+  || (info->usage&~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+   |VK_IMAGE_USAGE_TRANSFER_SRC_BIT|VK_IMAGE_USAGE_TRANSFER_DST_BIT))
   || info->sharingMode!=VK_SHARING_MODE_EXCLUSIVE
   || info->initialLayout!=VK_IMAGE_LAYOUT_UNDEFINED)
   return VK_ERROR_FORMAT_NOT_SUPPORTED;
@@ -1472,19 +1482,33 @@ vkCmdCopyBuffer(VkCommandBuffer command,VkBuffer source,VkBuffer destination,
    || region.size>destination->bytes-region.dstOffset){
    command->invalid=true;return;
   }
-  if(source->memory==destination->memory){
-   uint64_t from=source->memoryOffset+region.srcOffset;
-   uint64_t to=destination->memoryOffset+region.dstOffset;
-   if(from<to+region.size && to<from+region.size){
-    command->invalid=true;return;
-   }
-  }
+  if(!DisjointCopy(source->memory,source->memoryOffset+region.srcOffset,
+    destination->memory,destination->memoryOffset+region.dstOffset,
+    region.size)){command->invalid=true;return;}
  }
  for(uint32_t i=0;i<count;i++){
-  VkCommandBuffer_T::Copy copy={source,destination,VK_NULL_HANDLE,
-   regions[i].srcOffset,regions[i].dstOffset,regions[i].size};
+  VkCommandBuffer_T::Copy copy={source->memory,destination->memory,
+   source->memoryOffset+regions[i].srcOffset,
+   destination->memoryOffset+regions[i].dstOffset,regions[i].size,false,false};
   if(!AppendCopy(command,copy)){command->invalid=true;return;}
  }
+}
+
+static bool FullImageCopyRegion(VkImage image,VkBuffer buffer,
+ const VkBufferImageCopy& region)
+{
+ const VkDeviceSize bytes=VkDeviceSize(image->width)*image->width*4;
+ return !(region.bufferOffset&3) && region.bufferOffset<=buffer->bytes
+  && bytes<=buffer->bytes-region.bufferOffset
+  && (!region.bufferRowLength || region.bufferRowLength==image->width)
+  && (!region.bufferImageHeight || region.bufferImageHeight==image->width)
+  && region.imageSubresource.aspectMask==VK_IMAGE_ASPECT_COLOR_BIT
+  && !region.imageSubresource.mipLevel
+  && !region.imageSubresource.baseArrayLayer
+  && region.imageSubresource.layerCount==1
+  && !region.imageOffset.x && !region.imageOffset.y && !region.imageOffset.z
+  && region.imageExtent.width==image->width
+  && region.imageExtent.height==image->width && region.imageExtent.depth==1;
 }
 
 extern "C" VKAPI_ATTR void VKAPI_CALL
@@ -1503,26 +1527,44 @@ vkCmdCopyImageToBuffer(VkCommandBuffer command,VkImage source,
  }
  const VkBufferImageCopy& region=regions[0];
  const VkDeviceSize bytes=VkDeviceSize(source->width)*source->width*4;
- if((region.bufferOffset&3) || region.bufferOffset>destination->bytes
-  || bytes>destination->bytes-region.bufferOffset
-  || (region.bufferRowLength && region.bufferRowLength!=source->width)
-  || (region.bufferImageHeight && region.bufferImageHeight!=source->width)
-  || region.imageSubresource.aspectMask!=VK_IMAGE_ASPECT_COLOR_BIT
-  || region.imageSubresource.mipLevel
-  || region.imageSubresource.baseArrayLayer
-  || region.imageSubresource.layerCount!=1
-  || region.imageOffset.x || region.imageOffset.y || region.imageOffset.z
-  || region.imageExtent.width!=source->width
-  || region.imageExtent.height!=source->width || region.imageExtent.depth!=1){
+ if(!FullImageCopyRegion(source,destination,region)){
   command->invalid=true;return;
  }
- if(source->memory==destination->memory){
-  uint64_t from=source->memoryOffset;
-  uint64_t to=destination->memoryOffset+region.bufferOffset;
-  if(from<to+bytes && to<from+bytes){command->invalid=true;return;}
+ if(!DisjointCopy(source->memory,source->memoryOffset,
+  destination->memory,destination->memoryOffset+region.bufferOffset,bytes)){
+  command->invalid=true;return;
  }
- VkCommandBuffer_T::Copy copy={VK_NULL_HANDLE,destination,source,0,
-  region.bufferOffset,bytes};
+ VkCommandBuffer_T::Copy copy={source->memory,destination->memory,
+  source->memoryOffset,destination->memoryOffset+region.bufferOffset,
+  bytes,true,false};
+ if(!AppendCopy(command,copy))command->invalid=true;
+}
+
+extern "C" VKAPI_ATTR void VKAPI_CALL
+vkCmdCopyBufferToImage(VkCommandBuffer command,VkBuffer source,
+ VkImage destination,VkImageLayout layout,uint32_t count,
+ const VkBufferImageCopy* regions)
+{
+ if(!command)return;
+ if(!command->recording || command->inRenderPass || !source || !destination
+  || source->device!=command->device || destination->device!=command->device
+  || !source->memory || !destination->memory
+  || !(source->usage&VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
+  || !(destination->usage&VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+  || layout!=VK_IMAGE_LAYOUT_GENERAL || count!=1 || !regions){
+  command->invalid=true;return;
+ }
+ const VkBufferImageCopy& region=regions[0];
+ const VkDeviceSize bytes=VkDeviceSize(destination->width)*destination->width*4;
+ if(!FullImageCopyRegion(destination,source,region)
+  || !DisjointCopy(source->memory,
+   source->memoryOffset+region.bufferOffset,destination->memory,
+   destination->memoryOffset,bytes)){
+  command->invalid=true;return;
+ }
+ VkCommandBuffer_T::Copy copy={source->memory,destination->memory,
+  source->memoryOffset+region.bufferOffset,destination->memoryOffset,
+  bytes,false,true};
  if(!AppendCopy(command,copy))command->invalid=true;
 }
 
@@ -1789,12 +1831,12 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
     return VK_ERROR_INITIALIZATION_FAILED;
    for(size_t k=0;k<command->copyCount;k++){
     const auto& recorded=command->copies[k];
-    if(!recorded.destination || recorded.destination->device!=device
-     || !recorded.destination->memory
-     || (recorded.sourceImage
-      ?recorded.sourceImage->device!=device || !recorded.sourceImage->memory
-      :!recorded.source || recorded.source->device!=device
-       || !recorded.source->memory))
+    if(!recorded.source || !recorded.destination
+     || recorded.source->device!=device || recorded.destination->device!=device
+     || recorded.sourceOffset>recorded.source->bytes
+     || recorded.size>recorded.source->bytes-recorded.sourceOffset
+     || recorded.destinationOffset>recorded.destination->bytes
+     || recorded.size>recorded.destination->bytes-recorded.destinationOffset)
      return VK_ERROR_INITIALIZATION_FAILED;
    }
    for(size_t k=0;k<command->drawCount;k++){
@@ -1835,26 +1877,22 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  const auto& event=command->events[eventIndex];
  if(event.copy){
   const auto& copy=command->copies[event.index];
-  const bool imageSource=copy.sourceImage!=VK_NULL_HANDLE;
-  VkDeviceMemory sourceMemory=imageSource?copy.sourceImage->memory:
-   copy.source->memory;
-  const uint64_t sourceBase=imageSource?copy.sourceImage->memoryOffset:
-   copy.source->memoryOffset;
   native_gpu_resource_command request={};request.version=1;
   request.action=NATIVE_GPU_RESOURCE_COPY;
-  request.handle=copy.destination->memory->handle;
-  request.gpu=sourceMemory->handle;
-  request.size=sourceBase+copy.sourceOffset;
-  request.offset=copy.destination->memoryOffset+copy.destinationOffset;
+  request.handle=copy.destination->handle;
+  request.gpu=copy.source->handle;
+  request.size=copy.sourceOffset;
+  request.offset=copy.destinationOffset;
   request.bytes=uint32_t(copy.size);
   const bigtime_t started=device->trace?system_time():0;
   int status=ioctl(device->fd,NATIVE_GPU_RESOURCE_IOCTL,&request,sizeof(request));
   if(device->trace)fprintf(stderr,
-   "{\"event\":\"vk_copy_buffer\",\"src_kind\":\"%s\",\"src_bo\":%u,\"dst_bo\":%u,"
+   "{\"event\":\"vk_copy_buffer\",\"src_kind\":\"%s\",\"dst_kind\":\"%s\",\"src_bo\":%u,\"dst_bo\":%u,"
    "\"src_offset\":%llu,\"dst_offset\":%llu,\"bytes\":%u,"
    "\"status\":%d,\"us\":%lld}\n",
-   imageSource?"image":"buffer",sourceMemory->handle,
-   copy.destination->memory->handle,
+   copy.sourceImage?"image":"buffer",
+   copy.destinationImage?"image":"buffer",
+   copy.source->handle,copy.destination->handle,
    (unsigned long long)request.size,(unsigned long long)request.offset,
    request.bytes,status,(long long)(system_time()-started));
   if(status!=0)return VK_ERROR_DEVICE_LOST;
@@ -2104,6 +2142,7 @@ vkGetDeviceProcAddr(VkDevice device,const char* pName)
  VK_PROC(vkCmdBindIndexBuffer);
  VK_PROC(vkCmdCopyBuffer);
  VK_PROC(vkCmdCopyImageToBuffer);
+ VK_PROC(vkCmdCopyBufferToImage);
  VK_PROC(vkCmdDraw);
  VK_PROC(vkCmdDrawIndexed);
  VK_PROC(vkCmdEndRenderPass);
