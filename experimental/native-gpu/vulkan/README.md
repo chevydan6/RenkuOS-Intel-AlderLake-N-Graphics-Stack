@@ -123,6 +123,11 @@ loaded. The measured selected runtime source inventory falls to 15,072,193
 bytes; the 3–5 MB target remains unmet.
 With the render-pass LOAD change, the selected runtime source inventory is
 15,072,397 bytes. The full build closure and model tokens remain unmeasured.
+The [narrow xxHash compiler checkpoint](../evidence/native-xxhash-prune-092/README.md)
+removes 261,802 selected source bytes while retaining Mesa-equivalent XXH32
+and XXH64 behavior. Its final compiler passed 262 prior N100 draws and the
+render-pass LOAD image comparisons. Selected runtime source is now 14,810,595
+bytes; the 3–5 MB target remains unmet.
 The [one-pass multidraw checkpoint](../evidence/native-multidraw-082/README.md)
 preserves the render target across two draws and verifies the complete 32x32
 and 64x64 images on the N100. Its initial path uses two blocking owner calls.

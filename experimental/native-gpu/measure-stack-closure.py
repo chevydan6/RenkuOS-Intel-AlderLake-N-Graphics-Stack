@@ -28,7 +28,10 @@ def compiler_category(path):
         return "compiler_native_adaptation"
     if path.startswith(("/boot/home/test-work/native-glheader-055/",
                         "/boot/home/test-work/native-glheader-062/",
-                        "/boot/home/test-work/native-headers-090/")):
+                        "/boot/home/test-work/native-headers-090/",
+                        "/boot/home/test-work/native-headers-092/")):
+        return "compiler_native_adaptation"
+    if path == "/boot/home/test-work/native-compiler-xxhash-092/native_hash_table.c":
         return "compiler_native_adaptation"
     if path.startswith("/boot/home/test-work/"):
         raise ValueError("unclassified compiler project input: " + path)

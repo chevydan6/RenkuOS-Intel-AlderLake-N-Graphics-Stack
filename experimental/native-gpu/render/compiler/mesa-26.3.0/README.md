@@ -70,3 +70,11 @@ objects with that header and the existing narrow GL header. The Haiku VM
 compiler and 262 physical N100 regression draws passed; the selected runtime
 source inventory fell by 169,701 bytes. The source root keeps a symlink to
 the existing GL override headers to avoid duplicating their canonical text.
+
+The [native xxHash checkpoint](../../../evidence/native-xxhash-prune-092/README.md)
+replaces the selected compiler's 268 KB upstream xxHash header with the
+XXH32/XXH64 functions its seven selected includers use. A generated,
+include-path-adjusted copy of Mesa's hash table source handles its local
+header include. The final compiler passed hash equivalence, sanitizer and
+Haiku VM probes, plus 262 prior physical N100 draws. The combined selected
+runtime source inventory is 14,810,595 bytes; model tokens remain unmeasured.

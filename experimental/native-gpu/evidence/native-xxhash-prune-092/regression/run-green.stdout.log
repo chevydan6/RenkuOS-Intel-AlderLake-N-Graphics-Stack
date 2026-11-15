@@ -1,0 +1,5 @@
+CASE profile=fragcoordgreen32 direct=1 rc=0 PASS
+CASE profile=fragcoordgreen direct=1 rc=0 PASS
+CASE profile=fragcoordgreen128 direct=1 rc=0 PASS
+CASE profile=fragcoordgreen direct=0 rc=0 PASS
+Green gradient N100: PASS (4 cases, 16 draws)

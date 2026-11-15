@@ -1,0 +1,34 @@
+{
+  "mesa_version": "26.3.0",
+  "binary": "/boot/home/test-work/native-compiler-xxhash-092/librenku_intel_compiler.so",
+  "binary_bytes": 14565000,
+  "linked_objects": 345,
+  "runtime_libraries": [
+    "libSPIRV-Tools-shared.so",
+    "libstdc++.so.6",
+    "libgcc_s.so.1",
+    "libroot.so"
+  ],
+  "included_files": 839,
+  "file_counts": {
+    "mesa": 492,
+    "external": 291,
+    "generated": 49,
+    "native_override": 7
+  },
+  "source_bytes": {
+    "mesa": 11421497,
+    "external": 5046739,
+    "generated": 62392205,
+    "native_override": 133979
+  },
+  "i915_drm_header_selected": false,
+  "i915_device_info_object_selected": false,
+  "i915_engine_object_selected": false,
+  "native_header_objects": 138,
+  "native_glheader_objects": 76,
+  "native_fourcc_override": true,
+  "native_fourcc_objects": 127,
+  "native_xxhash_override": true,
+  "native_xxhash_objects": 7
+}

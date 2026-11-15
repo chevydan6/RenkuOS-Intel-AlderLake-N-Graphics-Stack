@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 """Relink the pinned Mesa compiler with N100 native overrides."""
 import json
+import hashlib
 from collections import Counter
 from pathlib import Path
 import re
@@ -75,6 +76,8 @@ def main():
         raise SystemExit("missing native util/glheader.h")
     native_fourcc = (header_root / "drm-uapi/drm_fourcc.h"
                      if header_root is not None else None)
+    native_xxhash = (header_root / "util/xxhash.h"
+                     if header_root is not None else None)
     output.mkdir(parents=True, exist_ok=False)
     commands = json.loads((build / "compile_commands.json").read_text())
     runtime_object = output / "native_runtime.o"
@@ -136,6 +139,24 @@ def main():
             original_headers.add(original_fourcc)
             fourcc_affected = sum(original_fourcc in dependencies[obj]
                                   for obj in archive_objects)
+        if native_xxhash.is_file():
+            original_xxhash = source / "src/util/xxhash.h"
+            if (hashlib.sha256(original_xxhash.read_bytes()).hexdigest() !=
+                    "17973c0dc49d9854ca26caa191f0e12f7a424b68858d9a78de3860d959d85e4b"):
+                raise RuntimeError("pinned Mesa xxhash.h changed")
+            original_headers.add(original_xxhash)
+            xxhash_affected = sum(original_xxhash in dependencies[obj]
+                                  for obj in archive_objects)
+            original_hash_table = source / "src/util/hash_table.c"
+            content = original_hash_table.read_bytes()
+            if (hashlib.sha256(content).hexdigest() !=
+                    "0c3dd792d7260487d324777d7da0278ca2ce005df6301a9b07507009383067c4"
+                    or content.count(b'#include "xxhash.h"') != 1):
+                raise RuntimeError("pinned Mesa hash_table.c changed")
+            native_hash_table = output / "native_hash_table.c"
+            native_hash_table.write_bytes(content.replace(
+                b'#include "xxhash.h"', b'#include "util/xxhash.h"'))
+            override_sources.add(native_hash_table)
         affected = sorted(obj for obj in archive_objects
                           if dependencies[obj] & original_headers)
         if not affected:
@@ -143,12 +164,21 @@ def main():
         command_by_object = {entry["output"]: entry for entry in commands}
         for index, obj in enumerate(affected):
             replacement = output / f"native_header_{index:03}.o"
-            compile_entry(command_by_object[obj], build, replacement,
+            entry = command_by_object[obj]
+            hash_table_object = (native_xxhash.is_file() and
+                                 (build / entry["file"]).resolve() ==
+                                 original_hash_table)
+            compile_entry(entry, build, replacement,
+                          source=native_hash_table if hash_table_object else None,
+                          extra=("-iquote" + str(source / "src/util"),)
+                          if hash_table_object else (),
                           quote_root=header_root)
             override_objects.add(replacement)
         override_sources.add(header_root / "util/glheader.h")
         if native_fourcc.is_file():
             override_sources.add(native_fourcc)
+        if native_xxhash.is_file():
+            override_sources.add(native_xxhash)
         subprocess.run(["c++", f"-Wl,-Map={link_map}", "-o", str(binary),
                         *map(str, sorted(override_objects)), *link_args,
                         str(spirv_library)], cwd=build, check=True)
@@ -178,6 +208,9 @@ def main():
     files.update(p for paths in dependencies.values() for p in paths)
     if header_root is not None and files & original_headers:
         raise RuntimeError("original broad header remains in closure")
+    if header_root is not None and native_xxhash.is_file() \
+            and original_hash_table in files:
+        raise RuntimeError("original hash_table.c remains in closure")
     counts, sizes = Counter(), Counter()
     for path in files:
         if not path.is_file():
@@ -205,6 +238,9 @@ def main():
         report["native_fourcc_override"] = native_fourcc.is_file()
         if native_fourcc.is_file():
             report["native_fourcc_objects"] = fourcc_affected
+        report["native_xxhash_override"] = native_xxhash.is_file()
+        if native_xxhash.is_file():
+            report["native_xxhash_objects"] = xxhash_affected
     (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
 
