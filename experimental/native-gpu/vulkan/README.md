@@ -107,6 +107,11 @@ selected 137 canonical project files, bringing the deduplicated selected
 runtime source measurement to 15,222,168 bytes. This is a host reproduction
 of the Haiku package target; the exact Haiku package build inputs, build-only
 generators, and model tokens are still unmeasured.
+The [current selected-source inventory](../evidence/native-stack-closure-089/README.md)
+rebuilds the owner and Vulkan dependencies after the version-21 preserving
+batch. Including the pinned host reproduction of SPIRV-Tools, it measures
+15,241,894 unique source bytes. This supersedes the intervening delta
+estimates; the complete Haiku build closure and model tokens remain unmeasured.
 The [one-pass multidraw checkpoint](../evidence/native-multidraw-082/README.md)
 preserves the render target across two draws and verifies the complete 32x32
 and 64x64 images on the N100. Its initial path uses two blocking owner calls.

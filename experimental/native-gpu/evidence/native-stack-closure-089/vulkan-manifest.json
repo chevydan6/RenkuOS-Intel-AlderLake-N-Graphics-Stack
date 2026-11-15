@@ -1,0 +1,303 @@
+{
+  "schema": 1,
+  "scope": "native Vulkan library and probe direct compile inputs",
+  "host": "renkuos-vm",
+  "bundle": "/boot/home/test-work/vulkan-pairpreserve-088",
+  "depfile_sha256": {
+    "command_reset_probe.d": "4df876b08bb7bf2573869a39c95a7c963fb8511423b1a4532661773d22d2e425",
+    "compiler_pipeline_api_probe.d": "a8287cf270e4193dbd9b1be4d1bd7d0b071427be273a0fd8534914a4afa5c744",
+    "compiler_pipeline_probe.d": "ff3ff51e7a870aed0ade51a1a557d4761232cb094b8fb5c216c87c88ccf77b41",
+    "fence_probe.d": "11d8b43318e5b7f1e8ed6d10e1b763a81958c2ccc6838d927ebcc07baa455b2b",
+    "libvulkan.d": "a1e0e20cf5d257957b11452753f4c7ce9d22390c4ce82904685f27e30a2780a6",
+    "semaphore_probe.d": "f7fbfe2f00b0acf27ca573063e43b8d4e089b427309a2f454cfdceb1af054be1",
+    "triangle_probe.d": "1fe4837531165adfac2edf22c366451bb51f1725d80bc79af225eb0b8602b7ed"
+  },
+  "totals": {
+    "native_abi": {
+      "files": 2,
+      "bytes": 7097
+    },
+    "khronos_headers": {
+      "files": 15,
+      "bytes": 1459702
+    },
+    "native_render_headers": {
+      "files": 10,
+      "bytes": 24370
+    },
+    "intel_draw_fixture": {
+      "files": 2,
+      "bytes": 8610
+    },
+    "driver_source": {
+      "files": 3,
+      "bytes": 82608
+    },
+    "probe_source": {
+      "files": 11,
+      "bytes": 76080
+    }
+  },
+  "files": [
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/RenderReport.h",
+      "category": "native_abi",
+      "bytes": 5853,
+      "sha256": "d2188696bd70dd64c8002c8738efece95050fc363c3d98f0d94b71e59871eb6b"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/ResourceCommand.h",
+      "category": "native_abi",
+      "bytes": 1244,
+      "sha256": "d541f826bc9aa34377cfda0538db33190e8b1ae6fa27666d72b52a0d570c7d33"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_av1std.h",
+      "category": "khronos_headers",
+      "bytes": 16694,
+      "sha256": "c75c1d324b97d247aef0008024bc7f3adb98c741ab7f66c882ec38fdacc7ee33"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_av1std_decode.h",
+      "category": "khronos_headers",
+      "bytes": 4257,
+      "sha256": "7e3a1ce177c12546d410f3179ce1b81f2da7a8eba4f525b29cd563ab4099c0e5"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_av1std_encode.h",
+      "category": "khronos_headers",
+      "bytes": 5986,
+      "sha256": "8d166b4543260a38347860443b1a59c7a5e86cdb0d0facaf4c704f667de030e3"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_h264std.h",
+      "category": "khronos_headers",
+      "bytes": 13961,
+      "sha256": "fded484cef9f90fbbd089e0647268f36e5f4292179fbc5428a2c9e8d7709bbe9"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_h264std_decode.h",
+      "category": "khronos_headers",
+      "bytes": 2730,
+      "sha256": "37b970c3d80536ad1ac074cfe19b58ee03c3075378e02179e1dc5e4351266821"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_h264std_encode.h",
+      "category": "khronos_headers",
+      "bytes": 6885,
+      "sha256": "227e092b53c4e7ca1a948ed021704511c1ed16040cd6188ff6703e5ae66db64d"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_h265std.h",
+      "category": "khronos_headers",
+      "bytes": 23446,
+      "sha256": "0b81f8986ada015ef2e127449eff9d9634899bb59a0a9277a4054e9ec4416c12"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_h265std_decode.h",
+      "category": "khronos_headers",
+      "bytes": 2436,
+      "sha256": "879a0dd370a1b1ad184638906c52bdfe7d80d639fbc5a5baa8b02d7c5b60b147"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_h265std_encode.h",
+      "category": "khronos_headers",
+      "bytes": 7469,
+      "sha256": "abb3e72af22e4e0a3dbe5dff7be1b275949388809fb3987830341e8f495ea1c7"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_vp9std.h",
+      "category": "khronos_headers",
+      "bytes": 5391,
+      "sha256": "0a47125865376a3fe7014b69ff6db9d04e30ebf8c4d15664f1d894649ad5c09d"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codec_vp9std_decode.h",
+      "category": "khronos_headers",
+      "bytes": 2378,
+      "sha256": "1ceb1a8d0e3370e508cf688a6e57dc314cd82186b60f3cef420ea4b1b483865d"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vk_video/vulkan_video_codecs_common.h",
+      "category": "khronos_headers",
+      "bytes": 667,
+      "sha256": "d2e7caa396c521d03d491a269572b1d31b925b5127d22fda14199951ebae89f8"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vulkan/vk_platform.h",
+      "category": "khronos_headers",
+      "bytes": 2832,
+      "sha256": "a2cd9085c66776845d2524c3b0e73ccf4827ba046aa6f676c4b8ddbed47d6552"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vulkan/vulkan.h",
+      "category": "khronos_headers",
+      "bytes": 1620,
+      "sha256": "096f50152d0b298d8df84a561a37d8190c8a60af34dff0e2cc8328b24491a640"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/include/vulkan/vulkan_core.h",
+      "category": "khronos_headers",
+      "bytes": 1362950,
+      "sha256": "2f64fd6c7c3f342b0e44f039f1c359b7f0e6cfcb71a7dca1cc5156282faa3b51"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsDepthVertex.h",
+      "category": "native_render_headers",
+      "bytes": 898,
+      "sha256": "2368b19aa3e82a7416e230544ce9cb52fe12958ecd5cb8d7cae0b0250527e857"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsDrawImage.h",
+      "category": "native_render_headers",
+      "bytes": 2589,
+      "sha256": "141426d2415a7b984e394487c7ab87b59f9683b55d702a5322ea95caeb41f787"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsDrawImage64.h",
+      "category": "native_render_headers",
+      "bytes": 2158,
+      "sha256": "50774fa38ffd7d5ad961b3bb6cfd08cd997ff35527ef239d3838be809ce5e81b"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsFragCoordRed.h",
+      "category": "native_render_headers",
+      "bytes": 1575,
+      "sha256": "c8c599c7f7c14df8475cec3f1ea2698d284e1c872343e67e02cf8068919d3b11"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsPublicShader.h",
+      "category": "native_render_headers",
+      "bytes": 7151,
+      "sha256": "ca0d004bb8d01c6a8c75b3277bba075514f81efabcd78830495e5acce31c2939"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsResourceRange.h",
+      "category": "native_render_headers",
+      "bytes": 820,
+      "sha256": "16578c6d51ad9f74d0bfa0c60c174bc7652819d1eed54447dc473343500d4d9c"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsRotateVertex.h",
+      "category": "native_render_headers",
+      "bytes": 881,
+      "sha256": "dcc92000923bbe376d3a594d554bd8eb1a06ba4f91bf81235e6e71b4e0a46936"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsUboFragment.h",
+      "category": "native_render_headers",
+      "bytes": 1420,
+      "sha256": "e9e90adcd74e1b606e8404a1479bc91a942a7a0d92d261285eabaf7683cc8c8e"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/RcsUserVertices.h",
+      "category": "native_render_headers",
+      "bytes": 5114,
+      "sha256": "c4b22c44b27f492a60db3745beab1c36130ad51cdc46766026ec49789788b640"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/compiler/mesa-26.3.0/IntelSpirvRuntime.h",
+      "category": "native_render_headers",
+      "bytes": 1764,
+      "sha256": "50fa1a65f780e30ef2ed1d473b0b1092c14b237258aab6fa968fd0d7dd2aa4a2"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/draw/LICENSE-MIT-Intel.txt",
+      "category": "intel_draw_fixture",
+      "bytes": 1388,
+      "sha256": "1984e2326fcd6be3290d68ac5c28e55ab42ed0b162232e3507d64db4043abe3d"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/render/draw/RcsDrawGenerated.h",
+      "category": "intel_draw_fixture",
+      "bytes": 7222,
+      "sha256": "170edca1f69fbd33dea3ec506b9760b94700223fb200f95d5f21664c6f46ea36"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/CompiledKnownShader.h",
+      "category": "driver_source",
+      "bytes": 4168,
+      "sha256": "96e5e2d2a343b340a8c04fc66b5b3841e190e65d951d3881d1428017486e4828"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/DepthSpirvFixture.h",
+      "category": "probe_source",
+      "bytes": 1612,
+      "sha256": "8e9688b41569e1e7ba3f8c0d79e7d6fa527d1943edbee1b01d7b82a747a1c753"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/FragCoordSpirvFixture.h",
+      "category": "probe_source",
+      "bytes": 1667,
+      "sha256": "6f02bd9dd365b4a5b086f10a7f1c855460fd8769491d37058d4b04e061b9fe6a"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/KnownSpirv.h",
+      "category": "driver_source",
+      "bytes": 3762,
+      "sha256": "b997676ae866095dccff25f1ac9175677060a5eba2920a2c3729966556a01f19"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/NativeVulkan.cpp",
+      "category": "driver_source",
+      "bytes": 74678,
+      "sha256": "162a4525e92f8b3043a9230e1c2ab19db40ba63df6835a9cbe0f6fe8cc783724"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/RgbSpirvFixture.h",
+      "category": "probe_source",
+      "bytes": 1277,
+      "sha256": "50c0c15bc0bf3c0e8112b7338257e8063ffbf94f5e129b1ae1e72704447ca4e2"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/RotateSpirvFixture.h",
+      "category": "probe_source",
+      "bytes": 1813,
+      "sha256": "b16a8b36ef2ecbd5aacb7b6ef7b3b7db5ca4d65330a3b5fe0cbe7e12152f183e"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/UboSpirvFixture.h",
+      "category": "probe_source",
+      "bytes": 1609,
+      "sha256": "b2bb5904ac696b30537e9a43e04406ee1fcc53ceefa95bc5155eada7c5b245e3"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/command_reset_probe.cpp",
+      "category": "probe_source",
+      "bytes": 7483,
+      "sha256": "469d08a20ad3ff69887149281d5361a4f69d840906aed192be271d8140815e70"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/compiler_pipeline_api_probe.cpp",
+      "category": "probe_source",
+      "bytes": 9395,
+      "sha256": "600c7880135c89bc57e53aa2c40ba735dfcd68be230f947df9b2ca80f8abd5a2"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/compiler_pipeline_probe.cpp",
+      "category": "probe_source",
+      "bytes": 8592,
+      "sha256": "b270b437fcd0c4d583a51cc2fb280d0f26642e8bd3f358dac16a65ad48706a42"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/fence_probe.cpp",
+      "category": "probe_source",
+      "bytes": 1878,
+      "sha256": "0e811a722cf8f3cb2e3f1c0e521f3b6686097f136e11dbfa21a48b5664e0728f"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/semaphore_probe.cpp",
+      "category": "probe_source",
+      "bytes": 2216,
+      "sha256": "13f19216a415ef5db1ca5ea0e03c57b22e64adc15661cac078f8276c408fcde2"
+    },
+    {
+      "path": "/boot/home/test-work/vulkan-pairpreserve-088/vulkan/triangle_probe.cpp",
+      "category": "probe_source",
+      "bytes": 38538,
+      "sha256": "07e39ec90128e5eb460b10677797f37e5c5c8b6b52ba8154c6bd37d02fda583e"
+    }
+  ],
+  "model_tokenizer": null,
+  "model_tokens": null
+}
