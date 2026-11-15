@@ -153,6 +153,10 @@ The [native buffer-copy checkpoint](../evidence/native-vulkan-copybuffer-100/REA
 adds ordered `vkCmdCopyBuffer` operations and a versioned owner-side buffer
 copy request. A staging-buffer copy followed by a GPU triangle draw in the
 same submission matched prior N100 captures at both target sizes.
+The [image-to-buffer checkpoint](../evidence/native-vulkan-imagecopy-101/README.md)
+adds a whole-image `vkCmdCopyImageToBuffer` readback through the same native
+copy request. A recorded draw followed by readback matched previous complete
+N100 captures at 32×32 and 64×64.
 The [multi-primitive draw checkpoint](../evidence/native-vulkan-draw9-087/README.md)
 accepts additional triangle-list primitives in one `vkCmdDraw`. Nine vertices
 in one call matched three established calls byte for byte at both target sizes.

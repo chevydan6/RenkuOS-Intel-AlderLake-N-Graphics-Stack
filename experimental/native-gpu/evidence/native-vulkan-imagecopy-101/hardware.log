@@ -1,0 +1,12 @@
+N100 32x32 copyreadback, RENKU_VK_TRACE=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":15,"stage":12,"sequence":5,"observed":5,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":513,"shader_bo":133,"vertex_shader_bo":0,"image_bo":515,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"412000","checked":777,"matched":777,"pixel_hash":"28616d2d","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":4914,"write_ioctl_us":0,"submit_us":4915}
+{"event":"vk_copy_buffer","src_kind":"image","src_bo":515,"dst_bo":516,"src_offset":0,"dst_offset":0,"bytes":4096,"status":0,"us":493}
+Native Vulkan N100 32x32 image-to-buffer readback: PASS hash=28616d2d
+
+N100 64x64 copyreadback, RENKU_VK_TRACE=1
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":15,"stage":12,"sequence":6,"observed":6,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"vertex_bias":0,"direct_target":1,"vertex_bo":641,"shader_bo":261,"vertex_shader_bo":0,"image_bo":643,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":0,"index_offset":0,"index_count":0,"vertex_count":0,"pixel_oracle":1,"vertex_gpu_va":"410000","shader_gpu_va":"41a000","image_gpu_va":"412000","checked":3476,"matched":3476,"pixel_hash":"8aaee2f5","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5018,"write_ioctl_us":0,"submit_us":5024}
+{"event":"vk_copy_buffer","src_kind":"image","src_bo":643,"dst_bo":644,"src_offset":0,"dst_offset":0,"bytes":16384,"status":0,"us":505}
+Native Vulkan N100 64x64 image-to-buffer readback: PASS hash=8aaee2f5
+
+Prior buffer-to-buffer copy workload under candidate Vulkan library
+Native Vulkan N100 32x32 copied GPU vertex triangle: PASS hash=28616d2d

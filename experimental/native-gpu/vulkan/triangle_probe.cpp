@@ -49,6 +49,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"indexmeshclear")
    && strcmp(argv[4],"indexmeshplus") && strcmp(argv[4],"indexmeshminus")
    && strcmp(argv[4],"copyvertex")
+   && strcmp(argv[4],"copyreadback")
    && strcmp(argv[4],"clearpass")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
@@ -111,6 +112,7 @@ int main(int argc,char** argv)
  bool indexMeshPlus=argc==5 && !strcmp(argv[4],"indexmeshplus");
  bool indexMeshMinus=argc==5 && !strcmp(argv[4],"indexmeshminus");
  bool copyVertex=argc==5 && !strcmp(argv[4],"copyvertex");
+ bool copyReadback=argc==5 && !strcmp(argv[4],"copyreadback");
  bool indexMesh=argc==5 && (!strcmp(argv[4],"indexmesh")
   || indexMeshBad || indexMeshClear || indexMeshPlus || indexMeshMinus);
  bool clearPass=argc==5 && (!strcmp(argv[4],"clearpass") || indexMeshClear);
@@ -168,6 +170,8 @@ int main(int argc,char** argv)
  if(indexMesh && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(copyVertex && (shape!=0 || repeats!=1
+  || strcmp(argv[2],"original")))return 40;
+ if(copyReadback && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(clearPass && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
@@ -438,6 +442,16 @@ int main(int argc,char** argv)
  REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&imageMemory)==VK_SUCCESS,15);
  REQUIRE(vkBindImageMemory(device,image,imageMemory,
   imageOffset?4096:0)==VK_SUCCESS,16);
+ VkBuffer readback=VK_NULL_HANDLE;
+ VkDeviceMemory readbackMemory=VK_NULL_HANDLE;
+ if(copyReadback){
+  bufferInfo.size=imageBytes;bufferInfo.usage=VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&readback)==VK_SUCCESS,88);
+  vkGetBufferMemoryRequirements(device,readback,&requirement);
+  allocation.allocationSize=requirement.size;
+  REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&readbackMemory)==VK_SUCCESS,89);
+  REQUIRE(vkBindBufferMemory(device,readback,readbackMemory,0)==VK_SUCCESS,90);
+ }
  if(imageOffset){
   void* guard=nullptr;
   REQUIRE(vkMapMemory(device,imageMemory,0,4096,0,&guard)==VK_SUCCESS
@@ -667,6 +681,13 @@ int main(int argc,char** argv)
   vkCmdDraw(command,3,1,9,0);
  }
  vkCmdEndRenderPass(command);
+ if(copyReadback){
+  VkBufferImageCopy region={};
+  region.imageSubresource={VK_IMAGE_ASPECT_COLOR_BIT,0,0,1};
+  region.imageExtent={dimension,dimension,1};
+  vkCmdCopyImageToBuffer(command,image,VK_IMAGE_LAYOUT_GENERAL,
+   readback,1,&region);
+ }
  if(multiPass){
   vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,secondPipeline);
@@ -789,13 +810,21 @@ int main(int argc,char** argv)
  }
 
  mapped=nullptr;
- REQUIRE(vkMapMemory(device,imageMemory,imageOffset?4096:0,imageBytes,0,&mapped)
+ VkDeviceMemory outputMemory=copyReadback?readbackMemory:imageMemory;
+ REQUIRE(vkMapMemory(device,outputMemory,copyReadback?0:imageOffset?4096:0,
+  imageBytes,0,&mapped)
   ==VK_SUCCESS && mapped,28);
- range.memory=imageMemory;range.offset=imageOffset?4096:0;range.size=imageBytes;
+ range.memory=outputMemory;range.offset=copyReadback?0:imageOffset?4096:0;
+ range.size=imageBytes;
  REQUIRE(vkInvalidateMappedMemoryRanges(device,1,&range)==VK_SUCCESS,29);
  uint32_t hash=2166136261u;
  const uint32_t* pixels=(const uint32_t*)mapped;
  for(unsigned i=0;i<dimension*dimension;i++)hash=(hash^pixels[i])*16777619u;
+ if(copyReadback && getenv("RENKU_VK_READBACK_CAPTURE")){
+  FILE* capture=fopen(getenv("RENKU_VK_READBACK_CAPTURE"),"wb");
+  REQUIRE(capture && fwrite(mapped,1,imageBytes,capture)==imageBytes
+   && fclose(capture)==0,91);
+ }
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
  if(clearPass){
@@ -863,7 +892,7 @@ int main(int argc,char** argv)
   && pixels[0]==0x19537bad
   && (!rotate || (pixels[20*32+10]==0xffff4000
    && pixels[10*32+20]==0x19537bad)),30);
- vkUnmapMemory(device,imageMemory);
+ vkUnmapMemory(device,outputMemory);
  if(imageOffset){
   void* guard=nullptr;
   REQUIRE(vkMapMemory(device,imageMemory,0,4096,0,&guard)==VK_SUCCESS
@@ -879,6 +908,8 @@ int main(int argc,char** argv)
   printf("Native Vulkan N100 %ux%u %s pair: PASS hash=%08x\n",
    dimension,dimension,indexPair?"indexed":indexSix?"six-index":"reference",hash);
  else if(copyVertex)printf("Native Vulkan N100 %ux%u copied GPU vertex triangle: PASS hash=%08x\n",
+  dimension,dimension,hash);
+ else if(copyReadback)printf("Native Vulkan N100 %ux%u image-to-buffer readback: PASS hash=%08x\n",
   dimension,dimension,hash);
  else if(indexed)printf("Native Vulkan N100 %ux%u GPU indexed triangle: PASS hash=%08x\n",
   dimension,dimension,hash);
@@ -933,6 +964,8 @@ int main(int argc,char** argv)
  vkDestroyImageView(device,view,nullptr);
  vkDestroyImage(device,image,nullptr);
  vkFreeMemory(device,imageMemory,nullptr);
+ if(copyReadback){vkDestroyBuffer(device,readback,nullptr);
+  vkFreeMemory(device,readbackMemory,nullptr);}
  vkDestroyBuffer(device,vertex,nullptr);
  vkFreeMemory(device,vertexMemory,nullptr);
  vkDestroyBuffer(device,laterVertex,nullptr);
