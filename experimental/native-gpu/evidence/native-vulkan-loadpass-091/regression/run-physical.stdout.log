@@ -1,0 +1,15 @@
+CASE 32 shape=0 profile=original direct=1 rc=0 PASS
+CASE 32 shape=1 profile=original direct=1 rc=0 PASS
+CASE 32 shape=2 profile=original direct=1 rc=0 PASS
+CASE 32 shape=3 profile=original direct=1 rc=0 PASS
+CASE 64 shape=0 profile=original direct=1 rc=0 PASS
+CASE 64 shape=1 profile=original direct=1 rc=0 PASS
+CASE 64 shape=2 profile=original direct=1 rc=0 PASS
+CASE 64 shape=3 profile=original direct=1 rc=0 PASS
+CASE 32 shape=0 profile=rgb direct=1 rc=0 PASS
+CASE 64 shape=0 profile=rgb direct=1 rc=0 PASS
+CASE 64 shape=0 profile=fragcoord direct=1 rc=0 PASS
+CASE 64 shape=0 profile=fragcoordgreen direct=1 rc=0 PASS
+CASE 32 shape=0 profile=original direct=0 rc=0 PASS
+CASE 64 shape=0 profile=original direct=0 rc=0 PASS
+N100 binary semaphores: PASS (14 cases, 28 draws)

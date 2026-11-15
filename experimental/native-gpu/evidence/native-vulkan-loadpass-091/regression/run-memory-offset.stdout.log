@@ -1,0 +1,8 @@
+N100 memory offset: PASS size=32 profile=original direct=1 draws=2
+N100 memory offset: PASS size=32 profile=original direct=0 draws=2
+N100 memory offset: PASS size=32 profile=ubomemoffset direct=1 draws=2
+N100 memory offset: PASS size=32 profile=ubooffset direct=1 draws=2
+N100 memory offset: PASS size=64 profile=original direct=1 draws=2
+N100 memory offset: PASS size=64 profile=original direct=0 draws=2
+N100 memory offset: PASS size=64 profile=ubomemoffset direct=1 draws=2
+N100 memory offset: PASS size=64 profile=ubooffset direct=1 draws=2

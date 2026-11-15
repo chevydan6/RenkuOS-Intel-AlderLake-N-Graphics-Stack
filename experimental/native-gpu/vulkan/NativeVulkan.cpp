@@ -61,7 +61,7 @@ struct VkImage_T {
  uint32_t width,memoryOffset;
 };
 struct VkImageView_T { VkDevice_T* device;VkImageView_T* next;VkImage image; };
-struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next; };
+struct VkRenderPass_T { VkDevice_T* device;VkRenderPass_T* next;bool load; };
 struct VkFramebuffer_T {
  VkDevice_T* device;VkFramebuffer_T* next;
  VkRenderPass pass;VkImageView view;
@@ -649,9 +649,12 @@ vkCreateRenderPass(VkDevice device,const VkRenderPassCreateInfo* info,
  const VkAttachmentDescription& a=info->pAttachments[0];
  const VkSubpassDescription& s=info->pSubpasses[0];
  if(a.flags || a.format!=VK_FORMAT_B8G8R8A8_UNORM
-  || a.samples!=VK_SAMPLE_COUNT_1_BIT || a.loadOp!=VK_ATTACHMENT_LOAD_OP_DONT_CARE
+  || a.samples!=VK_SAMPLE_COUNT_1_BIT
+  || !((a.loadOp==VK_ATTACHMENT_LOAD_OP_DONT_CARE
+   && a.initialLayout==VK_IMAGE_LAYOUT_UNDEFINED)
+   || (a.loadOp==VK_ATTACHMENT_LOAD_OP_LOAD
+   && a.initialLayout==VK_IMAGE_LAYOUT_GENERAL))
   || a.storeOp!=VK_ATTACHMENT_STORE_OP_STORE
-  || a.initialLayout!=VK_IMAGE_LAYOUT_UNDEFINED
   || a.finalLayout!=VK_IMAGE_LAYOUT_GENERAL
   || s.flags || s.pipelineBindPoint!=VK_PIPELINE_BIND_POINT_GRAPHICS
   || s.inputAttachmentCount || s.colorAttachmentCount!=1
@@ -661,7 +664,8 @@ vkCreateRenderPass(VkDevice device,const VkRenderPassCreateInfo* info,
   return VK_ERROR_FEATURE_NOT_PRESENT;
  VkRenderPass_T* value=(VkRenderPass_T*)calloc(1,sizeof(VkRenderPass_T));
  if(!value)return VK_ERROR_OUT_OF_HOST_MEMORY;
- value->device=device;value->next=device->passes;device->passes=value;
+ value->device=device;value->load=a.loadOp==VK_ATTACHMENT_LOAD_OP_LOAD;
+ value->next=device->passes;device->passes=value;
  *pass=value;return VK_SUCCESS;
 }
 
@@ -1384,7 +1388,8 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
  uint32_t firstVertex,uint32_t firstInstance)
 {
  if(!command)return;
- if(!command->recording || !command->inRenderPass || !command->pipeline
+ if(!command->recording || !command->inRenderPass || !command->pass
+  || !command->pipeline
   || !command->boundVertex || vertices<3 || vertices%3 || instances!=1
   || firstInstance){command->invalid=true;return;}
  if(command->pipeline->uniformBuffer && (!command->boundDescriptor
@@ -1417,7 +1422,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
  for(size_t i=0;i<added;i++)
   command->draws[command->drawCount++]={command->framebuffer,
    command->pipeline,command->boundVertex,command->boundDescriptor,
-   uint32_t(start+i*48),command->drawn || i!=0};
+   uint32_t(start+i*48),command->pass->load || command->drawn || i!=0};
  command->drawn=true;
 }
 

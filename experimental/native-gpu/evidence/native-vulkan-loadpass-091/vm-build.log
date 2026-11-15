@@ -1,0 +1,12 @@
+compiler pipeline probe: bounded RGB, vertex, and UBO programs PASS
+Vulkan API probe: accepted bounded RGB pipeline; rejected 1.0 green pipeline
+Vulkan fence probe: timed wait; empty submit signal; reset; signaled creation; wait-any/all
+Vulkan binary semaphore probe: signal/wait order, preflight, ownership: PASS
+Vulkan command reset and two-buffer allocation: PASS
+07c02bdec6ce5274e602847abb8afde8ccc4e8569ed71874ef21a8872b1b5be4  /boot/home/test-work/vulkan-loadpass-bundle-091/vulkan/build-compiler/libvulkan.so
+3cf63f3f1d2ebfcc68333ebce44444ccc713507208c98d244afb7e0d6fb8d219  /boot/home/test-work/vulkan-loadpass-bundle-091/vulkan/build-compiler/compiler_pipeline_probe
+48c08c3d6bb88f58775d1dd82e094fb5c1e516ce977b47aa16f91fee6297f236  /boot/home/test-work/vulkan-loadpass-bundle-091/vulkan/build-compiler/compiler_pipeline_api_probe
+8cb70eb99501f2c159830d6cd1a114866494f2f6efdb7ba9761a74309c350d54  /boot/home/test-work/vulkan-loadpass-bundle-091/vulkan/build-compiler/fence_probe
+0fec87ab2b370184a569a27422007fc82875329f4f1fe36cd2f0f15afba6f112  /boot/home/test-work/vulkan-loadpass-bundle-091/vulkan/build-compiler/semaphore_probe
+1a02eeea4d9c37f395d7115b96de0b393eed2397d217ca3c6024d32868834a34  /boot/home/test-work/vulkan-loadpass-bundle-091/vulkan/build-compiler/command_reset_probe
+1c3092d600119d7cb962cead6a596eba77fb2764ff845f404548d9ff91a8782b  /boot/home/test-work/vulkan-loadpass-bundle-091/vulkan/build-compiler/triangle_probe

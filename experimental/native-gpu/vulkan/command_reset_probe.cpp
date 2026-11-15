@@ -98,12 +98,19 @@ int main()
  if(pool->commands!=pair[1] || pair[1]->pool!=pool)return 23;
  vkDestroyCommandPool(&device,pool,nullptr);
  VkCommandBuffer_T six={};six.device=&device;six.recording=true;
- six.inRenderPass=true;six.pipeline=&pipeline;six.framebuffer=&framebuffer;
+ six.inRenderPass=true;six.pass=&pass;six.pipeline=&pipeline;
+ six.framebuffer=&framebuffer;
  six.boundVertex=&vertex;vertex.bytes=96;
  vkCmdDraw(&six,6,1,0,0);
  if(six.invalid || six.drawCount!=2 || six.draws[0].vertexOffset!=0
   || six.draws[1].vertexOffset!=48 || six.draws[0].preserve
   || !six.draws[1].preserve)return 24;
+ VkRenderPass_T loadPass={};loadPass.device=&device;loadPass.load=true;
+ six.drawCount=0;six.invalid=false;six.drawn=false;six.pass=&loadPass;
+ vertex.bytes=48;
+ vkCmdDraw(&six,3,1,0,0);
+ if(six.invalid || six.drawCount!=1 || !six.draws[0].preserve)return 31;
+ six.pass=&pass;
  six.drawCount=0;six.invalid=false;six.drawn=false;vertex.bytes=144;
  vkCmdDraw(&six,9,1,0,0);
  if(six.invalid || six.drawCount!=3 || six.draws[0].vertexOffset!=0

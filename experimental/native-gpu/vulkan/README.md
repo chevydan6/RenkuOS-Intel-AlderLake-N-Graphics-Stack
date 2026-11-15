@@ -27,12 +27,15 @@ their fixed state before allocation, and rolls back earlier pipelines if a
 later allocation fails. The [N100 dual-pipeline checkpoint](../evidence/native-vulkan-multipipeline-031/README.md)
 records two distinct fragment programs submitted in order, resource-exhaustion
 rollback, and the final pixel readback.
-Command buffers can now record multiple render-pass instances, each containing
-one bounded draw. Submission replays their captured framebuffer, pipeline, and
-vertex bindings in order and signals the fence after the last draw. The
+Command buffers can record multiple render-pass instances and bounded draws.
+Submission replays their captured framebuffer, pipeline, and vertex bindings
+in order and signals the fence after the last draw. The
 [multi-pass checkpoint](../evidence/native-vulkan-multipass-032/README.md)
-records two draws from one command buffer on the N100. Multiple draws within
-one render pass and attachment load/preservation semantics remain unsupported.
+records two draws from one command buffer on the N100. The
+[render-pass LOAD checkpoint](../evidence/native-vulkan-loadpass-091/README.md)
+adds a bounded color attachment load across passes, using the existing
+preserving owner request. Its two-pass image matched a same-pass draw pair on
+the physical N100 at both supported sizes; 262 earlier regression draws passed.
 The [vertex-offset checkpoint](../evidence/native-vulkan-vertex-offset-051/README.md)
 records 112 physical N100 draws with `vkCmdBindVertexBuffers` byte offset,
 `firstVertex`, and a second-page vertex range in an 8 KiB buffer. The owner
@@ -118,6 +121,8 @@ verified modifier constants. The physical N100 passed 262 previous regression
 draws and six four-triangle image comparisons with the candidate compiler
 loaded. The measured selected runtime source inventory falls to 15,072,193
 bytes; the 3–5 MB target remains unmet.
+With the render-pass LOAD change, the selected runtime source inventory is
+15,072,397 bytes. The full build closure and model tokens remain unmeasured.
 The [one-pass multidraw checkpoint](../evidence/native-multidraw-082/README.md)
 preserves the render target across two draws and verifies the complete 32x32
 and 64x64 images on the N100. Its initial path uses two blocking owner calls.

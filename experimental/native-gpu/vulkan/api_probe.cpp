@@ -140,6 +140,16 @@ int main()
  passInfo.subpassCount=1;passInfo.pSubpasses=&subpass;
  VkRenderPass pass=VK_NULL_HANDLE;
  if(vkCreateRenderPass(device,&passInfo,nullptr,&pass)!=VK_SUCCESS || !pass)return 32;
+ attachment.loadOp=VK_ATTACHMENT_LOAD_OP_LOAD;
+ attachment.initialLayout=VK_IMAGE_LAYOUT_GENERAL;
+ VkRenderPass loadPass=VK_NULL_HANDLE;
+ if(vkCreateRenderPass(device,&passInfo,nullptr,&loadPass)!=VK_SUCCESS
+  || !loadPass)return 74;
+ attachment.initialLayout=VK_IMAGE_LAYOUT_UNDEFINED;
+ VkRenderPass invalidLoad=VK_NULL_HANDLE;
+ if(vkCreateRenderPass(device,&passInfo,nullptr,&invalidLoad)
+  !=VK_ERROR_FEATURE_NOT_PRESENT || invalidLoad)return 75;
+ vkDestroyRenderPass(device,loadPass,nullptr);
  VkFramebufferCreateInfo fbInfo={};fbInfo.sType=VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
  fbInfo.renderPass=pass;fbInfo.attachmentCount=1;fbInfo.pAttachments=&view;
  fbInfo.width=32;fbInfo.height=32;fbInfo.layers=1;
