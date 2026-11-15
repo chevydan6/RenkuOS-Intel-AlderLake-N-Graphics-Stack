@@ -1,0 +1,5 @@
+ae528b7ac29b80e44dd2993486beac34e681552306f998aaa8e24b3d73341b25  /boot/system/non-packaged/add-ons/kernel/bus_managers/intel_memory_owner
+ca76b8208304a43355b1cc042bdd595f53173eb58f5acaee121876c8c134a145  /boot/system/non-packaged/add-ons/kernel/drivers/bin/intel_native_execution_bridge
+2a39009364368a0fce3307cb450a97d721b8fcdf5daa73a0afd1b869d9a114ff  /boot/home/native-multidraw-082/libvulkan.so
+d0864fcc54f2fcf6baf5f65b96728f26e11a19819be78fd459434f117e92c74f  /boot/home/native-multidraw-082/triangle_probe
+2617d71d10a1bf62451a3d7b1ef7e11cc36a298ee98949ab2f79d612ed31991b  /boot/home/native-blake3-080/librenku_intel_compiler.so

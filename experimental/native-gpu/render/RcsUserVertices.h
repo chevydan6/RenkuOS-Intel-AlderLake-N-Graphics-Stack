@@ -41,7 +41,8 @@ public:
  }
 
  static bool Inspect(const volatile uint32_t* target,const uint32_t* words,Check& check,
-  uint32_t renderedPixel=RcsDrawImage::RenderedPixel) {
+  uint32_t renderedPixel=RcsDrawImage::RenderedPixel,
+  const uint32_t* background=nullptr) {
   Coord points[3]={};
   if(!target || !Validate(words,points))return false;
   Check found={0,0,2166136261u,0,0};
@@ -51,7 +52,8 @@ public:
    found.hash=(found.hash^observed)*16777619u;
    int kind=Classify(points,x,y);
    if(kind<0)continue;
-   uint32_t expected=kind==1?renderedPixel:RcsDrawImage::Poison;
+   uint32_t expected=kind==1?renderedPixel:
+    background?background[y*32+x]:RcsDrawImage::Poison;
    found.checked++;found.matched+=observed==expected;
    if(kind==1 && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}
    if(kind==0 && !haveExterior){found.exterior=(uint32_t(y)<<16)|uint32_t(x);haveExterior=true;}
@@ -62,7 +64,8 @@ public:
 
  static bool Inspect64(uint32_t* const* pages,const uint32_t* words,Check& check,
   uint32_t renderedPixel=RcsDrawImage::RenderedPixel,
-  unsigned fragcoordDenominator=0,bool fragcoordGreen=false) {
+  unsigned fragcoordDenominator=0,bool fragcoordGreen=false,
+  const uint32_t* background=nullptr) {
   Coord points[3]={};
   if(!pages || !Validate(words,points)
    || (fragcoordDenominator && fragcoordDenominator!=32
@@ -83,7 +86,7 @@ public:
    if(channel>255)channel=255;
    uint32_t expected=kind
     ?fragcoordDenominator?0xff000000u|(channel<<(fragcoordGreen?8:16)):renderedPixel
-    :RcsDrawImage::Poison;
+    :background?background[index]:RcsDrawImage::Poison;
    found.matched+=observed==expected;
    found.checked++;
    if(kind==1 && !haveInterior){found.interior=(uint32_t(y)<<16)|uint32_t(x);haveInterior=true;}

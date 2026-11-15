@@ -1,0 +1,2 @@
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+Native Vulkan N100 triangle: PASS shape=0 hash=28616d2d draws=1

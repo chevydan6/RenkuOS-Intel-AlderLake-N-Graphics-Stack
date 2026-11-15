@@ -1,0 +1,2 @@
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+Native Vulkan N100 half-green triangle: PASS shape=2 hash=48e0ed05 draws=1

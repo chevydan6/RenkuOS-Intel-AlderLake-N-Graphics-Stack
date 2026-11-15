@@ -43,6 +43,40 @@ int main() {
   pixels[inside]=D::RenderedPixel;
   pixels[0]=D::RenderedPixel;assert(!V::Inspect(pixels,vertices,check));
  }
+ V::Coord first[3]={};assert(V::Validate(triangles[0],first));
+ uint32_t previous[1024],overlay[1024];
+ for(unsigned i=0;i<1024;i++)previous[i]=0x11000000u+i;
+ for(int y=0;y<32;y++)for(int x=0;x<32;x++){
+  bool covered=true;
+  for(unsigned i=0;i<3;i++){
+   unsigned j=(i+1)%3;
+   int edge=(first[j].x-first[i].x)*(2*y+1-2*first[i].y)
+    -(first[j].y-first[i].y)*(2*x+1-2*first[i].x);
+   if(edge<=0)covered=false;
+  }
+  overlay[y*32+x]=covered?D::RenderedPixel:previous[y*32+x];
+ }
+ V::Check preserved={};
+ assert(V::Inspect(overlay,triangles[0],preserved,D::RenderedPixel,previous));
+ assert(!V::Inspect(overlay,triangles[0],preserved));
+ overlay[0]^=1;assert(!V::Inspect(overlay,triangles[0],preserved,
+  D::RenderedPixel,previous));overlay[0]^=1;
+ uint32_t largePrevious[4096],largeOverlay[4096];
+ alignas(4096) uint32_t largeStorage[11][1024]={};
+ uint32_t* largePages[11]={};
+ for(unsigned p=0;p<11;p++)largePages[p]=largeStorage[p];
+ for(unsigned y=0;y<64;y++)for(unsigned x=0;x<64;x++){
+  unsigned index=y*64+x;
+  largePrevious[index]=0x22000000u+index;
+  largeOverlay[index]=x>y && x>=8 && x<56 && y>=8 && y<56
+   ?D::RenderedPixel:largePrevious[index];
+  largePages[6+index/1024][index%1024]=largeOverlay[index];
+ }
+ assert(V::Inspect64(largePages,triangles[0],preserved,D::RenderedPixel,
+  0,false,largePrevious));
+ largePages[6][0]^=1;
+ assert(!V::Inspect64(largePages,triangles[0],preserved,D::RenderedPixel,
+  0,false,largePrevious));
  uint32_t invalid[12];memcpy(invalid,triangles[0],sizeof(invalid));
  invalid[0]=0x7fc00000;assert(!V::Validate(invalid));
  invalid[0]=triangles[0][0];invalid[3]=0;assert(!V::Validate(invalid));

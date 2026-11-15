@@ -1,0 +1,12 @@
+N100 image offset: PASS size=32 profile=original variant=imageoffset direct=1 draws=2
+N100 image offset: PASS size=32 profile=original variant=imageoffset direct=0 draws=2
+N100 image offset: PASS size=32 profile=original variant=rotateimageoffset direct=1 draws=2
+N100 image offset: PASS size=32 profile=ubo variant=imageoffset direct=1 draws=2
+N100 image offset: PASS size=32 profile=ubooffset variant=imageoffset direct=1 draws=2
+N100 image offset: PASS size=32 profile=ubomemoffset variant=imageoffset direct=1 draws=2
+N100 image offset: PASS size=64 profile=original variant=imageoffset direct=1 draws=2
+N100 image offset: PASS size=64 profile=original variant=imageoffset direct=0 draws=2
+N100 image offset: PASS size=64 profile=original variant=rotateimageoffset direct=1 draws=2
+N100 image offset: PASS size=64 profile=ubo variant=imageoffset direct=1 draws=2
+N100 image offset: PASS size=64 profile=ubooffset variant=imageoffset direct=1 draws=2
+N100 image offset: PASS size=64 profile=ubomemoffset variant=imageoffset direct=1 draws=2

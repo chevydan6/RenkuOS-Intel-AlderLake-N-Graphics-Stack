@@ -94,7 +94,7 @@ struct VkCommandPool_T {
 struct VkCommandBuffer_T {
  struct Draw {VkFramebuffer framebuffer;VkPipeline pipeline;VkBuffer vertex;
   VkDescriptorSet descriptor;
-  uint32_t vertexOffset;};
+  uint32_t vertexOffset;bool preserve;};
  VkDevice_T* device;VkCommandPool_T* pool;VkCommandBuffer_T* next;
  VkRenderPass pass;VkFramebuffer framebuffer;VkPipeline pipeline;
  VkBuffer boundVertex;VkDeviceSize boundVertexOffset;
@@ -1385,7 +1385,7 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
 {
  if(!command)return;
  if(!command->recording || !command->inRenderPass || !command->pipeline
-  || !command->boundVertex || command->drawn || vertices!=3 || instances!=1
+  || !command->boundVertex || vertices!=3 || instances!=1
   || firstInstance){command->invalid=true;return;}
  if(command->pipeline->uniformBuffer && (!command->boundDescriptor
   || !command->boundDescriptor->valid
@@ -1409,7 +1409,8 @@ vkCmdDraw(VkCommandBuffer command,uint32_t vertices,uint32_t instances,
   command->drawCapacity=next;
  }
  command->draws[command->drawCount++]={command->framebuffer,
-  command->pipeline,command->boundVertex,command->boundDescriptor,uint32_t(start)};
+  command->pipeline,command->boundVertex,command->boundDescriptor,
+  uint32_t(start),command->drawn};
  command->drawn=true;
 }
 
@@ -1517,6 +1518,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
      || !recorded.vertex->memory)return VK_ERROR_INITIALIZATION_FAILED;
     if(recorded.pipeline->width!=recorded.framebuffer->view->image->width)
      return VK_ERROR_FEATURE_NOT_PRESENT;
+    if(recorded.preserve && !directTarget)return VK_ERROR_FEATURE_NOT_PRESENT;
     if(recorded.pipeline->uniformBuffer && (!directTarget
      || !recorded.descriptor || !recorded.descriptor->valid
      || recorded.descriptor->device!=device
@@ -1543,7 +1545,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=directTarget && recorded.framebuffer->view->image->memoryOffset?18:
+ draw.version=recorded.preserve?19:
+  directTarget && recorded.framebuffer->view->image->memoryOffset?18:
   uniform?(uniformOffset?17:16):directTarget?15:recorded.vertexOffset
   ?(recorded.pipeline->vertexShaderHandle?14:13)
   :large?(recorded.pipeline->fragcoordGradient?12:
@@ -1553,7 +1556,8 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  draw.variant=recorded.vertex->memory->handle;
  draw.reserved=recorded.pipeline->shaderHandle;
  if(draw.version==13 || draw.version==14 || draw.version==15
-  || draw.version==16 || draw.version==17 || draw.version==18)
+  || draw.version==16 || draw.version==17 || draw.version==18
+  || draw.version==19)
   memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
@@ -1563,7 +1567,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   &recorded.pipeline->vertexShaderHandle,
   sizeof(recorded.pipeline->vertexShaderHandle));
  if(draw.version==15 || draw.version==16 || draw.version==17
-  || draw.version==18){
+  || draw.version==18 || draw.version==19){
   memcpy(draw.output+4,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
   memcpy(draw.output+8,&recorded.framebuffer->view->image->memory->handle,
@@ -1571,9 +1575,10 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   if(uniform)memcpy(draw.output+12,
    &recorded.descriptor->buffer->memory->handle,
    sizeof(recorded.descriptor->buffer->memory->handle));
-  if(draw.version==17 || draw.version==18)memcpy(draw.output+16,
+  if(draw.version==17 || draw.version==18 || draw.version==19)
+   memcpy(draw.output+16,
    &uniformOffset,sizeof(uniformOffset));
-  if(draw.version==18)memcpy(draw.output+20,
+  if(draw.version==18 || draw.version==19)memcpy(draw.output+20,
    &recorded.framebuffer->view->image->memoryOffset,
    sizeof(recorded.framebuffer->view->image->memoryOffset));
  }
@@ -1581,15 +1586,14 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  int status=large
   ?ioctl(device->fd,NATIVE_GPU_RENDER_LARGE_IOCTL,&largeDraw,sizeof(largeDraw))
   :ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&smallDraw,sizeof(smallDraw));
- if(large && (draw.version==12 || draw.version==15 || draw.version==16
-  || draw.version==17 || draw.version==18)){
+ if((large && draw.version==12) || (directTarget && draw.version>=15)){
   const char* capture=getenv("RENKU_VK_CAPTURE_PIXELS");
   if(capture){
    FILE* file=fopen(capture,"wb");
    size_t saved=0;int closed=-1;
    if(file){
     saved=fwrite(draw.output,1,sizeof(draw.output),file);
-    saved+=fwrite(largeDraw.extra,1,sizeof(largeDraw.extra),file);
+    if(large)saved+=fwrite(largeDraw.extra,1,sizeof(largeDraw.extra),file);
     closed=fclose(file);
    }
    fprintf(stderr,"{\"event\":\"vk_pixel_capture\",\"bytes\":%zu,"

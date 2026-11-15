@@ -82,6 +82,10 @@ struct native_gpu_render_command {
 // Version 18 extends the direct-target request with a page-aligned image
 // offset in input output bytes 20..23. A nonzero uniform handle in bytes
 // 12..15 selects the version-17 UBO path; otherwise bytes 16..19 must be zero.
+// Version 19 uses the same direct-target fields and preserves the image's
+// previous pixels outside the current triangle. Image offset may be zero.
+// The owner snapshots the prior image and verifies retained pixels after GPU
+// completion. Use only after a preceding draw in the same Vulkan render pass.
 // The v1-v8 4 KiB ABI remains unchanged.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {

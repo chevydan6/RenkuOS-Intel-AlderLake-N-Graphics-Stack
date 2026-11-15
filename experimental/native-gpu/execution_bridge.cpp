@@ -97,7 +97,8 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
    || s.render.version==7 || s.render.version==8
    || s.render.version==13 || s.render.version==14
    || s.render.version==15 || s.render.version==16
-   || s.render.version==17 || s.render.version==18){
+   || s.render.version==17 || s.render.version==18
+   || s.render.version==19){
    if(!s.resourceSession){
     status=s.resourceModule->open(&s.resourceSession);
     if(status!=B_OK)return status;
@@ -114,7 +115,7 @@ static status_t ControlLocked(Session& s,uint32 operation,void* buffer,size_t by
     || s.large.base.version==12 || s.large.base.version==13
     || s.large.base.version==14 || s.large.base.version==15
     || s.large.base.version==16 || s.large.base.version==17
-    || s.large.base.version==18)
+    || s.large.base.version==18 || s.large.base.version==19)
    && !s.resourceSession){
    status=s.resourceModule->open(&s.resourceSession);
    if(status!=B_OK)return status;

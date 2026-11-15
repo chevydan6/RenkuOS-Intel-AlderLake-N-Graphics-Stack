@@ -39,6 +39,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"highva")
    && strcmp(argv[4],"endva")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
+   && strcmp(argv[4],"multidraw")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
    && strcmp(argv[4],"memoryoffset")
@@ -81,6 +82,7 @@ int main(int argc,char** argv)
   || !strcmp(argv[4],"rotatefirst") || !strcmp(argv[4],"rotateimageoffset"));
  bool dual=argc==5 && !strcmp(argv[4],"dual");
  bool multiPass=argc==5 && !strcmp(argv[4],"multipass");
+ bool multiDraw=argc==5 && !strcmp(argv[4],"multidraw");
  bool colorOnly=argc==5 && !strcmp(argv[4],"coloronly");
  bool bindOffset=argc==5 && (!strcmp(argv[4],"offset")
   || !strcmp(argv[4],"rotateoffset") || !strcmp(argv[4],"depthoffset"));
@@ -92,13 +94,14 @@ int main(int argc,char** argv)
  bool imageOffset=argc==5 && (!strcmp(argv[4],"imageoffset")
   || !strcmp(argv[4],"rotateimageoffset"));
  bool selectedVertexRange=bindOffset || firstVertex || pageOffset;
- bool twoPipelines=dual || multiPass;
+ bool twoPipelines=dual || multiPass || (multiDraw && !large);
  if(large && (half || green75 || green90 || named || twoPipelines
   || batch || (depth && shape!=0)))return 40;
  if(fragcoord && (!large || shape!=0 || rotate || depth || twoPipelines
   || batch || named || colorOnly))return 40;
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
- if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
+ if((twoPipelines || multiDraw) && (shape!=0 || argc!=5
+  || strcmp(argv[2],"original")
   || repeats!=2))return 40;
  if((highVa || endVa) && (shape!=0 || argc!=5
   || strcmp(argv[2],"original") || repeats>4 || (endVa && large)))return 40;
@@ -253,7 +256,7 @@ int main(int argc,char** argv)
  REQUIRE(vkBindBufferMemory(device,laterVertex,laterMemory,0)==VK_SUCCESS,43);
  mapped=nullptr;
  REQUIRE(vkMapMemory(device,laterMemory,0,48,0,&mapped)==VK_SUCCESS && mapped,44);
- memcpy(mapped,positions[(shape+1)%4],48);
+ memcpy(mapped,positions[multiDraw?2:(shape+1)%4],48);
  range.memory=laterMemory;
  REQUIRE(vkFlushMappedMemoryRanges(device,1,&range)==VK_SUCCESS,45);
  vkUnmapMemory(device,laterMemory);
@@ -469,6 +472,11 @@ int main(int argc,char** argv)
  vkCmdBindVertexBuffers(command,0,1,&vertex,&offset);
  vkCmdDraw(command,3,1,firstVertex?3:0,0);
  vkCmdBindVertexBuffers(command,0,1,&laterVertex,&offset);
+ if(multiDraw){
+  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,
+   twoPipelines?secondPipeline:pipeline);
+  vkCmdDraw(command,3,1,0,0);
+ }
  vkCmdEndRenderPass(command);
  if(multiPass){
   vkCmdBeginRenderPass(command,&render,VK_SUBPASS_CONTENTS_INLINE);
@@ -523,7 +531,7 @@ int main(int argc,char** argv)
   REQUIRE(vkGetFenceStatus(device,fence)==VK_SUCCESS
    && vkWaitForFences(device,1,&fence,VK_TRUE,0)==VK_SUCCESS,27);
   if(dependency)vkDestroySemaphore(device,dependency,nullptr);
- }else for(unsigned i=0;i<(multiPass?1:repeats);i++){
+ }else for(unsigned i=0;i<((multiPass || multiDraw)?1:repeats);i++){
   if(i)REQUIRE(vkResetFences(device,1,&fence)==VK_SUCCESS
    && vkGetFenceStatus(device,fence)==VK_NOT_READY,50);
   if(ubo){
@@ -555,7 +563,12 @@ int main(int argc,char** argv)
  for(unsigned i=0;i<dimension*dimension;i++)hash=(hash^pixels[i])*16777619u;
  const unsigned expectedShape=shape;
  const uint32_t expected[4]={0x28616d2d,0xd40eb9c3,0xe24aed05,0x984ae945};
- if(large){
+ if(multiDraw){
+  REQUIRE(pixels[0]==0x19537bad
+   && pixels[(large?20:10)*dimension+(large?40:20)]==0xffff4000
+   && pixels[(large?40:20)*dimension+(large?20:10)]
+    ==(large?0xffff4000:0xffff8000),30);
+ }else if(large){
   const uint32_t expectedLarge[4]={
    0x8aaee2f5,0x9ca44bcd,0x23ba4705,0xb0d153c5};
   const uint32_t expectedLargeRgb[4]={
@@ -604,7 +617,8 @@ int main(int argc,char** argv)
   for(unsigned i=0;i<4096;i++)REQUIRE(((uint8_t*)guard)[i]==0xa5,77);
   vkUnmapMemory(device,imageMemory);
  }
- if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
+ if(multiDraw)printf("Native Vulkan N100 %ux%u two draws in one render pass: PASS shape=%u hash=%08x draws=%lu\n",dimension,dimension,shape,hash,repeats);
+ else if(large)printf("Native Vulkan N100 64x64 %striangle: PASS shape=%u hash=%08x draws=%lu\n",
   ubo?"UBO ":fragcoord?(fragcoordGreen?"FragCoord-green ":"FragCoord-red "):
   rotate?"rotated-vertex ":
   depth?"depth-vertex ":rgb?"RGB ":"",
