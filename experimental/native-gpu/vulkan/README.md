@@ -66,6 +66,9 @@ The [binary semaphore checkpoint](../evidence/native-vulkan-semaphore-064/README
 adds signal/wait ordering on the single synchronous queue. Its isolated Vulkan
 bundle passed 28 semaphore draws and 178 rendering regression draws on the
 N100. The measured selected runtime source closure is 12,633,124 bytes.
+The [submission latency baseline](../evidence/native-vulkan-latency-065/README.md)
+measures 768 verified N100 draws. Median blocking submissions take roughly
+5.3–5.4 ms; owner-side timings are needed to locate that cost precisely.
 The [native window checkpoint](../evidence/native-vulkan-window-033/README.md)
 records a compiler-backed Vulkan triangle rendered on the N100, verified by
 pixel hash, and copied to a Haiku `BBitmap` for a native `BWindow` draw. Build the
