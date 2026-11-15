@@ -1,0 +1,16 @@
+size=32 mode=indexmesh
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=cdad4a41
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":25,"stage":12,"sequence":6,"observed":6,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":769,"shader_bo":773,"vertex_shader_bo":0,"image_bo":772,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":771,"index_offset":0,"index_count":9,"vertex_count":9,"pixel_oracle":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"cdad4a41","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5808,"write_ioctl_us":0,"submit_us":5810}
+size=64 mode=indexmesh
+Native Vulkan N100 64x64 GPU indexed triangle: PASS hash=9bd44344
+{"event":"vk_pixel_capture","bytes":16384,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":25,"stage":12,"sequence":7,"observed":7,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":897,"shader_bo":901,"vertex_shader_bo":0,"image_bo":900,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":899,"index_offset":0,"index_count":9,"vertex_count":9,"pixel_oracle":0,"vertex_gpu_va":"410000","shader_gpu_va":"417000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"9bd44344","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":5036,"write_ioctl_us":0,"submit_us":5041}
+size=32 mode=indexmeshclear
+Native Vulkan N100 32x32 GPU indexed triangle: PASS hash=bc73ecd9
+{"event":"vk_clear_write","image_bo":1028,"pages":1,"color":"ff336699","status":0,"us":2}
+{"event":"vk_pixel_capture","bytes":4096,"closed":0,"ioctl":0}
+{"event":"vk_queue_submit","ioctl":0,"write_ioctl":0,"version":25,"stage":12,"sequence":8,"observed":8,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":1025,"shader_bo":1029,"vertex_shader_bo":0,"image_bo":1028,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":1027,"index_offset":0,"index_count":9,"vertex_count":9,"pixel_oracle":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"bc73ecd9","fault":0,"engine_stage":4,"csb_error":0,"render_ioctl_us":6120,"write_ioctl_us":0,"submit_us":6122}
+size=32 mode=indexmeshbad
+{"event":"vk_queue_submit","ioctl":-1,"write_ioctl":0,"version":25,"stage":0,"sequence":0,"observed":0,"draw_index":0,"draw_count":1,"gpu_draws":1,"vertex_offset":0,"direct_target":1,"vertex_bo":1153,"shader_bo":1157,"vertex_shader_bo":0,"image_bo":1156,"image_offset":0,"uniform_bo":0,"uniform_offset":0,"index_bo":1155,"index_offset":0,"index_count":9,"vertex_count":9,"pixel_oracle":0,"vertex_gpu_va":"410000","shader_gpu_va":"414000","image_gpu_va":"413000","checked":0,"matched":0,"pixel_hash":"1f116dc5","fault":0,"engine_stage":0,"csb_error":0,"render_ioctl_us":12,"write_ioctl_us":0,"submit_us":13}
+Vulkan triangle failed at vulkan/triangle_probe.cpp:768 (code 26)

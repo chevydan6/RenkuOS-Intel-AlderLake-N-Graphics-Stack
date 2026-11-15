@@ -99,6 +99,8 @@ static bool sRenderPreserveTarget;
 static bool sRenderTwoDraw;
 static bool sRenderIndexedDraw;
 static bool sRenderIndexedPair;
+static bool sRenderIndexedMesh;
+static unsigned sRenderIndexCount,sRenderVertexBytes;
 static bool sRenderUniformDraw;
 static uint32_t sRenderPublicVertexCode[1024];
 static uint64_t sRenderArenaGpu,sRenderPublicBatchGpu,sRenderPublicShaderGpu;
@@ -116,7 +118,7 @@ static bool NativeResourceAllowedLocked();
 static uint32_t sRenderUserVertices[12];
 static uint32_t sRenderExpectedVertices[12];
 static uint32_t sRenderSecondVertices[12];
-static uint16_t sRenderIndices[6];
+static uint16_t sRenderIndices[255];
 static uint32_t sRenderSavedDefault[14*1024];
 static IntelN100PpgttTree sRenderTree;
 static NativeGpu::RcsEngine sRenderEngine;
@@ -410,6 +412,8 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   ? NativeGpu::RcsDrawImage64::Build(sRenderData,sRenderCombinedDraw?0:r.variant)
   : sRenderPublicBatchDraw
   ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
+  : sRenderArenaDraw && sRenderIndexedMesh
+  ? NativeGpu::RcsDrawImage::Build(sRenderData,0)
   : sRenderArenaDraw
   ? NativeGpu::RcsResourceVertices::BuildAt(sRenderData,sRenderUserVertices,sRenderArenaGpu)
   : sRenderResourceDraw
@@ -417,7 +421,7 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   : sRenderUserDraw
    ? NativeGpu::RcsUserVertices::Build(sRenderData,sRenderUserVertices)
    : NativeGpu::RcsDrawImage::Build(sRenderData,r.variant)))return false;
- if(draw && sRenderLargeDraw && sRenderCombinedDraw
+ if(draw && (sRenderLargeDraw || sRenderIndexedMesh) && sRenderCombinedDraw
   && !NativeGpu::RcsResourceVertices::PatchAddressOnly(sRenderData,sRenderArenaGpu))
   return false;
  if(draw && sRenderPublicBatchDraw){
@@ -442,9 +446,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  if(draw && sRenderIndexedDraw){
   if(!NativeGpu::RcsIndexedBatch::Patch(
    sRenderData[NativeGpu::RcsDrawImage::Batch],1024,
-   sRenderIndexedPair?6:3))return false;
+   sRenderIndexCount,sRenderVertexBytes))return false;
   memcpy((uint8_t*)sRenderData[NativeGpu::RcsDrawImage::Vertices]+256,
-   sRenderIndices,sRenderIndexedPair?12:6);
+   sRenderIndices,sRenderIndexCount*2);
  }
  if(draw && sRenderPublicVertexDraw)
   memcpy(sRenderData[NativeGpu::RcsDrawImage::Vs],sRenderPublicVertexCode,4096);
@@ -519,7 +523,15 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
    resultPages=directPages;
   }
   bool matched=false;
-  if(sRenderTwoDraw){
+  if(sRenderIndexedMesh){
+   // This request reports completion and a full readback hash, but makes no
+   // fixed-geometry CPU pixel claim for application-supplied triangles.
+   uint32_t hash=2166136261u;
+   for(unsigned p=0;p<(sRenderLargeDraw?4u:1u);p++)
+    for(unsigned i=0;i<1024;i++)
+     hash=(hash^resultPages[NativeGpu::RcsDrawImage::Target+p][i])*16777619u;
+   r.target_hash=hash;matched=true;
+  }else if(sRenderTwoDraw){
    NativeGpu::RcsUserVertices::Check check={};
    matched=sRenderLargeDraw
     ?NativeGpu::RcsUserVertices::InspectPair64(resultPages,sRenderUserVertices,
@@ -611,9 +623,11 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  if(!command)return B_BAD_VALUE;
  uint32_t version=command->version,mode=command->mode,variant=command->variant;
  bool pairDraw=version==20 || version==21;
- bool indexedDraw=(version==22 || version==23 || version==24)
+ bool indexedDraw=(version==22 || version==23 || version==24
+  || version==25)
   && mode==NATIVE_GPU_RENDER_DRAW;
  bool indexedPair=version==24 && indexedDraw;
+ bool indexedMesh=version==25 && indexedDraw;
  uint32_t uniformHandle=0;
  if(version>=16 && version<=19)
   memcpy(&uniformHandle,command->output+12,sizeof(uniformHandle));
@@ -629,7 +643,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  bool publicBatchDraw=version==5 && mode==NATIVE_GPU_RENDER_DRAW;
  bool publicShaderDraw=version==6 && mode==NATIVE_GPU_RENDER_DRAW;
  uint32_t directVertexShaderHandle=0;
- if(version>=15 && version<=24)memcpy(&directVertexShaderHandle,command->output+4,
+ if(version>=15 && version<=25)memcpy(&directVertexShaderHandle,command->output+4,
   sizeof(directVertexShaderHandle));
  bool publicVertexDraw=(version==8 || version==11 || version==14
   || ((version==15 || version==18 || version==19) && !uniformDraw
@@ -669,6 +683,16 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   memcpy(&indexHandle,command->output+24,sizeof(indexHandle));
   memcpy(&indexOffset,command->output+28,sizeof(indexOffset));
  }
+ uint32_t meshVertexCount=0,meshIndexCount=0,meshFlags=0;
+ if(indexedMesh){
+  memcpy(&meshVertexCount,command->output+12,sizeof(meshVertexCount));
+  memcpy(&meshIndexCount,command->output+16,sizeof(meshIndexCount));
+  memcpy(&meshFlags,command->output+20,sizeof(meshFlags));
+ }
+ const uint32_t selectedVertexBytes=indexedMesh?meshVertexCount*16:
+  pairDraw?96u:indexedDraw?64u:48u;
+ const uint32_t selectedIndexBytes=indexedMesh?meshIndexCount*2:
+  indexedPair?12u:6u;
  bool valid=(command->reserved==0
   && ((version==1 && ((mode==NATIVE_GPU_RENDER_DRAW && variant<4)
     || ((mode==NATIVE_GPU_RENDER_PROBE || mode==NATIVE_GPU_RENDER_BOOTSTRAP) && variant==0)))
@@ -677,7 +701,10 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   || (arenaDraw && variant==0 && command->reserved!=0 && resourceSession!=0)
   || (publicBatchDraw && variant!=0 && command->reserved!=0 && resourceSession!=0)
   || (publicShaderDraw && variant<4 && command->reserved!=0 && resourceSession!=0)
-  || (combinedDraw && (!largeDraw || version==10 || version==11
+  || (combinedDraw && (!indexedMesh || (meshVertexCount>=3
+    && meshVertexCount<=256 && meshIndexCount>=3
+    && meshIndexCount<=255 && meshIndexCount%3==0 && meshFlags<=1))
+   && (!largeDraw || version==10 || version==11
     || version==12 || version==13 || version==14 || version==15
     || version==16 || version==17 || version==18 || version==19
     || pairDraw || indexedDraw)
@@ -690,9 +717,9 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
      || uniformDraw
      || vertexOffset>=16)
     && vertexOffset<=NativeGpu::RcsResourceRange::Pages*4096
-     -(pairDraw?96u:indexedDraw?64u:48u)
+     -selectedVertexBytes
     && !(vertexOffset&15)
-    && (vertexOffset&4095)<=4096-(pairDraw?96u:indexedDraw?64u:48u)))
+    && (vertexOffset&4095)<=4096-selectedVertexBytes))
    && ((version!=15 && version!=18 && version!=19
     && !pairDraw && !indexedDraw && !uniformDraw)
     || (targetHandle!=0 && targetHandle!=variant
@@ -709,8 +736,8 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
     && indexHandle!=command->reserved && indexHandle!=targetHandle
     && !(indexOffset&1)
     && indexOffset<=NativeGpu::RcsResourceRange::Pages*4096
-     -(indexedPair?12u:6u)
-    && (indexOffset&4095)<=4096-(indexedPair?12u:6u)))
+     -selectedIndexBytes
+    && (indexOffset&4095)<=4096-selectedIndexBytes))
    && (!uniformDraw || (directVertexShaderHandle==0 && uniformHandle!=0
     && uniformHandle!=variant && uniformHandle!=command->reserved
     && uniformHandle!=targetHandle
@@ -765,8 +792,7 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   }
   uint32_t vertexHandle=publicBatchDraw || combinedDraw?variant:command->reserved;
   if(!sRenderArena.Resolve(resourceSession,vertexHandle,vertexOffset,
-    pairDraw?sizeof(userVertices)+sizeof(secondVertices):
-     indexedDraw?64:sizeof(userVertices),arenaGpu)){
+    selectedVertexBytes,arenaGpu)){
    mutex_unlock(&sLock);return output.status;
   }
   unsigned page=unsigned((arenaGpu-kRenderArenaGpu)/4096);
@@ -774,21 +800,34 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
    +(arenaGpu&4095);
   if(indexedDraw){
    uint64_t indexGpu=0;
-   unsigned indexBytes=indexedPair?12:6;
    if(!sRenderArena.Resolve(resourceSession,indexHandle,indexOffset,
-     indexBytes,indexGpu) || (indexGpu&1)){
+     selectedIndexBytes,indexGpu) || (indexGpu&1)){
     mutex_unlock(&sLock);return output.status;
    }
    unsigned indexPage=unsigned((indexGpu-kRenderArenaGpu)/4096);
-   memcpy(indices,(const uint8_t*)sRenderArenaPages[indexPage].cpu
-    +(indexGpu&4095),indexBytes);
-   for(unsigned i=0;i<(indexedPair?6u:3u);i++){
-    if(indices[i]>=4){mutex_unlock(&sLock);return output.status;}
-    memcpy((i<3?userVertices:secondVertices)+(i%3)*4,
-     vertexSource+indices[i]*16,16);
+   uint16_t* selected=indexedMesh?sRenderIndices:indices;
+   memcpy(selected,(const uint8_t*)sRenderArenaPages[indexPage].cpu
+    +(indexGpu&4095),selectedIndexBytes);
+   for(unsigned i=0;i<(indexedMesh?meshIndexCount:
+     indexedPair?6u:3u);i++){
+    if(selected[i]>=(indexedMesh?meshVertexCount:4u)){
+     mutex_unlock(&sLock);return output.status;
+    }
+    if(!indexedMesh)memcpy((i<3?userVertices:secondVertices)+(i%3)*4,
+     vertexSource+selected[i]*16,16);
+   }
+   if(indexedMesh)for(unsigned i=0;i<meshVertexCount;i++){
+    const uint32_t* position=(const uint32_t*)(vertexSource+i*16);
+    // Keep input coordinates finite and bounded before the GPU reads them.
+    bool validPosition=true;
+    for(unsigned component=0;component<3;component++)
+     validPosition &=(position[component]&0x7fffffff)<=0x41800000;
+    validPosition &=position[3]>=0x3d800000
+     && position[3]<=0x41800000;
+    if(!validPosition){mutex_unlock(&sLock);return output.status;}
    }
   }else memcpy(userVertices,vertexSource,sizeof(userVertices));
-  if(!NativeGpu::RcsUserVertices::Validate(userVertices)){
+  if(!indexedMesh && !NativeGpu::RcsUserVertices::Validate(userVertices)){
    mutex_unlock(&sLock);return output.status;
   }
   if(pairDraw){
@@ -870,10 +909,14 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  sRenderPublicVertexDraw=publicVertexDraw;
  sRenderDirectTarget=version==15 || version==18 || version==19
   || pairDraw || indexedDraw || uniformDraw;
- sRenderPreserveTarget=version==19 || version==21 || version==23;
+ sRenderPreserveTarget=version==19 || version==21 || version==23
+  || (indexedMesh && (meshFlags&1));
  sRenderTwoDraw=pairDraw || indexedPair;
  sRenderIndexedDraw=indexedDraw;
  sRenderIndexedPair=indexedPair;
+ sRenderIndexedMesh=indexedMesh;
+ sRenderIndexCount=indexedMesh?meshIndexCount:indexedPair?6:3;
+ sRenderVertexBytes=selectedVertexBytes;
  sRenderTargetGpu=targetGpu;
  sRenderUniformDraw=uniformDraw;sRenderUniformGpu=uniformGpu;
  if(sRenderDirectTarget){
@@ -891,7 +934,8 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   memcpy(sRenderUserVertices,userVertices,sizeof(userVertices));
  if(pairDraw || indexedPair)
   memcpy(sRenderSecondVertices,secondVertices,sizeof(secondVertices));
- if(indexedDraw)memcpy(sRenderIndices,indices,indexedPair?12:6);
+ if(indexedDraw && !indexedMesh)
+  memcpy(sRenderIndices,indices,selectedIndexBytes);
  if(publicVertexDraw)
   memcpy(sRenderExpectedVertices,expectedVertices,sizeof(expectedVertices));
  sRenderReport=output;auto& r=sRenderReport;
@@ -1028,7 +1072,8 @@ static status_t RunNativeRenderLarge(uint64_t resourceSession,
   && command->base.version!=17 && command->base.version!=18
   && command->base.version!=19 && command->base.version!=20
   && command->base.version!=21 && command->base.version!=22
-  && command->base.version!=23 && command->base.version!=24)return B_BAD_VALUE;
+  && command->base.version!=23 && command->base.version!=24
+  && command->base.version!=25)return B_BAD_VALUE;
  memset(command->extra,0,sizeof(command->extra));
  return RunNativeRenderOwned(&command->base,resourceSession,command->extra);
 }
@@ -1041,7 +1086,7 @@ static status_t NativeResourceDraw(uint64_t session,native_gpu_render_command* c
   && command->version!=18 && command->version!=19
   && command->version!=20 && command->version!=21
   && command->version!=22 && command->version!=23
-  && command->version!=24)
+  && command->version!=24 && command->version!=25)
   || command->mode!=NATIVE_GPU_RENDER_DRAW)return B_BAD_VALUE;
  return RunNativeRenderOwned(command,session);
 }

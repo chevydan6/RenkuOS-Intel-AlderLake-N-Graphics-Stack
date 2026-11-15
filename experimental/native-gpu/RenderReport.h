@@ -102,6 +102,12 @@ struct native_gpu_render_command {
 // Version 24 uses the same fields for six 16-bit indices, producing two
 // triangles with one indexed GPU primitive. The owner validates both selected
 // triangles, stages 12 index bytes, and verifies the complete pair image.
+// Version 25 draws a bounded indexed triangle list. Input output bytes 12..15
+// give vertex count (3..256), 16..19 index count (3..255, multiple of 3), and
+// 20..23 flags (bit 0 preserves the image). Bytes 4..7 remain zero. The owner
+// validates every vertex and index, stages the indices, and reports GPU
+// completion and full-image hash. Checked/matched pixels are zero because
+// arbitrary application geometry has no fixed owner pixel oracle.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {
  native_gpu_render_command base;

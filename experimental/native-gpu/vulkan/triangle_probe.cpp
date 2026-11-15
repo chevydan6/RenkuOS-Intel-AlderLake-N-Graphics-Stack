@@ -45,6 +45,8 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"indexpair") && strcmp(argv[4],"indexpairref")
    && strcmp(argv[4],"indexsix") && strcmp(argv[4],"indexsixbad")
    && strcmp(argv[4],"indexsixpage")
+   && strcmp(argv[4],"indexmesh") && strcmp(argv[4],"indexmeshbad")
+   && strcmp(argv[4],"indexmeshclear")
    && strcmp(argv[4],"clearpass")
    && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"multidraw")
@@ -102,11 +104,15 @@ int main(int argc,char** argv)
  bool indexPairReference=argc==5 && !strcmp(argv[4],"indexpairref");
  bool indexSixBad=argc==5 && !strcmp(argv[4],"indexsixbad");
  bool indexSixPage=argc==5 && !strcmp(argv[4],"indexsixpage");
- bool clearPass=argc==5 && !strcmp(argv[4],"clearpass");
+ bool indexMeshBad=argc==5 && !strcmp(argv[4],"indexmeshbad");
+ bool indexMeshClear=argc==5 && !strcmp(argv[4],"indexmeshclear");
+ bool indexMesh=argc==5 && (!strcmp(argv[4],"indexmesh")
+  || indexMeshBad || indexMeshClear);
+ bool clearPass=argc==5 && (!strcmp(argv[4],"clearpass") || indexMeshClear);
  bool indexSix=argc==5 && (!strcmp(argv[4],"indexsix")
   || indexSixBad || indexSixPage);
  bool indexed=argc==5 && (!strcmp(argv[4],"indexed") || indexBad
-  || indexAlias || indexPair || indexSix);
+  || indexAlias || indexPair || indexSix || indexMesh);
  bool loadPass=argc==5 && (!strcmp(argv[4],"loadpass") || loadSubmit);
  bool multiDraw=argc==5 && !strcmp(argv[4],"multidraw");
  bool batchGpu=argc==5 && !strcmp(argv[4],"batchgpu");
@@ -153,6 +159,8 @@ int main(int argc,char** argv)
  if((indexPair || indexPairReference) && (shape!=0 || repeats!=2
   || strcmp(argv[2],"original")))return 40;
  if(indexSix && (shape!=0 || repeats!=1
+  || strcmp(argv[2],"original")))return 40;
+ if(indexMesh && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
  if(clearPass && (shape!=0 || repeats!=1
   || strcmp(argv[2],"original")))return 40;
@@ -210,7 +218,7 @@ int main(int argc,char** argv)
   && count==1 && physical,2);
  VkPhysicalDeviceProperties properties={};
  vkGetPhysicalDeviceProperties(physical,&properties);
- REQUIRE(properties.limits.maxDrawIndexedIndexValue==3
+ REQUIRE(properties.limits.maxDrawIndexedIndexValue==255
   && properties.limits.maxVertexInputAttributes==1
   && properties.limits.maxVertexInputBindings==1
   && properties.limits.maxVertexInputBindingStride==16,88);
@@ -263,7 +271,8 @@ int main(int argc,char** argv)
  }
 
  VkBufferCreateInfo bufferInfo={};bufferInfo.sType=VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
- bufferInfo.size=(pageOffset || drawPage)?8192:indexPairReference?96:indexed?64:
+ bufferInfo.size=(pageOffset || drawPage)?8192:indexMesh?144:
+  indexPairReference?96:indexed?64:
   fourTriangles?192:threeTriangles?144:
   (selectedVertexRange || twoTriangles)?96:48;
  bufferInfo.usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -310,6 +319,13 @@ int main(int argc,char** argv)
  }else if(drawPage){
   memcpy((uint8_t*)mapped+4096-48,positions[shape],48);
   memcpy((uint8_t*)mapped+4096,positions[2],48);
+ }else if(indexMesh){
+  memcpy(mapped,positions[0],48);
+  memcpy((uint8_t*)mapped+48,positions[2],48);
+  memcpy((uint8_t*)mapped+96,positions[1],48);
+  uint8_t saved[16];memcpy(saved,(uint8_t*)mapped+16,16);
+  memcpy((uint8_t*)mapped+16,(uint8_t*)mapped+32,16);
+  memcpy((uint8_t*)mapped+32,saved,16);
  }else if(indexPairReference){
   const uint32_t complement[12]={
    0xbf400000,0xbf400000,0x3f000000,0x3f800000,
@@ -353,7 +369,7 @@ int main(int argc,char** argv)
  VkBuffer index=VK_NULL_HANDLE;
  VkDeviceMemory indexMemory=VK_NULL_HANDLE;
  if(indexed){
-  bufferInfo.size=indexSixPage?4102:indexPair || indexSix?12:6;
+  bufferInfo.size=indexSixPage?4102:indexMesh?18:indexPair || indexSix?12:6;
   bufferInfo.usage=VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
   REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&index)==VK_SUCCESS,80);
   vkGetBufferMemoryRequirements(device,index,&requirement);
@@ -366,7 +382,11 @@ int main(int argc,char** argv)
    && indexMapped,83);
   const uint16_t order[6]={0,uint16_t(indexBad?4:2),1,0,1,
    uint16_t(indexSixBad?4:3)};
-  memcpy((uint8_t*)indexMapped+(indexSixPage?4090:0),order,
+  if(indexMesh){
+   const uint16_t mesh[9]={0,2,1,3,4,5,6,7,
+    uint16_t(indexMeshBad?9:8)};
+   memcpy(indexMapped,mesh,sizeof(mesh));
+  }else memcpy((uint8_t*)indexMapped+(indexSixPage?4090:0),order,
    indexPair || indexSix?12:6);
   range.memory=indexMemory;range.size=bufferInfo.size;
   REQUIRE(vkFlushMappedMemoryRanges(device,1,&range)==VK_SUCCESS,84);
@@ -607,7 +627,8 @@ int main(int argc,char** argv)
   (drawSix || drawPage || indexPairReference)?6:3;
  if(indexed){
   vkCmdBindIndexBuffer(command,index,0,VK_INDEX_TYPE_UINT16);
-  vkCmdDrawIndexed(command,indexSix?6:3,1,indexSixPage?2045:0,0,0);
+  vkCmdDrawIndexed(command,indexMesh?9:indexSix?6:3,1,
+   indexSixPage?2045:0,0,0);
   if(indexPair)vkCmdDrawIndexed(command,3,1,3,0,0);
  }else vkCmdDraw(command,drawVertices,1,firstVertex?3:0,0);
  if(!twoTriangles && !threeTriangles && !fourTriangles)
@@ -764,6 +785,9 @@ int main(int argc,char** argv)
    && pixels[(large?20:10)*dimension+(large?40:20)]==0xffff4000,30);
  }else if(indexPair || indexPairReference || indexSix){
   REQUIRE(hash==(large?0x554d3ec5:0x261a8285)
+   && pixels[0]==0x19537bad,30);
+ }else if(indexMesh){
+  REQUIRE(hash==(large?0x9bd44344:0xcdad4a41)
    && pixels[0]==0x19537bad,30);
  }else if(indexed && repeats==2){
   REQUIRE(hash==(large?0x5fdea115:0x459d92c5)

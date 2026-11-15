@@ -26,4 +26,10 @@ int main() {
  assert(NativeGpu::RcsIndexedBatch::Patch(batch,1024,6));
  assert(batch[313]==12 && batch[316]==6
   && batch[314]==0x7b000808 && batch[315]==0x104);
+ memset(batch,0,sizeof(batch));
+ memcpy(batch,NativeGpu::RcsDrawData::Batch,
+  sizeof(NativeGpu::RcsDrawData::Batch));
+ batch[294]=NativeGpu::RcsResourceRange::Base;
+ assert(NativeGpu::RcsIndexedBatch::Patch(batch,1024,9,144));
+ assert(batch[296]==144 && batch[313]==18 && batch[316]==9);
 }
