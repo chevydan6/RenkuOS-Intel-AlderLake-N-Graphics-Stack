@@ -34,6 +34,7 @@ int main(int argc,char** argv)
    && strcmp(argv[4],"rotate") && strcmp(argv[4],"dual")
    && strcmp(argv[4],"semaphore")
    && strcmp(argv[4],"highva")
+   && strcmp(argv[4],"endva")
    && strcmp(argv[4],"multipass") && strcmp(argv[4],"coloronly")
    && strcmp(argv[4],"offset") && strcmp(argv[4],"firstvertex")
    && strcmp(argv[4],"pageoffset")
@@ -62,6 +63,7 @@ int main(int argc,char** argv)
  bool batch=argc==5 && !strcmp(argv[4],"batch");
  bool semaphoreBatch=argc==5 && !strcmp(argv[4],"semaphore");
  bool highVa=argc==5 && !strcmp(argv[4],"highva");
+ bool endVa=argc==5 && !strcmp(argv[4],"endva");
  bool named=argc==5 && !strcmp(argv[4],"named");
  bool depth=argc==5 && (!strcmp(argv[4],"depth")
   || !strcmp(argv[4],"depthoffset"));
@@ -86,8 +88,8 @@ int main(int argc,char** argv)
  if(rotate && (shape!=0 || (argc>=3 && strcmp(argv[2],"original"))))return 40;
  if(twoPipelines && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
   || repeats!=2))return 40;
- if(highVa && (shape!=0 || argc!=5 || strcmp(argv[2],"original")
-  || repeats>4))return 40;
+ if((highVa || endVa) && (shape!=0 || argc!=5
+  || strcmp(argv[2],"original") || repeats>4 || (endVa && large)))return 40;
  if(selectedVertexRange && (shape!=0 || repeats>8))return 40;
  if(!repeats || repeats>64 || (argc>=4 && (!repeatEnd || *repeatEnd))
   || ((batch || semaphoreBatch) && repeats!=2))return 40;
@@ -176,9 +178,9 @@ int main(int argc,char** argv)
  REQUIRE(vkCreateShaderModule(device,&moduleInfo,nullptr,&fs)==VK_SUCCESS,6);
 
  VkDeviceMemory padding=VK_NULL_HANDLE;
- if(highVa){
+ if(highVa || endVa){
   VkMemoryAllocateInfo padInfo={};padInfo.sType=VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  padInfo.allocationSize=16*4096;padInfo.memoryTypeIndex=0;
+  padInfo.allocationSize=(endVa?60:16)*4096;padInfo.memoryTypeIndex=0;
   REQUIRE(vkAllocateMemory(device,&padInfo,nullptr,&padding)==VK_SUCCESS
    && padding,64);
  }
