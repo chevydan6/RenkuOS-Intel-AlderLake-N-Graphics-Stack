@@ -72,7 +72,7 @@ struct VkDescriptorPool_T {
 };
 struct VkDescriptorSet_T {
  VkDevice_T* device;VkDescriptorPool_T* pool;VkDescriptorSet_T* next;
- VkDescriptorSetLayout layout;VkBuffer buffer;bool valid;
+ VkDescriptorSetLayout layout;VkBuffer buffer;uint32_t bufferOffset;bool valid;
 };
 struct VkPipelineLayout_T {
  VkDevice_T* device;VkPipelineLayout_T* next;VkDescriptorSetLayout setLayout;
@@ -941,9 +941,11 @@ vkUpdateDescriptorSets(VkDevice device,uint32_t writeCount,
   const auto& b=w.pBufferInfo[0];
   if(!b.buffer || b.buffer->device!=device
    || b.buffer->usage!=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
-   || !b.buffer->memory || b.offset || b.range!=16 || b.buffer->bytes<16)
+   || !b.buffer->memory || b.range!=16 || b.buffer->bytes<16
+   || (b.offset&15) || b.offset>b.buffer->bytes-16)
    continue;
-  w.dstSet->buffer=b.buffer;w.dstSet->valid=true;
+  w.dstSet->buffer=b.buffer;w.dstSet->bufferOffset=uint32_t(b.offset);
+  w.dstSet->valid=true;
  }
 }
 
@@ -1533,7 +1535,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  native_gpu_render_large_command largeDraw={};
  native_gpu_render_command smallDraw={};
  native_gpu_render_command& draw=large?largeDraw.base:smallDraw;
- draw.version=uniform?16:directTarget?15:recorded.vertexOffset
+ draw.version=uniform?(recorded.descriptor->bufferOffset?17:16):directTarget?15:recorded.vertexOffset
   ?(recorded.pipeline->vertexShaderHandle?14:13)
   :large?(recorded.pipeline->fragcoordGradient?12:
   recorded.pipeline->vertexShaderHandle?11:10):
@@ -1542,7 +1544,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  draw.variant=recorded.vertex->memory->handle;
  draw.reserved=recorded.pipeline->shaderHandle;
  if(draw.version==13 || draw.version==14 || draw.version==15
-  || draw.version==16)
+  || draw.version==16 || draw.version==17)
   memcpy(draw.output,&recorded.vertexOffset,
   sizeof(recorded.vertexOffset));
  if(draw.version==8 || draw.version==11)
@@ -1551,7 +1553,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
  if(draw.version==14)memcpy(draw.output+4,
   &recorded.pipeline->vertexShaderHandle,
   sizeof(recorded.pipeline->vertexShaderHandle));
- if(draw.version==15 || draw.version==16){
+ if(draw.version==15 || draw.version==16 || draw.version==17){
   memcpy(draw.output+4,&recorded.pipeline->vertexShaderHandle,
    sizeof(recorded.pipeline->vertexShaderHandle));
   memcpy(draw.output+8,&recorded.framebuffer->view->image->memory->handle,
@@ -1559,12 +1561,16 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   if(uniform)memcpy(draw.output+12,
    &recorded.descriptor->buffer->memory->handle,
    sizeof(recorded.descriptor->buffer->memory->handle));
+  if(draw.version==17)memcpy(draw.output+16,
+   &recorded.descriptor->bufferOffset,
+   sizeof(recorded.descriptor->bufferOffset));
  }
  const bigtime_t submitStart=device->trace?system_time():0;
  int status=large
   ?ioctl(device->fd,NATIVE_GPU_RENDER_LARGE_IOCTL,&largeDraw,sizeof(largeDraw))
   :ioctl(device->fd,NATIVE_GPU_RENDER_IOCTL,&smallDraw,sizeof(smallDraw));
- if(large && (draw.version==12 || draw.version==15 || draw.version==16)){
+ if(large && (draw.version==12 || draw.version==15 || draw.version==16
+  || draw.version==17)){
   const char* capture=getenv("RENKU_VK_CAPTURE_PIXELS");
   if(capture){
    FILE* file=fopen(capture,"wb");
@@ -1611,7 +1617,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   "{\"event\":\"vk_queue_submit\",\"ioctl\":%d,\"write_ioctl\":%d,"
   "\"version\":%u,\"stage\":%u,\"sequence\":%u,\"observed\":%u,"
   "\"draw_index\":%zu,\"draw_count\":%zu,\"vertex_offset\":%u,\"direct_target\":%u,"
-  "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,\"uniform_bo\":%u,"
+  "\"vertex_bo\":%u,\"shader_bo\":%u,\"vertex_shader_bo\":%u,\"image_bo\":%u,\"uniform_bo\":%u,\"uniform_offset\":%u,"
   "\"vertex_gpu_va\":\"%llx\",\"shader_gpu_va\":\"%llx\",\"image_gpu_va\":\"%llx\","
   "\"checked\":%u,\"matched\":%u,\"pixel_hash\":\"%08x\","
   "\"fault\":%u,\"engine_stage\":%u,\"csb_error\":%u,"
@@ -1621,6 +1627,7 @@ vkQueueSubmit(VkQueue queue,uint32_t count,const VkSubmitInfo* submits,VkFence f
   recorded.pipeline->vertexShaderHandle,
   recorded.framebuffer->view->image->memory->handle,
   uniform?recorded.descriptor->buffer->memory->handle:0,
+  uniform?recorded.descriptor->bufferOffset:0,
   (unsigned long long)recorded.vertex->memory->gpu,
   (unsigned long long)recorded.pipeline->shaderGpu,
   (unsigned long long)recorded.framebuffer->view->image->memory->gpu,

@@ -1,0 +1,2 @@
+rc=25
+Vulkan triangle failed at /boot/home/test-work/vulkan-ubo-075/vulkan/triangle_probe.cpp:449 (code 25)

@@ -28,7 +28,7 @@ int main(int argc,char** argv)
    && strcmp(argv[2],"rgb") && strcmp(argv[2],"fragcoord")
    && strcmp(argv[2],"fragcoord32") && strcmp(argv[2],"fragcoord128")
    && strcmp(argv[2],"fragcoordgreen")
-   && strcmp(argv[2],"ubo")
+   && strcmp(argv[2],"ubo") && strcmp(argv[2],"ubooffset")
    && strcmp(argv[2],"fragcoordgreen32")
    && strcmp(argv[2],"fragcoordgreen128"))
   || (argc==5 && strcmp(argv[4],"batch")
@@ -51,7 +51,8 @@ int main(int argc,char** argv)
  bool green75=argc>=3 && !strcmp(argv[2],"green75");
  bool green90=argc>=3 && !strcmp(argv[2],"green90");
  bool rgb=argc>=3 && !strcmp(argv[2],"rgb");
- bool ubo=argc>=3 && !strcmp(argv[2],"ubo");
+ bool uboOffset=argc>=3 && !strcmp(argv[2],"ubooffset");
+ bool ubo=argc>=3 && (!strcmp(argv[2],"ubo") || uboOffset);
  bool fragcoordGreen=argc>=3 && (!strcmp(argv[2],"fragcoordgreen")
   || !strcmp(argv[2],"fragcoordgreen32")
   || !strcmp(argv[2],"fragcoordgreen128"));
@@ -244,13 +245,14 @@ int main(int argc,char** argv)
  VkDeviceMemory uniformMemory=VK_NULL_HANDLE;
  void* uniformMapped=nullptr;
  if(ubo){
-  bufferInfo.size=16;bufferInfo.usage=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+  bufferInfo.size=uboOffset?32:16;
+  bufferInfo.usage=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
   REQUIRE(vkCreateBuffer(device,&bufferInfo,nullptr,&uniform)==VK_SUCCESS,65);
   vkGetBufferMemoryRequirements(device,uniform,&requirement);
   allocation.allocationSize=requirement.size;
   REQUIRE(vkAllocateMemory(device,&allocation,nullptr,&uniformMemory)==VK_SUCCESS,66);
   REQUIRE(vkBindBufferMemory(device,uniform,uniformMemory,0)==VK_SUCCESS,67);
-  REQUIRE(vkMapMemory(device,uniformMemory,0,16,0,&uniformMapped)==VK_SUCCESS
+  REQUIRE(vkMapMemory(device,uniformMemory,0,bufferInfo.size,0,&uniformMapped)==VK_SUCCESS
    && uniformMapped,68);
  }
 
@@ -320,7 +322,7 @@ int main(int argc,char** argv)
   setAllocation.descriptorSetCount=1;setAllocation.pSetLayouts=&setLayout;
   REQUIRE(vkAllocateDescriptorSets(device,&setAllocation,&descriptor)
    ==VK_SUCCESS && descriptor,71);
-  VkDescriptorBufferInfo uniformInfo={uniform,0,16};
+  VkDescriptorBufferInfo uniformInfo={uniform,uboOffset?16u:0u,16};
   VkWriteDescriptorSet write={};write.sType=VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
   write.dstSet=descriptor;write.descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   write.descriptorCount=1;write.pBufferInfo=&uniformInfo;
@@ -496,10 +498,14 @@ int main(int argc,char** argv)
   if(ubo){
    const uint32_t colors[2][4]={{0x3f800000,0x3e800000,0,0x3f800000},
     {0,0x3f800000,0x3f000000,0x3f800000}};
-   memcpy(uniformMapped,colors[i],16);
+   if(uboOffset){
+    const uint32_t decoy[4]={0,0,0,0x3f800000};
+    memcpy(uniformMapped,decoy,16);
+   }
+   memcpy((uint8_t*)uniformMapped+(uboOffset?16:0),colors[i],16);
    VkMappedMemoryRange uniformRange={};
    uniformRange.sType=VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-   uniformRange.memory=uniformMemory;uniformRange.size=16;
+   uniformRange.memory=uniformMemory;uniformRange.size=uboOffset?32:16;
    REQUIRE(vkFlushMappedMemoryRanges(device,1,&uniformRange)==VK_SUCCESS,72);
   }
   REQUIRE(vkQueueSubmit(queue,1,&submit,fence)==VK_SUCCESS,26);

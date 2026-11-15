@@ -77,6 +77,8 @@ struct native_gpu_render_command {
 // resource handle in input output bytes 12..15. The fragment shader BO must
 // contain the exact N100 set0/binding0 UBO program; the owner resolves the
 // uniform BO, builds binding-table entry 1, and verifies the rendered color.
+// Version 17 extends version 16 with a 16-byte-aligned uniform offset in
+// input output bytes 16..19. The owner resolves the exact 16-byte range.
 // The v1-v8 4 KiB ABI remains unchanged.
 // No user GPU address or packet word is accepted.
 struct native_gpu_render_large_command {

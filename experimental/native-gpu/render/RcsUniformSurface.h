@@ -13,7 +13,7 @@ public:
   if(!pages || !pages[RcsDrawImage::Batch] || !pages[RcsDrawImage::Surface]
    || shaderGpu<RcsResourceRange::Base || shaderGpu>=RcsResourceRange::End
    || uboGpu<RcsResourceRange::Base || uboGpu>=RcsResourceRange::End
-   || (shaderGpu&4095) || (uboGpu&4095) || shaderGpu==uboGpu)return false;
+   || (shaderGpu&4095) || (uboGpu&15) || shaderGpu==uboGpu)return false;
   uint32_t* batch=pages[RcsDrawImage::Batch];
   uint32_t* surface=pages[RcsDrawImage::Surface];
   if(batch[238]!=0x7820000a || batch[241]!=0x00040000

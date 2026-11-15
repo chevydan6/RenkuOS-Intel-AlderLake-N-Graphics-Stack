@@ -1,0 +1,936 @@
+{
+  "schema": 1,
+  "scope": "native owner/bridge runtime compile inputs and two provenance extras",
+  "host": "renkuos-vm",
+  "bundle": "/boot/home/test-work/owner-ubo-074",
+  "owner_source": "/boot/home/test-work/i915-mapping-002/source",
+  "depfile_sha256": {
+    "bridge.d": "6de7e7f11b31ba6a8ed7b2399f23e6e9838b1600f36bcea26ce8f059f1ec312b",
+    "kernel_cpp.d": "149b0cecaca834569d93054e0d11ea617f84ec8bb4973eae1eb1356587724af5",
+    "native_page_bridge.d": "eff6728405e840b267a92c06015ca536b65b29c07a6fd7c2d49d5dbed71cc696",
+    "owner.d": "080233bea2e7f6d2a8ce03c9c73cb4719f20a9877531a1d64983afab834b9bb4"
+  },
+  "totals": {
+    "haiku_owner_source": {
+      "files": 15,
+      "bytes": 100367
+    },
+    "native_bundle": {
+      "files": 55,
+      "bytes": 252221
+    },
+    "generated_owner": {
+      "files": 1,
+      "bytes": 39820
+    },
+    "haiku_sdk": {
+      "files": 79,
+      "bytes": 311805
+    }
+  },
+  "files": [
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/build/config_headers/kernel_debug_config.h",
+      "category": "haiku_owner_source",
+      "bytes": 5391,
+      "sha256": "3729e1c542faaea24e00d5b9ec796031860acb0fb1372103f1486673af5ed9ce"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/build/config_headers/tracing_config.h",
+      "category": "haiku_owner_source",
+      "bytes": 2509,
+      "sha256": "13ffad2acf0ecbd30b53f3bdb0bdae22c11486a97be9ed3616601b3392f8d705"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/AGP.h",
+      "category": "haiku_owner_source",
+      "bytes": 4426,
+      "sha256": "46daa69f810750ab1b4fcfd2d735e793a5d9f34cf060cadf64ec8b3c22f3513e"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelApertureLeaseState.h",
+      "category": "haiku_owner_source",
+      "bytes": 6302,
+      "sha256": "adea0412f14056b4cf054707e93accfbb3f37dc8dbcb56ea2311ec51f34dfdd4"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelMemoryOwner.h",
+      "category": "haiku_owner_source",
+      "bytes": 6278,
+      "sha256": "9dcf61df261fa330ddf46beb1ea366bc341565823d74ee411a958a92fee03a9c"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100BcsInventory.h",
+      "category": "haiku_owner_source",
+      "bytes": 953,
+      "sha256": "86aca4c050a9259595ce2f42696b38939bc277ccbec01b83fc11d9896072b1eb"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100BcsReset.h",
+      "category": "haiku_owner_source",
+      "bytes": 6074,
+      "sha256": "967abf776f96b42bab3ba927bb8227aeaef3b7e7bbadfd7f15f65ef5d92d90d2"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100Forcewake.h",
+      "category": "haiku_owner_source",
+      "bytes": 8630,
+      "sha256": "511a68143f7ff4a91a30b0528c34442cef155f88decc2713e2c6b90aa9271be2"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100ForcewakeGroup.h",
+      "category": "haiku_owner_source",
+      "bytes": 6648,
+      "sha256": "2f1f5423c806f4be5ba13a5ea0bca762232048e76904f492641392a91de73902"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100GtAck.h",
+      "category": "haiku_owner_source",
+      "bytes": 400,
+      "sha256": "82a5c80a6d4a7fa597cb47180bb0bbbd42e8b07902e0878074d08a8b646140e1"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100PciPower.h",
+      "category": "haiku_owner_source",
+      "bytes": 5850,
+      "sha256": "56c7b5bf1e34fef35b443e702648c39cdd8c74d0f25b88d17104929113a9e47b"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100ResetDomains.h",
+      "category": "haiku_owner_source",
+      "bytes": 1585,
+      "sha256": "751208234426327b619994e6c3eb299fb7e437365c06b05f9c39985232f8d896"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/headers/private/graphics/intel_extreme/IntelN100ResetSafety.h",
+      "category": "haiku_owner_source",
+      "bytes": 623,
+      "sha256": "243076b861c11f70ca9060fe0735d61c1cb0fb1072ba18eb0b155bb2734bc925"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/src/add-ons/kernel/bus_managers/intel_memory_owner/IntelMemoryOwner.cpp",
+      "category": "haiku_owner_source",
+      "bytes": 39150,
+      "sha256": "bb097546e9e6fa8f0cf18fcd173c0d959ce208c35b9087f8ee4ad8f0b661b894"
+    },
+    {
+      "path": "/boot/home/test-work/i915-mapping-002/source/src/system/kernel/util/kernel_cpp.cpp",
+      "category": "haiku_owner_source",
+      "bytes": 5548,
+      "sha256": "678195dc78b8b16e7cde057de5df62a8db71610f7ae4d64bb8820829d3b1f371"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/BcsEngine.h",
+      "category": "native_bundle",
+      "bytes": 7024,
+      "sha256": "0e7785bab0147586f7912243daf03f7fc9c22ab1e1a6b8b3f14c63e8ad7ba913"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/BcsRecovery.h",
+      "category": "native_bundle",
+      "bytes": 5377,
+      "sha256": "727dad349ef47d51b9925f95f31da3028e4218be86ca6e4da9c5fec9c59c7958"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/BufferCopy.h",
+      "category": "native_bundle",
+      "bytes": 925,
+      "sha256": "819a3a9de399cba0aa213dea9aca66027aff293350fda6fe5bb2c5997afe23d1"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/CopyRequestImage.h",
+      "category": "native_bundle",
+      "bytes": 1699,
+      "sha256": "83fb31371145144536f76d4c52229979e1dc4351dbdacb1b020113d4745150bb"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/ExecutionModule.h",
+      "category": "native_bundle",
+      "bytes": 808,
+      "sha256": "7c75afd1ef8721f9293339f2600daf0af08d6375ba9989ff1d9dabcb5d044d44"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/ExecutionReport.h",
+      "category": "native_bundle",
+      "bytes": 1134,
+      "sha256": "7c8838dd164530adc6cc7b66cacb914c7975b91e631860230b965152ead5332c"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelDmarInventory.h",
+      "category": "native_bundle",
+      "bytes": 2223,
+      "sha256": "3fa8b8a9c306390570b284a82a5d7bff992c488bd9c14067f0ad23ed2ce953b3"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelDmarReserved.h",
+      "category": "native_bundle",
+      "bytes": 1912,
+      "sha256": "ac24e5300cdb88fcfbe866544dcb1dad83dd32a9a720e61846fe70c45900a39f"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelMemoryOwner-execution.cpp",
+      "category": "generated_owner",
+      "bytes": 39820,
+      "sha256": "9d8f8efac77a83978e483badcee39143cc129c7c6cc466717340e2a7f4d9920e"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelN100ContextImage.h",
+      "category": "native_bundle",
+      "bytes": 3798,
+      "sha256": "980b3c2c98045678b783993eab7805f3358c5faaa84a06a20a86e938fe7887a6"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelN100ContextStatus.h",
+      "category": "native_bundle",
+      "bytes": 5462,
+      "sha256": "8a066cc73e1db6a6c3bf19db8c31d7d84d72a62d14cf7003b305b6d2ddfb7c76"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelN100CsbReader.h",
+      "category": "native_bundle",
+      "bytes": 6378,
+      "sha256": "db8b39f13234ca7ecaf14047ac689a1b771799272ebc91268183b24990488ada"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelN100NonceStores.h",
+      "category": "native_bundle",
+      "bytes": 1229,
+      "sha256": "ea72b991ececfd49985427dd02b6b95f9b6df1e85e8abff2e3d2f2d66139d539"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelN100Ppgtt.h",
+      "category": "native_bundle",
+      "bytes": 2419,
+      "sha256": "225ed93d2427224a5d75ac45563c8c65fd1076c05b3c1955d91fd7d57fef3b70"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelN100PpgttTree.h",
+      "category": "native_bundle",
+      "bytes": 8012,
+      "sha256": "5013cce6c0e7fb4cd84ce85155d5473cc54622511d80c1dd6366154ae39bcd22"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/IntelVtdObservation.h",
+      "category": "native_bundle",
+      "bytes": 1576,
+      "sha256": "16176f40a79572ffeaf63b321e8fde64aeacc78b0e5aa1878e57ef9a6fa3ff93"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/LICENSE.intel",
+      "category": "native_bundle",
+      "bytes": 1071,
+      "sha256": "83e1832b9045f3950735727f7e499c3e29e23ad715a9f7779bd1547db9c14283"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/LifecycleReport.h",
+      "category": "native_bundle",
+      "bytes": 1153,
+      "sha256": "376bc6775d0a41bb880e7727db5be3bd0362f7b7518a3d636f7df24c9c2b663e"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/LinearCopy.h",
+      "category": "native_bundle",
+      "bytes": 2870,
+      "sha256": "71c7b7d9243b88d8d4e6b657841fc0e18103b7feb1aa718ec5907ed8e52b9150"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/NativeExecution.inc",
+      "category": "native_bundle",
+      "bytes": 33758,
+      "sha256": "0f1b98f08139a1eeb095f1df87da84ea562574d03c387b5fdfb59e1d9e9e5799"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/NativePciPower.h",
+      "category": "native_bundle",
+      "bytes": 1614,
+      "sha256": "5e4c4a6794e856e78609787407054e3df9e82622a2c53a6a38757755d3bc2d3c"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/NativeRender.inc",
+      "category": "native_bundle",
+      "bytes": 54242,
+      "sha256": "d5eb480498fc6f447a532b7014afd755a671fd88c7742f46ca39591b6c25935d"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/NativeResourceArena.h",
+      "category": "native_bundle",
+      "bytes": 4565,
+      "sha256": "6a9e64c7db488cbc994711904829e07fa95ba29b79c21dd46220da5a74e1cc97"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/OwnedBuffers.h",
+      "category": "native_bundle",
+      "bytes": 2161,
+      "sha256": "4d7eae29b1d5eeafb9c08c352bb293271025e0c4c1151902cc5101442206a466"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/RenderModule.h",
+      "category": "native_bundle",
+      "bytes": 798,
+      "sha256": "7a8c22aeb4ddd9c1967432310d5a4d12ef96fb37c23d30b4e51f64fd691a5659"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/RenderReport.h",
+      "category": "native_bundle",
+      "bytes": 5625,
+      "sha256": "da0652ab6ce6a3253848fc5fa4c10c83798e9b91b0985b353810ba4c1d1c40a9"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/RequestImage.h",
+      "category": "native_bundle",
+      "bytes": 3145,
+      "sha256": "4b45b4622336d45237f831b75e5362c1a7843c033ef36fc2599c1bbc014c6d0a"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/RequestLifecycle.h",
+      "category": "native_bundle",
+      "bytes": 1962,
+      "sha256": "31e2a16c616c66cf0268efb1d6c93620eb48ab7de2792fac4d8b5a5aa7f4bd1d"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/ResourceCommand.h",
+      "category": "native_bundle",
+      "bytes": 1244,
+      "sha256": "d541f826bc9aa34377cfda0538db33190e8b1ae6fa27666d72b52a0d570c7d33"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/ResourceModule.h",
+      "category": "native_bundle",
+      "bytes": 760,
+      "sha256": "c17cc1cdac987deccdc0a4afe46d2ea8c88de42d2e282c77b304740040755ea2"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/execution_bridge.cpp",
+      "category": "native_bundle",
+      "bytes": 9127,
+      "sha256": "f94918608d37bb1172ca7c74ed6d7c6cda4ca105f2d5a6ef89e8590d820f21dd"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/include/native_page_bridge.h",
+      "category": "native_bundle",
+      "bytes": 1947,
+      "sha256": "4419ddf1f46637b05a97efd9aa08b2331138f08332bc8e54c1febaafa5fee4c9"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsCompletionObservation.h",
+      "category": "native_bundle",
+      "bytes": 676,
+      "sha256": "1984b6df14396763bcab8d38271a2299953435d8ab1eb26942ca52f5a9ff0d0e"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsContextImage.h",
+      "category": "native_bundle",
+      "bytes": 4565,
+      "sha256": "b5a05a4c72e0edd30088bd0783a5555f02a8941c92b0c58e0191519387485490"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsDepthVertex.h",
+      "category": "native_bundle",
+      "bytes": 898,
+      "sha256": "2368b19aa3e82a7416e230544ce9cb52fe12958ecd5cb8d7cae0b0250527e857"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsDrawImage.h",
+      "category": "native_bundle",
+      "bytes": 2589,
+      "sha256": "141426d2415a7b984e394487c7ab87b59f9683b55d702a5322ea95caeb41f787"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsDrawImage64.h",
+      "category": "native_bundle",
+      "bytes": 2158,
+      "sha256": "50774fa38ffd7d5ad961b3bb6cfd08cd997ff35527ef239d3838be809ce5e81b"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsEngine.h",
+      "category": "native_bundle",
+      "bytes": 7580,
+      "sha256": "9616176e00aef43be62cb8739d9560fb3b50ef8a516cbb4eaf4865f9f204fb3d"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsFragCoordRed.h",
+      "category": "native_bundle",
+      "bytes": 1575,
+      "sha256": "c8c599c7f7c14df8475cec3f1ea2698d284e1c872343e67e02cf8068919d3b11"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsHardwareProfile.h",
+      "category": "native_bundle",
+      "bytes": 5085,
+      "sha256": "195f033bb0cddec467751ef54a9a8a37863128c6a9cd4627cbbf0e3fbadd759e"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsOwnership.h",
+      "category": "native_bundle",
+      "bytes": 3464,
+      "sha256": "db1f40c6628e430ea96ac1690501633c12aeb07d14833725851643ee62f19686"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsPciAdmission.h",
+      "category": "native_bundle",
+      "bytes": 580,
+      "sha256": "fd867b41f3669ad3358663b62667975e1309ccc94eece91f73a9b1efb2f86203"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsPublicShader.h",
+      "category": "native_bundle",
+      "bytes": 7151,
+      "sha256": "ca0d004bb8d01c6a8c75b3277bba075514f81efabcd78830495e5acce31c2939"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsRecovery.h",
+      "category": "native_bundle",
+      "bytes": 5702,
+      "sha256": "9dbd9be76f964cf6d7879447f809f36ad2ae414ef3bc891cac2d3762949e113d"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsRequestReuse.h",
+      "category": "native_bundle",
+      "bytes": 4388,
+      "sha256": "fb72fb61cf9838a30959a9f8083feb8720c04a7983eadf6024358dc87c7ed096"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsResourceRange.h",
+      "category": "native_bundle",
+      "bytes": 820,
+      "sha256": "16578c6d51ad9f74d0bfa0c60c174bc7652819d1eed54447dc473343500d4d9c"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsResourceTarget.h",
+      "category": "native_bundle",
+      "bytes": 934,
+      "sha256": "be7d05e9f7f9059c154cad291840e9a92789d6f74efc3e2fe588865c1c427a93"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsResourceVertices.h",
+      "category": "native_bundle",
+      "bytes": 2518,
+      "sha256": "01acc59151b186148a445a7567778f4dd5ecf30d29a3d7697dccd492a8309f85"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsRotateVertex.h",
+      "category": "native_bundle",
+      "bytes": 881,
+      "sha256": "dcc92000923bbe376d3a594d554bd8eb1a06ba4f91bf81235e6e71b4e0a46936"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsUboFragment.h",
+      "category": "native_bundle",
+      "bytes": 1420,
+      "sha256": "e9e90adcd74e1b606e8404a1479bc91a942a7a0d92d261285eabaf7683cc8c8e"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsUniformShader.h",
+      "category": "native_bundle",
+      "bytes": 1058,
+      "sha256": "efd0e71f0d6fe504b8193cc75c3f64ecf201bf973261e9eaf34eae632acbc5b2"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsUniformSurface.h",
+      "category": "native_bundle",
+      "bytes": 1507,
+      "sha256": "fa62365374af007bca1cb4e4f6baa9c79073d21df88bb965fe09ee1c43bedc00"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsUserVertices.h",
+      "category": "native_bundle",
+      "bytes": 5114,
+      "sha256": "c4b22c44b27f492a60db3745beab1c36130ad51cdc46766026ec49789788b640"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/RcsValidatedBatch.h",
+      "category": "native_bundle",
+      "bytes": 1764,
+      "sha256": "f5c63faa2b1080e618bbe7c61b8e54726268e159a9b4eb783afedd1c4dd8608f"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/render/draw/RcsDrawGenerated.h",
+      "category": "native_bundle",
+      "bytes": 7219,
+      "sha256": "3ecf84c03d987878d169a00ba05d00419cc220c7c16d524ec88c422fcf2a203e"
+    },
+    {
+      "path": "/boot/home/test-work/owner-ubo-074/src/native_page_bridge.cpp",
+      "category": "native_bundle",
+      "bytes": 6557,
+      "sha256": "22c2cf2903df7ce9f60307bc0ae7756a93b9b0037034b632b619c83b40573fd2"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/AllocationTracking.h",
+      "category": "haiku_sdk",
+      "bytes": 1179,
+      "sha256": "116ce5f142327fba459b04b0a48c15ca916648ff66672dc5b5404b2c2a026aee"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/UserTimer.h",
+      "category": "haiku_sdk",
+      "bytes": 7288,
+      "sha256": "7d876de81cd955b81774a83b4056112b1d20197d5b8b3fbf04053fc4edd4c19a"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/atomic.h",
+      "category": "haiku_sdk",
+      "bytes": 290,
+      "sha256": "d2059b5021b7e252eff240be20af2c80bdd4c8aced459129477484a019f7d0c6"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/cpu.h",
+      "category": "haiku_sdk",
+      "bytes": 1288,
+      "sha256": "d6465b394c1facb4436988a10915223d2a921d98ee933d2b0464d44a807a1516"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/int.h",
+      "category": "haiku_sdk",
+      "bytes": 1482,
+      "sha256": "aaa3b6860ff197e799c0b723d631138dfdb1dd5172e4648cfc854d12a390fddd"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/thread.h",
+      "category": "haiku_sdk",
+      "bytes": 1475,
+      "sha256": "a1a12bd34d16ea3b8e68c761073a625710387725150dc475e8662e6f20226a47"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/thread_types.h",
+      "category": "haiku_sdk",
+      "bytes": 253,
+      "sha256": "ba7bf7066ec6698ad7652d63e04296b059208e5aea9cd0831d35da32bb28313f"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/user_debugger.h",
+      "category": "haiku_sdk",
+      "bytes": 2516,
+      "sha256": "5930730143beef6b186c91065b33863bcc5c9c3a6e26a15fbe382676fc87a596"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/vm.h",
+      "category": "haiku_sdk",
+      "bytes": 1040,
+      "sha256": "946e41114f7b0d05c67eaf5e1158ac959fc9e4c1090be49498b197bca934b8a6"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/vm_types.h",
+      "category": "haiku_sdk",
+      "bytes": 243,
+      "sha256": "163fdd7b8c1d3c51c9ec073b66965147095d8345bdecb305b437777b34d6cfc7"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/64/atomic.h",
+      "category": "haiku_sdk",
+      "bytes": 696,
+      "sha256": "c650a73c7b43916042ff8a7b9adef7fce13338b8e06e1376a98a1dc1d3bc7f4c"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/64/cpu.h",
+      "category": "haiku_sdk",
+      "bytes": 1408,
+      "sha256": "2a6ba9694101184e2f00994233a759558e19187cdb1b5caea510bb8ee7891d28"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/64/descriptors.h",
+      "category": "haiku_sdk",
+      "bytes": 2260,
+      "sha256": "fc5d9fd9f41c1b6a4d7b72401affcd7809100a94259477878384dd4e74b1be06"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/64/iframe.h",
+      "category": "haiku_sdk",
+      "bytes": 799,
+      "sha256": "8b5654be67cc27ae76aeabb9a62df6e563a705d03199b92cd830a7b379dbdff6"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/apm.h",
+      "category": "haiku_sdk",
+      "bytes": 1480,
+      "sha256": "74d122592fa5788fb3c0838d4fa02ea8b48c595828eef3f89a3c6b5ad6b07163"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_altcodepatch.h",
+      "category": "haiku_sdk",
+      "bytes": 1949,
+      "sha256": "81fe09cf39d75c8dde60b7fce6d820fe0d6217a749f308ca0afd15f3fa5e0581"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_atomic.h",
+      "category": "haiku_sdk",
+      "bytes": 327,
+      "sha256": "1217dcf93b3f6e549808223267337017833005bb92619aeea3cf4f067a492381"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_cpu.h",
+      "category": "haiku_sdk",
+      "bytes": 29816,
+      "sha256": "61de99043a4ea571d52e00e3ac4916591a14c7de48c78470118ea2e7ebdcab2a"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_cpuasm.h",
+      "category": "haiku_sdk",
+      "bytes": 3143,
+      "sha256": "2e53a087d2a5461a72d514e1c7604aa64c729f1cc2eeb0928d712058db8d19f1"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_int.h",
+      "category": "haiku_sdk",
+      "bytes": 2079,
+      "sha256": "fd61c8d77f0671f4e08ea3de11f8085a63d9d8cf13e65b44a1392a499ed43703"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_kernel.h",
+      "category": "haiku_sdk",
+      "bytes": 3176,
+      "sha256": "9b43f3e7f058feccb11df73b5d4af4a8a4db0da1dc841b5baea5309e618d27b3"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_kernel_args.h",
+      "category": "haiku_sdk",
+      "bytes": 1101,
+      "sha256": "8a42ec0bf6650f47329cea161fd8a25deebeefcf7074c5d0e8f4e8c85c73c4a3"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_thread.h",
+      "category": "haiku_sdk",
+      "bytes": 1485,
+      "sha256": "727b53abd71e71b175ec2b322e9513e57024b5369127337236bcbc4bae2d3d68"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_thread_types.h",
+      "category": "haiku_sdk",
+      "bytes": 2231,
+      "sha256": "a4bb4a6ebf8161ead19fe1a2b68fe5c0038c9d1822a81355cb7c9e966203f796"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_user_debugger.h",
+      "category": "haiku_sdk",
+      "bytes": 3850,
+      "sha256": "eebe8001598eb1cb8a8156fcb8c8b01b6d8ce06959385b48cdd4d117bc82e40a"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_vm.h",
+      "category": "haiku_sdk",
+      "bytes": 332,
+      "sha256": "2b3dc51e08a94c9f9b2f8f84a8551342107aa70770843467b68832c0398d7167"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/arch_vm_types.h",
+      "category": "haiku_sdk",
+      "bytes": 251,
+      "sha256": "89fadce711014c4dbe683fc58a123a6e7d8166e534c3814239d0fca59f21b4c0"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/arch/x86/descriptors.h",
+      "category": "haiku_sdk",
+      "bytes": 1182,
+      "sha256": "387ccb82724684ad02b37476ccc8420f041fafb6d67164ebbf81f9f6cb889387"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/boot/addr_range.h",
+      "category": "haiku_sdk",
+      "bytes": 1553,
+      "sha256": "f65fbe6adf9997209eaa815cdb618798f43de77e87a6668e4faa2b74c76490cc"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/boot/disk_identifier.h",
+      "category": "haiku_sdk",
+      "bytes": 1212,
+      "sha256": "8696fe14b4d875ba4743d40f5a9bd496e3c34b7f36b79f7cb858bb0818e00661"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/boot/driver_settings.h",
+      "category": "haiku_sdk",
+      "bytes": 471,
+      "sha256": "1f3d21b7e9f335052b56e766ae50919651eb2d06ba0976d155679d06ac4533a4"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/boot/elf.h",
+      "category": "haiku_sdk",
+      "bytes": 2521,
+      "sha256": "d1454c33adc4f745adabb13aca36f712ff697421719512133201214a8442d9be"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/boot/kernel_args.h",
+      "category": "haiku_sdk",
+      "bytes": 3632,
+      "sha256": "6494a79c6bea21a4585b7e40a9ba2c90a51222c09f939dcd54df3cd46bd73e2d"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32/bios_drive.h",
+      "category": "haiku_sdk",
+      "bytes": 439,
+      "sha256": "d86a1c374f9b2c1bf06ba24bf5ad1882a686478314bcff1046ad0314808bc7bf"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/boot/platform/bios_ia32/platform_kernel_args.h",
+      "category": "haiku_sdk",
+      "bytes": 842,
+      "sha256": "6b2b09873c3ced8330a32357905acf73c3f8b3105e8af534e48c5a3e1e52d4fd"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/condition_variable.h",
+      "category": "haiku_sdk",
+      "bytes": 3101,
+      "sha256": "2bc247cf9405eb4072f413bc48173c32024aa5e41d7d2bd62f87df46254509f9"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/cpu.h",
+      "category": "haiku_sdk",
+      "bytes": 3025,
+      "sha256": "877acd0da569b3176375415af248ad87dab2d22d9dc7b19e60e5f025a4e270a2"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/debug.h",
+      "category": "haiku_sdk",
+      "bytes": 8037,
+      "sha256": "90df33954d5d4979bb64852e75f3832779c9e72a8a26b49d6f6d08163e7a5de8"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/elf_priv.h",
+      "category": "haiku_sdk",
+      "bytes": 2049,
+      "sha256": "54bb083c0350834c0889e91d9a6a287d7a37909ef9de06935b258e5d18613c74"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/heap.h",
+      "category": "haiku_sdk",
+      "bytes": 1879,
+      "sha256": "c785550df98e0bbd0d371e8f77c32fefca5e0e42e774d57dafc24ebbee4ab308"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/interrupts.h",
+      "category": "haiku_sdk",
+      "bytes": 1954,
+      "sha256": "d709aaa0e1195073a5f0d3c85cc16bd2f9d3d502157fa8b8c93186e729ae1f5a"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/kernel.h",
+      "category": "haiku_sdk",
+      "bytes": 2783,
+      "sha256": "9c412bbdc686d0c2ae7a632c66283e8542c50d0ecd5392833ffe287799a62b84"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/kscheduler.h",
+      "category": "haiku_sdk",
+      "bytes": 3825,
+      "sha256": "a2ab4aca54feeda2b23f57b57bff078f4817a56c680c1218de551169df7fcb7d"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/ksignal.h",
+      "category": "haiku_sdk",
+      "bytes": 6534,
+      "sha256": "6023342252e85b1769dc63db6fc175dba2cc313b5b2256f6a0b81fbdef699c39"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/lock.h",
+      "category": "haiku_sdk",
+      "bytes": 7838,
+      "sha256": "ff7d1042ce82667a45fb45bf431e84ada33fe5cf924971f1c975d06d7b3b98d7"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/smp.h",
+      "category": "haiku_sdk",
+      "bytes": 7910,
+      "sha256": "184ff32c9ac867596168c6d8d32d0d31d6d79c26d745744cd0ea79a66367f76e"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/stdlib.h",
+      "category": "haiku_sdk",
+      "bytes": 1242,
+      "sha256": "78e7e64e964654fb1b771f3380cd15c80122190ddac595f9962dcafae29745ad"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/string.h",
+      "category": "haiku_sdk",
+      "bytes": 537,
+      "sha256": "ab52ff9677e1ec1918a0aea86bfe41edc5ba11b509a0ae25de405e447c87d566"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/thread.h",
+      "category": "haiku_sdk",
+      "bytes": 16529,
+      "sha256": "fea96ee4f23efbefcf2ee5177f656a0790b0471a7fc6bc85bd29e2d41e514e93"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/thread_types.h",
+      "category": "haiku_sdk",
+      "bytes": 26587,
+      "sha256": "f0e5c7ac33ebe1458d3535d4e003fcc8160e6186764f67d8c512f46b33557810"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/timer.h",
+      "category": "haiku_sdk",
+      "bytes": 1348,
+      "sha256": "a783ca9da35c8c699a553a3babf0b16117f679cbbbcbd1815e414614dbad2b82"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/tracing.h",
+      "category": "haiku_sdk",
+      "bytes": 5829,
+      "sha256": "25c5fe3a90d30ff8a70bf6164c08934995f1d5e340315f77b5e683789139747c"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/user_debugger.h",
+      "category": "haiku_sdk",
+      "bytes": 10041,
+      "sha256": "1d177807b25d490ef73710225c2c5eff1e86453b01b5b18da5a8ff680e56126b"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/util/AVLTree.h",
+      "category": "haiku_sdk",
+      "bytes": 9025,
+      "sha256": "2b0db97970fb001c67b799d02fdaba997fd230289df95aaccc005be299fab584"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/util/AVLTreeBase.h",
+      "category": "haiku_sdk",
+      "bytes": 4354,
+      "sha256": "5477ad9e206c9127ed250c7fb436892110014f7488d96d12c7dbcb1a575d79cf"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/util/FixedWidthPointer.h",
+      "category": "haiku_sdk",
+      "bytes": 2428,
+      "sha256": "65dea16f9c7056083badd03a2538a0b9a48559dce62d7297c53478064d2c1642"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/util/KernelReferenceable.h",
+      "category": "haiku_sdk",
+      "bytes": 509,
+      "sha256": "0a86ad1d0739fd5c379ff5e5a6336c767857ba5900fd2c01ea57774499078946"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/util/TypeOperation.h",
+      "category": "haiku_sdk",
+      "bytes": 37,
+      "sha256": "69cde00d945207c5cf2891d762d81a718b357ea9681e66c193efe80c5f53af23"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/util/kernel_cpp.h",
+      "category": "haiku_sdk",
+      "bytes": 1602,
+      "sha256": "6957181852e23ff2481e44ef4dec1522a7e879389501da24ba74b6ae09f8a5e3"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/util/list.h",
+      "category": "haiku_sdk",
+      "bytes": 2614,
+      "sha256": "bd59863159d8fc73d7f9819762cd008bc4ffda70e6479d4a486a612ee9e13866"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/vm/VMArea.h",
+      "category": "haiku_sdk",
+      "bytes": 5875,
+      "sha256": "61d3eb5a990b9e474e0fe4eac6d87422b8043c8a87076d025e4823877a1db449"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/vm/VMCache.h",
+      "category": "haiku_sdk",
+      "bytes": 9475,
+      "sha256": "a70a0b3dda1bccdaabe2be1f08fec511534fff2f0eb0ccb281b4655fa6340ba4"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/vm/vm.h",
+      "category": "haiku_sdk",
+      "bytes": 8109,
+      "sha256": "be3bd52e2839f7b1325016d0e7bfff91db2b7932ac4d297d2440d91fe192bc5e"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/vm/vm_page.h",
+      "category": "haiku_sdk",
+      "bytes": 2593,
+      "sha256": "ba99bcf7cce2f880fa51b473cc085cfcc2b437f57284c88f486e121d7ae6ecc8"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/kernel/vm/vm_types.h",
+      "category": "haiku_sdk",
+      "bytes": 7478,
+      "sha256": "b530647e58691878e53940a4acb933ef433be87d7a2af0e1b373046c3f6683d6"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/shared/TypeOperation.h",
+      "category": "haiku_sdk",
+      "bytes": 1457,
+      "sha256": "4ee9c333389fcef7b88a3eee448e88fcea99a9cb86b18f2dfbb477fcfccf9818"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/arch/x86/apm_defs.h",
+      "category": "haiku_sdk",
+      "bytes": 454,
+      "sha256": "b04f2bccc8363ad4ba7980436003b4a59ecc76f1401649c8f1b8cf44b5eac365"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/arch/x86_64/arch_config.h",
+      "category": "haiku_sdk",
+      "bytes": 398,
+      "sha256": "3353c29c9d745f6b64fda96ae4d6aa338c8b5570b4662c49602f1c8402b9a740"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/arch/x86_64/arch_elf.h",
+      "category": "haiku_sdk",
+      "bytes": 3268,
+      "sha256": "6d87b5e846c21b724303d9b3939efb4064aba98202baca3c50ec1f699ff3dae8"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/elf_private.h",
+      "category": "haiku_sdk",
+      "bytes": 1519,
+      "sha256": "b6f6d1e7755d9cbe67601dfbcf7636297807d53ae9cd216748d0feb2af4fef20"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/signal_defs.h",
+      "category": "haiku_sdk",
+      "bytes": 1382,
+      "sha256": "03aa1a2c12a50d8f58c9ff363daa446f95aa76eab0919f73d01c108100a56205"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/thread_defs.h",
+      "category": "haiku_sdk",
+      "bytes": 1430,
+      "sha256": "3dc5a8b26f8a9fcfa0c8686fc2e9422ccb5b001113d6acbb95024e80cd9b8827"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/user_timer_defs.h",
+      "category": "haiku_sdk",
+      "bytes": 1406,
+      "sha256": "adb33add62e00a0af7c9f6bcb13c5870c51238303d873963122924f3095739d1"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/system/vm_defs.h",
+      "category": "haiku_sdk",
+      "bytes": 1708,
+      "sha256": "1b62cb5034713c4746ed8a3244b8675c4aeb387a8bdf96d226aa02ca69fe08c7"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/util/DoublyLinkedList.h",
+      "category": "haiku_sdk",
+      "bytes": 12838,
+      "sha256": "8e8162f00bb721a05506d1c2322ea73925210a23dfdb2152082d255187e05a01"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/util/DoublyLinkedQueue.h",
+      "category": "haiku_sdk",
+      "bytes": 7076,
+      "sha256": "69cf75efeef8a3fdd2e4daacb942b3dbb5d23dc8f05f9266fea6f4bb705dd432"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/util/OpenHashTable.h",
+      "category": "haiku_sdk",
+      "bytes": 10711,
+      "sha256": "5c9e3027b808d09ae7e2bf04881fac40189ce9ccf5ea0e36013bf68614cfd881"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/util/SinglyLinkedList.h",
+      "category": "haiku_sdk",
+      "bytes": 6549,
+      "sha256": "d34aa6c421bc0e1c0d0abb11ccb0ed28915ae36ddd178a266620ddcbd38a63f7"
+    },
+    {
+      "path": "/boot/system/develop/headers/private/util/SplayTree.h",
+      "category": "haiku_sdk",
+      "bytes": 11173,
+      "sha256": "4250b84b835e85f9eec716508778b091340fd3df7366d5ea81bce00af326e50a"
+    }
+  ],
+  "model_tokenizer": null,
+  "model_tokens": null,
+  "token_note": "The development model tokenizer is not available in this environment."
+}
