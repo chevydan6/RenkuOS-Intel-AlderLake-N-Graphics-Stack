@@ -16,6 +16,9 @@ flags=(-std=gnu++17 -O2 -g -Wall -Wextra -Werror -Wno-unused-parameter -fPIC
  -I"$private/kernel/arch/x86" -I"$private/system/arch/x86_64"
  -I"$private/kernel/boot/platform/bios_ia32"
  -I"$graphics" -I"$graphics/intel_extreme" -I"$graphics/common")
+if test "${NATIVE_RENDER_PROFILE_TIMING:-0}" = 1; then
+ flags+=(-DNATIVE_RENDER_PROFILE_TIMING=1)
+fi
 g++ "${flags[@]}" -c IntelMemoryOwner-execution.cpp -o build/owner.o
 g++ "${flags[@]}" -c src/native_page_bridge.cpp -o build/native_page_bridge.o
 g++ "${flags[@]}" -c "$owner_source/src/system/kernel/util/kernel_cpp.cpp" -o build/kernel_cpp.o

@@ -108,6 +108,13 @@ static IntelN100PpgttTree sRenderTree;
 static NativeGpu::RcsEngine sRenderEngine;
 static IntelN100CsbReader sRenderCsb;
 static NativeGpu::RcsHardwareProfile::Profile sRenderProfile;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+// One active owner request at a time. This diagnostic is absent from normal builds.
+static struct {
+ bigtime_t accepted,forcewakeStart,forcewakeDone,workStart,published;
+ bigtime_t csbDone,verified,groupDone,finished;
+} sRenderTiming;
+#endif
 static void NativeRenderSnapshotLocked(native_gpu_render_report& r)
 {
  r.state_flags=(sNativeRenderInitialized?NATIVE_GPU_RENDER_INITIALIZED:0)
@@ -361,6 +368,9 @@ static bool NativeRenderBuild(uint32_t nonce,uint32_t sequence,uint32_t& tail,bo
 }
 static bool NativeRenderRequest(void* data,uint64_t deadline)
 {
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming.workStart=system_time();
+#endif
  if(!NativeRenderProbe(data,deadline) || !sRenderReport.known_profile)return false;
  sNativeRenderActive=true;auto& r=sRenderReport;
  bool draw=r.mode==NATIVE_GPU_RENDER_DRAW;
@@ -434,6 +444,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
  if(!sRenderTree.BindingsSealed() && !sRenderTree.SealBindings())return false;
  sRenderPublished=true;
  if(!sRenderEngine.Publish(engineIO,descriptor))return false;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming.published=system_time();
+#endif
  r.stage=10;
  sRenderCsb.~IntelN100CsbReader();new (&sRenderCsb) IntelN100CsbReader;
  IntelN100CsbReader::Io csb={data,HandshakeTime,NativeRenderSafe,NativeRenderStatus32,
@@ -446,6 +459,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
    || error==IntelN100CsbReader::PollLimit?B_TIMED_OUT:B_IO_ERROR;
   return false;
  }
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming.csbDone=system_time();
+#endif
  r.activation=sRenderCsb.LastReport().events.raw[0];r.completion=sRenderCsb.LastReport().events.raw[1];
  if(!NativeRenderSafe(data) || !NativeVisible(data))return false;
  const volatile uint32_t* result=(const volatile uint32_t*)sRenderBuffers[2].cpu_aperture;
@@ -502,6 +518,9 @@ static bool NativeRenderRequest(void* data,uint64_t deadline)
   if(!matched || !NativeRenderSafe(data))return false;
  }else memcpy(sRenderSavedDefault,(void*)sRenderBuffers[3].cpu_aperture,sizeof(sRenderSavedDefault));
  sRenderCursor=sRenderCsb.LastReport().tail;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming.verified=system_time();
+#endif
  r.stage=11;return true;
 }
 // Initial admission diagnostic only, never used by hot PCI/power accessors.
@@ -717,6 +736,9 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  if(publicVertexDraw)
   memcpy(sRenderExpectedVertices,expectedVertices,sizeof(expectedVertices));
  sRenderReport=output;auto& r=sRenderReport;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming={};sRenderTiming.accepted=system_time();
+#endif
  if(mode!=NATIVE_GPU_RENDER_PROBE){
   ++sNativeSequence;if(sNativeSequence==NativeGpu::kPoison)++sNativeSequence;
   r.sequence=sNativeSequence;
@@ -768,7 +790,13 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
  IntelN100Forcewake::IO io={&h,HandshakeTime,HandshakeRead,HandshakeWrite,
   HandshakePciStable,HandshakeLive,HandshakePause};
  r.stage=2;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming.forcewakeStart=system_time();
+#endif
  r.bootstrap=sForcewake.RunWithInspection(io,InspectInventory)==IntelN100Forcewake::Ok?B_OK:B_ERROR;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming.forcewakeDone=system_time();
+#endif
  GroupContext context={&h,{},0,0,{}};
  if(r.bootstrap==B_OK && NativeOwnerPower(context)
   && intel_n100_reset_domains(original.identity,uint8(original.classRevision),mediaFuse,context.plan)){
@@ -776,6 +804,9 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   r.stage=3;
   r.group=sGroup.Run(group,original.identity,uint8(original.classRevision),mediaFuse,mode==NATIVE_GPU_RENDER_PROBE?NativeRenderProbe:NativeRenderRequest)
    ==IntelN100ForcewakeGroup::Ok?B_OK:B_ERROR;
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+  sRenderTiming.groupDone=system_time();
+#endif
   retired=r.group==B_OK && r.stage==(mode==NATIVE_GPU_RENDER_PROBE?5U:11U)
    && NativeOwnerPower(context) && NativeDmaStillDirect();
  }
@@ -803,6 +834,22 @@ static status_t RunNativeRenderOwned(native_gpu_render_command* command,
   for(unsigned p=1;p<NativeGpu::RcsDrawImage64::TargetPages;p++)
    memcpy(largeExtra+(p-1)*4096,sRenderDirectTarget?sRenderTargetPages[p]:
     sRenderData[NativeGpu::RcsDrawImage64::Target+p],4096);
+#ifdef NATIVE_RENDER_PROFILE_TIMING
+ sRenderTiming.finished=system_time();
+ if(version==15 && mode==NATIVE_GPU_RENDER_DRAW && r.status==B_OK)
+  dprintf("native_rcs_timing seq=%u accepted_us=%lld forcewake_us=%lld "
+   "group_before_work_us=%lld work_to_publish_us=%lld csb_wait_us=%lld "
+   "verify_us=%lld group_after_work_us=%lld finish_us=%lld total_us=%lld\n",
+   r.sequence,(long long)(sRenderTiming.forcewakeStart-sRenderTiming.accepted),
+   (long long)(sRenderTiming.forcewakeDone-sRenderTiming.forcewakeStart),
+   (long long)(sRenderTiming.workStart-sRenderTiming.forcewakeDone),
+   (long long)(sRenderTiming.published-sRenderTiming.workStart),
+   (long long)(sRenderTiming.csbDone-sRenderTiming.published),
+   (long long)(sRenderTiming.verified-sRenderTiming.csbDone),
+   (long long)(sRenderTiming.groupDone-sRenderTiming.verified),
+   (long long)(sRenderTiming.finished-sRenderTiming.groupDone),
+   (long long)(sRenderTiming.finished-sRenderTiming.accepted));
+#endif
  mutex_unlock(&sLock);return r.status;
 }
 static status_t RunNativeRender(native_gpu_render_command* command)

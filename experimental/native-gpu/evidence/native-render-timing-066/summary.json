@@ -1,0 +1,161 @@
+{
+  "draws": 32,
+  "cases": [
+    {
+      "size": 32,
+      "draws": 16,
+      "measurements_us": {
+        "accepted_us": {
+          "median": 10.0,
+          "p95": 14,
+          "min": 9,
+          "max": 14
+        },
+        "forcewake_us": {
+          "median": 333.0,
+          "p95": 338,
+          "min": 232,
+          "max": 439
+        },
+        "group_before_work_us": {
+          "median": 458.5,
+          "p95": 466,
+          "min": 354,
+          "max": 467
+        },
+        "work_to_publish_us": {
+          "median": 2405.0,
+          "p95": 2459,
+          "min": 2340,
+          "max": 2477
+        },
+        "csb_wait_us": {
+          "median": 1117.0,
+          "p95": 1136,
+          "min": 1109,
+          "max": 1146
+        },
+        "verify_us": {
+          "median": 726.0,
+          "p95": 733,
+          "min": 723,
+          "max": 779
+        },
+        "group_after_work_us": {
+          "median": 199.5,
+          "p95": 205,
+          "min": 198,
+          "max": 208
+        },
+        "finish_us": {
+          "median": 4.5,
+          "p95": 5,
+          "min": 4,
+          "max": 5
+        },
+        "total_us": {
+          "median": 5265.0,
+          "p95": 5317,
+          "min": 5032,
+          "max": 5517
+        },
+        "ioctl_remainder_us": {
+          "median": 780.0,
+          "p95": 814,
+          "min": 753,
+          "max": 850
+        },
+        "render_ioctl_us": {
+          "median": 6033.0,
+          "p95": 6103,
+          "min": 5788,
+          "max": 6277
+        },
+        "submit_us": {
+          "median": 6034.0,
+          "p95": 6105,
+          "min": 5790,
+          "max": 6279
+        }
+      }
+    },
+    {
+      "size": 64,
+      "draws": 16,
+      "measurements_us": {
+        "accepted_us": {
+          "median": 10.0,
+          "p95": 11,
+          "min": 9,
+          "max": 11
+        },
+        "forcewake_us": {
+          "median": 335.0,
+          "p95": 336,
+          "min": 332,
+          "max": 339
+        },
+        "group_before_work_us": {
+          "median": 462.5,
+          "p95": 465,
+          "min": 454,
+          "max": 466
+        },
+        "work_to_publish_us": {
+          "median": 2446.5,
+          "p95": 2465,
+          "min": 2328,
+          "max": 2501
+        },
+        "csb_wait_us": {
+          "median": 1122.5,
+          "p95": 1143,
+          "min": 1109,
+          "max": 1145
+        },
+        "verify_us": {
+          "median": 768.0,
+          "p95": 816,
+          "min": 758,
+          "max": 816
+        },
+        "group_after_work_us": {
+          "median": 199.5,
+          "p95": 208,
+          "min": 198,
+          "max": 212
+        },
+        "finish_us": {
+          "median": 5.5,
+          "p95": 6,
+          "min": 5,
+          "max": 6
+        },
+        "total_us": {
+          "median": 5340.0,
+          "p95": 5441,
+          "min": 5213,
+          "max": 5442
+        },
+        "ioctl_remainder_us": {
+          "median": 792.5,
+          "p95": 824,
+          "min": 761,
+          "max": 849
+        },
+        "render_ioctl_us": {
+          "median": 6126.0,
+          "p95": 6253,
+          "min": 5981,
+          "max": 6285
+        },
+        "submit_us": {
+          "median": 6131.0,
+          "p95": 6258,
+          "min": 5986,
+          "max": 6291
+        }
+      }
+    }
+  ]
+}
